@@ -1,0 +1,236 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 10 10 11;
+    --foreground: 255 255 255;
+  }
+
+  * {
+    @apply border-dark-600;
+  }
+
+  body {
+    @apply bg-dark-900 text-white;
+    background-image: 
+      radial-gradient(ellipse 80% 80% at 50% -20%, rgba(0, 212, 255, 0.08), transparent),
+      radial-gradient(ellipse 60% 60% at 100% 100%, rgba(57, 255, 20, 0.04), transparent);
+  }
+
+  ::selection {
+    @apply bg-accent-electric/30 text-white;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-dark-800;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-dark-500 rounded-full;
+    &:hover {
+      @apply bg-dark-600;
+    }
+  }
+}
+
+@layer components {
+  /* Glass morphism effect */
+  .glass {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10;
+  }
+
+  .glass-dark {
+    @apply bg-dark-800/80 backdrop-blur-xl border border-white/5;
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-accent-electric via-primary-400 to-accent-neon bg-clip-text text-transparent;
+    background-size: 200% auto;
+  }
+
+  .gradient-text-gold {
+    @apply bg-gradient-to-r from-accent-gold via-amber-300 to-accent-flame bg-clip-text text-transparent;
+  }
+
+  /* Glow effects */
+  .glow-electric {
+    box-shadow: 0 0 40px rgba(0, 212, 255, 0.3), 0 0 80px rgba(0, 212, 255, 0.1);
+  }
+
+  .glow-neon {
+    box-shadow: 0 0 40px rgba(57, 255, 20, 0.3), 0 0 80px rgba(57, 255, 20, 0.1);
+  }
+
+  .glow-flame {
+    box-shadow: 0 0 40px rgba(255, 107, 53, 0.3), 0 0 80px rgba(255, 107, 53, 0.1);
+  }
+
+  /* Button styles */
+  .btn-primary {
+    @apply relative overflow-hidden px-8 py-4 rounded-xl font-display font-semibold text-lg;
+    @apply bg-gradient-to-r from-accent-electric to-primary-500;
+    @apply hover:from-primary-400 hover:to-accent-electric;
+    @apply transition-all duration-300 ease-out;
+    @apply hover:scale-105 hover:shadow-[0_0_30px_rgba(0,212,255,0.4)];
+    @apply active:scale-95;
+  }
+
+  .btn-secondary {
+    @apply relative overflow-hidden px-8 py-4 rounded-xl font-display font-semibold text-lg;
+    @apply bg-transparent border-2 border-white/20;
+    @apply hover:border-accent-electric hover:bg-accent-electric/10;
+    @apply transition-all duration-300 ease-out;
+    @apply hover:scale-105;
+    @apply active:scale-95;
+  }
+
+  .btn-ghost {
+    @apply px-6 py-3 rounded-lg font-medium;
+    @apply hover:bg-white/5;
+    @apply transition-all duration-200;
+  }
+
+  /* Card styles */
+  .card {
+    @apply relative overflow-hidden rounded-2xl;
+    @apply bg-gradient-to-br from-dark-700/80 to-dark-800/80;
+    @apply border border-white/5;
+    @apply backdrop-blur-sm;
+    @apply transition-all duration-500 ease-out;
+  }
+
+  .card-hover {
+    @apply hover:border-accent-electric/30;
+    @apply hover:shadow-[0_0_40px_rgba(0,212,255,0.1)];
+    @apply hover:-translate-y-2;
+  }
+
+  /* Badge styles */
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
+    @apply bg-white/10 text-white/80;
+  }
+
+  .badge-electric {
+    @apply bg-accent-electric/20 text-accent-electric border border-accent-electric/30;
+  }
+
+  .badge-neon {
+    @apply bg-accent-neon/20 text-accent-neon border border-accent-neon/30;
+  }
+
+  .badge-flame {
+    @apply bg-accent-flame/20 text-accent-flame border border-accent-flame/30;
+  }
+
+  /* Input styles */
+  .input {
+    @apply w-full px-4 py-3 rounded-xl;
+    @apply bg-dark-700/50 border border-white/10;
+    @apply text-white placeholder:text-white/40;
+    @apply focus:outline-none focus:border-accent-electric/50 focus:ring-2 focus:ring-accent-electric/20;
+    @apply transition-all duration-200;
+  }
+
+  /* Animated background grid */
+  .bg-grid {
+    background-image: 
+      linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  /* Hero gradient blob */
+  .hero-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.4;
+    animation: float 8s ease-in-out infinite;
+  }
+
+  /* Shimmer effect for loading */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.05) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+}
+
+@layer utilities {
+  /* Text shadow utilities */
+  .text-shadow-glow {
+    text-shadow: 0 0 20px currentColor;
+  }
+
+  /* Gradient border */
+  .gradient-border {
+    position: relative;
+  }
+
+  .gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 1px;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.5), rgba(57, 255, 20, 0.5));
+    -webkit-mask: 
+      linear-gradient(#fff 0 0) content-box, 
+      linear-gradient(#fff 0 0);
+    mask: 
+      linear-gradient(#fff 0 0) content-box, 
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+
+  /* Noise texture overlay */
+  .noise {
+    position: relative;
+  }
+
+  .noise::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    opacity: 0.02;
+    pointer-events: none;
+    mix-blend-mode: overlay;
+  }
+
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Perspective for 3D effects */
+  .perspective {
+    perspective: 1000px;
+  }
+
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+}
+
