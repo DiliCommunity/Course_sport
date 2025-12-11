@@ -1,9 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
 import { Mail, Lock, Eye, EyeOff, Zap, Send, ArrowRight, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useTelegram } from '@/components/providers/TelegramProvider'
