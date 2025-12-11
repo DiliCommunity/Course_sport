@@ -45,8 +45,6 @@ export function CourseCard({
   category,
   index = 0,
 }: CourseCardProps) {
-  const discount = originalPrice ? Math.round((1 - price / originalPrice) * 100) : 0
-
   return (
     <motion.article
       initial={{ opacity: 0, y: 30 }}
@@ -83,14 +81,12 @@ export function CourseCard({
               <span className="badge glass">{category}</span>
             </div>
 
-            {/* Discount badge */}
-            {discount > 0 && (
-              <div className="absolute top-4 right-4">
-                <span className="badge bg-accent-flame/90 text-white border-none">
-                  -{discount}%
-                </span>
-              </div>
-            )}
+            {/* Free preview badge */}
+            <div className="absolute top-4 right-4">
+              <span className="badge bg-accent-neon/90 text-dark-900 border-none font-semibold">
+                🎁 15% бесплатно
+              </span>
+            </div>
           </div>
 
           {/* Content */}

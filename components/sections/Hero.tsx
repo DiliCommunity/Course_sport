@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { Play, ArrowRight, Sparkles, Users, Star, Trophy } from 'lucide-react'
+import { Play, ArrowRight, Users, Star, Trophy } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 
 const stats = [
@@ -59,10 +59,10 @@ export function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-8"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent-neon/20 border border-accent-neon/30 mb-8"
           >
-            <Sparkles className="w-4 h-4 text-accent-gold" />
-            <span className="text-sm text-white/80">Новые курсы каждую неделю</span>
+            <span className="text-lg">🎁</span>
+            <span className="text-sm text-accent-neon font-medium">15% каждого курса бесплатно!</span>
           </motion.div>
 
           {/* Main Heading */}
