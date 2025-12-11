@@ -71,7 +71,7 @@ export async function signInWithTelegram(telegramUser: {
 
   if (existingUser) {
     // Пользователь уже есть, обновляем данные
-    userId = existingUser.id
+    userId = (existingUser as any).id
     await supabase
       .from('users')
       .update({
@@ -94,7 +94,7 @@ export async function signInWithTelegram(telegramUser: {
       .single()
 
     if (insertError) throw insertError
-    userId = newUser.id
+    userId = (newUser as any).id
   }
 
   // Создаём сессию через Supabase Auth (используем magic link для Telegram)
