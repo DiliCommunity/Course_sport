@@ -2,17 +2,29 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
-  // Получаем response
   const response = NextResponse.next()
+  const pathname = request.nextUrl.pathname
 
-  // Добавляем заголовки безопасности
-  response.headers.set('X-Frame-Options', 'SAMEORIGIN')
+  // Пропускаем статические файлы и API routes
+  if (
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/api') ||
+    pathname.includes('.') ||
+    pathname === '/favicon.ico'
+  ) {
+    return response
+  }
+
+  // Добавляем заголовки безопасности только для страниц
   response.headers.set('X-Content-Type-Options', 'nosniff')
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
   
   // Разрешаем встраивание в Telegram
-  if (request.headers.get('user-agent')?.includes('Telegram')) {
-    response.headers.delete('X-Frame-Options')
+  const userAgent = request.headers.get('user-agent') || ''
+  if (userAgent.includes('Telegram')) {
+    // Telegram может встраивать
+  } else {
+    response.headers.set('X-Frame-Options', 'SAMEORIGIN')
   }
 
   return response
@@ -21,13 +33,12 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
+     * Match only page routes, exclude:
+     * - api routes
+     * - _next routes
+     * - static files
      */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/((?!_next/static|_next/image|api|favicon.ico|.*\\..*).*)',
   ],
 }
 
