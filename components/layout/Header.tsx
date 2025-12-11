@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, X, Zap, User, ChevronDown } from 'lucide-react'
+import { Menu, X, Zap, User, ChevronDown, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useAuth } from '@/components/providers/AuthProvider'
+import { useTelegram } from '@/components/providers/TelegramProvider'
 
 const navLinks = [
   { href: '/courses', label: 'Курсы' },
@@ -16,6 +18,13 @@ const navLinks = [
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+  const { user, signOut } = useAuth()
+  const { user: telegramUser, isTelegramApp } = useTelegram()
+  
+  // Проверяем авторизацию через Telegram или Supabase
+  const isAuthenticated = user || (isTelegramApp && telegramUser)
+  const displayName = user?.email || telegramUser?.first_name || 'Пользователь'
 
   useEffect(() => {
     const handleScroll = () => {
@@ -24,6 +33,21 @@ export function Header() {
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  // Закрываем меню при клике вне его
+  useEffect(() => {
+    if (!isUserMenuOpen) return
+    
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      if (!target.closest('.user-menu-container')) {
+        setIsUserMenuOpen(false)
+      }
+    }
+    
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [isUserMenuOpen])
 
   return (
     <header
@@ -69,22 +93,72 @@ export function Header() {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center gap-4">
-            <Link
-              href="/login"
-              className="px-4 py-2 text-white/70 hover:text-white font-medium transition-colors"
-            >
-              Войти
-            </Link>
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Link
-                href="/courses"
-                className="relative inline-flex items-center gap-2 px-6 py-2.5 rounded-xl font-display font-semibold text-dark-900 bg-gradient-to-r from-accent-electric to-accent-neon overflow-hidden group"
-              >
-                <span className="relative z-10">Начать</span>
-                <ChevronDown className="w-4 h-4 -rotate-90 relative z-10 transition-transform group-hover:translate-x-1" />
-                <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity" />
-              </Link>
-            </motion.div>
+            {isAuthenticated ? (
+              <div className="relative user-menu-container">
+                <motion.button
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-white/5 transition-colors"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <div className="w-8 h-8 rounded-full bg-accent-electric/20 flex items-center justify-center">
+                    <User className="w-4 h-4 text-accent-electric" />
+                  </div>
+                  <span className="text-white/70 text-sm font-medium">{displayName}</span>
+                  <ChevronDown className={`w-4 h-4 text-white/40 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+                </motion.button>
+
+                <AnimatePresence>
+                  {isUserMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="absolute right-0 top-full mt-2 w-48 rounded-xl glass p-2"
+                    >
+                      <Link
+                        href="/courses"
+                        className="block px-4 py-2 rounded-lg hover:bg-white/5 transition-colors text-sm"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        Мои курсы
+                      </Link>
+                      {user && (
+                        <button
+                          onClick={async () => {
+                            await signOut()
+                            setIsUserMenuOpen(false)
+                          }}
+                          className="w-full text-left px-4 py-2 rounded-lg hover:bg-white/5 transition-colors text-sm text-red-400 flex items-center gap-2"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          Выйти
+                        </button>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="px-4 py-2 text-white/70 hover:text-white font-medium transition-colors"
+                >
+                  Войти
+                </Link>
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                  <Link
+                    href="/courses"
+                    className="relative inline-flex items-center gap-2 px-6 py-2.5 rounded-xl font-display font-semibold text-dark-900 bg-gradient-to-r from-accent-electric to-accent-neon overflow-hidden group"
+                  >
+                    <span className="relative z-10">Начать</span>
+                    <ChevronDown className="w-4 h-4 -rotate-90 relative z-10 transition-transform group-hover:translate-x-1" />
+                    <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity" />
+                  </Link>
+                </motion.div>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -130,21 +204,58 @@ export function Header() {
                 transition={{ delay: 0.4 }}
                 className="pt-4 border-t border-white/10 space-y-3"
               >
-                <Link
-                  href="/login"
-                  className="flex items-center gap-2 py-3 text-white/70 hover:text-white transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <User className="w-5 h-5" />
-                  Войти
-                </Link>
-                <Link
-                  href="/courses"
-                  className="block w-full py-3 px-4 rounded-xl font-semibold text-center text-dark-900 bg-gradient-to-r from-accent-electric to-accent-neon"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Начать обучение
-                </Link>
+                {isAuthenticated ? (
+                  <>
+                    <div className="flex items-center gap-3 px-2 py-2">
+                      <div className="w-10 h-10 rounded-full bg-accent-electric/20 flex items-center justify-center">
+                        <User className="w-5 h-5 text-accent-electric" />
+                      </div>
+                      <div>
+                        <div className="text-white font-medium">{displayName}</div>
+                        <div className="text-white/50 text-sm">
+                          {isTelegramApp ? 'Telegram' : 'Email'}
+                        </div>
+                      </div>
+                    </div>
+                    <Link
+                      href="/courses"
+                      className="block py-3 px-4 rounded-lg hover:bg-white/5 transition-colors"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Мои курсы
+                    </Link>
+                    {user && (
+                      <button
+                        onClick={async () => {
+                          await signOut()
+                          setIsMobileMenuOpen(false)
+                        }}
+                        className="w-full text-left py-3 px-4 rounded-lg hover:bg-white/5 transition-colors text-red-400 flex items-center gap-2"
+                      >
+                        <LogOut className="w-5 h-5" />
+                        Выйти
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/login"
+                      className="flex items-center gap-2 py-3 text-white/70 hover:text-white transition-colors"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <User className="w-5 h-5" />
+                      Войти
+                    </Link>
+                    <Link
+                      href="/courses"
+                      className="block w-full py-3 px-4 rounded-xl font-semibold text-center text-dark-900 bg-gradient-to-r from-accent-electric to-accent-neon"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Начать обучение
+                    </Link>
+                  </>
+                )}
               </motion.div>
             </div>
           </motion.div>

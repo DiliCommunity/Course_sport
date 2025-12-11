@@ -3,22 +3,84 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { Mail, Lock, Eye, EyeOff, Zap, Send, ArrowRight } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Mail, Lock, Eye, EyeOff, Zap, Send, ArrowRight, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useTelegram } from '@/components/providers/TelegramProvider'
+import { signIn } from '@/lib/auth'
+import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const { isTelegramApp, user } = useTelegram()
+  const [error, setError] = useState<string | null>(null)
+  const { isTelegramApp, user, isReady } = useTelegram()
+  const router = useRouter()
+
+  // Автоматическая регистрация через Telegram
+  useEffect(() => {
+    if (isTelegramApp && user && isReady) {
+      handleTelegramAuth()
+    }
+  }, [isTelegramApp, user, isReady])
+
+  const handleTelegramAuth = async () => {
+    if (!user) return
+    
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const response = await fetch('/api/auth/telegram', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          telegramUser: {
+            id: user.id,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            username: user.username,
+            photo_url: user.photo_url,
+          },
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Ошибка регистрации')
+      }
+
+      // Сохраняем данные в localStorage для использования в приложении
+      localStorage.setItem('telegram_user_id', data.userId)
+      localStorage.setItem('telegram_id', data.telegramId)
+
+      // Перенаправляем на главную
+      router.push('/courses')
+      router.refresh()
+    } catch (err: any) {
+      setError(err.message || 'Ошибка авторизации через Telegram')
+      setIsLoading(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError(null)
     setIsLoading(true)
-    // Здесь будет логика авторизации через Supabase
-    setTimeout(() => setIsLoading(false), 2000)
+    
+    try {
+      await signIn(email, password)
+      router.push('/courses')
+      router.refresh()
+    } catch (err: any) {
+      setError(err.message || 'Ошибка входа. Проверьте данные.')
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -62,20 +124,43 @@ export default function LoginPage() {
           {/* Telegram Login (if in Telegram) */}
           {isTelegramApp && user ? (
             <div className="space-y-6">
-              <div className="p-4 rounded-xl bg-accent-electric/10 border border-accent-electric/20">
-                <div className="flex items-center gap-3 mb-2">
-                  <Send className="w-5 h-5 text-accent-electric" />
-                  <span className="font-semibold text-white">Telegram аккаунт</span>
+              {isLoading ? (
+                <div className="text-center py-8">
+                  <div className="inline-block w-8 h-8 border-4 border-accent-electric border-t-transparent rounded-full animate-spin mb-4" />
+                  <p className="text-white/60">Регистрация через Telegram...</p>
                 </div>
-                <p className="text-white/60 text-sm">
-                  Вы вошли как {user.first_name} {user.last_name}
-                </p>
-              </div>
-              <Link href="/courses" className="block">
-                <Button className="w-full" size="lg" rightIcon={<ArrowRight className="w-5 h-5" />}>
-                  Продолжить
-                </Button>
-              </Link>
+              ) : (
+                <>
+                  <div className="p-4 rounded-xl bg-accent-electric/10 border border-accent-electric/20">
+                    <div className="flex items-center gap-3 mb-2">
+                      <Send className="w-5 h-5 text-accent-electric" />
+                      <span className="font-semibold text-white">Telegram аккаунт</span>
+                    </div>
+                    <p className="text-white/60 text-sm">
+                      Вы вошли как {user.first_name} {user.last_name || ''}
+                    </p>
+                  </div>
+                  {error && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="p-4 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center gap-3"
+                    >
+                      <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
+                      <p className="text-sm text-red-400">{error}</p>
+                    </motion.div>
+                  )}
+                  <Button 
+                    className="w-full" 
+                    size="lg" 
+                    onClick={handleTelegramAuth}
+                    isLoading={isLoading}
+                    rightIcon={<ArrowRight className="w-5 h-5" />}
+                  >
+                    Продолжить
+                  </Button>
+                </>
+              )}
             </div>
           ) : (
             <>
@@ -98,6 +183,18 @@ export default function LoginPage() {
                 <span className="text-white/40 text-sm">или</span>
                 <div className="flex-1 h-px bg-white/10" />
               </div>
+
+              {/* Error Message */}
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-4 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center gap-3"
+                >
+                  <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
+                  <p className="text-sm text-red-400">{error}</p>
+                </motion.div>
+              )}
 
               {/* Login Form */}
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -176,9 +273,9 @@ export default function LoginPage() {
           {/* Register Link */}
           <p className="text-center mt-6 text-white/60">
             Нет аккаунта?{' '}
-            <a href="#" className="text-accent-electric hover:underline font-medium">
+            <Link href="/register" className="text-accent-electric hover:underline font-medium">
               Зарегистрироваться
-            </a>
+            </Link>
           </p>
         </div>
       </motion.div>
