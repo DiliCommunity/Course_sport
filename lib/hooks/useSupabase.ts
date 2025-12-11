@@ -206,16 +206,16 @@ export function useUser(telegramId?: string) {
         .upsert({
           telegram_id: userData.telegramId,
           name: userData.name,
-          telegram_username: userData.username,
-        }, {
+          telegram_username: userData.username || null,
+        } as never, {
           onConflict: 'telegram_id'
         })
         .select()
         .single()
 
       if (upsertError) throw upsertError
-      setUser(data)
-      return data
+      setUser(data as User)
+      return data as User
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Unknown error'))
       throw err
