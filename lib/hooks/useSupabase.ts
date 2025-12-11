@@ -264,13 +264,13 @@ export function useEnrollments(userId?: string) {
     try {
       const { data, error: insertError } = await supabase
         .from('enrollments')
-        .insert({ user_id: userId, course_id: courseId })
+        .insert({ user_id: userId, course_id: courseId } as never)
         .select()
         .single()
 
       if (insertError) throw insertError
-      setEnrollments(prev => [...prev, data])
-      return data
+      setEnrollments(prev => [...prev, data as Enrollment])
+      return data as Enrollment
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Unknown error'))
       throw err
