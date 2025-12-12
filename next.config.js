@@ -13,6 +13,15 @@ const nextConfig = {
       bodySizeLimit: '2mb',
     },
   },
+  // Отдаем статические файлы из public
+  async rewrites() {
+    return [
+      {
+        source: '/',
+        destination: '/index.html',
+      },
+    ]
+  },
 }
 
 module.exports = nextConfig

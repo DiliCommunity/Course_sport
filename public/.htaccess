@@ -1,0 +1,9 @@
+# Enable directory browsing
+Options -Indexes
+
+# Default file
+DirectoryIndex index.html
+
+# Error pages
+ErrorDocument 404 /index.html
+
