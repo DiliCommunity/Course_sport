@@ -1,5 +1,7 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Search, SlidersHorizontal, X, ChevronDown } from 'lucide-react'

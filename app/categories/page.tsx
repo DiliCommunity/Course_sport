@@ -1,5 +1,7 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { motion } from 'framer-motion'
 import { Grid3X3 } from 'lucide-react'
 import { CategoryCard } from '@/components/ui/CategoryCard'

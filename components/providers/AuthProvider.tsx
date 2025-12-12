@@ -29,9 +29,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
-  const supabase = createClient()
 
   useEffect(() => {
+    // Проверяем наличие переменных окружения
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      setLoading(false)
+      return
+    }
+
+    const supabase = createClient()
+
     // Получаем текущего пользователя
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user)
@@ -47,9 +54,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     })
 
     return () => subscription.unsubscribe()
-  }, [supabase])
+  }, [])
 
   const signOut = async () => {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      return
+    }
+    const supabase = createClient()
     await supabase.auth.signOut()
     setUser(null)
     router.push('/login')

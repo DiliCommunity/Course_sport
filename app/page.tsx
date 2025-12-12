@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { Hero } from '@/components/sections/Hero'
 import { FeaturedCourses } from '@/components/sections/FeaturedCourses'
 import { Categories } from '@/components/sections/Categories'
@@ -19,4 +21,3 @@ export default function HomePage() {
     </>
   )
 }
-
