@@ -4,8 +4,15 @@ import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Course, Category, Instructor, Lesson, User, Enrollment } from '@/types/database'
 
-// Supabase client singleton
-const supabase = createClient()
+// Функция для получения Supabase клиента с проверкой
+function getSupabaseClient() {
+  try {
+    return createClient()
+  } catch (error) {
+    console.error('Failed to create Supabase client:', error)
+    return null
+  }
+}
 
 // Courses hooks
 export function useCourses(options?: {
@@ -20,6 +27,12 @@ export function useCourses(options?: {
 
   useEffect(() => {
     async function fetchCourses() {
+      const supabase = getSupabaseClient()
+      if (!supabase) {
+        setIsLoading(false)
+        return
+      }
+
       try {
         setIsLoading(true)
         let query = supabase
@@ -68,6 +81,12 @@ export function useCourse(id: string) {
 
   useEffect(() => {
     async function fetchCourse() {
+      const supabase = getSupabaseClient()
+      if (!supabase) {
+        setIsLoading(false)
+        return
+      }
+
       try {
         setIsLoading(true)
         const { data, error: queryError } = await supabase
@@ -100,6 +119,12 @@ export function useCategories() {
 
   useEffect(() => {
     async function fetchCategories() {
+      const supabase = getSupabaseClient()
+      if (!supabase) {
+        setIsLoading(false)
+        return
+      }
+
       try {
         setIsLoading(true)
         const { data, error: queryError } = await supabase
@@ -130,6 +155,12 @@ export function useInstructors(limit?: number) {
 
   useEffect(() => {
     async function fetchInstructors() {
+      const supabase = getSupabaseClient()
+      if (!supabase) {
+        setIsLoading(false)
+        return
+      }
+
       try {
         setIsLoading(true)
         let query = supabase
@@ -166,6 +197,12 @@ export function useLessons(courseId: string) {
 
   useEffect(() => {
     async function fetchLessons() {
+      const supabase = getSupabaseClient()
+      if (!supabase) {
+        setIsLoading(false)
+        return
+      }
+
       try {
         setIsLoading(true)
         const { data, error: queryError } = await supabase
@@ -200,6 +237,11 @@ export function useUser(telegramId?: string) {
     name: string
     username?: string
   }) => {
+    const supabase = getSupabaseClient()
+    if (!supabase) {
+      throw new Error('Supabase client not available')
+    }
+
     try {
       const { data, error: upsertError } = await supabase
         .from('users')
@@ -225,6 +267,12 @@ export function useUser(telegramId?: string) {
   useEffect(() => {
     async function fetchUser() {
       if (!telegramId) {
+        setIsLoading(false)
+        return
+      }
+
+      const supabase = getSupabaseClient()
+      if (!supabase) {
         setIsLoading(false)
         return
       }
@@ -261,6 +309,11 @@ export function useEnrollments(userId?: string) {
   const enroll = useCallback(async (courseId: string) => {
     if (!userId) throw new Error('User not authenticated')
 
+    const supabase = getSupabaseClient()
+    if (!supabase) {
+      throw new Error('Supabase client not available')
+    }
+
     try {
       const { data, error: insertError } = await supabase
         .from('enrollments')
@@ -280,6 +333,12 @@ export function useEnrollments(userId?: string) {
   useEffect(() => {
     async function fetchEnrollments() {
       if (!userId) {
+        setIsLoading(false)
+        return
+      }
+
+      const supabase = getSupabaseClient()
+      if (!supabase) {
         setIsLoading(false)
         return
       }

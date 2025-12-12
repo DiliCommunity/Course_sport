@@ -19,6 +19,7 @@ export function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+  
   const { user, signOut } = useAuth()
   const { user: telegramUser, isTelegramApp } = useTelegram()
   
