@@ -28,12 +28,19 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    background: linear-gradient(135deg, #0f0f12 0%, #1a1a20 50%, #0f0f12 100%);
+    background: 
+        linear-gradient(135deg, #0a0a0f 0%, #151520 25%, #1a1a2e 50%, #151520 75%, #0a0a0f 100%),
+        radial-gradient(ellipse 100% 80% at 50% 0%, rgba(0, 217, 255, 0.25), transparent),
+        radial-gradient(ellipse 80% 60% at 100% 100%, rgba(255, 215, 0, 0.2), transparent),
+        radial-gradient(ellipse 70% 50% at 0% 100%, rgba(0, 102, 255, 0.2), transparent),
+        radial-gradient(ellipse 60% 40% at 50% 50%, rgba(0, 255, 170, 0.15), transparent);
     background-attachment: fixed;
+    background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
     color: var(--text-white);
     line-height: 1.6;
     overflow-x: hidden;
     position: relative;
+    min-height: 100vh;
 }
 
 body::before {
@@ -44,11 +51,39 @@ body::before {
     right: 0;
     bottom: 0;
     background: 
-        radial-gradient(ellipse 80% 50% at 50% 0%, rgba(0, 217, 255, 0.15), transparent),
-        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(255, 215, 0, 0.1), transparent),
-        radial-gradient(ellipse 50% 30% at 0% 100%, rgba(0, 102, 255, 0.1), transparent);
+        radial-gradient(circle at 20% 30%, rgba(0, 217, 255, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(255, 215, 0, 0.25) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(0, 102, 255, 0.2) 0%, transparent 50%),
+        radial-gradient(circle at 10% 80%, rgba(0, 255, 170, 0.2) 0%, transparent 50%);
     pointer-events: none;
     z-index: 0;
+    animation: background-pulse 8s ease-in-out infinite;
+}
+
+body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255, 255, 255, 0.02) 2px, rgba(255, 255, 255, 0.02) 4px),
+        repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255, 255, 255, 0.02) 2px, rgba(255, 255, 255, 0.02) 4px);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.3;
+}
+
+@keyframes background-pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.05);
+    }
 }
 
 .container {
@@ -56,12 +91,17 @@ body::before {
     margin: 0 auto;
     padding: 0 20px;
     position: relative;
-    z-index: 1;
+    z-index: 2;
 }
 
 section {
     position: relative;
     z-index: 1;
+}
+
+section > * {
+    position: relative;
+    z-index: 2;
 }
 
 /* Header */
@@ -211,31 +251,81 @@ section {
     overflow: hidden;
 }
 
+.hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 30% 20%, rgba(0, 217, 255, 0.4) 0%, transparent 40%),
+        radial-gradient(circle at 70% 80%, rgba(255, 215, 0, 0.3) 0%, transparent 40%);
+    z-index: 0;
+    animation: hero-glow 6s ease-in-out infinite alternate;
+}
+
+@keyframes hero-glow {
+    0% {
+        opacity: 0.6;
+        filter: blur(60px);
+    }
+    100% {
+        opacity: 1;
+        filter: blur(80px);
+    }
+}
+
 .hero-blob {
     position: absolute;
     border-radius: 50%;
-    filter: blur(100px);
-    opacity: 0.3;
+    filter: blur(120px);
     animation: float 20s ease-in-out infinite;
+    z-index: 0;
 }
 
 .blob-1 {
-    width: 600px;
-    height: 600px;
-    background: radial-gradient(circle, var(--accent-gold), var(--accent-electric));
-    top: -300px;
-    left: -200px;
-    opacity: 0.4;
+    width: 800px;
+    height: 800px;
+    background: radial-gradient(circle, var(--accent-gold), var(--accent-electric), transparent);
+    top: -400px;
+    left: -300px;
+    opacity: 0.6;
+    animation: blob-pulse 8s ease-in-out infinite;
 }
 
 .blob-2 {
-    width: 500px;
-    height: 500px;
-    background: radial-gradient(circle, var(--accent-blue), var(--accent-emerald));
-    bottom: -200px;
-    right: -200px;
+    width: 700px;
+    height: 700px;
+    background: radial-gradient(circle, var(--accent-blue), var(--accent-emerald), transparent);
+    bottom: -300px;
+    right: -300px;
     animation-delay: 2s;
+    opacity: 0.5;
+    animation: blob-pulse 10s ease-in-out infinite;
+}
+
+.blob-3 {
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, var(--accent-electric), var(--accent-gold), transparent);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     opacity: 0.3;
+    animation: blob-pulse 12s ease-in-out infinite;
+    animation-delay: 4s;
+}
+
+@keyframes blob-pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 0.5;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.8;
+    }
 }
 
 @keyframes float {
@@ -246,7 +336,7 @@ section {
 .hero-content {
     text-align: center;
     position: relative;
-    z-index: 1;
+    z-index: 2;
     max-width: 800px;
     margin: 0 auto;
 }
@@ -325,6 +415,20 @@ section {
 .section {
     padding: 100px 0;
     position: relative;
+}
+
+.section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(ellipse at top, rgba(0, 217, 255, 0.1) 0%, transparent 70%),
+        radial-gradient(ellipse at bottom, rgba(255, 215, 0, 0.08) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
 }
 
 .section-header {
