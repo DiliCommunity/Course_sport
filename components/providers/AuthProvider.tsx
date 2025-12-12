@@ -37,23 +37,34 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return
     }
 
-    const supabase = createClient()
+    try {
+      const supabase = createClient()
 
-    // Получаем текущего пользователя
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user)
+      // Получаем текущего пользователя
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        setUser(user)
+        setLoading(false)
+      }).catch(() => {
+        setLoading(false)
+      })
+
+      // Слушаем изменения авторизации
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange((_event, session) => {
+        setUser(session?.user ?? null)
+        setLoading(false)
+      })
+
+      return () => {
+        if (subscription) {
+          subscription.unsubscribe()
+        }
+      }
+    } catch (error) {
+      console.error('AuthProvider error:', error)
       setLoading(false)
-    })
-
-    // Слушаем изменения авторизации
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
-
-    return () => subscription.unsubscribe()
+    }
   }, [])
 
   const signOut = async () => {

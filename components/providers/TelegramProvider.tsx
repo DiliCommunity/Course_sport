@@ -113,27 +113,48 @@ export function TelegramProvider({ children }: TelegramProviderProps) {
   const [isReady, setIsReady] = useState(false)
 
   useEffect(() => {
-    const script = document.createElement('script')
-    script.src = 'https://telegram.org/js/telegram-web-app.js'
-    script.async = true
-    script.onload = () => {
-      const tg = window.Telegram?.WebApp
-      if (tg) {
-        tg.ready()
-        tg.expand()
-        tg.setHeaderColor('#0a0a0b')
-        tg.setBackgroundColor('#0a0a0b')
-        setWebApp(tg)
-      }
+    // Проверяем, что мы в браузере
+    if (typeof window === 'undefined') {
       setIsReady(true)
+      return
     }
-    script.onerror = () => {
-      setIsReady(true)
-    }
-    document.head.appendChild(script)
 
-    return () => {
-      document.head.removeChild(script)
+    try {
+      const script = document.createElement('script')
+      script.src = 'https://telegram.org/js/telegram-web-app.js'
+      script.async = true
+      script.onload = () => {
+        try {
+          const tg = window.Telegram?.WebApp
+          if (tg) {
+            tg.ready()
+            tg.expand()
+            tg.setHeaderColor('#0a0a0b')
+            tg.setBackgroundColor('#0a0a0b')
+            setWebApp(tg)
+          }
+        } catch (error) {
+          console.error('Telegram WebApp error:', error)
+        }
+        setIsReady(true)
+      }
+      script.onerror = () => {
+        setIsReady(true)
+      }
+      document.head.appendChild(script)
+
+      return () => {
+        try {
+          if (document.head.contains(script)) {
+            document.head.removeChild(script)
+          }
+        } catch (error) {
+          // Игнорируем ошибки при удалении
+        }
+      }
+    } catch (error) {
+      console.error('TelegramProvider error:', error)
+      setIsReady(true)
     }
   }, [])
 

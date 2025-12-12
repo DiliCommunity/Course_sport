@@ -4,6 +4,12 @@ import { createClient } from '@supabase/supabase-js'
 // Telegram Webhook для обработки сообщений от бота
 export async function POST(request: NextRequest) {
   try {
+    // Проверка токена бота (для будущего использования)
+    const botToken = process.env.TELEGRAM_BOT_TOKEN
+    if (!botToken) {
+      console.warn('TELEGRAM_BOT_TOKEN not configured - webhook will work but bot features may be limited')
+    }
+
     const body = await request.json()
     
     // Обработка команды /start

@@ -45,11 +45,19 @@ cp env.local.example .env.local
 Отредактируйте `.env.local` и добавьте свои ключи:
 
 ```env
+# Supabase
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Telegram Bot
+TELEGRAM_BOT_TOKEN=your_telegram_bot_token_from_botfather
 NEXT_PUBLIC_TELEGRAM_BOT_USERNAME=your_bot_username
+
+# App URL (для локальной разработки используй localhost, для продакшена - Vercel URL)
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
+
+**⚠️ ВАЖНО для продакшена:** После деплоя на Vercel обнови `NEXT_PUBLIC_APP_URL` на реальный URL!
 
 4. **Настройте базу данных:**
 
