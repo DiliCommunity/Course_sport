@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
 
     if (existingUser) {
       // Обновляем данные существующего пользователя
-      userId = existingUser.id
+      userId = (existingUser as any).id
       await supabase
         .from('users')
         .update({
@@ -60,13 +60,13 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      userId = newUser.id
+      userId = (newUser as any).id
     }
 
     return NextResponse.json({ 
       success: true, 
-      userId,
-      telegramId 
+      userId: userId,
+      telegramId: telegramId
     })
   } catch (error: any) {
     console.error('Telegram auth error:', error)
