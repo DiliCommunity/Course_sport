@@ -177,88 +177,97 @@ export function Header() {
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-dark-800/95 backdrop-blur-xl border-b border-white/5 overflow-hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 top-20 bg-dark-900/98 backdrop-blur-2xl z-40 md:hidden"
+            onClick={() => setIsMobileMenuOpen(false)}
           >
-            <div className="container mx-auto px-4 py-6 space-y-4">
-              {navLinks.map((link, index) => (
-                <motion.div
-                  key={link.href}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <Link
-                    href={link.href}
-                    className="block py-3 text-lg font-medium text-white/70 hover:text-white transition-colors"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    {link.label}
-                  </Link>
-                </motion.div>
-              ))}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="pt-4 border-t border-white/10 space-y-3"
-              >
-                {isAuthenticated ? (
-                  <>
-                    <div className="flex items-center gap-3 px-2 py-2">
-                      <div className="w-10 h-10 rounded-full bg-accent-teal/20 flex items-center justify-center">
-                        <User className="w-5 h-5 text-accent-teal" />
-                      </div>
-                      <div>
-                        <div className="text-white font-medium">{displayName}</div>
-                        <div className="text-white/50 text-sm">
-                          {isTelegramApp ? 'Telegram' : 'Email'}
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="h-full w-80 bg-dark-800/95 backdrop-blur-xl border-r border-white/5 shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex flex-col h-full">
+                <div className="px-6 py-8 space-y-2">
+                  {navLinks.map((link, index) => (
+                    <motion.div
+                      key={link.href}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                    >
+                      <Link
+                        href={link.href}
+                        className="flex items-center gap-3 px-4 py-3 rounded-xl text-lg font-medium text-white/70 hover:text-white hover:bg-white/5 transition-all duration-200 group"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <span className="w-1 h-6 bg-accent-teal rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                        {link.label}
+                      </Link>
+                    </motion.div>
+                  ))}
+                </div>
+                <div className="mt-auto px-6 py-6 border-t border-white/10 space-y-3">
+                  {isAuthenticated ? (
+                    <>
+                      <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5">
+                        <div className="w-10 h-10 rounded-full bg-accent-teal/20 flex items-center justify-center">
+                          <User className="w-5 h-5 text-accent-teal" />
+                        </div>
+                        <div>
+                          <div className="text-white font-medium">{displayName}</div>
+                          <div className="text-white/50 text-sm">
+                            {isTelegramApp ? 'Telegram' : 'Email'}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <Link
-                      href="/courses"
-                      className="block py-3 px-4 rounded-lg hover:bg-white/5 transition-colors"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      Мои курсы
-                    </Link>
-                    {user && (
-                      <button
-                        onClick={async () => {
-                          await signOut()
-                          setIsMobileMenuOpen(false)
-                        }}
-                        className="w-full text-left py-3 px-4 rounded-lg hover:bg-white/5 transition-colors text-red-400 flex items-center gap-2"
+                      <Link
+                        href="/courses"
+                        className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-colors text-white/70 hover:text-white"
+                        onClick={() => setIsMobileMenuOpen(false)}
                       >
-                        <LogOut className="w-5 h-5" />
-                        Выйти
-                      </button>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <Link
-                      href="/login"
-                      className="flex items-center gap-2 py-3 text-white/70 hover:text-white transition-colors"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <User className="w-5 h-5" />
-                      Войти
-                    </Link>
-                    <Link
-                      href="/courses"
-                      className="block w-full py-3 px-4 rounded-xl font-semibold text-center text-dark-900 bg-gradient-to-r from-accent-teal to-accent-mint"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      Начать обучение
-                    </Link>
-                  </>
-                )}
-              </motion.div>
-            </div>
+                        <span className="w-1 h-6 bg-accent-teal rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                        Мои курсы
+                      </Link>
+                      {user && (
+                        <button
+                          onClick={async () => {
+                            await signOut()
+                            setIsMobileMenuOpen(false)
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-500/10 transition-colors text-red-400"
+                        >
+                          <LogOut className="w-5 h-5" />
+                          Выйти
+                        </button>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <Link
+                        href="/login"
+                        className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-colors text-white/70 hover:text-white"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <User className="w-5 h-5" />
+                        Войти
+                      </Link>
+                      <Link
+                        href="/courses"
+                        className="block w-full py-4 px-4 rounded-xl font-semibold text-center text-dark-900 bg-gradient-to-r from-accent-teal to-accent-mint hover:shadow-lg hover:shadow-accent-teal/20 transition-all"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        Начать обучение
+                      </Link>
+                    </>
+                  )}
+                </div>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

@@ -13,6 +13,7 @@ const categories = [
     icon: 'heart',
     color: 'teal',
     coursesCount: 28,
+    imageUrl: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80',
   },
   {
     id: '2',
@@ -22,6 +23,7 @@ const categories = [
     icon: 'target',
     color: 'mint',
     coursesCount: 35,
+    imageUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80',
   },
 ]
 
@@ -53,7 +55,7 @@ export function Categories() {
         </motion.div>
 
         {/* Categories Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-4xl mx-auto">
           {categories.map((category, index) => (
             <CategoryCard key={category.id} {...category} index={index} />
           ))}

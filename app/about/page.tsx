@@ -72,7 +72,7 @@ export default function AboutPage() {
               Мы меняем подход к <span className="gradient-text">спортивному образованию</span>
             </h1>
             <p className="text-xl text-white/60 mb-8 leading-relaxed">
-              Course Sport — это платформа нового поколения для онлайн-обучения спорту и фитнесу. 
+              Course Health — это платформа нового поколения для онлайн-обучения спорту и фитнесу. 
               Мы объединили лучших тренеров мира, чтобы сделать профессиональные тренировки 
               доступными каждому.
             </p>
@@ -99,7 +99,7 @@ export default function AboutPage() {
             <div className="relative aspect-square rounded-3xl overflow-hidden">
               <Image
                 src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800"
-                alt="Команда Course Sport"
+                alt="Команда Course Health"
                 fill
                 className="object-cover"
               />
@@ -203,7 +203,7 @@ export default function AboutPage() {
               Наша <span className="gradient-text">команда</span>
             </h2>
             <p className="text-xl text-white/60 max-w-2xl mx-auto">
-              Люди, которые стоят за Course Sport
+              Люди, которые стоят за Course Health
             </p>
           </motion.div>
 
@@ -254,7 +254,7 @@ export default function AboutPage() {
                 Готов присоединиться?
               </h2>
               <p className="text-xl text-white/60 max-w-2xl mx-auto mb-8">
-                Начни свой путь к идеальной форме вместе с Course Sport уже сегодня
+                Начни свой путь к идеальной форме вместе с Course Health уже сегодня
               </p>
               <Link href="/courses">
                 <Button size="lg" rightIcon={<ArrowRight className="w-5 h-5" />}>

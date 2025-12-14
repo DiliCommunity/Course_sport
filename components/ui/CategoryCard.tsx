@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import Link from 'next/link'
+import Image from 'next/image'
 import { 
   Heart, Target, Timer, LucideIcon 
 } from 'lucide-react'
@@ -15,6 +16,7 @@ interface CategoryCardProps {
   color: string
   coursesCount?: number
   index?: number
+  imageUrl?: string
 }
 
 const iconMap: Record<string, LucideIcon> = {
@@ -85,6 +87,7 @@ export function CategoryCard({
   color,
   coursesCount = 0,
   index = 0,
+  imageUrl,
 }: CategoryCardProps) {
   const Icon = iconMap[icon] || Heart
   const colorClasses = colorMap[color] || colorMap.teal
@@ -98,38 +101,53 @@ export function CategoryCard({
     >
       <Link href={`/categories/${slug}`} className="block group">
         <motion.div
-          className={`card h-full p-6 transition-all duration-500 ${colorClasses.glow}`}
+          className={`card h-full overflow-hidden transition-all duration-500 ${colorClasses.glow}`}
           whileHover={{ y: -8 }}
         >
-          {/* Icon */}
-          <motion.div
-            className={`w-14 h-14 rounded-2xl ${colorClasses.bg} flex items-center justify-center mb-5`}
-            whileHover={{ scale: 1.1, rotate: 5 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 10 }}
-          >
-            <Icon className={`w-7 h-7 ${colorClasses.text}`} />
-          </motion.div>
+          {/* Image */}
+          {imageUrl && (
+            <div className="relative h-48 w-full overflow-hidden">
+              <Image
+                src={imageUrl}
+                alt={name}
+                fill
+                className="object-cover transition-transform duration-700 group-hover:scale-110"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-dark-900 via-dark-900/50 to-transparent" />
+              <div className="absolute top-4 left-4">
+                <motion.div
+                  className={`w-12 h-12 rounded-xl ${colorClasses.bg} flex items-center justify-center backdrop-blur-sm`}
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+                >
+                  <Icon className={`w-6 h-6 ${colorClasses.text}`} />
+                </motion.div>
+              </div>
+            </div>
+          )}
 
           {/* Content */}
-          <h3 className="font-display font-bold text-xl text-white mb-2 group-hover:text-accent-teal transition-colors">
-            {name}
-          </h3>
-          
-          <p className="text-white/60 text-sm mb-4 line-clamp-2">
-            {description}
-          </p>
+          <div className="p-6">
+            <h3 className="font-display font-bold text-xl text-white mb-2 group-hover:text-accent-teal transition-colors">
+              {name}
+            </h3>
+            
+            <p className="text-white/60 text-sm mb-4 line-clamp-2">
+              {description}
+            </p>
 
-          {/* Footer */}
-          <div className="flex items-center justify-between pt-4 border-t border-white/5">
-            <span className="text-sm text-white/50">
-              {coursesCount} {coursesCount === 1 ? 'курс' : coursesCount < 5 ? 'курса' : 'курсов'}
-            </span>
-            <motion.span
-              className={`text-sm font-medium ${colorClasses.text}`}
-              whileHover={{ x: 5 }}
-            >
-              Смотреть →
-            </motion.span>
+            {/* Footer */}
+            <div className="flex items-center justify-between pt-4 border-t border-white/5">
+              <span className="text-sm text-white/50">
+                {coursesCount} {coursesCount === 1 ? 'курс' : coursesCount < 5 ? 'курса' : 'курсов'}
+              </span>
+              <motion.span
+                className={`text-sm font-medium ${colorClasses.text}`}
+                whileHover={{ x: 5 }}
+              >
+                Смотреть →
+              </motion.span>
+            </div>
           </div>
         </motion.div>
       </Link>

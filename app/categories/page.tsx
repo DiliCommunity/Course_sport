@@ -15,6 +15,7 @@ const categories = [
     icon: 'heart',
     color: 'teal',
     coursesCount: 28,
+    imageUrl: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80',
   },
   {
     id: '2',
@@ -24,6 +25,7 @@ const categories = [
     icon: 'target',
     color: 'mint',
     coursesCount: 35,
+    imageUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80',
   },
 ]
 
