@@ -52,12 +52,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ru" className={`${spaceGrotesk.variable} ${outfit.variable} ${jetbrainsMono.variable}`}>
-      <body className="bg-dark-900 text-white font-body antialiased">
+      <body className="bg-dark-900 text-white font-body antialiased relative">
         <TelegramProvider>
           <AuthProvider>
-            <div className="flex flex-col min-h-screen">
+            <div className="flex flex-col min-h-screen relative z-10">
               <Header />
-              <main className="flex-1">
+              <main className="flex-1 relative z-10">
                 {children}
               </main>
               <Footer />
