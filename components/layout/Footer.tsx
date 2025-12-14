@@ -7,10 +7,9 @@ import { Zap, Instagram, Youtube, Send, Mail, Phone, MapPin } from 'lucide-react
 const footerLinks = {
   courses: [
     { label: 'Все курсы', href: '/courses' },
-    { label: 'Здоровье', href: '/categories/health' },
-    { label: 'Еда', href: '/categories/food' },
-    { label: 'Кето-диета', href: '/categories/keto' },
-    { label: 'Интервальное голодание', href: '/categories/fasting' },
+    { label: 'Кето-диета', href: '/courses?category=Здоровье' },
+    { label: 'Интервальное голодание', href: '/courses?category=Здоровье' },
+    { label: 'Кето-рецепты', href: '/courses?category=Еда' },
   ],
   company: [
     { label: 'О нас', href: '/about' },

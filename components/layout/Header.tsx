@@ -10,7 +10,6 @@ import { useTelegram } from '@/components/providers/TelegramProvider'
 
 const navLinks = [
   { href: '/courses', label: 'Курсы' },
-  { href: '/categories', label: 'Категории' },
   { href: '/instructors', label: 'Эксперты' },
   { href: '/about', label: 'О нас' },
 ]
