@@ -62,5 +62,5 @@ document.querySelectorAll('.btn-primary, .btn-secondary').forEach(btn => {
     });
 });
 
-console.log('Course Sport - сайт загружен успешно!');
+console.log('Course Health - сайт загружен успешно!');
 

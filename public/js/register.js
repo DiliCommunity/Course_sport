@@ -124,11 +124,11 @@ function registerWithTelegram() {
             handleTelegramRegistration(user);
         } else {
             // Open Telegram bot
-            window.open('https://t.me/CourseSportBot', '_blank');
+            window.open('https://t.me/CourseHealthBot', '_blank');
         }
     } else {
         // Open Telegram bot
-        window.open('https://t.me/CourseSportBot', '_blank');
+        window.open('https://t.me/CourseHealthBot', '_blank');
     }
 }
 
