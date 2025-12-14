@@ -106,47 +106,56 @@ export function CategoryCard({
         >
           {/* Image */}
           {imageUrl && (
-            <div className="relative h-48 w-full overflow-hidden">
+            <div className="relative h-56 w-full overflow-hidden">
               <Image
                 src={imageUrl}
                 alt={name}
                 fill
                 className="object-cover transition-transform duration-700 group-hover:scale-110"
+                priority
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-dark-900 via-dark-900/50 to-transparent" />
-              <div className="absolute top-4 left-4">
+              <div className={`absolute inset-0 bg-gradient-to-br ${
+                color === 'teal' 
+                  ? 'from-accent-teal/20 via-accent-aqua/10 to-accent-mint/20' 
+                  : 'from-accent-mint/20 via-accent-cream/10 to-accent-teal/20'
+              }`} />
+              <div className="absolute inset-0 bg-gradient-to-t from-dark-900 via-dark-900/60 to-transparent" />
+              <div className="absolute top-5 left-5">
                 <motion.div
-                  className={`w-12 h-12 rounded-xl ${colorClasses.bg} flex items-center justify-center backdrop-blur-sm`}
+                  className={`w-14 h-14 rounded-2xl ${colorClasses.bg} flex items-center justify-center backdrop-blur-md border border-white/10 shadow-lg`}
                   whileHover={{ scale: 1.1, rotate: 5 }}
                   transition={{ type: 'spring', stiffness: 400, damping: 10 }}
                 >
-                  <Icon className={`w-6 h-6 ${colorClasses.text}`} />
+                  <Icon className={`w-7 h-7 ${colorClasses.text}`} />
                 </motion.div>
               </div>
             </div>
           )}
 
           {/* Content */}
-          <div className="p-6">
-            <h3 className="font-display font-bold text-xl text-white mb-2 group-hover:text-accent-teal transition-colors">
+          <div className="p-6 flex-1 flex flex-col">
+            <h3 className="font-display font-bold text-2xl text-white mb-3 group-hover:text-accent-teal transition-colors">
               {name}
             </h3>
             
-            <p className="text-white/60 text-sm mb-4 line-clamp-2">
+            <p className="text-white/70 text-sm mb-6 line-clamp-3 leading-relaxed flex-1">
               {description}
             </p>
 
             {/* Footer */}
-            <div className="flex items-center justify-between pt-4 border-t border-white/5">
-              <span className="text-sm text-white/50">
-                {coursesCount} {coursesCount === 1 ? 'курс' : coursesCount < 5 ? 'курса' : 'курсов'}
-              </span>
-              <motion.span
-                className={`text-sm font-medium ${colorClasses.text}`}
+            <div className="flex items-center justify-between pt-5 border-t border-white/10 mt-auto">
+              <div className="flex items-center gap-2 text-white/60">
+                <span className="text-sm font-medium">
+                  {coursesCount} {coursesCount === 1 ? 'курс' : coursesCount < 5 ? 'курса' : 'курсов'}
+                </span>
+              </div>
+              <motion.div
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg ${colorClasses.bg} ${colorClasses.text} font-medium text-sm`}
                 whileHover={{ x: 5 }}
               >
-                Смотреть →
-              </motion.span>
+                <span>Смотреть</span>
+                <span>→</span>
+              </motion.div>
             </div>
           </div>
         </motion.div>
