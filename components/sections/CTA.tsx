@@ -10,8 +10,8 @@ export function CTA() {
     <section className="relative py-24 overflow-hidden">
       {/* Background effects */}
       <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-r from-accent-electric/10 via-transparent to-accent-neon/10" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-accent-electric/5 rounded-full blur-[100px]" />
+        <div className="absolute inset-0 bg-gradient-to-r from-accent-teal/10 via-transparent to-accent-mint/10" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-accent-teal/5 rounded-full blur-[100px]" />
       </div>
       
       <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
@@ -25,8 +25,8 @@ export function CTA() {
           {/* Glass card */}
           <div className="glass p-12 lg:p-16 text-center">
             {/* Decorative elements */}
-            <div className="absolute top-0 left-0 w-32 h-32 bg-accent-electric/20 rounded-full blur-[60px]" />
-            <div className="absolute bottom-0 right-0 w-40 h-40 bg-accent-neon/20 rounded-full blur-[80px]" />
+            <div className="absolute top-0 left-0 w-32 h-32 bg-accent-teal/20 rounded-full blur-[60px]" />
+            <div className="absolute bottom-0 right-0 w-40 h-40 bg-accent-mint/20 rounded-full blur-[80px]" />
             
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -37,7 +37,7 @@ export function CTA() {
             >
               {/* Icon */}
               <motion.div
-                className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-accent-electric to-accent-neon mb-8"
+                className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-accent-teal to-accent-mint mb-8"
                 animate={{ rotate: [0, 5, -5, 0] }}
                 transition={{ duration: 4, repeat: Infinity }}
               >
@@ -51,7 +51,7 @@ export function CTA() {
 
               {/* Subtitle */}
               <p className="text-xl text-white/60 max-w-2xl mx-auto mb-10">
-                Присоединяйся к тысячам студентов! 🎁 <span className="text-accent-neon font-medium">15% каждого курса бесплатно</span>, 
+                Присоединяйся к тысячам студентов! 🎁 <span className="text-accent-mint font-medium">15% каждого курса бесплатно</span>, 
                 полный доступ всего за 1500₽
               </p>
 
@@ -86,7 +86,7 @@ export function CTA() {
                 className="flex flex-wrap items-center justify-center gap-8 mt-12 pt-8 border-t border-white/10"
               >
                 <div className="text-center">
-                  <div className="font-display font-bold text-3xl text-accent-neon">1500₽</div>
+                  <div className="font-display font-bold text-3xl text-accent-teal">1500₽</div>
                   <div className="text-sm text-white/50">За любой курс</div>
                 </div>
                 <div className="text-center">

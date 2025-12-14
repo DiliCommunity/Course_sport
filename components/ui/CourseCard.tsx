@@ -71,7 +71,7 @@ export function CourseCard({
               className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
               whileHover={{ scale: 1.1 }}
             >
-              <div className="w-16 h-16 rounded-full bg-accent-electric/90 backdrop-blur-sm flex items-center justify-center shadow-lg shadow-accent-electric/30">
+              <div className="w-16 h-16 rounded-full bg-accent-teal/90 backdrop-blur-sm flex items-center justify-center shadow-lg shadow-accent-teal/30">
                 <Play className="w-6 h-6 text-dark-900 ml-1" fill="currentColor" />
               </div>
             </motion.div>
@@ -83,7 +83,7 @@ export function CourseCard({
 
             {/* Free preview badge */}
             <div className="absolute top-4 right-4">
-              <span className="badge bg-accent-neon/90 text-dark-900 border-none font-semibold">
+              <span className="badge bg-accent-mint/90 text-dark-900 border-none font-semibold">
                 🎁 15% бесплатно
               </span>
             </div>
@@ -103,7 +103,7 @@ export function CourseCard({
             </div>
 
             {/* Title */}
-            <h3 className="font-display font-bold text-xl text-white group-hover:text-accent-electric transition-colors line-clamp-2">
+            <h3 className="font-display font-bold text-xl text-white group-hover:text-accent-teal transition-colors line-clamp-2">
               {title}
             </h3>
 
@@ -128,7 +128,7 @@ export function CourseCard({
             {/* Stats */}
             <div className="flex items-center gap-4 text-sm text-white/50">
               <div className="flex items-center gap-1">
-                <Star className="w-4 h-4 text-accent-gold fill-accent-gold" />
+                <Star className="w-4 h-4 text-accent-cream fill-accent-cream" />
                 <span className="text-white font-medium">{rating.toFixed(1)}</span>
               </div>
               <div className="flex items-center gap-1">
@@ -150,7 +150,7 @@ export function CourseCard({
                 )}
               </div>
               <motion.div
-                className="w-10 h-10 rounded-xl bg-accent-electric/10 flex items-center justify-center text-accent-electric group-hover:bg-accent-electric group-hover:text-dark-900 transition-all duration-300"
+                className="w-10 h-10 rounded-xl bg-accent-teal/10 flex items-center justify-center text-accent-teal group-hover:bg-accent-teal group-hover:text-dark-900 transition-all duration-300"
                 whileHover={{ x: 5 }}
               >
                 <ArrowRight className="w-5 h-5" />

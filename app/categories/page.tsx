@@ -9,84 +9,21 @@ import { CategoryCard } from '@/components/ui/CategoryCard'
 const categories = [
   {
     id: '1',
-    name: 'Фитнес',
-    slug: 'fitness',
-    description: 'Комплексные тренировки для развития всего тела и улучшения физической формы',
-    icon: 'dumbbell',
-    color: 'electric',
-    coursesCount: 45,
-  },
-  {
-    id: '2',
-    name: 'Йога',
-    slug: 'yoga',
-    description: 'Практики для гибкости, баланса и ментального здоровья',
+    name: 'Здоровье',
+    slug: 'health',
+    description: 'Кето-диета, интервальное голодание и здоровый образ жизни',
     icon: 'heart',
-    color: 'purple',
-    coursesCount: 32,
-  },
-  {
-    id: '3',
-    name: 'Единоборства',
-    slug: 'martial-arts',
-    description: 'Бокс, ММА, каратэ и другие боевые искусства',
-    icon: 'swords',
-    color: 'flame',
+    color: 'teal',
     coursesCount: 28,
   },
   {
-    id: '4',
-    name: 'Кроссфит',
-    slug: 'crossfit',
-    description: 'Высокоинтенсивные функциональные тренировки',
-    icon: 'flame',
-    color: 'neon',
-    coursesCount: 19,
-  },
-  {
-    id: '5',
-    name: 'Кардио',
-    slug: 'cardio',
-    description: 'Бег, велосипед, плавание и другие кардионагрузки',
-    icon: 'bike',
-    color: 'gold',
-    coursesCount: 24,
-  },
-  {
-    id: '6',
-    name: 'Растяжка',
-    slug: 'stretching',
-    description: 'Упражнения для развития гибкости и подвижности',
-    icon: 'waves',
-    color: 'electric',
-    coursesCount: 16,
-  },
-  {
-    id: '7',
-    name: 'Пилатес',
-    slug: 'pilates',
-    description: 'Укрепление мышц кора и улучшение осанки',
+    id: '2',
+    name: 'Еда',
+    slug: 'food',
+    description: 'Рецепты кето-блюд, правильное питание и кулинарные мастер-классы',
     icon: 'target',
-    color: 'purple',
-    coursesCount: 21,
-  },
-  {
-    id: '8',
-    name: 'Силовой тренинг',
-    slug: 'strength',
-    description: 'Набор мышечной массы и развитие силы',
-    icon: 'dumbbell',
-    color: 'flame',
+    color: 'mint',
     coursesCount: 35,
-  },
-  {
-    id: '9',
-    name: 'Танцы',
-    slug: 'dance',
-    description: 'Танцевальные тренировки для хорошего настроения',
-    icon: 'users',
-    color: 'gold',
-    coursesCount: 18,
   },
 ]
 
@@ -101,14 +38,14 @@ export default function CategoriesPage() {
           className="text-center mb-12"
         >
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-6">
-            <Grid3X3 className="w-4 h-4 text-accent-electric" />
-            <span className="text-sm text-white/80">Направления</span>
+            <Grid3X3 className="w-4 h-4 text-accent-teal" />
+            <span className="text-sm text-white/80">Категории</span>
           </div>
           <h1 className="font-display font-bold text-4xl sm:text-5xl text-white mb-4">
             Категории <span className="gradient-text">курсов</span>
           </h1>
           <p className="text-white/60 text-lg max-w-2xl mx-auto">
-            Выбери направление, которое подходит именно тебе
+            Кето-диета, интервальное голодание и здоровое питание
           </p>
         </motion.div>
 

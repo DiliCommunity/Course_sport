@@ -68,13 +68,13 @@ export function Instructors() {
             transition={{ duration: 0.5 }}
           >
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-accent-neon/20 flex items-center justify-center">
-                <GraduationCap className="w-5 h-5 text-accent-neon" />
+              <div className="w-10 h-10 rounded-xl bg-accent-mint/20 flex items-center justify-center">
+                <GraduationCap className="w-5 h-5 text-accent-mint" />
               </div>
-              <span className="text-accent-neon font-medium">Эксперты</span>
+              <span className="text-accent-mint font-medium">Эксперты</span>
             </div>
             <h2 className="font-display font-bold text-4xl sm:text-5xl text-white mb-4">
-              Лучшие <span className="gradient-text">тренеры</span>
+              Лучшие <span className="gradient-text">эксперты</span>
             </h2>
             <p className="text-white/60 text-lg max-w-xl">
               Учись у профессионалов с мировым именем и многолетним опытом

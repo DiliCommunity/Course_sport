@@ -3,8 +3,7 @@
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { 
-  Dumbbell, Heart, Target, Flame, Bike, Users, 
-  Swords, Mountain, Waves, Timer, LucideIcon 
+  Heart, Target, Timer, LucideIcon 
 } from 'lucide-react'
 
 interface CategoryCardProps {
@@ -19,43 +18,61 @@ interface CategoryCardProps {
 }
 
 const iconMap: Record<string, LucideIcon> = {
-  dumbbell: Dumbbell,
   heart: Heart,
   target: Target,
-  flame: Flame,
-  bike: Bike,
-  users: Users,
-  swords: Swords,
-  mountain: Mountain,
-  waves: Waves,
   timer: Timer,
 }
 
 const colorMap: Record<string, { bg: string; text: string; glow: string }> = {
+  teal: {
+    bg: 'bg-accent-teal/10',
+    text: 'text-accent-teal',
+    glow: 'group-hover:shadow-[0_0_40px_rgba(45,212,191,0.3)]',
+  },
+  mint: {
+    bg: 'bg-accent-mint/10',
+    text: 'text-accent-mint',
+    glow: 'group-hover:shadow-[0_0_40px_rgba(167,243,208,0.3)]',
+  },
+  cream: {
+    bg: 'bg-accent-cream/10',
+    text: 'text-accent-cream',
+    glow: 'group-hover:shadow-[0_0_40px_rgba(254,243,226,0.3)]',
+  },
+  aqua: {
+    bg: 'bg-accent-aqua/10',
+    text: 'text-accent-aqua',
+    glow: 'group-hover:shadow-[0_0_40px_rgba(103,232,249,0.3)]',
+  },
+  turquoise: {
+    bg: 'bg-accent-turquoise/10',
+    text: 'text-accent-turquoise',
+    glow: 'group-hover:shadow-[0_0_40px_rgba(6,182,212,0.3)]',
+  },
   electric: {
-    bg: 'bg-accent-electric/10',
-    text: 'text-accent-electric',
-    glow: 'group-hover:shadow-[0_0_40px_rgba(0,212,255,0.3)]',
+    bg: 'bg-accent-teal/10',
+    text: 'text-accent-teal',
+    glow: 'group-hover:shadow-[0_0_40px_rgba(45,212,191,0.3)]',
   },
   neon: {
-    bg: 'bg-accent-neon/10',
-    text: 'text-accent-neon',
-    glow: 'group-hover:shadow-[0_0_40px_rgba(57,255,20,0.3)]',
+    bg: 'bg-accent-mint/10',
+    text: 'text-accent-mint',
+    glow: 'group-hover:shadow-[0_0_40px_rgba(167,243,208,0.3)]',
   },
   flame: {
-    bg: 'bg-accent-flame/10',
-    text: 'text-accent-flame',
-    glow: 'group-hover:shadow-[0_0_40px_rgba(255,107,53,0.3)]',
+    bg: 'bg-accent-cream/10',
+    text: 'text-accent-cream',
+    glow: 'group-hover:shadow-[0_0_40px_rgba(254,243,226,0.3)]',
   },
   gold: {
-    bg: 'bg-accent-gold/10',
-    text: 'text-accent-gold',
-    glow: 'group-hover:shadow-[0_0_40px_rgba(255,215,0,0.3)]',
+    bg: 'bg-accent-cream/10',
+    text: 'text-accent-cream',
+    glow: 'group-hover:shadow-[0_0_40px_rgba(254,243,226,0.3)]',
   },
   purple: {
-    bg: 'bg-purple-500/10',
-    text: 'text-purple-400',
-    glow: 'group-hover:shadow-[0_0_40px_rgba(168,85,247,0.3)]',
+    bg: 'bg-accent-aqua/10',
+    text: 'text-accent-aqua',
+    glow: 'group-hover:shadow-[0_0_40px_rgba(103,232,249,0.3)]',
   },
 }
 
@@ -69,8 +86,8 @@ export function CategoryCard({
   coursesCount = 0,
   index = 0,
 }: CategoryCardProps) {
-  const Icon = iconMap[icon] || Dumbbell
-  const colorClasses = colorMap[color] || colorMap.electric
+  const Icon = iconMap[icon] || Heart
+  const colorClasses = colorMap[color] || colorMap.teal
 
   return (
     <motion.div
@@ -94,7 +111,7 @@ export function CategoryCard({
           </motion.div>
 
           {/* Content */}
-          <h3 className="font-display font-bold text-xl text-white mb-2 group-hover:text-accent-electric transition-colors">
+          <h3 className="font-display font-bold text-xl text-white mb-2 group-hover:text-accent-teal transition-colors">
             {name}
           </h3>
           

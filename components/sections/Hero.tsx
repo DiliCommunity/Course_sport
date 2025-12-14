@@ -12,11 +12,11 @@ const stats = [
 ]
 
 const floatingIcons = [
-  { emoji: '🏋️', delay: 0, x: '10%', y: '20%' },
-  { emoji: '🧘', delay: 0.5, x: '85%', y: '15%' },
-  { emoji: '🥊', delay: 1, x: '75%', y: '70%' },
-  { emoji: '🏃', delay: 1.5, x: '15%', y: '75%' },
-  { emoji: '💪', delay: 2, x: '90%', y: '45%' },
+  { emoji: '🥑', delay: 0, x: '10%', y: '20%' },
+  { emoji: '🥗', delay: 0.5, x: '85%', y: '15%' },
+  { emoji: '🍳', delay: 1, x: '75%', y: '70%' },
+  { emoji: '⏰', delay: 1.5, x: '15%', y: '75%' },
+  { emoji: '💚', delay: 2, x: '90%', y: '45%' },
 ]
 
 export function Hero() {
@@ -26,9 +26,9 @@ export function Hero() {
       <div className="absolute inset-0 bg-grid opacity-30" />
       
       {/* Animated gradient blobs */}
-      <div className="hero-blob w-[600px] h-[600px] bg-accent-electric/20 -top-64 -left-32" />
-      <div className="hero-blob w-[500px] h-[500px] bg-accent-neon/15 -bottom-32 -right-32" style={{ animationDelay: '2s' }} />
-      <div className="hero-blob w-[400px] h-[400px] bg-accent-flame/10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style={{ animationDelay: '4s' }} />
+      <div className="hero-blob w-[600px] h-[600px] bg-accent-teal/20 -top-64 -left-32" />
+      <div className="hero-blob w-[500px] h-[500px] bg-accent-mint/15 -bottom-32 -right-32" style={{ animationDelay: '2s' }} />
+      <div className="hero-blob w-[400px] h-[400px] bg-accent-cream/10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style={{ animationDelay: '4s' }} />
       
       {/* Floating emojis */}
       {floatingIcons.map((item, index) => (
@@ -59,10 +59,10 @@ export function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent-neon/20 border border-accent-neon/30 mb-8"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent-mint/20 border border-accent-mint/30 mb-8"
           >
             <span className="text-lg">🎁</span>
-            <span className="text-sm text-accent-neon font-medium">15% каждого курса бесплатно!</span>
+            <span className="text-sm text-accent-mint font-medium">15% каждого курса бесплатно!</span>
           </motion.div>
 
           {/* Main Heading */}
@@ -72,11 +72,14 @@ export function Hero() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="font-display font-bold text-5xl sm:text-6xl lg:text-7xl xl:text-8xl leading-tight mb-6"
           >
-            <span className="text-white">Прокачай </span>
-            <span className="gradient-text">своё тело</span>
+            <span className="text-white">Измени </span>
+            <span className="gradient-text">своё здоровье</span>
             <br />
-            <span className="text-white">с лучшими </span>
-            <span className="gradient-text-gold">тренерами</span>
+            <span className="text-white">с </span>
+            <span className="gradient-text-cream">кето-диетой</span>
+            <br />
+            <span className="text-white">и интервальным </span>
+            <span className="gradient-text">голоданием</span>
           </motion.h1>
 
           {/* Subtitle */}
@@ -86,8 +89,8 @@ export function Hero() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-xl sm:text-2xl text-white/60 max-w-3xl mx-auto mb-10 leading-relaxed"
           >
-            Профессиональные онлайн-курсы по фитнесу, йоге, единоборствам 
-            и другим видам спорта. Начни трансформацию уже сегодня!
+            Профессиональные курсы по кето-диете и интервальному голоданию. 
+            Научись правильно питаться, сбрасывай вес и улучшай здоровье естественным путём!
           </motion.p>
 
           {/* CTA Buttons */}
@@ -125,7 +128,7 @@ export function Hero() {
                 transition={{ delay: 0.5 + index * 0.1 }}
               >
                 <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center">
-                  <stat.icon className="w-6 h-6 text-accent-electric" />
+                  <stat.icon className="w-6 h-6 text-accent-teal" />
                 </div>
                 <div className="text-left">
                   <div className="font-display font-bold text-2xl text-white">{stat.value}</div>
@@ -151,7 +154,7 @@ export function Hero() {
             <motion.div
               animate={{ height: ['20%', '60%', '20%'] }}
               transition={{ duration: 2, repeat: Infinity }}
-              className="w-1 bg-accent-electric rounded-full"
+              className="w-1 bg-accent-teal rounded-full"
             />
           </motion.div>
         </motion.div>

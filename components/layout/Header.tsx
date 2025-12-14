@@ -11,7 +11,7 @@ import { useTelegram } from '@/components/providers/TelegramProvider'
 const navLinks = [
   { href: '/courses', label: 'Курсы' },
   { href: '/categories', label: 'Категории' },
-  { href: '/instructors', label: 'Тренеры' },
+  { href: '/instructors', label: 'Эксперты' },
   { href: '/about', label: 'О нас' },
 ]
 
@@ -64,17 +64,17 @@ export function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 group">
             <motion.div
-              className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-accent-electric to-accent-neon p-0.5"
+              className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-accent-teal to-accent-mint p-0.5"
               whileHover={{ scale: 1.05, rotate: 5 }}
               whileTap={{ scale: 0.95 }}
             >
               <div className="w-full h-full rounded-[10px] bg-dark-900 flex items-center justify-center">
-                <Zap className="w-5 h-5 text-accent-electric" />
+                <Zap className="w-5 h-5 text-accent-teal" />
               </div>
             </motion.div>
             <span className="font-display font-bold text-xl tracking-tight">
               <span className="text-white">Course</span>
-              <span className="gradient-text">Sport</span>
+              <span className="gradient-text">Health</span>
             </span>
           </Link>
 
@@ -87,7 +87,7 @@ export function Header() {
                 className="relative px-4 py-2 text-white/70 hover:text-white font-medium transition-colors duration-200 group"
               >
                 {link.label}
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-accent-electric transition-all duration-300 group-hover:w-full rounded-full" />
+                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-accent-teal transition-all duration-300 group-hover:w-full rounded-full" />
               </Link>
             ))}
           </div>
@@ -102,8 +102,8 @@ export function Header() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <div className="w-8 h-8 rounded-full bg-accent-electric/20 flex items-center justify-center">
-                    <User className="w-4 h-4 text-accent-electric" />
+                  <div className="w-8 h-8 rounded-full bg-accent-teal/20 flex items-center justify-center">
+                    <User className="w-4 h-4 text-accent-teal" />
                   </div>
                   <span className="text-white/70 text-sm font-medium">{displayName}</span>
                   <ChevronDown className={`w-4 h-4 text-white/40 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
@@ -151,7 +151,7 @@ export function Header() {
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                   <Link
                     href="/courses"
-                    className="relative inline-flex items-center gap-2 px-6 py-2.5 rounded-xl font-display font-semibold text-dark-900 bg-gradient-to-r from-accent-electric to-accent-neon overflow-hidden group"
+                    className="relative inline-flex items-center gap-2 px-6 py-2.5 rounded-xl font-display font-semibold text-dark-900 bg-gradient-to-r from-accent-teal to-accent-mint overflow-hidden group"
                   >
                     <span className="relative z-10">Начать</span>
                     <ChevronDown className="w-4 h-4 -rotate-90 relative z-10 transition-transform group-hover:translate-x-1" />
@@ -208,8 +208,8 @@ export function Header() {
                 {isAuthenticated ? (
                   <>
                     <div className="flex items-center gap-3 px-2 py-2">
-                      <div className="w-10 h-10 rounded-full bg-accent-electric/20 flex items-center justify-center">
-                        <User className="w-5 h-5 text-accent-electric" />
+                      <div className="w-10 h-10 rounded-full bg-accent-teal/20 flex items-center justify-center">
+                        <User className="w-5 h-5 text-accent-teal" />
                       </div>
                       <div>
                         <div className="text-white font-medium">{displayName}</div>
@@ -250,7 +250,7 @@ export function Header() {
                     </Link>
                     <Link
                       href="/courses"
-                      className="block w-full py-3 px-4 rounded-xl font-semibold text-center text-dark-900 bg-gradient-to-r from-accent-electric to-accent-neon"
+                      className="block w-full py-3 px-4 rounded-xl font-semibold text-center text-dark-900 bg-gradient-to-r from-accent-teal to-accent-mint"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Начать обучение

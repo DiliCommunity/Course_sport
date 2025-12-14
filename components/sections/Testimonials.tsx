@@ -47,7 +47,7 @@ export function Testimonials() {
           className="text-center mb-16"
         >
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-6">
-            <MessageSquare className="w-4 h-4 text-accent-electric" />
+            <MessageSquare className="w-4 h-4 text-accent-teal" />
             <span className="text-sm text-white/80">Отзывы</span>
           </div>
           <h2 className="font-display font-bold text-4xl sm:text-5xl text-white mb-4">
@@ -80,7 +80,7 @@ export function Testimonials() {
                 {/* Rating */}
                 <div className="flex gap-1 mb-6">
                   {Array.from({ length: testimonial.rating }).map((_, i) => (
-                    <Star key={i} className="w-5 h-5 text-accent-gold fill-accent-gold" />
+                    <Star key={i} className="w-5 h-5 text-accent-cream fill-accent-cream" />
                   ))}
                 </div>
 
@@ -90,13 +90,13 @@ export function Testimonials() {
                 </p>
 
                 {/* Course badge */}
-                <div className="inline-block px-3 py-1 rounded-full bg-accent-electric/10 text-accent-electric text-sm mb-6">
+                <div className="inline-block px-3 py-1 rounded-full bg-accent-teal/10 text-accent-teal text-sm mb-6">
                   {testimonial.course}
                 </div>
 
                 {/* Author */}
                 <div className="flex items-center gap-4 pt-6 border-t border-white/5">
-                  <div className="relative w-12 h-12 rounded-full overflow-hidden ring-2 ring-accent-electric/20">
+                  <div className="relative w-12 h-12 rounded-full overflow-hidden ring-2 ring-accent-teal/20">
                     <Image
                       src={testimonial.avatar}
                       alt={testimonial.name}

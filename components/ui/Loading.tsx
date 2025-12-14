@@ -21,10 +21,10 @@ export function Loading({ fullScreen = false, text = 'Загрузка...' }: Lo
           repeat: Infinity,
           ease: 'easeInOut'
         }}
-        className="w-16 h-16 rounded-2xl bg-gradient-to-br from-accent-electric to-accent-neon p-0.5"
+        className="w-16 h-16 rounded-2xl bg-gradient-to-br from-accent-teal to-accent-mint p-0.5"
       >
         <div className="w-full h-full rounded-[14px] bg-dark-900 flex items-center justify-center">
-          <Zap className="w-8 h-8 text-accent-electric" />
+          <Zap className="w-8 h-8 text-accent-teal" />
         </div>
       </motion.div>
       
@@ -42,7 +42,7 @@ export function Loading({ fullScreen = false, text = 'Загрузка...' }: Lo
         {[0, 1, 2].map((i) => (
           <motion.div
             key={i}
-            className="w-2 h-2 rounded-full bg-accent-electric"
+            className="w-2 h-2 rounded-full bg-accent-teal"
             animate={{ 
               opacity: [0.3, 1, 0.3],
               scale: [0.8, 1, 0.8],
