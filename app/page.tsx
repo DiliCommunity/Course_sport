@@ -14,7 +14,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-dark-900 text-white">
       <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent-electric mx-auto mb-4"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent-teal mx-auto mb-4"></div>
         <p>Загрузка...</p>
       </div>
     </div>
