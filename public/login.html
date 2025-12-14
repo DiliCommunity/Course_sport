@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход - Course Sport</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <nav class="nav">
+                <div class="logo">
+                    <span class="logo-icon">⚡</span>
+                    <span class="logo-text">Course Sport</span>
+                </div>
+                <ul class="nav-links">
+                    <li><a href="/index.html">Главная</a></li>
+                    <li><a href="/courses.html">Курсы</a></li>
+                    <li><a href="/categories.html">Категории</a></li>
+                    <li><a href="/promotions.html">Акции</a></li>
+                    <li><a href="/about.html">О нас</a></li>
+                </ul>
+                <div class="nav-actions">
+                    <a href="/login.html" class="btn-secondary">Войти</a>
+                    <a href="/register.html" class="btn-primary">Регистрация</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Login Section -->
+    <section class="register-section">
+        <div class="container">
+            <div class="register-container">
+                <div class="register-card">
+                    <div class="register-header">
+                        <div class="register-icon">🔐</div>
+                        <h1 class="register-title">Войти в аккаунт</h1>
+                        <p class="register-subtitle">Продолжи обучение с того места, где остановился</p>
+                    </div>
+
+                    <!-- Telegram Login -->
+                    <div class="telegram-register" id="telegramLogin">
+                        <div class="telegram-icon">📱</div>
+                        <h3>Быстрый вход через Telegram</h3>
+                        <p>Войди через Telegram и продолжай обучение</p>
+                        <button class="btn-telegram" onclick="loginWithTelegram()">
+                            <span>Войти через Telegram</span>
+                            <span>→</span>
+                        </button>
+                        <div class="divider">
+                            <span>или</span>
+                        </div>
+                    </div>
+
+                    <!-- Email Login Form -->
+                    <form class="register-form" id="loginForm" onsubmit="handleLogin(event)">
+                        <div class="form-group">
+                            <label for="loginEmail">Email</label>
+                            <input 
+                                type="email" 
+                                id="loginEmail" 
+                                name="email" 
+                                placeholder="your@email.com"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="loginPassword">Пароль</label>
+                            <div class="password-input">
+                                <input 
+                                    type="password" 
+                                    id="loginPassword" 
+                                    name="password" 
+                                    placeholder="Введите пароль"
+                                    required
+                                >
+                                <button type="button" class="password-toggle" onclick="toggleLoginPassword()">
+                                    <span class="eye-icon">👁️</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-footer" style="justify-content: space-between; align-items: center; margin-top: 0;">
+                            <div class="form-checkbox" style="margin: 0;">
+                                <input type="checkbox" id="remember" name="remember">
+                                <label for="remember" style="margin: 0;">Запомнить меня</label>
+                            </div>
+                            <a href="/forgot-password.html" style="color: var(--accent-electric); text-decoration: none; font-size: 14px;">
+                                Забыли пароль?
+                            </a>
+                        </div>
+
+                        <button type="submit" class="btn-primary btn-full btn-large">
+                            <span>Войти</span>
+                            <span>→</span>
+                        </button>
+
+                        <div class="form-footer">
+                            <p>Нет аккаунта? <a href="/register.html">Зарегистрироваться</a></p>
+                        </div>
+                    </form>
+
+                    <!-- Success Message -->
+                    <div class="register-success" id="loginSuccess" style="display: none;">
+                        <div class="success-icon">✅</div>
+                        <h3>Вход выполнен!</h3>
+                        <p>Добро пожаловать обратно!</p>
+                        <a href="/courses.html" class="btn-primary btn-full">Перейти к курсам</a>
+                    </div>
+
+                    <!-- Error Message -->
+                    <div class="register-error" id="loginError" style="display: none;">
+                        <div class="error-icon">⚠️</div>
+                        <p id="loginErrorMessage"></p>
+                    </div>
+                </div>
+
+                <!-- Benefits Sidebar -->
+                <div class="register-benefits">
+                    <h3>Преимущества входа</h3>
+                    <div class="benefit-item">
+                        <div class="benefit-icon">📊</div>
+                        <div>
+                            <h4>Продолжи обучение</h4>
+                            <p>Вернись к своим курсам</p>
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <div class="benefit-icon">💾</div>
+                        <div>
+                            <h4>Сохранённый прогресс</h4>
+                            <p>Все твои достижения на месте</p>
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <div class="benefit-icon">🎁</div>
+                        <div>
+                            <h4>Персональные предложения</h4>
+                            <p>Специальные акции для тебя</p>
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <div class="benefit-icon">🏆</div>
+                        <div>
+                            <h4>Твои сертификаты</h4>
+                            <p>Доступ ко всем достижениям</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="logo">
+                        <span class="logo-icon">⚡</span>
+                        <span class="logo-text">Course Sport</span>
+                    </div>
+                    <p class="footer-description">
+                        Профессиональные курсы по спорту и фитнесу от лучших тренеров
+                    </p>
+                </div>
+                <div class="footer-section">
+                    <h4>Навигация</h4>
+                    <ul>
+                        <li><a href="/courses.html">Курсы</a></li>
+                        <li><a href="/categories.html">Категории</a></li>
+                        <li><a href="/promotions.html">Акции</a></li>
+                        <li><a href="/about.html">О нас</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Контакты</h4>
+                    <ul>
+                        <li><a href="mailto:info@coursesport.ru">info@coursesport.ru</a></li>
+                        <li><a href="https://t.me/coursesport">Telegram</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Course Sport. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/js/login.js"></script>
+    <script src="/js/main.js"></script>
+</body>
+</html>
+
