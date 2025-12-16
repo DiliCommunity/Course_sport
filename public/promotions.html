@@ -44,77 +44,67 @@
             </div>
 
             <div class="promotions-grid">
-                <!-- Акция 1 -->
+                <!-- Акция 1: Покупка 2 курсов за 1999₽ -->
                 <div class="promotion-card promotion-hot">
                     <div class="promotion-badge">🔥 Горячая акция</div>
                     <div class="promotion-content">
-                        <h3 class="promotion-title">Скидка 30% на все курсы</h3>
-                        <p class="promotion-description">
-                            При покупке любого курса получи скидку 30%. Акция действует до конца месяца!
-                        </p>
-                        <div class="promotion-price">
-                            <span class="price-old">1500₽</span>
-                            <span class="price-new">1050₽</span>
+                        <div class="promotion-images">
+                            <img src="/img/keto_course.png" alt="Кето-диета">
+                            <span class="promotion-plus">+</span>
+                            <img src="/img/interval_course.png" alt="Интервальное голодание">
                         </div>
-                        <div class="promotion-timer">
-                            <span>⏰ Осталось: 15 дней</span>
-                        </div>
-                        <a href="/courses.html" class="btn-primary btn-full">Воспользоваться</a>
-                    </div>
-                </div>
-
-                <!-- Акция 2 -->
-                <div class="promotion-card promotion-new">
-                    <div class="promotion-badge">✨ Новинка</div>
-                    <div class="promotion-content">
-                        <h3 class="promotion-title">Купи 2 курса - получи 3-й в подарок</h3>
+                        <h3 class="promotion-title">Купи 2 курса за 1999₽</h3>
                         <p class="promotion-description">
-                            При покупке двух курсов третий курс абсолютно бесплатно!
+                            Специальное предложение! Купите курс по Кето-диете и курс по Интервальному голоданию вместе и сэкономьте 1001₽!
                         </p>
                         <div class="promotion-price">
                             <span class="price-old">3000₽</span>
-                            <span class="price-new">1500₽</span>
+                            <span class="price-new">1999₽</span>
                         </div>
                         <div class="promotion-timer">
-                            <span>⏰ Осталось: 7 дней</span>
+                            <span>⏰ Акция до конца месяца</span>
                         </div>
                         <a href="/courses.html" class="btn-primary btn-full">Воспользоваться</a>
                     </div>
                 </div>
 
-                <!-- Акция 3 -->
+                <!-- Акция 2: Реферальная программа -->
+                <div class="promotion-card promotion-new">
+                    <div class="promotion-badge">✨ Реферальная программа</div>
+                    <div class="promotion-content">
+                        <div class="promotion-icon-large">👥</div>
+                        <h3 class="promotion-title">Приведи друга — получи 30%</h3>
+                        <p class="promotion-description">
+                            Пригласи друга на платформу! Если он купит курс, ты получишь 30% от суммы его покупки на свой счет.
+                        </p>
+                        <div class="promotion-benefits">
+                            <div class="benefits-title">💎 Как это работает:</div>
+                            <ul class="benefits-list">
+                                <li>✓ Получи свою реферальную ссылку</li>
+                                <li>✓ Поделись с друзьями</li>
+                                <li>✓ Получи 30% с каждой покупки друга</li>
+                                <li>✓ Выводи средства или используй на курсы</li>
+                            </ul>
+                        </div>
+                        <a href="/courses.html" class="btn-primary btn-full">Получить реферальную ссылку</a>
+                    </div>
+                </div>
+
+                <!-- Акция 3: Первым 100 студентам -->
                 <div class="promotion-card promotion-special">
                     <div class="promotion-badge">⭐ Специальное предложение</div>
                     <div class="promotion-content">
-                        <h3 class="promotion-title">Первым 100 студентам - 50% скидка</h3>
+                        <h3 class="promotion-title">Первым 100 студентам</h3>
                         <p class="promotion-description">
-                            Первые 100 студентов получают скидку 50% на любой курс. Успей!
+                            Специальная цена для первых 100 студентов! Успей получить курс по выгодной цене.
                         </p>
                         <div class="promotion-price">
                             <span class="price-old">1500₽</span>
-                            <span class="price-new">750₽</span>
+                            <span class="price-new">1199₽</span>
                         </div>
-                        <div class="promotion-timer">
-                            <span>⏰ Осталось мест: 23</span>
-                        </div>
-                        <a href="/courses.html" class="btn-primary btn-full">Воспользоваться</a>
-                    </div>
-                </div>
-
-                <!-- Акция 4 -->
-                <div class="promotion-card promotion-weekend">
-                    <div class="promotion-badge">🎉 Выходные</div>
-                    <div class="promotion-content">
-                        <h3 class="promotion-title">Скидка 25% в выходные</h3>
-                        <p class="promotion-description">
-                            Каждые выходные действует скидка 25% на все курсы. Планируй обучение заранее!
-                        </p>
-                        <div class="promotion-price">
-                            <span class="price-old">1500₽</span>
-                            <span class="price-new">1125₽</span>
-                        </div>
-                        <div class="promotion-timer">
-                            <span>⏰ Действует каждые выходные</span>
+                        <div class="promotion-counter">
+                            <div class="counter-label">Осталось мест:</div>
+                            <div id="studentsCounter">100</div>
                         </div>
                         <a href="/courses.html" class="btn-primary btn-full">Воспользоваться</a>
                     </div>
