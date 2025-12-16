@@ -62,5 +62,50 @@ document.querySelectorAll('.btn-primary, .btn-secondary').forEach(btn => {
     });
 });
 
+// Mobile Menu
+const burgerMenu = document.getElementById('burgerMenu');
+const mobileMenu = document.getElementById('mobileMenu');
+const mobileMenuOverlay = document.getElementById('mobileMenuOverlay');
+const mobileMenuClose = document.getElementById('mobileMenuClose');
+
+if (burgerMenu && mobileMenu && mobileMenuOverlay && mobileMenuClose) {
+    // Open menu
+    burgerMenu.addEventListener('click', () => {
+        mobileMenu.classList.add('active');
+        mobileMenuOverlay.classList.add('active');
+        burgerMenu.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    });
+
+    // Close menu
+    const closeMenu = () => {
+        mobileMenu.classList.remove('active');
+        mobileMenuOverlay.classList.remove('active');
+        burgerMenu.classList.remove('active');
+        document.body.style.overflow = '';
+    };
+
+    mobileMenuClose.addEventListener('click', closeMenu);
+    mobileMenuOverlay.addEventListener('click', closeMenu);
+
+    // Close menu when clicking on a link
+    const mobileMenuLinks = mobileMenu.querySelectorAll('.mobile-menu-links a');
+    mobileMenuLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            // Don't close if it's the profile link (disabled)
+            if (!link.classList.contains('mobile-menu-profile')) {
+                setTimeout(closeMenu, 200);
+            }
+        });
+    });
+
+    // Close menu on escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && mobileMenu.classList.contains('active')) {
+            closeMenu();
+        }
+    });
+}
+
 console.log('Course Health - сайт загружен успешно!');
 

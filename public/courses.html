@@ -11,10 +11,17 @@
     <header class="header">
         <div class="container">
             <nav class="nav">
-                <a href="/index.html" class="logo" style="text-decoration: none; color: inherit;">
-                    <span class="logo-icon">⚡</span>
-                    <span class="logo-text">Course Health</span>
-                </a>
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <button class="burger-menu" id="burgerMenu" aria-label="Меню">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                    <a href="/index.html" class="logo" style="text-decoration: none; color: inherit;">
+                        <span class="logo-icon">⚡</span>
+                        <span class="logo-text">Course Health</span>
+                    </a>
+                </div>
                 <ul class="nav-links">
                     <li><a href="/index.html">Главная</a></li>
                     <li><a href="/courses.html">Курсы</a></li>
@@ -28,6 +35,27 @@
             </nav>
         </div>
     </header>
+
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <div class="mobile-menu-header">
+            <div class="mobile-menu-logo">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-text">Course Health</span>
+            </div>
+            <button class="mobile-menu-close" id="mobileMenuClose" aria-label="Закрыть меню">×</button>
+        </div>
+        <ul class="mobile-menu-links">
+            <li><a href="/index.html">Главная</a></li>
+            <li><a href="/courses.html">Курсы</a></li>
+            <li><a href="/promotions.html">Акции</a></li>
+            <li><a href="/about.html">О нас</a></li>
+            <li><a href="#" class="mobile-menu-profile" style="opacity: 0.5; pointer-events: none;">Профиль</a></li>
+        </ul>
+    </div>
 
     <!-- Courses Page -->
     <section class="section" style="padding-top: 140px;">

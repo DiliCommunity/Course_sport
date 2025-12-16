@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кето-рецепты: готовим вкусно - Course Health</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/course-page.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <nav class="nav">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <button class="burger-menu" id="burgerMenu" aria-label="Меню">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                    <a href="/index.html" class="logo" style="text-decoration: none; color: inherit;">
+                        <span class="logo-icon">💚</span>
+                        <span class="logo-text">Course Health</span>
+                    </a>
+                </div>
+                <ul class="nav-links">
+                    <li><a href="/index.html">Главная</a></li>
+                    <li><a href="/courses.html">Курсы</a></li>
+                    <li><a href="/promotions.html">Акции</a></li>
+                    <li><a href="/about.html">О нас</a></li>
+                </ul>
+                <div class="nav-actions">
+                    <a href="/login.html" class="btn-secondary">Войти</a>
+                    <a href="/courses.html" class="btn-primary">Начать</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-menu-overlay" id="mobileMenuOverlay"></div>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <div class="mobile-menu-header">
+            <div class="mobile-menu-logo">
+                <span class="logo-icon">💚</span>
+                <span class="logo-text">Course Health</span>
+            </div>
+            <button class="mobile-menu-close" id="mobileMenuClose" aria-label="Закрыть меню">×</button>
+        </div>
+        <ul class="mobile-menu-links">
+            <li><a href="/index.html">Главная</a></li>
+            <li><a href="/courses.html">Курсы</a></li>
+            <li><a href="/promotions.html">Акции</a></li>
+            <li><a href="/about.html">О нас</a></li>
+            <li><a href="#" class="mobile-menu-profile" style="opacity: 0.5; pointer-events: none;">Профиль</a></li>
+        </ul>
+    </div>
+
+    <!-- Keto Food Hero Section -->
+    <section class="course-hero" style="padding-top: 140px; padding-bottom: 80px;">
+        <div class="container">
+            <div class="section-header" style="text-align: center; margin-bottom: 60px;">
+                <div class="section-badge" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 20px; background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 50px; margin-bottom: 20px;">
+                    <span style="font-size: 20px;">🍽️</span>
+                    <span style="color: var(--accent-gold); font-weight: 600;">Кето-рецепты</span>
+                </div>
+                <h1 class="section-title" style="font-size: 48px; margin-bottom: 20px;">
+                    100 лучших <span class="gradient-text">кето-рецептов</span>
+                </h1>
+                <p class="section-description" style="font-size: 18px; max-width: 700px; margin: 0 auto; color: var(--text-gray);">
+                    От завтрака до ужина. Вкусные и полезные блюда для кето-диеты
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Food Categories Navigation -->
+    <section class="section" style="padding-top: 0;">
+        <div class="container">
+            <div class="food-categories-nav">
+                <button class="food-category-btn active" data-category="breakfast">
+                    <span class="category-icon">🌅</span>
+                    <span class="category-name">Завтрак</span>
+                </button>
+                <button class="food-category-btn" data-category="lunch">
+                    <span class="category-icon">🍽️</span>
+                    <span class="category-name">Обед</span>
+                </button>
+                <button class="food-category-btn" data-category="dinner">
+                    <span class="category-icon">🌙</span>
+                    <span class="category-name">Ужин</span>
+                </button>
+                <button class="food-category-btn" data-category="snacks">
+                    <span class="category-icon">🥜</span>
+                    <span class="category-name">Перекусы</span>
+                </button>
+                <button class="food-category-btn" data-category="desserts">
+                    <span class="category-icon">🍰</span>
+                    <span class="category-name">Десерты</span>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Food Items Section -->
+    <section class="section" style="padding-top: 40px;">
+        <div class="container">
+            <!-- Breakfast Section -->
+            <div class="food-category-section active" id="breakfast">
+                <div class="section-header" style="margin-bottom: 40px;">
+                    <h2 class="section-title" style="font-size: 36px;">
+                        <span class="gradient-text">Завтрак</span>
+                    </h2>
+                    <p class="section-description" style="color: var(--text-gray);">
+                        Начните день с правильного кето-завтрака
+                    </p>
+                </div>
+                <div class="food-items-grid" id="breakfastItems">
+                    <!-- Блюда будут добавлены позже -->
+                    <div class="food-item-placeholder">
+                        <div class="food-item-icon">🍳</div>
+                        <p style="color: var(--text-gray); margin-top: 20px;">Блюда будут добавлены в ближайшее время</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lunch Section -->
+            <div class="food-category-section" id="lunch">
+                <div class="section-header" style="margin-bottom: 40px;">
+                    <h2 class="section-title" style="font-size: 36px;">
+                        <span class="gradient-text">Обед</span>
+                    </h2>
+                    <p class="section-description" style="color: var(--text-gray);">
+                        Сытные и полезные кето-обеды
+                    </p>
+                </div>
+                <div class="food-items-grid" id="lunchItems">
+                    <!-- Блюда будут добавлены позже -->
+                    <div class="food-item-placeholder">
+                        <div class="food-item-icon">🍲</div>
+                        <p style="color: var(--text-gray); margin-top: 20px;">Блюда будут добавлены в ближайшее время</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dinner Section -->
+            <div class="food-category-section" id="dinner">
+                <div class="section-header" style="margin-bottom: 40px;">
+                    <h2 class="section-title" style="font-size: 36px;">
+                        <span class="gradient-text">Ужин</span>
+                    </h2>
+                    <p class="section-description" style="color: var(--text-gray);">
+                        Легкие и вкусные кето-ужины
+                    </p>
+                </div>
+                <div class="food-items-grid" id="dinnerItems">
+                    <!-- Блюда будут добавлены позже -->
+                    <div class="food-item-placeholder">
+                        <div class="food-item-icon">🍖</div>
+                        <p style="color: var(--text-gray); margin-top: 20px;">Блюда будут добавлены в ближайшее время</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Snacks Section -->
+            <div class="food-category-section" id="snacks">
+                <div class="section-header" style="margin-bottom: 40px;">
+                    <h2 class="section-title" style="font-size: 36px;">
+                        <span class="gradient-text">Перекусы</span>
+                    </h2>
+                    <p class="section-description" style="color: var(--text-gray);">
+                        Полезные кето-перекусы между приемами пищи
+                    </p>
+                </div>
+                <div class="food-items-grid" id="snacksItems">
+                    <!-- Блюда будут добавлены позже -->
+                    <div class="food-item-placeholder">
+                        <div class="food-item-icon">🥜</div>
+                        <p style="color: var(--text-gray); margin-top: 20px;">Блюда будут добавлены в ближайшее время</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Desserts Section -->
+            <div class="food-category-section" id="desserts">
+                <div class="section-header" style="margin-bottom: 40px;">
+                    <h2 class="section-title" style="font-size: 36px;">
+                        <span class="gradient-text">Десерты</span>
+                    </h2>
+                    <p class="section-description" style="color: var(--text-gray);">
+                        Сладкие кето-десерты без сахара
+                    </p>
+                </div>
+                <div class="food-items-grid" id="dessertsItems">
+                    <!-- Блюда будут добавлены позже -->
+                    <div class="food-item-placeholder">
+                        <div class="food-item-icon">🍰</div>
+                        <p style="color: var(--text-gray); margin-top: 20px;">Блюда будут добавлены в ближайшее время</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="logo">
+                        <span class="logo-icon">💚</span>
+                        <span class="logo-text">Course Health</span>
+                    </div>
+                    <p class="footer-description">
+                        Профессиональные курсы по кето-диете и интервальному голоданию от лучших экспертов
+                    </p>
+                </div>
+                <div class="footer-section">
+                    <h4>Навигация</h4>
+                    <ul>
+                        <li><a href="/index.html">Главная</a></li>
+                        <li><a href="/courses.html">Курсы</a></li>
+                        <li><a href="/promotions.html">Акции</a></li>
+                        <li><a href="/about.html">О нас</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Контакты</h4>
+                    <ul>
+                        <li><a href="mailto:info@coursesport.ru">info@coursesport.ru</a></li>
+                        <li><a href="tel:+79991234567">+7 (999) 123-45-67</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Course Health. Все права защищены.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/js/main.js"></script>
+    <script>
+        // Food Categories Navigation
+        const categoryButtons = document.querySelectorAll('.food-category-btn');
+        const categorySections = document.querySelectorAll('.food-category-section');
+
+        categoryButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const category = button.getAttribute('data-category');
+                
+                // Remove active class from all buttons and sections
+                categoryButtons.forEach(btn => btn.classList.remove('active'));
+                categorySections.forEach(section => section.classList.remove('active'));
+                
+                // Add active class to clicked button and corresponding section
+                button.classList.add('active');
+                const targetSection = document.getElementById(category);
+                if (targetSection) {
+                    targetSection.classList.add('active');
+                    // Smooth scroll to section
+                    targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
