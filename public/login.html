@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Вход - Course Health</title>
     <link rel="stylesheet" href="/css/style.css">
+    <script src="/js/translations.js"></script>
+    <script src="/js/language.js"></script>
 </head>
 <body>
     <!-- Header -->
@@ -23,13 +25,30 @@
                     </a>
                 </div>
                 <ul class="nav-links">
-                    <li><a href="/index.html">Главная</a></li>
-                    <li><a href="/courses.html">Курсы</a></li>
-                    <li><a href="/promotions.html">Акции</a></li>
-                    <li><a href="/about.html">О нас</a></li>
+                    <li><a href="/index.html" data-i18n="nav.home">Главная</a></li>
+                    <li><a href="/courses.html" data-i18n="nav.courses">Курсы</a></li>
+                    <li><a href="/promotions.html" data-i18n="nav.promotions">Акции</a></li>
+                    <li><a href="/about.html" data-i18n="nav.about">О нас</a></li>
                 </ul>
                 <div class="nav-actions">
-                    <a href="/login.html" class="btn-secondary">Войти</a>
+                    <div class="language-switcher">
+                        <button class="language-button" id="languageButton" aria-label="Выбрать язык">
+                            <span class="lang-icon">🇷🇺</span>
+                        </button>
+                        <div class="language-dropdown" id="languageDropdown">
+                            <div class="lang-option active" data-lang="ru">
+                                <span class="lang-option-flag">🇷🇺</span>
+                                <span class="lang-option-name">Русский</span>
+                                <span class="lang-option-check">✓</span>
+                            </div>
+                            <div class="lang-option" data-lang="en">
+                                <span class="lang-option-flag">🇬🇧</span>
+                                <span class="lang-option-name">English</span>
+                                <span class="lang-option-check">✓</span>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="/login.html" class="btn-secondary" data-i18n="header.login">Войти</a>
                     <a href="/register.html" class="btn-primary">Регистрация</a>
                 </div>
             </nav>
@@ -46,14 +65,14 @@
                 <span class="logo-icon">⚡</span>
                 <span class="logo-text">Course Health</span>
             </div>
-            <button class="mobile-menu-close" id="mobileMenuClose" aria-label="Закрыть меню">×</button>
+            <button class="mobile-menu-close" id="mobileMenuClose" aria-label="Закрыть меню" data-i18n="header.closeMenu">×</button>
         </div>
         <ul class="mobile-menu-links">
-            <li><a href="/index.html">Главная</a></li>
-            <li><a href="/courses.html">Курсы</a></li>
-            <li><a href="/promotions.html">Акции</a></li>
-            <li><a href="/about.html">О нас</a></li>
-            <li><a href="#" class="mobile-menu-profile" style="opacity: 0.5; pointer-events: none;">Профиль</a></li>
+            <li><a href="/index.html" data-i18n="nav.home">Главная</a></li>
+            <li><a href="/courses.html" data-i18n="nav.courses">Курсы</a></li>
+            <li><a href="/promotions.html" data-i18n="nav.promotions">Акции</a></li>
+            <li><a href="/about.html" data-i18n="nav.about">О нас</a></li>
+            <li><a href="#" class="mobile-menu-profile" style="opacity: 0.5; pointer-events: none;" data-i18n="nav.profile">Профиль</a></li>
         </ul>
     </div>
 
@@ -64,28 +83,28 @@
                 <div class="register-card">
                     <div class="register-header">
                         <div class="register-icon">🔐</div>
-                        <h1 class="register-title">Войти в аккаунт</h1>
-                        <p class="register-subtitle">Продолжи обучение с того места, где остановился</p>
+                        <h1 class="register-title" data-i18n="login.title">Войти в аккаунт</h1>
+                        <p class="register-subtitle" data-i18n="login.subtitle">Продолжи обучение с того места, где остановился</p>
                     </div>
 
                     <!-- Telegram Login -->
                     <div class="telegram-register" id="telegramLogin">
                         <div class="telegram-icon">📱</div>
-                        <h3>Быстрый вход через Telegram</h3>
-                        <p>Войди через Telegram и продолжай обучение</p>
+                        <h3 data-i18n="login.telegramTitle">Быстрый вход через Telegram</h3>
+                        <p data-i18n="login.telegramDesc">Войди через Telegram и продолжай обучение</p>
                         <button class="btn-telegram" onclick="loginWithTelegram()">
-                            <span>Войти через Telegram</span>
+                            <span data-i18n="login.telegramButton">Войти через Telegram</span>
                             <span>→</span>
                         </button>
                         <div class="divider">
-                            <span>или</span>
+                            <span data-i18n="login.or">или</span>
                         </div>
                     </div>
 
                     <!-- Email Login Form -->
                     <form class="register-form" id="loginForm" onsubmit="handleLogin(event)">
                         <div class="form-group">
-                            <label for="loginEmail">Email</label>
+                            <label for="loginEmail" data-i18n="login.email">Email</label>
                             <input 
                                 type="email" 
                                 id="loginEmail" 
@@ -96,7 +115,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="loginPassword">Пароль</label>
+                            <label for="loginPassword" data-i18n="login.password">Пароль</label>
                             <div class="password-input">
                                 <input 
                                     type="password" 
@@ -114,20 +133,20 @@
                         <div class="form-footer" style="justify-content: space-between; align-items: center; margin-top: 0;">
                             <div class="form-checkbox" style="margin: 0;">
                                 <input type="checkbox" id="remember" name="remember">
-                                <label for="remember" style="margin: 0;">Запомнить меня</label>
+                                <label for="remember" style="margin: 0;" data-i18n="login.remember">Запомнить меня</label>
                             </div>
-                            <a href="/forgot-password.html" style="color: var(--accent-electric); text-decoration: none; font-size: 14px;">
+                            <a href="/forgot-password.html" style="color: var(--accent-electric); text-decoration: none; font-size: 14px;" data-i18n="login.forgotPassword">
                                 Забыли пароль?
                             </a>
                         </div>
 
                         <button type="submit" class="btn-primary btn-full btn-large">
-                            <span>Войти</span>
+                            <span data-i18n="login.loginButton">Войти</span>
                             <span>→</span>
                         </button>
 
                         <div class="form-footer">
-                            <p>Нет аккаунта? <a href="/register.html">Зарегистрироваться</a></p>
+                            <p><span data-i18n="login.noAccount">Нет аккаунта?</span> <a href="/register.html" data-i18n="login.registerLink">Зарегистрироваться</a></p>
                         </div>
                     </form>
 

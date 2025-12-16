@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Курсы - Course Health</title>
     <link rel="stylesheet" href="/css/style.css">
+    <script src="/js/translations.js"></script>
+    <script src="/js/language.js"></script>
 </head>
 <body>
     <!-- Header -->
@@ -23,14 +25,31 @@
                     </a>
                 </div>
                 <ul class="nav-links">
-                    <li><a href="/index.html">Главная</a></li>
-                    <li><a href="/courses.html">Курсы</a></li>
-                    <li><a href="/promotions.html">Акции</a></li>
-                    <li><a href="/about.html">О нас</a></li>
+                    <li><a href="/index.html" data-i18n="nav.home">Главная</a></li>
+                    <li><a href="/courses.html" data-i18n="nav.courses">Курсы</a></li>
+                    <li><a href="/promotions.html" data-i18n="nav.promotions">Акции</a></li>
+                    <li><a href="/about.html" data-i18n="nav.about">О нас</a></li>
                 </ul>
                 <div class="nav-actions">
-                    <a href="/login.html" class="btn-secondary">Войти</a>
-                    <a href="/courses.html" class="btn-primary">Начать</a>
+                    <div class="language-switcher">
+                        <button class="language-button" id="languageButton" aria-label="Выбрать язык">
+                            <span class="lang-icon">🇷🇺</span>
+                        </button>
+                        <div class="language-dropdown" id="languageDropdown">
+                            <div class="lang-option active" data-lang="ru">
+                                <span class="lang-option-flag">🇷🇺</span>
+                                <span class="lang-option-name">Русский</span>
+                                <span class="lang-option-check">✓</span>
+                            </div>
+                            <div class="lang-option" data-lang="en">
+                                <span class="lang-option-flag">🇬🇧</span>
+                                <span class="lang-option-name">English</span>
+                                <span class="lang-option-check">✓</span>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="/login.html" class="btn-secondary" data-i18n="header.login">Войти</a>
+                    <a href="/courses.html" class="btn-primary" data-i18n="header.start">Начать</a>
                 </div>
             </nav>
         </div>
@@ -46,14 +65,14 @@
                 <span class="logo-icon">⚡</span>
                 <span class="logo-text">Course Health</span>
             </div>
-            <button class="mobile-menu-close" id="mobileMenuClose" aria-label="Закрыть меню">×</button>
+            <button class="mobile-menu-close" id="mobileMenuClose" aria-label="Закрыть меню" data-i18n="header.closeMenu">×</button>
         </div>
         <ul class="mobile-menu-links">
-            <li><a href="/index.html">Главная</a></li>
-            <li><a href="/courses.html">Курсы</a></li>
-            <li><a href="/promotions.html">Акции</a></li>
-            <li><a href="/about.html">О нас</a></li>
-            <li><a href="#" class="mobile-menu-profile" style="opacity: 0.5; pointer-events: none;">Профиль</a></li>
+            <li><a href="/index.html" data-i18n="nav.home">Главная</a></li>
+            <li><a href="/courses.html" data-i18n="nav.courses">Курсы</a></li>
+            <li><a href="/promotions.html" data-i18n="nav.promotions">Акции</a></li>
+            <li><a href="/about.html" data-i18n="nav.about">О нас</a></li>
+            <li><a href="#" class="mobile-menu-profile" style="opacity: 0.5; pointer-events: none;" data-i18n="nav.profile">Профиль</a></li>
         </ul>
     </div>
 
@@ -61,8 +80,8 @@
     <section class="section" style="padding-top: 140px;">
         <div class="container">
             <div class="section-header">
-                <h1 class="section-title">Все <span class="gradient-text">курсы</span></h1>
-                <p class="section-description">
+                <h1 class="section-title" data-i18n="courses.title">Все курсы</h1>
+                <p class="section-description" data-i18n="courses.description">
                     Выбери курс и начни обучение. 15% контента бесплатно, полный доступ за 1500₽
                 </p>
             </div>
@@ -70,47 +89,47 @@
             <div class="courses-grid">
                 <!-- Кето-диета курс -->
                 <div class="course-card">
-                    <div class="course-badge-free">15% бесплатно</div>
+                    <div class="course-badge-free" data-i18n="courses.free">15% бесплатно</div>
                     <div class="course-image">
                         <img src="/img/keto_course.png" alt="Кето Диета">
                     </div>
                     <div class="course-content">
-                        <div class="course-category">Здоровье</div>
-                        <h3 class="course-title">Кето Диета: Наука Жиросжигания. От Мифов к Результатам</h3>
-                        <p class="course-description">Изучи основы кето-диеты, научись правильно рассчитывать макросы и составлять меню. Начни свой путь к здоровью и стройности!</p>
+                        <div class="course-category" data-i18n="courses.category.health">Здоровье</div>
+                        <h3 class="course-title" data-i18n="courses.keto.title">Кето Диета: Наука Жиросжигания. От Мифов к Результатам</h3>
+                        <p class="course-description" data-i18n="courses.keto.description">Изучи основы кето-диеты, научись правильно рассчитывать макросы и составлять меню. Начни свой путь к здоровью и стройности!</p>
                         <div class="course-meta">
                             <span>⭐ 4.9</span>
                             <span>👥 12,453</span>
                             <span>⏱ 20 ч</span>
                         </div>
                         <div class="course-price">
-                            <span class="price-free">15% бесплатно</span>
-                            <span class="price-full">Полный доступ: 1500₽</span>
+                            <span class="price-free" data-i18n="courses.free">15% бесплатно</span>
+                            <span class="price-full" data-i18n="courses.fullAccess">Полный доступ: 1500₽</span>
                         </div>
-                        <a href="/keto-course.html" class="btn-primary btn-full">Подробнее</a>
+                        <a href="/keto-course.html" class="btn-primary btn-full" data-i18n="courses.more">Подробнее</a>
                     </div>
                 </div>
 
                 <!-- Интервальное голодание курс -->
                 <div class="course-card">
-                    <div class="course-badge-free">15% бесплатно</div>
+                    <div class="course-badge-free" data-i18n="courses.free">15% бесплатно</div>
                     <div class="course-image">
                         <img src="/img/interval_course.png" alt="Интервальное Голодание">
                     </div>
                     <div class="course-content">
-                        <div class="course-category">Здоровье</div>
-                        <h3 class="course-title">Интервальное Голодание: Ваш Режим Дня для Здоровья и Энергии. Ешьте Что Хотите (В Свое Время)</h3>
-                        <p class="course-description">Освой метод интервального голодания 16/8. Узнай, как правильно голодать и получать максимальную пользу для здоровья и похудения.</p>
+                        <div class="course-category" data-i18n="courses.category.health">Здоровье</div>
+                        <h3 class="course-title" data-i18n="courses.interval.title">Интервальное Голодание: Ваш Режим Дня для Здоровья и Энергии. Ешьте Что Хотите (В Свое Время)</h3>
+                        <p class="course-description" data-i18n="courses.interval.description">Освой метод интервального голодания 16/8. Узнай, как правильно голодать и получать максимальную пользу для здоровья и похудения.</p>
                         <div class="course-meta">
                             <span>⭐ 4.8</span>
                             <span>👥 8,721</span>
                             <span>⏱ 16 ч</span>
                         </div>
                         <div class="course-price">
-                            <span class="price-free">15% бесплатно</span>
-                            <span class="price-full">Полный доступ: 1500₽</span>
+                            <span class="price-free" data-i18n="courses.free">15% бесплатно</span>
+                            <span class="price-full" data-i18n="courses.fullAccess">Полный доступ: 1500₽</span>
                         </div>
-                        <a href="/interval-course.html" class="btn-primary btn-full">Подробнее</a>
+                        <a href="/interval-course.html" class="btn-primary btn-full" data-i18n="courses.more">Подробнее</a>
                     </div>
                 </div>
             </div>
@@ -132,7 +151,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2024 Course Health. Все права защищены.</p>
+                <p>&copy; 2024 Course Health. <span data-i18n="footer.rights">Все права защищены.</span></p>
             </div>
         </div>
     </footer>

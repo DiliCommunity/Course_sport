@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Акции - Course Health</title>
     <link rel="stylesheet" href="/css/style.css">
+    <script src="/js/translations.js"></script>
+    <script src="/js/language.js"></script>
 </head>
 <body>
     <!-- Header -->
@@ -23,14 +25,31 @@
                     </a>
                 </div>
                 <ul class="nav-links">
-                    <li><a href="/index.html">Главная</a></li>
-                    <li><a href="/courses.html">Курсы</a></li>
-                    <li><a href="/promotions.html">Акции</a></li>
-                    <li><a href="/about.html">О нас</a></li>
+                    <li><a href="/index.html" data-i18n="nav.home">Главная</a></li>
+                    <li><a href="/courses.html" data-i18n="nav.courses">Курсы</a></li>
+                    <li><a href="/promotions.html" data-i18n="nav.promotions">Акции</a></li>
+                    <li><a href="/about.html" data-i18n="nav.about">О нас</a></li>
                 </ul>
                 <div class="nav-actions">
-                    <a href="/login.html" class="btn-secondary">Войти</a>
-                    <a href="/courses.html" class="btn-primary">Начать</a>
+                    <div class="language-switcher">
+                        <button class="language-button" id="languageButton" aria-label="Выбрать язык">
+                            <span class="lang-icon">🇷🇺</span>
+                        </button>
+                        <div class="language-dropdown" id="languageDropdown">
+                            <div class="lang-option active" data-lang="ru">
+                                <span class="lang-option-flag">🇷🇺</span>
+                                <span class="lang-option-name">Русский</span>
+                                <span class="lang-option-check">✓</span>
+                            </div>
+                            <div class="lang-option" data-lang="en">
+                                <span class="lang-option-flag">🇬🇧</span>
+                                <span class="lang-option-name">English</span>
+                                <span class="lang-option-check">✓</span>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="/login.html" class="btn-secondary" data-i18n="header.login">Войти</a>
+                    <a href="/courses.html" class="btn-primary" data-i18n="header.start">Начать</a>
                 </div>
             </nav>
         </div>
@@ -46,14 +65,14 @@
                 <span class="logo-icon">⚡</span>
                 <span class="logo-text">Course Health</span>
             </div>
-            <button class="mobile-menu-close" id="mobileMenuClose" aria-label="Закрыть меню">×</button>
+            <button class="mobile-menu-close" id="mobileMenuClose" aria-label="Закрыть меню" data-i18n="header.closeMenu">×</button>
         </div>
         <ul class="mobile-menu-links">
-            <li><a href="/index.html">Главная</a></li>
-            <li><a href="/courses.html">Курсы</a></li>
-            <li><a href="/promotions.html">Акции</a></li>
-            <li><a href="/about.html">О нас</a></li>
-            <li><a href="#" class="mobile-menu-profile" style="opacity: 0.5; pointer-events: none;">Профиль</a></li>
+            <li><a href="/index.html" data-i18n="nav.home">Главная</a></li>
+            <li><a href="/courses.html" data-i18n="nav.courses">Курсы</a></li>
+            <li><a href="/promotions.html" data-i18n="nav.promotions">Акции</a></li>
+            <li><a href="/about.html" data-i18n="nav.about">О нас</a></li>
+            <li><a href="#" class="mobile-menu-profile" style="opacity: 0.5; pointer-events: none;" data-i18n="nav.profile">Профиль</a></li>
         </ul>
     </div>
 
@@ -65,76 +84,76 @@
                     <span class="badge-icon">🎁</span>
                     <span>Специальные предложения</span>
                 </div>
-                <h1 class="section-title">Акции и <span class="gradient-text">скидки</span></h1>
-                <p class="section-description">
-                    Выгодные предложения на курсы и услуги. Не упусти возможность сэкономить!
+                <h1 class="section-title" data-i18n="promotions.title">Акции и специальные предложения</h1>
+                <p class="section-description" data-i18n="promotions.description">
+                    Воспользуйтесь выгодными предложениями и начни обучение со скидкой
                 </p>
             </div>
 
             <div class="promotions-grid">
                 <!-- Акция 1: Покупка 2 курсов за 1999₽ -->
                 <div class="promotion-card promotion-hot">
-                    <div class="promotion-badge">🔥 Горячая акция</div>
+                    <div class="promotion-badge" data-i18n="promotions.hot">🔥 Горячая акция</div>
                     <div class="promotion-content">
                         <div class="promotion-images">
                             <img src="/img/keto_course.png" alt="Кето-диета">
                             <span class="promotion-plus">+</span>
                             <img src="/img/interval_course.png" alt="Интервальное голодание">
                         </div>
-                        <h3 class="promotion-title">Купи 2 курса за 1999₽</h3>
-                        <p class="promotion-description">
+                        <h3 class="promotion-title" data-i18n="promotions.buy2.title">Купи 2 курса за 1999₽</h3>
+                        <p class="promotion-description" data-i18n="promotions.buy2.description">
                             Специальное предложение! Купите курс по Кето-диете и курс по Интервальному голоданию вместе и сэкономьте 1001₽!
                         </p>
                         <div class="promotion-price">
-                            <span class="price-old">3000₽</span>
-                            <span class="price-new">1999₽</span>
+                            <span class="price-old" data-i18n="promotions.buy2.oldPrice">3000₽</span>
+                            <span class="price-new" data-i18n="promotions.buy2.newPrice">1999₽</span>
                         </div>
                         <div class="promotion-timer">
-                            <span>⏰ Акция до конца месяца</span>
+                            <span data-i18n="promotions.buy2.timer">⏰ Акция до конца месяца</span>
                         </div>
-                        <a href="/courses.html" class="btn-primary btn-full">Воспользоваться</a>
+                        <a href="/courses.html" class="btn-primary btn-full" data-i18n="promotions.buy2.action">Воспользоваться</a>
                     </div>
                 </div>
 
                 <!-- Акция 2: Реферальная программа -->
                 <div class="promotion-card promotion-new">
-                    <div class="promotion-badge">✨ Реферальная программа</div>
+                    <div class="promotion-badge" data-i18n="promotions.new">✨ Реферальная программа</div>
                     <div class="promotion-content">
                         <div class="promotion-icon-large">👥</div>
-                        <h3 class="promotion-title">Приведи друга — получи 30%</h3>
-                        <p class="promotion-description">
+                        <h3 class="promotion-title" data-i18n="promotions.referral.title">Приведи друга — получи 30%</h3>
+                        <p class="promotion-description" data-i18n="promotions.referral.description">
                             Пригласи друга на платформу! Если он купит курс, ты получишь 30% от суммы его покупки на свой счет.
                         </p>
                         <div class="promotion-benefits">
-                            <div class="benefits-title">💎 Как это работает:</div>
+                            <div class="benefits-title" data-i18n="promotions.referral.howItWorks">💎 Как это работает:</div>
                             <ul class="benefits-list">
-                                <li>✓ Получи свою реферальную ссылку</li>
-                                <li>✓ Поделись с друзьями</li>
-                                <li>✓ Получи 30% с каждой покупки друга</li>
-                                <li>✓ Выводи средства или используй на курсы</li>
+                                <li data-i18n="promotions.referral.step1">✓ Получи свою реферальную ссылку</li>
+                                <li data-i18n="promotions.referral.step2">✓ Поделись с друзьями</li>
+                                <li data-i18n="promotions.referral.step3">✓ Получи 30% с каждой покупки друга</li>
+                                <li data-i18n="promotions.referral.step4">✓ Выводи средства или используй на курсы</li>
                             </ul>
                         </div>
-                        <a href="/courses.html" class="btn-primary btn-full">Получить реферальную ссылку</a>
+                        <a href="/courses.html" class="btn-primary btn-full" data-i18n="promotions.referral.action">Получить реферальную ссылку</a>
                     </div>
                 </div>
 
                 <!-- Акция 3: Первым 100 студентам -->
                 <div class="promotion-card promotion-special">
-                    <div class="promotion-badge">⭐ Специальное предложение</div>
+                    <div class="promotion-badge" data-i18n="promotions.special">⭐ Специальное предложение</div>
                     <div class="promotion-content">
-                        <h3 class="promotion-title">Первым 100 студентам</h3>
-                        <p class="promotion-description">
+                        <h3 class="promotion-title" data-i18n="promotions.first100.title">Первым 100 студентам</h3>
+                        <p class="promotion-description" data-i18n="promotions.first100.description">
                             Специальная цена для первых 100 студентов! Успей получить курс по выгодной цене.
                         </p>
                         <div class="promotion-price">
-                            <span class="price-old">1500₽</span>
-                            <span class="price-new">1199₽</span>
+                            <span class="price-old" data-i18n="promotions.first100.oldPrice">1500₽</span>
+                            <span class="price-new" data-i18n="promotions.first100.newPrice">1199₽</span>
                         </div>
                         <div class="promotion-counter">
-                            <div class="counter-label">Осталось мест:</div>
+                            <div class="counter-label" data-i18n="promotions.first100.left">Осталось мест:</div>
                             <div id="studentsCounter">100</div>
                         </div>
-                        <a href="/courses.html" class="btn-primary btn-full">Воспользоваться</a>
+                        <a href="/courses.html" class="btn-primary btn-full" data-i18n="promotions.first100.action">Воспользоваться</a>
                     </div>
                 </div>
             </div>

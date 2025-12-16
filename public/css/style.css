@@ -185,7 +185,117 @@ section > * {
 
 .nav-actions {
     display: flex;
+    align-items: center;
     gap: 15px;
+}
+
+/* Language Switcher */
+.language-switcher {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.language-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 45px;
+    height: 45px;
+    background: linear-gradient(135deg, var(--glass), rgba(255, 255, 255, 0.05));
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+    backdrop-filter: blur(10px);
+    position: relative;
+    z-index: 1002;
+}
+
+.language-button:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent-electric);
+    box-shadow: 0 8px 25px rgba(0, 217, 255, 0.3);
+}
+
+.language-button.active {
+    border-color: var(--accent-gold);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+}
+
+.lang-icon {
+    font-size: 24px;
+    line-height: 1;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.language-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    background: linear-gradient(135deg, rgba(15, 15, 18, 0.98), rgba(10, 10, 11, 0.98));
+    backdrop-filter: blur(30px) saturate(180%);
+    border: 1px solid var(--glass-border);
+    border-radius: 15px;
+    padding: 10px;
+    min-width: 150px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 1001;
+}
+
+.language-dropdown.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.lang-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 15px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+    color: var(--text-gray);
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.lang-option:hover {
+    background: rgba(255, 215, 0, 0.1);
+    color: var(--text-white);
+    transform: translateX(5px);
+}
+
+.lang-option.active {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(0, 217, 255, 0.2));
+    color: var(--text-white);
+    border: 1px solid var(--accent-gold);
+}
+
+.lang-option-flag {
+    font-size: 20px;
+    line-height: 1;
+}
+
+.lang-option-name {
+    flex: 1;
+}
+
+.lang-option-check {
+    font-size: 16px;
+    color: var(--accent-electric);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.lang-option.active .lang-option-check {
+    opacity: 1;
 }
 
 /* Burger Menu */

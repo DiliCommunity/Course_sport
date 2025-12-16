@@ -6,6 +6,8 @@
     <title>Кето-рецепты: готовим вкусно - Course Health</title>
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/course-page.css">
+    <script src="/js/translations.js"></script>
+    <script src="/js/language.js"></script>
 </head>
 <body>
     <!-- Header -->
@@ -24,14 +26,31 @@
                     </a>
                 </div>
                 <ul class="nav-links">
-                    <li><a href="/index.html">Главная</a></li>
-                    <li><a href="/courses.html">Курсы</a></li>
-                    <li><a href="/promotions.html">Акции</a></li>
-                    <li><a href="/about.html">О нас</a></li>
+                    <li><a href="/index.html" data-i18n="nav.home">Главная</a></li>
+                    <li><a href="/courses.html" data-i18n="nav.courses">Курсы</a></li>
+                    <li><a href="/promotions.html" data-i18n="nav.promotions">Акции</a></li>
+                    <li><a href="/about.html" data-i18n="nav.about">О нас</a></li>
                 </ul>
                 <div class="nav-actions">
-                    <a href="/login.html" class="btn-secondary">Войти</a>
-                    <a href="/courses.html" class="btn-primary">Начать</a>
+                    <div class="language-switcher">
+                        <button class="language-button" id="languageButton" aria-label="Выбрать язык">
+                            <span class="lang-icon">🇷🇺</span>
+                        </button>
+                        <div class="language-dropdown" id="languageDropdown">
+                            <div class="lang-option active" data-lang="ru">
+                                <span class="lang-option-flag">🇷🇺</span>
+                                <span class="lang-option-name">Русский</span>
+                                <span class="lang-option-check">✓</span>
+                            </div>
+                            <div class="lang-option" data-lang="en">
+                                <span class="lang-option-flag">🇬🇧</span>
+                                <span class="lang-option-name">English</span>
+                                <span class="lang-option-check">✓</span>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="/login.html" class="btn-secondary" data-i18n="header.login">Войти</a>
+                    <a href="/courses.html" class="btn-primary" data-i18n="header.start">Начать</a>
                 </div>
             </nav>
         </div>
@@ -47,14 +66,14 @@
                 <span class="logo-icon">💚</span>
                 <span class="logo-text">Course Health</span>
             </div>
-            <button class="mobile-menu-close" id="mobileMenuClose" aria-label="Закрыть меню">×</button>
+            <button class="mobile-menu-close" id="mobileMenuClose" aria-label="Закрыть меню" data-i18n="header.closeMenu">×</button>
         </div>
         <ul class="mobile-menu-links">
-            <li><a href="/index.html">Главная</a></li>
-            <li><a href="/courses.html">Курсы</a></li>
-            <li><a href="/promotions.html">Акции</a></li>
-            <li><a href="/about.html">О нас</a></li>
-            <li><a href="#" class="mobile-menu-profile" style="opacity: 0.5; pointer-events: none;">Профиль</a></li>
+            <li><a href="/index.html" data-i18n="nav.home">Главная</a></li>
+            <li><a href="/courses.html" data-i18n="nav.courses">Курсы</a></li>
+            <li><a href="/promotions.html" data-i18n="nav.promotions">Акции</a></li>
+            <li><a href="/about.html" data-i18n="nav.about">О нас</a></li>
+            <li><a href="#" class="mobile-menu-profile" style="opacity: 0.5; pointer-events: none;" data-i18n="nav.profile">Профиль</a></li>
         </ul>
     </div>
 
@@ -64,12 +83,12 @@
             <div class="section-header" style="text-align: center; margin-bottom: 60px;">
                 <div class="section-badge" style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 20px; background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.3); border-radius: 50px; margin-bottom: 20px;">
                     <span style="font-size: 20px;">🍽️</span>
-                    <span style="color: var(--accent-gold); font-weight: 600;">Кето-рецепты</span>
+                    <span style="color: var(--accent-gold); font-weight: 600;" data-i18n="ketoFoodPage.badge">Кето-рецепты</span>
                 </div>
                 <h1 class="section-title" style="font-size: 48px; margin-bottom: 20px;">
-                    100 лучших <span class="gradient-text">кето-рецептов</span>
+                    <span data-i18n="ketoFoodPage.title">100 лучших кето-рецептов</span>
                 </h1>
-                <p class="section-description" style="font-size: 18px; max-width: 700px; margin: 0 auto; color: var(--text-gray);">
+                <p class="section-description" style="font-size: 18px; max-width: 700px; margin: 0 auto; color: var(--text-gray);" data-i18n="ketoFoodPage.description">
                     От завтрака до ужина. Вкусные и полезные блюда для кето-диеты
                 </p>
             </div>
@@ -82,23 +101,23 @@
             <div class="food-categories-nav">
                 <button class="food-category-btn active" data-category="breakfast">
                     <span class="category-icon">🌅</span>
-                    <span class="category-name">Завтрак</span>
+                    <span class="category-name" data-i18n="ketoFoodPage.breakfast">Завтрак</span>
                 </button>
                 <button class="food-category-btn" data-category="lunch">
                     <span class="category-icon">🍽️</span>
-                    <span class="category-name">Обед</span>
+                    <span class="category-name" data-i18n="ketoFoodPage.lunch">Обед</span>
                 </button>
                 <button class="food-category-btn" data-category="dinner">
                     <span class="category-icon">🌙</span>
-                    <span class="category-name">Ужин</span>
+                    <span class="category-name" data-i18n="ketoFoodPage.dinner">Ужин</span>
                 </button>
                 <button class="food-category-btn" data-category="snacks">
                     <span class="category-icon">🥜</span>
-                    <span class="category-name">Перекусы</span>
+                    <span class="category-name" data-i18n="ketoFoodPage.snacks">Перекусы</span>
                 </button>
                 <button class="food-category-btn" data-category="desserts">
                     <span class="category-icon">🍰</span>
-                    <span class="category-name">Десерты</span>
+                    <span class="category-name" data-i18n="ketoFoodPage.desserts">Десерты</span>
                 </button>
             </div>
         </div>
@@ -111,9 +130,9 @@
             <div class="food-category-section active" id="breakfast">
                 <div class="section-header" style="margin-bottom: 40px;">
                     <h2 class="section-title" style="font-size: 36px;">
-                        <span class="gradient-text">Завтрак</span>
+                        <span class="gradient-text" data-i18n="ketoFoodPage.breakfast">Завтрак</span>
                     </h2>
-                    <p class="section-description" style="color: var(--text-gray);">
+                    <p class="section-description" style="color: var(--text-gray);" data-i18n="ketoFoodPage.breakfastDesc">
                         Начните день с правильного кето-завтрака
                     </p>
                 </div>
@@ -121,7 +140,7 @@
                     <!-- Блюда будут добавлены позже -->
                     <div class="food-item-placeholder">
                         <div class="food-item-icon">🍳</div>
-                        <p style="color: var(--text-gray); margin-top: 20px;">Блюда будут добавлены в ближайшее время</p>
+                        <p style="color: var(--text-gray); margin-top: 20px;" data-i18n="ketoFoodPage.comingSoon">Блюда будут добавлены в ближайшее время</p>
                     </div>
                 </div>
             </div>
@@ -130,9 +149,9 @@
             <div class="food-category-section" id="lunch">
                 <div class="section-header" style="margin-bottom: 40px;">
                     <h2 class="section-title" style="font-size: 36px;">
-                        <span class="gradient-text">Обед</span>
+                        <span class="gradient-text" data-i18n="ketoFoodPage.lunch">Обед</span>
                     </h2>
-                    <p class="section-description" style="color: var(--text-gray);">
+                    <p class="section-description" style="color: var(--text-gray);" data-i18n="ketoFoodPage.lunchDesc">
                         Сытные и полезные кето-обеды
                     </p>
                 </div>
@@ -140,7 +159,7 @@
                     <!-- Блюда будут добавлены позже -->
                     <div class="food-item-placeholder">
                         <div class="food-item-icon">🍲</div>
-                        <p style="color: var(--text-gray); margin-top: 20px;">Блюда будут добавлены в ближайшее время</p>
+                        <p style="color: var(--text-gray); margin-top: 20px;" data-i18n="ketoFoodPage.comingSoon">Блюда будут добавлены в ближайшее время</p>
                     </div>
                 </div>
             </div>
@@ -149,9 +168,9 @@
             <div class="food-category-section" id="dinner">
                 <div class="section-header" style="margin-bottom: 40px;">
                     <h2 class="section-title" style="font-size: 36px;">
-                        <span class="gradient-text">Ужин</span>
+                        <span class="gradient-text" data-i18n="ketoFoodPage.dinner">Ужин</span>
                     </h2>
-                    <p class="section-description" style="color: var(--text-gray);">
+                    <p class="section-description" style="color: var(--text-gray);" data-i18n="ketoFoodPage.dinnerDesc">
                         Легкие и вкусные кето-ужины
                     </p>
                 </div>
@@ -159,7 +178,7 @@
                     <!-- Блюда будут добавлены позже -->
                     <div class="food-item-placeholder">
                         <div class="food-item-icon">🍖</div>
-                        <p style="color: var(--text-gray); margin-top: 20px;">Блюда будут добавлены в ближайшее время</p>
+                        <p style="color: var(--text-gray); margin-top: 20px;" data-i18n="ketoFoodPage.comingSoon">Блюда будут добавлены в ближайшее время</p>
                     </div>
                 </div>
             </div>
@@ -168,9 +187,9 @@
             <div class="food-category-section" id="snacks">
                 <div class="section-header" style="margin-bottom: 40px;">
                     <h2 class="section-title" style="font-size: 36px;">
-                        <span class="gradient-text">Перекусы</span>
+                        <span class="gradient-text" data-i18n="ketoFoodPage.snacks">Перекусы</span>
                     </h2>
-                    <p class="section-description" style="color: var(--text-gray);">
+                    <p class="section-description" style="color: var(--text-gray);" data-i18n="ketoFoodPage.snacksDesc">
                         Полезные кето-перекусы между приемами пищи
                     </p>
                 </div>
@@ -178,7 +197,7 @@
                     <!-- Блюда будут добавлены позже -->
                     <div class="food-item-placeholder">
                         <div class="food-item-icon">🥜</div>
-                        <p style="color: var(--text-gray); margin-top: 20px;">Блюда будут добавлены в ближайшее время</p>
+                        <p style="color: var(--text-gray); margin-top: 20px;" data-i18n="ketoFoodPage.comingSoon">Блюда будут добавлены в ближайшее время</p>
                     </div>
                 </div>
             </div>
@@ -187,9 +206,9 @@
             <div class="food-category-section" id="desserts">
                 <div class="section-header" style="margin-bottom: 40px;">
                     <h2 class="section-title" style="font-size: 36px;">
-                        <span class="gradient-text">Десерты</span>
+                        <span class="gradient-text" data-i18n="ketoFoodPage.desserts">Десерты</span>
                     </h2>
-                    <p class="section-description" style="color: var(--text-gray);">
+                    <p class="section-description" style="color: var(--text-gray);" data-i18n="ketoFoodPage.dessertsDesc">
                         Сладкие кето-десерты без сахара
                     </p>
                 </div>
@@ -197,7 +216,7 @@
                     <!-- Блюда будут добавлены позже -->
                     <div class="food-item-placeholder">
                         <div class="food-item-icon">🍰</div>
-                        <p style="color: var(--text-gray); margin-top: 20px;">Блюда будут добавлены в ближайшее время</p>
+                        <p style="color: var(--text-gray); margin-top: 20px;" data-i18n="ketoFoodPage.comingSoon">Блюда будут добавлены в ближайшее время</p>
                     </div>
                 </div>
             </div>
@@ -213,21 +232,21 @@
                         <span class="logo-icon">💚</span>
                         <span class="logo-text">Course Health</span>
                     </div>
-                    <p class="footer-description">
+                    <p class="footer-description" data-i18n="footer.description">
                         Профессиональные курсы по кето-диете и интервальному голоданию от лучших экспертов
                     </p>
                 </div>
                 <div class="footer-section">
-                    <h4>Навигация</h4>
+                    <h4 data-i18n="footer.navigation">Навигация</h4>
                     <ul>
-                        <li><a href="/index.html">Главная</a></li>
-                        <li><a href="/courses.html">Курсы</a></li>
-                        <li><a href="/promotions.html">Акции</a></li>
-                        <li><a href="/about.html">О нас</a></li>
+                        <li><a href="/index.html" data-i18n="nav.home">Главная</a></li>
+                        <li><a href="/courses.html" data-i18n="nav.courses">Курсы</a></li>
+                        <li><a href="/promotions.html" data-i18n="nav.promotions">Акции</a></li>
+                        <li><a href="/about.html" data-i18n="nav.about">О нас</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
-                    <h4>Контакты</h4>
+                    <h4 data-i18n="footer.contacts">Контакты</h4>
                     <ul>
                         <li><a href="mailto:info@coursesport.ru">info@coursesport.ru</a></li>
                         <li><a href="tel:+79991234567">+7 (999) 123-45-67</a></li>
@@ -235,7 +254,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2024 Course Health. Все права защищены.</p>
+                <p>&copy; 2024 Course Health. <span data-i18n="footer.rights">Все права защищены.</span></p>
             </div>
         </div>
     </footer>
