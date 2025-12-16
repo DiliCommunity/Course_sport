@@ -3,7 +3,40 @@
 /* Course Hero Section */
 .course-hero {
     padding: 140px 0 60px;
-    background: linear-gradient(180deg, rgba(26, 26, 26, 0.3) 0%, rgba(10, 10, 11, 1) 100%);
+    background: 
+        linear-gradient(180deg, rgba(10, 10, 11, 0.95) 0%, rgba(10, 10, 11, 1) 100%),
+        radial-gradient(ellipse 120% 120% at 50% -20%, rgba(45, 212, 191, 0.15), transparent),
+        radial-gradient(ellipse 90% 90% at 100% 100%, rgba(167, 243, 208, 0.12), transparent),
+        radial-gradient(ellipse 70% 70% at 0% 50%, rgba(254, 243, 226, 0.08), transparent),
+        radial-gradient(ellipse 60% 60% at 80% 30%, rgba(103, 232, 249, 0.1), transparent);
+    background-attachment: fixed;
+    position: relative;
+    z-index: 1;
+}
+
+.course-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(10, 10, 11, 0.85);
+    z-index: -1;
+}
+
+.course-image-hero {
+    width: 100%;
+    margin-bottom: 30px;
+}
+
+.course-image-hero img {
+    width: 100%;
+    max-width: 800px;
+    height: auto;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .breadcrumb {
@@ -237,7 +270,24 @@
 /* Free Module Section */
 .free-module-section {
     padding: 80px 0;
-    background: linear-gradient(180deg, rgba(10, 10, 11, 1) 0%, rgba(26, 26, 26, 0.5) 100%);
+    background: 
+        linear-gradient(180deg, rgba(10, 10, 11, 1) 0%, rgba(26, 26, 26, 0.8) 100%),
+        radial-gradient(ellipse 120% 120% at 50% -20%, rgba(45, 212, 191, 0.15), transparent),
+        radial-gradient(ellipse 90% 90% at 100% 100%, rgba(167, 243, 208, 0.12), transparent);
+    background-attachment: fixed;
+    position: relative;
+    z-index: 1;
+}
+
+.free-module-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(10, 10, 11, 0.9);
+    z-index: -1;
 }
 
 .free-module-header {
