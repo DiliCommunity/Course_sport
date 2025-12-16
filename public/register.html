@@ -49,7 +49,7 @@
                         </div>
                     </div>
                     <a href="/login.html" class="btn-secondary" data-i18n="header.login">Войти</a>
-                    <a href="/register.html" class="btn-primary">Регистрация</a>
+                    <a href="/register.html" class="btn-primary" data-i18n="header.register">Регистрация</a>
                 </div>
             </nav>
         </div>
@@ -109,6 +109,7 @@
                                 type="text" 
                                 id="name" 
                                 name="name" 
+                                data-i18n-placeholder="register.namePlaceholder"
                                 placeholder="Введите ваше имя"
                                 required
                             >
@@ -120,6 +121,7 @@
                                 type="email" 
                                 id="email" 
                                 name="email" 
+                                data-i18n-placeholder="register.emailPlaceholder"
                                 placeholder="your@email.com"
                                 required
                             >
@@ -132,6 +134,7 @@
                                     type="password" 
                                     id="password" 
                                     name="password" 
+                                    data-i18n-placeholder="register.passwordPlaceholder"
                                     placeholder="Минимум 6 символов"
                                     required
                                     minlength="6"
@@ -149,6 +152,7 @@
                                     type="password" 
                                     id="confirmPassword" 
                                     name="confirmPassword" 
+                                    data-i18n-placeholder="register.confirmPasswordPlaceholder"
                                     placeholder="Повторите пароль"
                                     required
                                 >
@@ -178,9 +182,9 @@
                     <!-- Success Message -->
                     <div class="register-success" id="registerSuccess" style="display: none;">
                         <div class="success-icon">✅</div>
-                        <h3>Регистрация успешна!</h3>
-                        <p>Добро пожаловать в Course Health!</p>
-                        <a href="/courses.html" class="btn-primary btn-full">Перейти к курсам</a>
+                        <h3 data-i18n="register.successTitle">Регистрация успешна!</h3>
+                        <p data-i18n="register.successMessage">Добро пожаловать в Course Health!</p>
+                        <a href="/courses.html" class="btn-primary btn-full" data-i18n="register.goToCourses">Перейти к курсам</a>
                     </div>
 
                     <!-- Error Message -->

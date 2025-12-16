@@ -57,8 +57,31 @@ class LanguageSwitcher {
                 } else if (element.hasAttribute('placeholder')) {
                     element.placeholder = translation;
                 } else {
-                    element.textContent = translation;
+                    // Check if element has child elements that should be preserved (like <span>→</span>)
+                    const preservedChildren = Array.from(element.childNodes).filter(node => 
+                        node.nodeType === 1 && node.tagName === 'SPAN' && !node.hasAttribute('data-i18n')
+                    );
+                    
+                    if (preservedChildren.length > 0) {
+                        // Save preserved children
+                        const saved = preservedChildren.map(child => child.cloneNode(true));
+                        // Update text content
+                        element.textContent = translation;
+                        // Restore preserved children
+                        saved.forEach(child => element.appendChild(child));
+                    } else {
+                        element.textContent = translation;
+                    }
                 }
+            }
+        });
+
+        // Update placeholder attributes
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+            const key = element.getAttribute('data-i18n-placeholder');
+            const translation = this.getTranslation(key);
+            if (translation) {
+                element.placeholder = translation;
             }
         });
 

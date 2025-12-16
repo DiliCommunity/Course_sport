@@ -109,6 +109,7 @@
                                 type="email" 
                                 id="loginEmail" 
                                 name="email" 
+                                data-i18n-placeholder="login.emailPlaceholder"
                                 placeholder="your@email.com"
                                 required
                             >
@@ -121,6 +122,7 @@
                                     type="password" 
                                     id="loginPassword" 
                                     name="password" 
+                                    data-i18n-placeholder="login.passwordPlaceholder"
                                     placeholder="Введите пароль"
                                     required
                                 >
@@ -153,9 +155,9 @@
                     <!-- Success Message -->
                     <div class="register-success" id="loginSuccess" style="display: none;">
                         <div class="success-icon">✅</div>
-                        <h3>Вход выполнен!</h3>
-                        <p>Добро пожаловать обратно!</p>
-                        <a href="/courses.html" class="btn-primary btn-full">Перейти к курсам</a>
+                        <h3 data-i18n="loginSuccess.title">Вход выполнен!</h3>
+                        <p data-i18n="loginSuccess.message">Добро пожаловать обратно!</p>
+                        <a href="/courses.html" class="btn-primary btn-full" data-i18n="loginSuccess.goToCourses">Перейти к курсам</a>
                     </div>
 
                     <!-- Error Message -->

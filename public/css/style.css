@@ -200,33 +200,55 @@ section > * {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 45px;
-    height: 45px;
-    background: linear-gradient(135deg, var(--glass), rgba(255, 255, 255, 0.05));
-    border: 1px solid var(--glass-border);
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(0, 217, 255, 0.2));
+    border: 2px solid var(--accent-gold);
     border-radius: 12px;
     cursor: pointer;
     transition: all 0.3s;
     backdrop-filter: blur(10px);
     position: relative;
     z-index: 1002;
+    box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4), 0 0 15px rgba(255, 215, 0, 0.2);
 }
 
 .language-button:hover {
     transform: translateY(-2px);
     border-color: var(--accent-electric);
-    box-shadow: 0 8px 25px rgba(0, 217, 255, 0.3);
+    box-shadow: 0 8px 25px rgba(0, 217, 255, 0.5), 0 0 30px rgba(255, 215, 0, 0.4);
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.25), rgba(0, 217, 255, 0.25));
 }
 
 .language-button.active {
     border-color: var(--accent-gold);
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.6), 0 4px 20px rgba(255, 215, 0, 0.4);
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(0, 217, 255, 0.3));
 }
 
 .lang-icon {
-    font-size: 24px;
+    font-size: 28px;
     line-height: 1;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.5));
+    transition: transform 0.3s;
+    display: block;
+}
+
+.language-button:hover .lang-icon {
+    transform: scale(1.15);
+}
+
+/* Desktop visibility improvements */
+@media (min-width: 769px) {
+    .language-button {
+        width: 50px;
+        height: 50px;
+        box-shadow: 0 5px 25px rgba(255, 215, 0, 0.5), 0 0 20px rgba(255, 215, 0, 0.3);
+    }
+    
+    .lang-icon {
+        font-size: 30px;
+    }
 }
 
 .language-dropdown {
@@ -2054,7 +2076,7 @@ section > * {
     }
     
     .nav-actions {
-        gap: 10px;
+        gap: 8px;
     }
     
     .nav-actions .btn-primary,
@@ -2065,6 +2087,25 @@ section > * {
     
     .logo-text {
         font-size: 18px;
+    }
+    
+    .language-button {
+        width: 44px;
+        height: 44px;
+        border-width: 2.5px;
+        box-shadow: 0 4px 15px rgba(255, 215, 0, 0.6), 0 0 10px rgba(255, 215, 0, 0.4);
+        background: linear-gradient(135deg, rgba(255, 215, 0, 0.25), rgba(0, 217, 255, 0.25));
+    }
+    
+    .lang-icon {
+        font-size: 24px;
+        filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.6));
+    }
+    
+    .language-dropdown {
+        right: 0;
+        min-width: 140px;
+        top: calc(100% + 8px);
     }
     
     .hero-title {

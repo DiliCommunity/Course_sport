@@ -13,6 +13,7 @@ const translations = {
         header: {
             login: "Войти",
             start: "Начать",
+            register: "Регистрация",
             menu: "Меню",
             closeMenu: "Закрыть меню"
         },
@@ -28,7 +29,9 @@ const translations = {
         stats: {
             students: "Студентов",
             rating: "Рейтинг",
-            courses: "Курсов"
+            courses: "Курсов",
+            countries: "Стран",
+            instructors: "Экспертов"
         },
         // Courses
         courses: {
@@ -46,8 +49,8 @@ const translations = {
                 description: "Полный курс по кето-диете от основ до продвинутых техник"
             },
             interval: {
-                title: "Интервальное Голодание: Путь к Здоровью и Энергии",
-                description: "Изучи все методы интервального голодания и выбери свой"
+                title: "Интервальное Голодание: Ваш Режим Дня для Здоровья и Энергии. Ешьте Что Хотите (В Свое Время)",
+                description: "Освой метод интервального голодания 16/8. Узнай, как правильно голодать и получать максимальную пользу для здоровья и похудения."
             },
             recipes: {
                 title: "Кето-рецепты: готовим вкусно",
@@ -103,6 +106,8 @@ const translations = {
         about: {
             title: "О нас",
             description: "Мы помогаем людям изменить свою жизнь через правильное питание и здоровый образ жизни",
+            ctaTitle: "Готов присоединиться?",
+            ctaDescription: "Начни свой путь к здоровью вместе с Course Health уже сегодня",
             badge: "О платформе",
             heroTitle: "Мы меняем подход к здоровому образу жизни",
             heroDescription: "Course Health — это платформа нового поколения для онлайн-обучения кето-диете и интервальному голоданию. Мы объединили лучших экспертов мира, чтобы сделать здоровый образ жизни доступным каждому.",
@@ -116,6 +121,8 @@ const translations = {
             expertiseDesc: "Только проверенные методики от лучших специалистов",
             accessibility: "Доступность",
             accessibilityDesc: "Обучение должно быть доступно каждому",
+            care: "Забота",
+            careDesc: "Индивидуальный подход к каждому студенту. Поддержка на каждом этапе обучения.",
             results: "Результаты",
             resultsDesc: "Мы фокусируемся на реальных результатах наших студентов",
             howTitle: "Как это работает",
@@ -156,6 +163,28 @@ const translations = {
             description: "Получи доступ к премиум курсам. 15% контента бесплатно, полный доступ за 1500₽",
             button: "Начать обучение"
         },
+        // Course Intro Section
+        courseIntro: {
+            badge: "Наши направления",
+            title: "Выбери свой путь к здоровью",
+            description: "Кето-диета и интервальное голодание — два мощных инструмента для трансформации твоего здоровья",
+            ketoTitle: "Кето-диета",
+            ketoDescription: "Изучи основы кето-диеты, научись правильно рассчитывать макросы и составлять меню. Начни свой путь к здоровью и стройности!",
+            ketoStats: "5 курсов",
+            ketoStudents: "12K+ студентов",
+            ketoButton: "Смотреть курсы",
+            intervalTitle: "Интервальное голодание",
+            intervalDescription: "Освой метод интервального голодания. Узнай, как правильно голодать и получать максимальную пользу для здоровья и похудения.",
+            intervalStats: "4 курса",
+            intervalStudents: "8K+ студентов",
+            intervalButton: "Смотреть курсы"
+        },
+        // Featured Courses
+        featuredCourses: {
+            badge: "Популярные курсы",
+            title: "Выбор наших студентов",
+            description: "Самые востребованные курсы с высоким рейтингом"
+        },
         // Login
         login: {
             title: "Войти в аккаунт",
@@ -170,7 +199,9 @@ const translations = {
             forgotPassword: "Забыли пароль?",
             loginButton: "Войти",
             noAccount: "Нет аккаунта?",
-            registerLink: "Зарегистрироваться"
+            registerLink: "Зарегистрироваться",
+            emailPlaceholder: "your@email.com",
+            passwordPlaceholder: "Введите пароль"
         },
         // Register
         register: {
@@ -190,7 +221,20 @@ const translations = {
             privacy: "политикой конфиденциальности",
             registerButton: "Создать аккаунт",
             haveAccount: "Уже есть аккаунт?",
-            loginLink: "Войти"
+            loginLink: "Войти",
+            successTitle: "Регистрация успешна!",
+            successMessage: "Добро пожаловать в Course Health!",
+            goToCourses: "Перейти к курсам",
+            namePlaceholder: "Введите ваше имя",
+            emailPlaceholder: "your@email.com",
+            passwordPlaceholder: "Минимум 6 символов",
+            confirmPasswordPlaceholder: "Повторите пароль"
+        },
+        // Login Success
+        loginSuccess: {
+            title: "Вход выполнен!",
+            message: "Добро пожаловать обратно!",
+            goToCourses: "Перейти к курсам"
         }
     },
     en: {
@@ -206,13 +250,14 @@ const translations = {
         header: {
             login: "Login",
             start: "Start",
+            register: "Register",
             menu: "Menu",
             closeMenu: "Close menu"
         },
         // Hero Section
         hero: {
             title: "Keto Diet and Intermittent Fasting",
-            description: "Premium training from the best experts. 15% content free, full access for 1500₽",
+            description: "Premium training from the best experts. 15% content free, full access for $19.99",
             viewCourses: "View courses",
             learnMore: "Learn more",
             freeContent: "15% content free"
@@ -221,26 +266,28 @@ const translations = {
         stats: {
             students: "Students",
             rating: "Rating",
-            courses: "Courses"
+            courses: "Courses",
+            countries: "Countries",
+            instructors: "Instructors"
         },
         // Courses
         courses: {
             title: "All courses",
-            description: "Choose a course and start learning. 15% content free, full access for 1500₽",
+            description: "Choose a course and start learning. 15% content free, full access for $19.99",
             category: {
                 health: "Health",
                 food: "Food"
             },
             free: "15% free",
-            fullAccess: "Full access: 1500₽",
+            fullAccess: "Full access: $19.99",
             more: "Learn more",
             keto: {
                 title: "Keto Diet: The Science of Fat Burning. From Myths to Results",
                 description: "Complete keto diet course from basics to advanced techniques"
             },
             interval: {
-                title: "Intermittent Fasting: Path to Health and Energy",
-                description: "Learn all intermittent fasting methods and choose yours"
+                title: "Intermittent Fasting: Your Daily Routine for Health and Energy. Eat What You Want (At Your Time)",
+                description: "Master the 16/8 intermittent fasting method. Learn how to fast properly and get maximum benefits for health and weight loss."
             },
             recipes: {
                 title: "Keto Recipes: Cook Deliciously",
@@ -266,10 +313,10 @@ const translations = {
             new: "Referral program",
             special: "Special offer",
             buy2: {
-                title: "Buy 2 courses for 1999₽",
-                description: "Special offer! Buy Keto Diet course and Intermittent Fasting course together and save 1001₽!",
-                oldPrice: "3000₽",
-                newPrice: "1999₽",
+                title: "Buy 2 courses for $29.99",
+                description: "Special offer! Buy Keto Diet course and Intermittent Fasting course together and save $9.99!",
+                oldPrice: "$39.98",
+                newPrice: "$29.99",
                 timer: "Promotion until the end of the month",
                 action: "Use offer"
             },
@@ -286,8 +333,8 @@ const translations = {
             first100: {
                 title: "First 100 students",
                 description: "Special price for the first 100 students! Get the course at a great price.",
-                oldPrice: "1500₽",
-                newPrice: "1199₽",
+                oldPrice: "$19.99",
+                newPrice: "$14.99",
                 left: "Places left:",
                 action: "Use offer"
             }
@@ -296,6 +343,8 @@ const translations = {
         about: {
             title: "About us",
             description: "We help people change their lives through proper nutrition and healthy lifestyle",
+            ctaTitle: "Ready to join?",
+            ctaDescription: "Start your journey to health with Course Health today",
             badge: "About platform",
             heroTitle: "We are changing the approach to healthy lifestyle",
             heroDescription: "Course Health is a next-generation platform for online learning about keto diet and intermittent fasting. We've brought together the world's best experts to make healthy living accessible to everyone.",
@@ -309,6 +358,8 @@ const translations = {
             expertiseDesc: "Only proven methods from the best specialists",
             accessibility: "Accessibility",
             accessibilityDesc: "Learning should be accessible to everyone",
+            care: "Care",
+            careDesc: "Individual approach to each student. Support at every stage of learning.",
             results: "Results",
             resultsDesc: "We focus on real results of our students",
             howTitle: "How it works",
@@ -346,8 +397,30 @@ const translations = {
         // CTA
         cta: {
             title: "Ready to start learning?",
-            description: "Get access to premium courses. 15% content free, full access for 1500₽",
+            description: "Get access to premium courses. 15% content free, full access for $19.99",
             button: "Start learning"
+        },
+        // Course Intro Section
+        courseIntro: {
+            badge: "Our directions",
+            title: "Choose your path to health",
+            description: "Keto diet and intermittent fasting — two powerful tools for transforming your health",
+            ketoTitle: "Keto Diet",
+            ketoDescription: "Learn the basics of the keto diet, learn how to properly calculate macros and create a menu. Start your journey to health and fitness!",
+            ketoStats: "5 courses",
+            ketoStudents: "12K+ students",
+            ketoButton: "View courses",
+            intervalTitle: "Intermittent Fasting",
+            intervalDescription: "Master the intermittent fasting method. Learn how to fast properly and get maximum benefits for health and weight loss.",
+            intervalStats: "4 courses",
+            intervalStudents: "8K+ students",
+            intervalButton: "View courses"
+        },
+        // Featured Courses
+        featuredCourses: {
+            badge: "Popular courses",
+            title: "Our students' choice",
+            description: "The most popular courses with high ratings"
         },
         // Login
         login: {
@@ -363,7 +436,9 @@ const translations = {
             forgotPassword: "Forgot password?",
             loginButton: "Login",
             noAccount: "Don't have an account?",
-            registerLink: "Register"
+            registerLink: "Register",
+            emailPlaceholder: "your@email.com",
+            passwordPlaceholder: "Enter password"
         },
         // Register
         register: {
@@ -383,7 +458,20 @@ const translations = {
             privacy: "privacy policy",
             registerButton: "Create account",
             haveAccount: "Already have an account?",
-            loginLink: "Login"
+            loginLink: "Login",
+            successTitle: "Registration successful!",
+            successMessage: "Welcome to Course Health!",
+            goToCourses: "Go to courses",
+            namePlaceholder: "Enter your name",
+            emailPlaceholder: "your@email.com",
+            passwordPlaceholder: "Minimum 6 characters",
+            confirmPasswordPlaceholder: "Repeat password"
+        },
+        // Login Success
+        loginSuccess: {
+            title: "Login successful!",
+            message: "Welcome back!",
+            goToCourses: "Go to courses"
         }
     }
 };
