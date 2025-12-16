@@ -741,6 +741,316 @@
     color: rgba(255, 255, 255, 0.5);
 }
 
+/* IF Calculator Styles */
+.calculator-modal-content {
+    max-width: 700px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.calculator-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.calculator-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    background: rgba(0, 217, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    margin: 0 auto 20px;
+}
+
+.calculator-header h2 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-white);
+    margin-bottom: 10px;
+}
+
+.calculator-header p {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 16px;
+}
+
+.calculator-form {
+    display: block;
+}
+
+.calculator-question {
+    margin-bottom: 30px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+}
+
+.question-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 15px;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-white);
+}
+
+.question-number {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: rgba(0, 217, 255, 0.2);
+    color: var(--accent-electric);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.radio-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.radio-option:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--accent-electric);
+}
+
+.radio-option input[type="radio"] {
+    display: none;
+}
+
+.radio-custom {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    flex-shrink: 0;
+    margin-top: 2px;
+    position: relative;
+    transition: all 0.3s;
+}
+
+.radio-option input[type="radio"]:checked + .radio-custom {
+    border-color: var(--accent-electric);
+    background: var(--accent-electric);
+}
+
+.radio-option input[type="radio"]:checked + .radio-custom::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--bg-dark);
+}
+
+.radio-text {
+    flex: 1;
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.5;
+}
+
+.radio-text strong {
+    color: var(--text-white);
+    display: block;
+    margin-bottom: 4px;
+}
+
+.input-group {
+    margin-top: 10px;
+}
+
+.time-input {
+    width: 100%;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: var(--text-white);
+    font-size: 16px;
+    font-family: inherit;
+}
+
+.time-input:focus {
+    outline: none;
+    border-color: var(--accent-electric);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.calculator-results {
+    display: none;
+}
+
+.results-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.results-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    background: rgba(0, 255, 136, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    margin: 0 auto 20px;
+}
+
+.results-header h3 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-white);
+}
+
+.results-content {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.protocol-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 24px;
+}
+
+.protocol-header {
+    text-align: center;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.protocol-name {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--accent-electric);
+    margin-bottom: 8px;
+}
+
+.protocol-hours {
+    font-size: 18px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.protocol-window {
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 20px;
+    background: rgba(0, 217, 255, 0.1);
+    border: 1px solid rgba(0, 217, 255, 0.2);
+    border-radius: 12px;
+}
+
+.window-label {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 8px;
+}
+
+.window-time {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-white);
+}
+
+.protocol-description {
+    margin-bottom: 20px;
+    line-height: 1.6;
+    font-size: 16px;
+}
+
+.protocol-tips {
+    margin-bottom: 20px;
+}
+
+.protocol-tips h4 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-white);
+    margin-bottom: 12px;
+}
+
+.protocol-tips ul {
+    list-style: none;
+    padding: 0;
+}
+
+.protocol-tips li {
+    padding: 8px 0;
+    padding-left: 24px;
+    position: relative;
+    line-height: 1.6;
+}
+
+.protocol-tips li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: var(--accent-neon);
+    font-weight: 700;
+}
+
+.protocol-schedule {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.protocol-schedule h4 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-white);
+    margin-bottom: 15px;
+}
+
+.schedule-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+.schedule-time {
+    font-weight: 700;
+    color: var(--accent-electric);
+    min-width: 60px;
+    font-size: 16px;
+}
+
+.schedule-action {
+    flex: 1;
+    color: rgba(255, 255, 255, 0.8);
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
     .course-hero-content {
@@ -771,6 +1081,27 @@
 
     .cta-buttons button {
         width: 100%;
+    }
+
+    .calculator-modal-content {
+        max-width: 95%;
+        padding: 20px;
+    }
+
+    .calculator-question {
+        padding: 15px;
+    }
+
+    .question-label {
+        font-size: 16px;
+    }
+
+    .protocol-name {
+        font-size: 24px;
+    }
+
+    .window-time {
+        font-size: 22px;
     }
 }
 

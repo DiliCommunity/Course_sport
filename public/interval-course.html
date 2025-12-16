@@ -205,7 +205,7 @@
                         <div class="bonus-content">
                             <div class="bonus-title">Ваш бесплатный бонус: Калькулятор вашего идеального окна для питания</div>
                             <div class="bonus-description">Простой тест, который подскажет, с какого протокола начать именно вам, исходя из хронотипа и графика</div>
-                            <button class="btn-secondary btn-small">Открыть</button>
+                            <button class="btn-secondary btn-small" onclick="openCalculator()">Открыть калькулятор</button>
                         </div>
                     </div>
                 </div>
@@ -289,6 +289,198 @@
         </div>
     </section>
 
+    <!-- IF Calculator Modal -->
+    <div id="calculatorModal" class="modal">
+        <div class="modal-content calculator-modal-content">
+            <span class="modal-close" onclick="closeCalculator()">&times;</span>
+            <div class="calculator-header">
+                <div class="calculator-icon">🧮</div>
+                <h2>Калькулятор идеального протокола IF</h2>
+                <p>Ответьте на несколько вопросов, и мы подберем оптимальный протокол интервального голодания для вас</p>
+            </div>
+
+            <form id="ifCalculatorForm" class="calculator-form">
+                <!-- Question 1: Chronotype -->
+                <div class="calculator-question">
+                    <label class="question-label">
+                        <span class="question-number">1</span>
+                        <span class="question-text">Какой у вас хронотип?</span>
+                    </label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="chronotype" value="early" required>
+                            <span class="radio-custom"></span>
+                            <span class="radio-text">
+                                <strong>Жаворонок</strong> - легко просыпаюсь рано, активен утром, рано ложусь спать
+                            </span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="chronotype" value="normal" required>
+                            <span class="radio-custom"></span>
+                            <span class="radio-text">
+                                <strong>Голубь</strong> - нормальный режим, активен днем
+                            </span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="chronotype" value="late" required>
+                            <span class="radio-custom"></span>
+                            <span class="radio-text">
+                                <strong>Сова</strong> - поздно засыпаю, активен вечером, тяжело просыпаюсь утром
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 2: Wake up time -->
+                <div class="calculator-question">
+                    <label class="question-label">
+                        <span class="question-number">2</span>
+                        <span class="question-text">Во сколько вы обычно просыпаетесь?</span>
+                    </label>
+                    <div class="input-group">
+                        <input type="time" name="wakeTime" value="07:00" required class="time-input">
+                    </div>
+                </div>
+
+                <!-- Question 3: Work schedule -->
+                <div class="calculator-question">
+                    <label class="question-label">
+                        <span class="question-number">3</span>
+                        <span class="question-text">Какой у вас график работы?</span>
+                    </label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="workSchedule" value="morning" required>
+                            <span class="radio-custom"></span>
+                            <span class="radio-text">Утренняя смена (6:00 - 14:00)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="workSchedule" value="day" required>
+                            <span class="radio-custom"></span>
+                            <span class="radio-text">Дневная смена (9:00 - 18:00)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="workSchedule" value="evening" required>
+                            <span class="radio-custom"></span>
+                            <span class="radio-text">Вечерняя смена (14:00 - 22:00)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="workSchedule" value="night" required>
+                            <span class="radio-custom"></span>
+                            <span class="radio-text">Ночная смена (22:00 - 6:00)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="workSchedule" value="flexible" required>
+                            <span class="radio-custom"></span>
+                            <span class="radio-text">Гибкий график / Удаленная работа</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 4: Training time -->
+                <div class="calculator-question">
+                    <label class="question-label">
+                        <span class="question-number">4</span>
+                        <span class="question-text">Когда вы обычно тренируетесь?</span>
+                    </label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="trainingTime" value="morning" required>
+                            <span class="radio-custom"></span>
+                            <span class="radio-text">Утром (до 12:00)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="trainingTime" value="afternoon" required>
+                            <span class="radio-custom"></span>
+                            <span class="radio-text">Днем (12:00 - 17:00)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="trainingTime" value="evening" required>
+                            <span class="radio-custom"></span>
+                            <span class="radio-text">Вечером (после 17:00)</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="trainingTime" value="none" required>
+                            <span class="radio-custom"></span>
+                            <span class="radio-text">Не тренируюсь регулярно</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 5: Experience -->
+                <div class="calculator-question">
+                    <label class="question-label">
+                        <span class="question-number">5</span>
+                        <span class="question-text">Какой у вас опыт с интервальным голоданием?</span>
+                    </label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="experience" value="beginner" required>
+                            <span class="radio-custom"></span>
+                            <span class="radio-text">Новичок - никогда не пробовал</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="experience" value="some" required>
+                            <span class="radio-custom"></span>
+                            <span class="radio-text">Пробовал, но не регулярно</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="experience" value="intermediate" required>
+                            <span class="radio-custom"></span>
+                            <span class="radio-text">Опытный - практикую несколько месяцев</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Question 6: Goals -->
+                <div class="calculator-question">
+                    <label class="question-label">
+                        <span class="question-number">6</span>
+                        <span class="question-text">Какая ваша основная цель?</span>
+                    </label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="goal" value="weight" required>
+                            <span class="radio-custom"></span>
+                            <span class="radio-text">Похудение</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="goal" value="health" required>
+                            <span class="radio-custom"></span>
+                            <span class="radio-text">Улучшение здоровья и долголетия</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="goal" value="energy" required>
+                            <span class="radio-custom"></span>
+                            <span class="radio-text">Повышение энергии</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="goal" value="all" required>
+                            <span class="radio-custom"></span>
+                            <span class="radio-text">Все вышеперечисленное</span>
+                        </label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary btn-large btn-full" style="margin-top: 30px;">
+                    Рассчитать мой протокол
+                </button>
+            </form>
+
+            <!-- Results Section -->
+            <div id="calculatorResults" class="calculator-results" style="display: none;">
+                <div class="results-header">
+                    <div class="results-icon">✨</div>
+                    <h3>Ваш идеальный протокол</h3>
+                </div>
+                <div id="resultsContent" class="results-content"></div>
+                <button onclick="closeCalculator()" class="btn-secondary btn-full" style="margin-top: 20px;">
+                    Закрыть
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Payment Modal -->
     <div id="paymentModal" class="modal">
         <div class="modal-content">
@@ -359,6 +551,17 @@
             document.getElementById('free-module').scrollIntoView({ behavior: 'smooth' });
         }
 
+        function openCalculator() {
+            document.getElementById('calculatorModal').style.display = 'flex';
+            document.getElementById('ifCalculatorForm').style.display = 'block';
+            document.getElementById('calculatorResults').style.display = 'none';
+            document.getElementById('ifCalculatorForm').reset();
+        }
+
+        function closeCalculator() {
+            document.getElementById('calculatorModal').style.display = 'none';
+        }
+
         function openPaymentModal() {
             document.getElementById('paymentModal').style.display = 'flex';
         }
@@ -372,10 +575,236 @@
             closePaymentModal();
         }
 
-        // Закрытие модального окна при клике вне его
+        // IF Calculator Logic
+        document.getElementById('ifCalculatorForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const chronotype = formData.get('chronotype');
+            const wakeTime = formData.get('wakeTime');
+            const workSchedule = formData.get('workSchedule');
+            const trainingTime = formData.get('trainingTime');
+            const experience = formData.get('experience');
+            const goal = formData.get('goal');
+
+            // Calculate protocol
+            let protocol = calculateProtocol(chronotype, wakeTime, workSchedule, trainingTime, experience, goal);
+            
+            // Display results
+            displayResults(protocol, wakeTime);
+        });
+
+        function calculateProtocol(chronotype, wakeTime, workSchedule, trainingTime, experience, goal) {
+            let protocol = {
+                name: '',
+                hours: '',
+                window: '',
+                startTime: '',
+                endTime: '',
+                description: '',
+                tips: []
+            };
+
+            // Parse wake time
+            const [wakeHour, wakeMinute] = wakeTime.split(':').map(Number);
+            let startHour = wakeHour;
+            let endHour = wakeHour;
+
+            // Determine protocol based on experience
+            if (experience === 'beginner') {
+                protocol.name = '16/8';
+                protocol.hours = '16 часов голода / 8 часов окно';
+                
+                // Calculate eating window based on chronotype and work schedule
+                if (chronotype === 'early') {
+                    // Early bird: start eating at 10-11 AM
+                    startHour = 10;
+                    endHour = 18;
+                } else if (chronotype === 'late') {
+                    // Night owl: start eating at 12-1 PM
+                    startHour = 12;
+                    endHour = 20;
+                } else {
+                    // Normal: start eating at 11 AM
+                    startHour = 11;
+                    endHour = 19;
+                }
+
+                // Adjust based on work schedule
+                if (workSchedule === 'morning') {
+                    startHour = 12;
+                    endHour = 20;
+                } else if (workSchedule === 'evening') {
+                    startHour = 14;
+                    endHour = 22;
+                } else if (workSchedule === 'night') {
+                    startHour = 18;
+                    endHour = 2; // Next day
+                }
+
+                // Adjust for training
+                if (trainingTime === 'morning') {
+                    startHour = 11;
+                    endHour = 19;
+                } else if (trainingTime === 'evening') {
+                    startHour = 12;
+                    endHour = 20;
+                }
+
+                protocol.startTime = formatTime(startHour, 0);
+                protocol.endTime = formatTime(endHour, 0);
+                protocol.window = `${protocol.startTime} - ${protocol.endTime}`;
+                protocol.description = 'Идеальный протокол для новичков. Начните с 16/8 - это самый комфортный и эффективный способ войти в интервальное голодание.';
+                protocol.tips = [
+                    'Начните с пропуска завтрака или ужина - выберите то, что вам удобнее',
+                    'Пейте много воды в период голода',
+                    'В первые дни может быть легкий дискомфорт - это нормально',
+                    'Следите за самочувствием и при необходимости скорректируйте время окна'
+                ];
+            } else if (experience === 'some') {
+                protocol.name = '18/6';
+                protocol.hours = '18 часов голода / 6 часов окно';
+                
+                if (chronotype === 'early') {
+                    startHour = 11;
+                    endHour = 17;
+                } else if (chronotype === 'late') {
+                    startHour = 13;
+                    endHour = 19;
+                } else {
+                    startHour = 12;
+                    endHour = 18;
+                }
+
+                if (workSchedule === 'evening') {
+                    startHour = 14;
+                    endHour = 20;
+                }
+
+                protocol.startTime = formatTime(startHour, 0);
+                protocol.endTime = formatTime(endHour, 0);
+                protocol.window = `${protocol.startTime} - ${protocol.endTime}`;
+                protocol.description = 'Продвинутый протокол для тех, кто уже знаком с IF. Более интенсивная аутофагия и быстрые результаты.';
+                protocol.tips = [
+                    'Сделайте 2-3 приема пищи в 6-часовом окне',
+                    'Увеличьте потребление воды и электролитов',
+                    'Слушайте свое тело - если чувствуете слабость, вернитесь к 16/8',
+                    'Идеально для похудения и улучшения метаболизма'
+                ];
+            } else {
+                // Intermediate - can handle more advanced protocols
+                if (goal === 'health' || goal === 'all') {
+                    protocol.name = '20/4 (Воиновая диета)';
+                    protocol.hours = '20 часов голода / 4 часа окно';
+                    
+                    if (chronotype === 'early') {
+                        startHour = 14;
+                        endHour = 18;
+                    } else {
+                        startHour = 16;
+                        endHour = 20;
+                    }
+
+                    protocol.startTime = formatTime(startHour, 0);
+                    protocol.endTime = formatTime(endHour, 0);
+                    protocol.window = `${protocol.startTime} - ${protocol.endTime}`;
+                    protocol.description = 'Продвинутый протокол для опытных практиков. Максимальная аутофагия и глубокая очистка клеток.';
+                    protocol.tips = [
+                        'Одно большое блюдо или два небольших приема пищи',
+                        'Сфокусируйтесь на питательных, калорийных продуктах',
+                        'Не практикуйте ежедневно - 3-4 раза в неделю достаточно',
+                        'Отлично подходит для долголетия и глубокого оздоровления'
+                    ];
+                } else {
+                    protocol.name = '18/6';
+                    protocol.hours = '18 часов голода / 6 часов окно';
+                    
+                    if (chronotype === 'early') {
+                        startHour = 11;
+                        endHour = 17;
+                    } else {
+                        startHour = 13;
+                        endHour = 19;
+                    }
+
+                    protocol.startTime = formatTime(startHour, 0);
+                    protocol.endTime = formatTime(endHour, 0);
+                    protocol.window = `${protocol.startTime} - ${protocol.endTime}`;
+                    protocol.description = 'Оптимальный баланс для похудения и энергии. Подходит для регулярной практики.';
+                    protocol.tips = [
+                        'Идеально для активного похудения',
+                        'Совместите с тренировками в период голода для максимального эффекта',
+                        'Следите за качеством питания в окне',
+                        'Практикуйте 5-6 дней в неделю'
+                    ];
+                }
+            }
+
+            return protocol;
+        }
+
+        function formatTime(hour, minute) {
+            if (hour >= 24) hour -= 24;
+            const h = hour.toString().padStart(2, '0');
+            const m = minute.toString().padStart(2, '0');
+            return `${h}:${m}`;
+        }
+
+        function displayResults(protocol, wakeTime) {
+            const resultsDiv = document.getElementById('resultsContent');
+            const form = document.getElementById('ifCalculatorForm');
+            const results = document.getElementById('calculatorResults');
+
+            resultsDiv.innerHTML = `
+                <div class="protocol-card">
+                    <div class="protocol-header">
+                        <div class="protocol-name">${protocol.name}</div>
+                        <div class="protocol-hours">${protocol.hours}</div>
+                    </div>
+                    <div class="protocol-window">
+                        <div class="window-label">Ваше окно для питания:</div>
+                        <div class="window-time">${protocol.window}</div>
+                    </div>
+                    <div class="protocol-description">
+                        ${protocol.description}
+                    </div>
+                    <div class="protocol-tips">
+                        <h4>💡 Рекомендации:</h4>
+                        <ul>
+                            ${protocol.tips.map(tip => `<li>${tip}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div class="protocol-schedule">
+                        <h4>📅 Примерный распорядок дня:</h4>
+                        <div class="schedule-item">
+                            <span class="schedule-time">${wakeTime}</span>
+                            <span class="schedule-action">Пробуждение (начало голода)</span>
+                        </div>
+                        <div class="schedule-item">
+                            <span class="schedule-time">${protocol.startTime}</span>
+                            <span class="schedule-action">🎉 Начало окна питания</span>
+                        </div>
+                        <div class="schedule-item">
+                            <span class="schedule-time">${protocol.endTime}</span>
+                            <span class="schedule-action">🔒 Конец окна питания (начало голода)</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            form.style.display = 'none';
+            results.style.display = 'block';
+        }
+
+        // Закрытие модальных окон при клике вне их
         window.onclick = function(event) {
-            const modal = document.getElementById('paymentModal');
-            if (event.target == modal) {
+            const calculatorModal = document.getElementById('calculatorModal');
+            const paymentModal = document.getElementById('paymentModal');
+            
+            if (event.target == calculatorModal) {
+                closeCalculator();
+            }
+            if (event.target == paymentModal) {
                 closePaymentModal();
             }
         }
