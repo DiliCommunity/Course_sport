@@ -12,9 +12,9 @@ import { Button } from '@/components/ui/Button'
 const allCourses = [
   {
     id: '1',
-    title: 'Кето-диета: полное руководство для начинающих',
+    title: 'Кето Диета: Наука Жиросжигания. От Мифов к Результатам',
     shortDescription: 'Изучи основы кето-диеты, научись правильно рассчитывать макросы и составлять меню. Начни свой путь к здоровью и стройности!',
-    imageUrl: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80',
+    imageUrl: '/keto_course.png',
     price: 1500,
     originalPrice: null,
     duration: 1200,
@@ -27,9 +27,9 @@ const allCourses = [
   },
   {
     id: '2',
-    title: 'Интервальное голодание 16/8',
+    title: 'Интервальное Голодание: Ваш Режим Дня для Здоровья и Энергии. Ешьте Что Хотите (В Свое Время)',
     shortDescription: 'Освой метод интервального голодания 16/8. Узнай, как правильно голодать и получать максимальную пользу для здоровья и похудения.',
-    imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',
+    imageUrl: '/interval_course.png',
     price: 1500,
     originalPrice: null,
     duration: 960,
