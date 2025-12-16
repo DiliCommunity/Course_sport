@@ -596,6 +596,64 @@ section > * {
     font-size: 14px;
 }
 
+/* Keto Food Section */
+.keto-food-section {
+    background: linear-gradient(180deg, rgba(10, 10, 11, 1) 0%, rgba(26, 26, 26, 0.5) 100%);
+}
+
+.keto-food-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: center;
+    margin-top: 40px;
+}
+
+.keto-food-image {
+    text-align: center;
+}
+
+.keto-food-image img {
+    width: 100%;
+    max-width: 800px;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s;
+}
+
+.keto-food-image img:hover {
+    transform: scale(1.02);
+}
+
+.keto-food-text {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.keto-food-text h3 {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--text-white);
+    margin-bottom: 20px;
+    line-height: 1.3;
+}
+
+.keto-food-text p {
+    font-size: 18px;
+    line-height: 1.8;
+    margin-bottom: 30px;
+}
+
+@media (max-width: 1024px) {
+    .keto-food-content {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+    
+    .keto-food-text {
+        text-align: center;
+    }
+}
+
 /* CTA Section */
 .cta-section {
     background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(0, 217, 255, 0.1));
