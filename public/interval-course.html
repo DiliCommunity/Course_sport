@@ -12,10 +12,10 @@
     <header class="header">
         <div class="container">
             <nav class="nav">
-                <div class="logo">
+                <a href="/index.html" class="logo" style="text-decoration: none; color: inherit;">
                     <span class="logo-icon">💚</span>
                     <span class="logo-text">Course Health</span>
-                </div>
+                </a>
                 <ul class="nav-links">
                     <li><a href="/index.html">Главная</a></li>
                     <li><a href="/courses.html">Курсы</a></li>
@@ -34,11 +34,16 @@
     <section class="course-hero">
         <div class="container">
             <div class="breadcrumb">
-                <a href="/index.html">Главная</a>
-                <span> / </span>
-                <a href="/courses.html">Курсы</a>
-                <span> / </span>
-                <span>Интервальное голодание</span>
+                <button onclick="history.back()" class="btn-back">
+                    ← Назад
+                </button>
+                <div style="margin-top: 10px;">
+                    <a href="/index.html">Главная</a>
+                    <span> / </span>
+                    <a href="/courses.html">Курсы</a>
+                    <span> / </span>
+                    <span>Интервальное голодание</span>
+                </div>
             </div>
 
             <div class="course-hero-content">

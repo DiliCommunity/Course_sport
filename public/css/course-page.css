@@ -59,6 +59,31 @@
     margin: 0 8px;
 }
 
+.btn-back {
+    margin-bottom: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s;
+    text-decoration: none;
+    font-family: inherit;
+}
+
+.btn-back:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: var(--accent-electric);
+    transform: translateX(-3px);
+    box-shadow: 0 4px 12px rgba(0, 217, 255, 0.3);
+}
+
 .course-hero-content {
     display: grid;
     grid-template-columns: 1fr 400px;

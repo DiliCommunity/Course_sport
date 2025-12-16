@@ -237,6 +237,9 @@ section > * {
 
 .btn-full {
     width: 100%;
+    position: relative;
+    z-index: 10;
+    pointer-events: auto;
     justify-content: center;
 }
 
@@ -537,6 +540,8 @@ section > * {
 
 .course-content {
     padding: 20px;
+    position: relative;
+    z-index: 1;
 }
 
 .course-category {
