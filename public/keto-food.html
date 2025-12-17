@@ -256,6 +256,30 @@
         </div>
     </div>
 
+    <!-- Recipe Modal -->
+    <div class="recipe-modal-overlay" id="recipeModal" aria-hidden="true">
+        <div class="recipe-modal" role="dialog" aria-modal="true" aria-labelledby="recipeModalTitle">
+            <div class="recipe-modal-header">
+                <div class="recipe-modal-title" id="recipeModalTitle"></div>
+                <button class="recipe-modal-close" id="recipeModalClose" type="button" aria-label="Close">×</button>
+            </div>
+            <div class="recipe-modal-meta" id="recipeModalMeta"></div>
+            <div class="recipe-modal-body">
+                <div class="recipe-modal-col">
+                    <div class="recipe-modal-section-title" id="recipeModalIngredientsTitle"></div>
+                    <ul class="recipe-modal-ingredients" id="recipeModalIngredients"></ul>
+                </div>
+                <div class="recipe-modal-col">
+                    <div class="recipe-modal-section-title" id="recipeModalStepsTitle"></div>
+                    <ol class="recipe-modal-steps" id="recipeModalSteps"></ol>
+                </div>
+            </div>
+            <div class="recipe-modal-actions">
+                <button class="recipe-modal-action" id="recipeModalActionClose" type="button"></button>
+            </div>
+        </div>
+    </div>
+
     <script src="/js/main.js"></script>
     <script>
         // Food Categories Navigation
@@ -284,6 +308,7 @@
         // ---- Keto recipes rendering (3 per category + servings scaler) ----
         const servingsById = {};
         let activePdfJobId = 0;
+        let activeRecipeModal = null; // { id: string, servings: number }
 
         function getCurrentLang() {
             if (window.languageSwitcher?.getCurrentLanguage) return window.languageSwitcher.getCurrentLanguage();
@@ -324,7 +349,6 @@
         function makeRecipeCard(recipe, lang) {
             const ui = translations?.[lang]?.ketoFoodRecipesUI || translations?.ru?.ketoFoodRecipesUI;
             const servings = servingsById[recipe.id] || 1;
-            const photoPath = `/img/recipes/${recipe.slug}.jpg`;
 
             const card = document.createElement('div');
             card.className = 'food-item-card recipe-card';
@@ -338,10 +362,6 @@
                     <div class="recipe-badge-free">${ui.free}</div>
                     <div class="recipe-image-content">
                         <div class="recipe-image-title">${recipe.name}</div>
-                        <div class="recipe-image-photo">
-                            <span class="recipe-image-photo-label">${ui.photo}</span>
-                            <code class="recipe-image-photo-path">${photoPath}</code>
-                        </div>
                     </div>
                 </div>
                 <div class="food-item-content recipe-content">
@@ -355,6 +375,7 @@
                                 <button class="recipe-servings-btn" data-action="inc" aria-label="increase">+</button>
                             </div>
                             <button class="recipe-pdf-btn" data-action="pdf" type="button">${ui.downloadPdf}</button>
+                            <button class="recipe-view-btn" data-action="view" type="button">${ui.viewRecipe}</button>
                         </div>
                     </div>
                     <div class="recipe-ingredients">
@@ -454,6 +475,14 @@
                     generateRecipePdfWithProgress(recipe, lang, currentServings);
                 });
             }
+
+            const viewBtn = card.querySelector('button[data-action="view"]');
+            if (viewBtn) {
+                viewBtn.addEventListener('click', () => {
+                    const currentServings = servingsById[recipe.id] || 1;
+                    openRecipeModal(recipe.id, currentServings);
+                });
+            }
         }
 
         // ---- Real PDF generation with progress modal (jsPDF + html2canvas) ----
@@ -467,6 +496,91 @@
         function getUi(lang) {
             return translations?.[lang]?.ketoFoodRecipesUI || translations?.ru?.ketoFoodRecipesUI;
         }
+
+        // ---- Recipe modal logic ----
+        const recipeModal = document.getElementById('recipeModal');
+        const recipeModalTitle = document.getElementById('recipeModalTitle');
+        const recipeModalMeta = document.getElementById('recipeModalMeta');
+        const recipeModalIngredientsTitle = document.getElementById('recipeModalIngredientsTitle');
+        const recipeModalIngredients = document.getElementById('recipeModalIngredients');
+        const recipeModalStepsTitle = document.getElementById('recipeModalStepsTitle');
+        const recipeModalSteps = document.getElementById('recipeModalSteps');
+        const recipeModalClose = document.getElementById('recipeModalClose');
+        const recipeModalActionClose = document.getElementById('recipeModalActionClose');
+
+        function findRecipeById(lang, id) {
+            const data = translations?.[lang]?.ketoRecipes || translations?.ru?.ketoRecipes;
+            if (!data) return null;
+            const all = []
+                .concat(data.breakfast || [])
+                .concat(data.lunch || [])
+                .concat(data.dinner || [])
+                .concat(data.snacks || [])
+                .concat(data.desserts || []);
+            return all.find(r => r.id === id) || null;
+        }
+
+        function showRecipeModal() {
+            recipeModal.classList.add('active');
+            recipeModal.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function hideRecipeModal() {
+            recipeModal.classList.remove('active');
+            recipeModal.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+            activeRecipeModal = null;
+        }
+
+        function renderRecipeModal() {
+            if (!activeRecipeModal) return;
+            const lang = getCurrentLang();
+            const ui = getUi(lang);
+            const recipe = findRecipeById(lang, activeRecipeModal.id);
+            if (!recipe) return;
+
+            const servings = activeRecipeModal.servings;
+            recipeModalTitle.textContent = recipe.name;
+            recipeModalMeta.innerHTML = `
+                <span class="recipe-modal-badge">${ui.modalRecipeTitle}</span>
+                <span class="recipe-modal-meta-item">${ui.servings}: <strong>${servings}</strong></span>
+            `;
+
+            recipeModalIngredientsTitle.textContent = ui.ingredients;
+            recipeModalStepsTitle.textContent = ui.modalSteps;
+            recipeModalActionClose.textContent = ui.modalClose;
+
+            recipeModalIngredients.innerHTML = recipe.ingredients.map((ing) => {
+                const scaled = ing.amount * servings;
+                const amountText = formatAmount(scaled);
+                const unitText = ing.unit ? ` ${ing.unit}` : '';
+                return `
+                    <li class="recipe-modal-ingredient">
+                        <span class="recipe-modal-ingredient-name">${ing.name}</span>
+                        <span class="recipe-modal-ingredient-qty">${amountText}${unitText}</span>
+                    </li>
+                `;
+            }).join('');
+
+            const steps = Array.isArray(recipe.steps) ? recipe.steps : [];
+            recipeModalSteps.innerHTML = steps.map((s) => `<li>${s}</li>`).join('');
+        }
+
+        function openRecipeModal(recipeId, servings) {
+            activeRecipeModal = { id: recipeId, servings };
+            renderRecipeModal();
+            showRecipeModal();
+        }
+
+        recipeModalClose?.addEventListener('click', hideRecipeModal);
+        recipeModalActionClose?.addEventListener('click', hideRecipeModal);
+        recipeModal?.addEventListener('click', (e) => {
+            if (e.target === recipeModal) hideRecipeModal();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && recipeModal.classList.contains('active')) hideRecipeModal();
+        });
 
         function showPdfModal(lang) {
             const ui = getUi(lang);
@@ -526,7 +640,6 @@
 
         function buildPdfDom(recipe, lang, servings) {
             const ui = getUi(lang);
-            const photoPath = `/img/recipes/${recipe.slug}.jpg`;
 
             const root = document.createElement('div');
             root.className = 'pdf-render-root';
@@ -538,7 +651,6 @@
                             <div class="pdf-title">${recipe.name}</div>
                             <div class="pdf-meta">
                                 <div>${ui.servings}: <strong>${servings}</strong></div>
-                                <div>${ui.photo} <span class="pdf-code">${photoPath}</span></div>
                             </div>
                         </div>
                         <div class="pdf-badge">${ui.free}</div>
@@ -667,6 +779,9 @@
 
         document.addEventListener('languageChanged', () => {
             renderAllRecipes();
+            if (recipeModal.classList.contains('active')) {
+                renderRecipeModal();
+            }
         });
 
         if (document.readyState === 'loading') {

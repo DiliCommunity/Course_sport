@@ -169,6 +169,10 @@ const translations = {
             ingredients: "Ингредиенты",
             photo: "Фото:",
             free: "Бесплатно",
+            viewRecipe: "Посмотреть рецепт",
+            modalRecipeTitle: "Рецепт",
+            modalSteps: "Шаги",
+            modalClose: "Закрыть",
             downloadPdf: "Скачать PDF",
             pdfModalTitle: "Генерация PDF",
             pdfPreparing: "Подготавливаем…",
@@ -187,6 +191,13 @@ const translations = {
                     id: "breakfast_avocado_omelet",
                     name: "Авокадо-омлет с сыром",
                     slug: "avocado-cheese-omelet",
+                    steps: [
+                        "Разомните авокадо вилкой, добавьте щепотку соли и перца.",
+                        "Взбейте яйца, соедините с авокадо и половиной натёртого сыра.",
+                        "Разогрейте сковороду со сливочным маслом на среднем огне.",
+                        "Вылейте смесь и готовьте 2–3 минуты, пока низ не схватится.",
+                        "Посыпьте оставшимся сыром, накройте крышкой и доведите до готовности 1–2 минуты."
+                    ],
                     ingredients: [
                         { name: "Яйца", amount: 2, unit: "шт" },
                         { name: "Авокадо", amount: 0.5, unit: "шт" },
@@ -200,6 +211,13 @@ const translations = {
                     id: "breakfast_chia_pudding",
                     name: "Чиа-пудинг на кокосовом молоке",
                     slug: "chia-coconut-pudding",
+                    steps: [
+                        "Смешайте кокосовое молоко, эритритол и ваниль.",
+                        "Добавьте семена чиа и хорошо перемешайте 30 секунд.",
+                        "Оставьте на 5 минут и перемешайте ещё раз, чтобы не было комков.",
+                        "Накройте и уберите в холодильник минимум на 2 часа (лучше на ночь).",
+                        "Перед подачей добавьте ягоды (по желанию)."
+                    ],
                     ingredients: [
                         { name: "Семена чиа", amount: 25, unit: "г" },
                         { name: "Кокосовое молоко", amount: 200, unit: "мл" },
@@ -212,6 +230,13 @@ const translations = {
                     id: "breakfast_bacon_eggs_spinach",
                     name: "Яичница с беконом и шпинатом",
                     slug: "bacon-eggs-spinach",
+                    steps: [
+                        "Обжарьте бекон 2–3 минуты до румяности.",
+                        "Добавьте шпинат и готовьте 30–60 секунд, пока он не осядет.",
+                        "Сделайте небольшие места и вбейте яйца.",
+                        "Готовьте до желаемой степени прожарки, посолите по вкусу.",
+                        "Добавьте помидоры черри и подавайте."
+                    ],
                     ingredients: [
                         { name: "Яйца", amount: 2, unit: "шт" },
                         { name: "Бекон", amount: 50, unit: "г" },
@@ -227,6 +252,13 @@ const translations = {
                     id: "lunch_keto_caesar",
                     name: "Кето-Цезарь (без сухариков)",
                     slug: "keto-caesar-salad",
+                    steps: [
+                        "Нарежьте курицу ломтиками (если готовая).",
+                        "Порвите ромэн руками, добавьте к курице.",
+                        "Смешайте майонез, оливковое масло, лимонный сок и тёртый чеснок — это соус.",
+                        "Полейте соусом салат и перемешайте.",
+                        "Посыпьте пармезаном и подавайте."
+                    ],
                     ingredients: [
                         { name: "Куриная грудка (готовая)", amount: 150, unit: "г" },
                         { name: "Салат ромэн", amount: 80, unit: "г" },
@@ -241,6 +273,13 @@ const translations = {
                     id: "lunch_broccoli_soup",
                     name: "Крем-суп из брокколи со сливками",
                     slug: "creamy-broccoli-soup",
+                    steps: [
+                        "Отварите брокколи до мягкости 6–8 минут (или тушите под крышкой).",
+                        "На сливочном масле прогрейте чеснок 20–30 секунд.",
+                        "Добавьте брокколи, влейте сливки и прогрейте 2–3 минуты.",
+                        "Пробейте блендером до кремовой текстуры.",
+                        "Добавьте сыр, посолите и прогрейте ещё 1 минуту."
+                    ],
                     ingredients: [
                         { name: "Брокколи", amount: 250, unit: "г" },
                         { name: "Сливки 30–33%", amount: 120, unit: "мл" },
@@ -254,6 +293,13 @@ const translations = {
                     id: "lunch_tuna_lettuce_boats",
                     name: "Тунец-салат в салатных лодочках",
                     slug: "tuna-lettuce-boats",
+                    steps: [
+                        "Слейте жидкость с тунца и разомните вилкой.",
+                        "Мелко нарежьте сельдерей и огурец.",
+                        "Смешайте тунец, майонез, овощи и лимонный сок.",
+                        "Разложите массу по листьям салата.",
+                        "Подавайте сразу."
+                    ],
                     ingredients: [
                         { name: "Тунец (консервы, в собственном соку)", amount: 120, unit: "г" },
                         { name: "Майонез", amount: 20, unit: "г" },
@@ -269,6 +315,13 @@ const translations = {
                     id: "dinner_baked_salmon",
                     name: "Лосось в духовке с лимоном и травами",
                     slug: "baked-salmon-lemon-herbs",
+                    steps: [
+                        "Разогрейте духовку до 200°C.",
+                        "Смажьте лосось оливковым маслом, посолите и поперчите.",
+                        "Посыпьте травами и выложите дольки лимона сверху.",
+                        "Запекайте 12–15 минут (в зависимости от толщины).",
+                        "Подавайте сразу."
+                    ],
                     ingredients: [
                         { name: "Лосось", amount: 180, unit: "г" },
                         { name: "Оливковое масло", amount: 10, unit: "мл" },
@@ -282,6 +335,13 @@ const translations = {
                     id: "dinner_chicken_mushroom_cream",
                     name: "Куриные бедра в сливочно-грибном соусе",
                     slug: "chicken-mushroom-cream",
+                    steps: [
+                        "Обжарьте куриные бедра на сливочном масле до золотистости.",
+                        "Добавьте нарезанный лук и грибы, готовьте 5–6 минут.",
+                        "Добавьте чеснок и перемешайте 20–30 секунд.",
+                        "Влейте сливки и тушите 6–8 минут до загустения.",
+                        "Посолите/поперчите по вкусу и подавайте."
+                    ],
                     ingredients: [
                         { name: "Куриные бедра", amount: 200, unit: "г" },
                         { name: "Шампиньоны", amount: 150, unit: "г" },
@@ -295,6 +355,13 @@ const translations = {
                     id: "dinner_beef_steak_salad",
                     name: "Стейк из говядины с зелёным салатом",
                     slug: "beef-steak-green-salad",
+                    steps: [
+                        "Достаньте стейк за 15 минут до жарки и посолите.",
+                        "Разогрейте сковороду, обжарьте стейк 2–4 минуты с каждой стороны.",
+                        "Добавьте сливочное масло и поливайте мясо 30 секунд.",
+                        "Дайте стейку отдохнуть 5 минут, затем нарежьте.",
+                        "Смешайте рукколу и авокадо, заправьте оливковым маслом. Подавайте со стейком."
+                    ],
                     ingredients: [
                         { name: "Стейк говяжий", amount: 200, unit: "г" },
                         { name: "Сливочное масло", amount: 10, unit: "г" },
@@ -310,6 +377,13 @@ const translations = {
                     id: "snack_cucumber_rolls",
                     name: "Огуречные роллы с творожным сыром",
                     slug: "cucumber-cream-cheese-rolls",
+                    steps: [
+                        "Нарежьте огурец тонкими лентами (овощечисткой).",
+                        "Смешайте творожный сыр с укропом и лимонным соком.",
+                        "Намажьте сыр на ленты огурца.",
+                        "Добавьте полоски лосося и сверните рулетиками.",
+                        "Подавайте сразу."
+                    ],
                     ingredients: [
                         { name: "Огурец", amount: 150, unit: "г" },
                         { name: "Творожный сыр", amount: 60, unit: "г" },
@@ -322,6 +396,12 @@ const translations = {
                     id: "snack_nuts_cheese_plate",
                     name: "Орехово-сырная тарелка",
                     slug: "nuts-cheese-plate",
+                    steps: [
+                        "Разложите сыр кубиками или ломтиками.",
+                        "Добавьте микс орехов и оливки.",
+                        "При желании слегка сбрызните оливковым маслом.",
+                        "Подавайте как быстрый перекус."
+                    ],
                     ingredients: [
                         { name: "Миндаль", amount: 30, unit: "г" },
                         { name: "Грецкие орехи", amount: 30, unit: "г" },
@@ -333,6 +413,12 @@ const translations = {
                     id: "snack_deviled_eggs_avocado",
                     name: "Яйца, фаршированные авокадо",
                     slug: "deviled-eggs-avocado",
+                    steps: [
+                        "Разрежьте варёные яйца пополам и выньте желтки.",
+                        "Разомните желтки с авокадо, майонезом и горчицей.",
+                        "Посолите и перемешайте до крема.",
+                        "Наполните белки начинкой и подавайте."
+                    ],
                     ingredients: [
                         { name: "Яйца (варёные)", amount: 2, unit: "шт" },
                         { name: "Авокадо", amount: 0.5, unit: "шт" },
@@ -347,6 +433,12 @@ const translations = {
                     id: "dessert_choco_mousse",
                     name: "Кето-шоколадный мусс",
                     slug: "keto-chocolate-mousse",
+                    steps: [
+                        "Охладите сливки (лучше 2–3 часа).",
+                        "Смешайте какао с эритритолом и ванилью.",
+                        "Взбейте сливки до мягких пиков и аккуратно вмешайте сухую смесь.",
+                        "Разложите по стаканам и охладите 30–60 минут."
+                    ],
                     ingredients: [
                         { name: "Сливки 30–33%", amount: 150, unit: "мл" },
                         { name: "Какао", amount: 15, unit: "г" },
@@ -358,6 +450,13 @@ const translations = {
                     id: "dessert_almond_cookies",
                     name: "Миндальные кето-печенья",
                     slug: "almond-keto-cookies",
+                    steps: [
+                        "Разогрейте духовку до 175°C.",
+                        "Смешайте миндальную муку, разрыхлитель и эритритол.",
+                        "Добавьте яйцо и растопленное масло, замесите тесто.",
+                        "Сформируйте печенья и выложите на пергамент.",
+                        "Выпекайте 10–12 минут до лёгкого румянца."
+                    ],
                     ingredients: [
                         { name: "Миндальная мука", amount: 60, unit: "г" },
                         { name: "Сливочное масло", amount: 30, unit: "г" },
@@ -370,6 +469,12 @@ const translations = {
                     id: "dessert_berry_cheesecake_cup",
                     name: "Ягодный чизкейк в стакане",
                     slug: "berry-cheesecake-cup",
+                    steps: [
+                        "Взбейте творожный сыр со сливками и эритритолом до крема.",
+                        "Добавьте ваниль и перемешайте.",
+                        "Разложите по стаканам слоями: крем → ягоды → крем.",
+                        "Охладите 30–60 минут перед подачей."
+                    ],
                     ingredients: [
                         { name: "Творожный сыр", amount: 120, unit: "г" },
                         { name: "Сливки 30–33%", amount: 60, unit: "мл" },
@@ -729,6 +834,10 @@ const translations = {
             ingredients: "Ingredients",
             photo: "Photo:",
             free: "Free",
+            viewRecipe: "View recipe",
+            modalRecipeTitle: "Recipe",
+            modalSteps: "Steps",
+            modalClose: "Close",
             downloadPdf: "Download PDF",
             pdfModalTitle: "Generating PDF",
             pdfPreparing: "Preparing…",
@@ -747,6 +856,13 @@ const translations = {
                     id: "breakfast_avocado_omelet",
                     name: "Avocado Cheese Omelet",
                     slug: "avocado-cheese-omelet",
+                    steps: [
+                        "Mash the avocado with a pinch of salt and pepper.",
+                        "Whisk the eggs and mix with avocado and half of the cheese.",
+                        "Heat a pan with butter over medium heat.",
+                        "Pour the mixture in and cook 2–3 minutes until set underneath.",
+                        "Sprinkle remaining cheese, cover and finish 1–2 minutes."
+                    ],
                     ingredients: [
                         { name: "Eggs", amount: 2, unit: "pcs" },
                         { name: "Avocado", amount: 0.5, unit: "pcs" },
@@ -760,6 +876,13 @@ const translations = {
                     id: "breakfast_chia_pudding",
                     name: "Chia Pudding with Coconut Milk",
                     slug: "chia-coconut-pudding",
+                    steps: [
+                        "Mix coconut milk with erythritol and vanilla.",
+                        "Add chia seeds and stir well for 30 seconds.",
+                        "Wait 5 minutes and stir again to prevent clumps.",
+                        "Refrigerate at least 2 hours (overnight is best).",
+                        "Top with berries if you like."
+                    ],
                     ingredients: [
                         { name: "Chia seeds", amount: 25, unit: "g" },
                         { name: "Coconut milk", amount: 200, unit: "ml" },
@@ -772,6 +895,13 @@ const translations = {
                     id: "breakfast_bacon_eggs_spinach",
                     name: "Eggs with Bacon and Spinach",
                     slug: "bacon-eggs-spinach",
+                    steps: [
+                        "Cook bacon for 2–3 minutes until crisp.",
+                        "Add spinach and cook 30–60 seconds until wilted.",
+                        "Make space and crack in the eggs.",
+                        "Cook to your preferred doneness; season to taste.",
+                        "Add cherry tomatoes and serve."
+                    ],
                     ingredients: [
                         { name: "Eggs", amount: 2, unit: "pcs" },
                         { name: "Bacon", amount: 50, unit: "g" },
@@ -787,6 +917,13 @@ const translations = {
                     id: "lunch_keto_caesar",
                     name: "Keto Caesar Salad (No Croutons)",
                     slug: "keto-caesar-salad",
+                    steps: [
+                        "Slice cooked chicken.",
+                        "Tear romaine and combine with chicken.",
+                        "Mix mayo, olive oil, lemon juice and grated garlic for the dressing.",
+                        "Toss salad with dressing.",
+                        "Top with parmesan and serve."
+                    ],
                     ingredients: [
                         { name: "Chicken breast (cooked)", amount: 150, unit: "g" },
                         { name: "Romaine lettuce", amount: 80, unit: "g" },
@@ -801,6 +938,13 @@ const translations = {
                     id: "lunch_broccoli_soup",
                     name: "Creamy Broccoli Soup",
                     slug: "creamy-broccoli-soup",
+                    steps: [
+                        "Cook broccoli until tender (6–8 minutes).",
+                        "Warm garlic in butter for 20–30 seconds.",
+                        "Add broccoli, pour in cream and heat 2–3 minutes.",
+                        "Blend until smooth.",
+                        "Add cheese, season and heat 1 more minute."
+                    ],
                     ingredients: [
                         { name: "Broccoli", amount: 250, unit: "g" },
                         { name: "Heavy cream", amount: 120, unit: "ml" },
@@ -814,6 +958,13 @@ const translations = {
                     id: "lunch_tuna_lettuce_boats",
                     name: "Tuna Salad Lettuce Boats",
                     slug: "tuna-lettuce-boats",
+                    steps: [
+                        "Drain tuna and flake with a fork.",
+                        "Chop celery and cucumber finely.",
+                        "Mix tuna with mayo and lemon juice, add veggies.",
+                        "Spoon into lettuce leaves.",
+                        "Serve immediately."
+                    ],
                     ingredients: [
                         { name: "Canned tuna (in water)", amount: 120, unit: "g" },
                         { name: "Mayonnaise", amount: 20, unit: "g" },
@@ -829,6 +980,13 @@ const translations = {
                     id: "dinner_baked_salmon",
                     name: "Baked Salmon with Lemon and Herbs",
                     slug: "baked-salmon-lemon-herbs",
+                    steps: [
+                        "Preheat oven to 200°C (400°F).",
+                        "Brush salmon with olive oil; season with salt and pepper.",
+                        "Sprinkle herbs and top with lemon slices.",
+                        "Bake 12–15 minutes depending on thickness.",
+                        "Serve right away."
+                    ],
                     ingredients: [
                         { name: "Salmon", amount: 180, unit: "g" },
                         { name: "Olive oil", amount: 10, unit: "ml" },
@@ -842,6 +1000,13 @@ const translations = {
                     id: "dinner_chicken_mushroom_cream",
                     name: "Chicken with Creamy Mushroom Sauce",
                     slug: "chicken-mushroom-cream",
+                    steps: [
+                        "Sear chicken in butter until golden.",
+                        "Add onion and mushrooms; cook 5–6 minutes.",
+                        "Add garlic and stir 20–30 seconds.",
+                        "Pour in cream and simmer 6–8 minutes until thickened.",
+                        "Season to taste and serve."
+                    ],
                     ingredients: [
                         { name: "Chicken thighs", amount: 200, unit: "g" },
                         { name: "Mushrooms", amount: 150, unit: "g" },
@@ -855,6 +1020,13 @@ const translations = {
                     id: "dinner_beef_steak_salad",
                     name: "Beef Steak with Green Salad",
                     slug: "beef-steak-green-salad",
+                    steps: [
+                        "Let steak rest 15 minutes at room temp; season with salt.",
+                        "Sear 2–4 minutes per side (depending on thickness).",
+                        "Add butter and baste for 30 seconds.",
+                        "Rest 5 minutes, then slice.",
+                        "Toss arugula and avocado with olive oil and serve with steak."
+                    ],
                     ingredients: [
                         { name: "Beef steak", amount: 200, unit: "g" },
                         { name: "Butter", amount: 10, unit: "g" },
@@ -870,6 +1042,13 @@ const translations = {
                     id: "snack_cucumber_rolls",
                     name: "Cucumber Rolls with Cream Cheese",
                     slug: "cucumber-cream-cheese-rolls",
+                    steps: [
+                        "Slice cucumber into thin ribbons (use a peeler).",
+                        "Mix cream cheese with dill and lemon juice.",
+                        "Spread on cucumber ribbons.",
+                        "Add salmon strips and roll up.",
+                        "Serve immediately."
+                    ],
                     ingredients: [
                         { name: "Cucumber", amount: 150, unit: "g" },
                         { name: "Cream cheese", amount: 60, unit: "g" },
@@ -882,6 +1061,12 @@ const translations = {
                     id: "snack_nuts_cheese_plate",
                     name: "Nuts & Cheese Plate",
                     slug: "nuts-cheese-plate",
+                    steps: [
+                        "Arrange cheese pieces on a plate.",
+                        "Add mixed nuts and olives.",
+                        "Optionally drizzle with olive oil.",
+                        "Serve as a quick snack."
+                    ],
                     ingredients: [
                         { name: "Almonds", amount: 30, unit: "g" },
                         { name: "Walnuts", amount: 30, unit: "g" },
@@ -893,6 +1078,12 @@ const translations = {
                     id: "snack_deviled_eggs_avocado",
                     name: "Deviled Eggs with Avocado",
                     slug: "deviled-eggs-avocado",
+                    steps: [
+                        "Halve boiled eggs and remove yolks.",
+                        "Mash yolks with avocado, mayo and mustard.",
+                        "Season to taste and mix until creamy.",
+                        "Fill whites and serve."
+                    ],
                     ingredients: [
                         { name: "Boiled eggs", amount: 2, unit: "pcs" },
                         { name: "Avocado", amount: 0.5, unit: "pcs" },
@@ -907,6 +1098,12 @@ const translations = {
                     id: "dessert_choco_mousse",
                     name: "Keto Chocolate Mousse",
                     slug: "keto-chocolate-mousse",
+                    steps: [
+                        "Chill the cream well.",
+                        "Mix cocoa with erythritol and vanilla.",
+                        "Whip cream to soft peaks and gently fold in dry mix.",
+                        "Portion into cups and chill 30–60 minutes."
+                    ],
                     ingredients: [
                         { name: "Heavy cream", amount: 150, unit: "ml" },
                         { name: "Cocoa powder", amount: 15, unit: "g" },
@@ -918,6 +1115,13 @@ const translations = {
                     id: "dessert_almond_cookies",
                     name: "Almond Keto Cookies",
                     slug: "almond-keto-cookies",
+                    steps: [
+                        "Preheat oven to 175°C (350°F).",
+                        "Mix almond flour, baking powder and erythritol.",
+                        "Add egg and melted butter; mix into dough.",
+                        "Shape cookies and place on parchment.",
+                        "Bake 10–12 minutes until lightly golden."
+                    ],
                     ingredients: [
                         { name: "Almond flour", amount: 60, unit: "g" },
                         { name: "Butter", amount: 30, unit: "g" },
@@ -930,6 +1134,12 @@ const translations = {
                     id: "dessert_berry_cheesecake_cup",
                     name: "Berry Cheesecake in a Cup",
                     slug: "berry-cheesecake-cup",
+                    steps: [
+                        "Whip cream cheese with heavy cream and erythritol until smooth.",
+                        "Add vanilla and mix.",
+                        "Layer in cups: cream → berries → cream.",
+                        "Chill 30–60 minutes before serving."
+                    ],
                     ingredients: [
                         { name: "Cream cheese", amount: 120, unit: "g" },
                         { name: "Heavy cream", amount: 60, unit: "ml" },
