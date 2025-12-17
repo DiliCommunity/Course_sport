@@ -2481,6 +2481,242 @@ section > * {
     backdrop-filter: blur(10px);
 }
 
+.recipe-pdf-btn {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.14);
+    background: linear-gradient(135deg, rgba(0, 217, 255, 0.18), rgba(255, 215, 0, 0.14));
+    color: rgba(255,255,255,0.92);
+    font-weight: 900;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.recipe-pdf-btn:hover {
+    transform: translateY(-1px);
+    border-color: rgba(255, 215, 0, 0.5);
+    box-shadow: 0 10px 25px rgba(255, 215, 0, 0.12);
+}
+
+.recipe-pdf-btn:active {
+    transform: translateY(0);
+}
+
+/* PDF progress modal */
+.pdf-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(10px);
+    z-index: 5000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.pdf-modal-overlay.active {
+    display: flex;
+}
+
+.pdf-modal {
+    width: min(520px, 100%);
+    background: linear-gradient(135deg, rgba(15, 15, 18, 0.98), rgba(10, 10, 11, 0.98));
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 18px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+    padding: 18px;
+}
+
+.pdf-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.pdf-modal-title {
+    font-weight: 900;
+    font-size: 16px;
+    color: rgba(255,255,255,0.92);
+}
+
+.pdf-modal-percent {
+    font-weight: 900;
+    font-size: 14px;
+    color: var(--accent-gold);
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 215, 0, 0.25);
+    background: rgba(255, 215, 0, 0.07);
+}
+
+.pdf-modal-subtitle {
+    color: rgba(255,255,255,0.7);
+    font-size: 13px;
+    margin-bottom: 14px;
+}
+
+.pdf-modal-progress {
+    height: 12px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    overflow: hidden;
+}
+
+.pdf-modal-progress-bar {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(255, 215, 0, 0.9), rgba(0, 217, 255, 0.9));
+    box-shadow: 0 10px 25px rgba(0, 217, 255, 0.18);
+    transition: width 0.25s ease;
+}
+
+.pdf-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 14px;
+}
+
+.pdf-modal-cancel {
+    padding: 10px 14px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.14);
+    color: rgba(255,255,255,0.85);
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.15s ease, border-color 0.2s ease;
+}
+
+.pdf-modal-cancel:hover {
+    transform: translateY(-1px);
+    border-color: rgba(0, 217, 255, 0.35);
+}
+
+/* Offscreen DOM used for PDF rendering */
+.pdf-render-root {
+    position: fixed;
+    left: -10000px;
+    top: 0;
+    width: 860px;
+    pointer-events: none;
+    opacity: 0;
+}
+
+.pdf-sheet {
+    width: 860px;
+    padding: 26px;
+    color: #ffffff;
+    background: #0b0b0f;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+}
+
+.pdf-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.pdf-brand {
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    color: var(--accent-gold);
+    margin-bottom: 6px;
+}
+
+.pdf-title {
+    font-weight: 900;
+    font-size: 30px;
+    line-height: 1.15;
+}
+
+.pdf-meta {
+    margin-top: 10px;
+    color: rgba(255,255,255,0.72);
+    font-size: 13px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+}
+
+.pdf-code {
+    display: inline-block;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    padding: 3px 8px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.9);
+}
+
+.pdf-badge {
+    height: fit-content;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(255,215,0,0.12);
+    border: 1px solid rgba(255,215,0,0.28);
+    color: var(--accent-gold);
+    font-weight: 900;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
+.pdf-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03));
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 18px;
+    padding: 16px;
+}
+
+.pdf-card-title {
+    font-weight: 900;
+    font-size: 14px;
+    color: rgba(255,255,255,0.9);
+    margin-bottom: 10px;
+}
+
+.pdf-table {
+    display: flex;
+    flex-direction: column;
+}
+
+.pdf-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 0;
+    border-bottom: 1px dashed rgba(255,255,255,0.14);
+}
+
+.pdf-row:last-child {
+    border-bottom: none;
+}
+
+.pdf-cell-name {
+    color: rgba(255,255,255,0.9);
+    font-weight: 700;
+    font-size: 13px;
+}
+
+.pdf-cell-qty {
+    color: rgba(255,255,255,0.96);
+    font-weight: 900;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.pdf-foot {
+    margin-top: 12px;
+    color: rgba(255,255,255,0.55);
+    font-size: 12px;
+}
+
 .recipe-servings-btn {
     width: 34px;
     height: 34px;

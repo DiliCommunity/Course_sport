@@ -162,7 +162,17 @@ const translations = {
             servings: "Порции",
             ingredients: "Ингредиенты",
             photo: "Фото:",
-            free: "Бесплатно"
+            free: "Бесплатно",
+            downloadPdf: "Скачать PDF",
+            pdfModalTitle: "Генерация PDF",
+            pdfPreparing: "Подготавливаем…",
+            pdfLoadingLibs: "Загружаем генератор…",
+            pdfRendering: "Рендерим страницу…",
+            pdfBuilding: "Собираем PDF…",
+            pdfSaving: "Сохраняем файл…",
+            pdfDone: "Готово!",
+            pdfCancel: "Отмена",
+            pdfError: "Не удалось создать PDF. Попробуйте ещё раз."
         },
         // Keto Recipes (free)
         ketoRecipes: {
@@ -706,7 +716,17 @@ const translations = {
             servings: "Servings",
             ingredients: "Ingredients",
             photo: "Photo:",
-            free: "Free"
+            free: "Free",
+            downloadPdf: "Download PDF",
+            pdfModalTitle: "Generating PDF",
+            pdfPreparing: "Preparing…",
+            pdfLoadingLibs: "Loading generator…",
+            pdfRendering: "Rendering page…",
+            pdfBuilding: "Building PDF…",
+            pdfSaving: "Saving file…",
+            pdfDone: "Done!",
+            pdfCancel: "Cancel",
+            pdfError: "Failed to create PDF. Please try again."
         },
         // Keto Recipes (free)
         ketoRecipes: {

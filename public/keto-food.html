@@ -239,6 +239,23 @@
         </div>
     </footer>
 
+    <!-- PDF Progress Modal -->
+    <div class="pdf-modal-overlay" id="pdfModal" aria-hidden="true">
+        <div class="pdf-modal" role="dialog" aria-modal="true" aria-labelledby="pdfModalTitle">
+            <div class="pdf-modal-header">
+                <div class="pdf-modal-title" id="pdfModalTitle">PDF</div>
+                <div class="pdf-modal-percent" id="pdfModalPercent">0%</div>
+            </div>
+            <div class="pdf-modal-subtitle" id="pdfModalSubtitle"></div>
+            <div class="pdf-modal-progress">
+                <div class="pdf-modal-progress-bar" id="pdfModalProgressBar" style="width:0%"></div>
+            </div>
+            <div class="pdf-modal-actions">
+                <button class="pdf-modal-cancel" id="pdfModalCancel" type="button">Отмена</button>
+            </div>
+        </div>
+    </div>
+
     <script src="/js/main.js"></script>
     <script>
         // Food Categories Navigation
@@ -266,6 +283,7 @@
 
         // ---- Keto recipes rendering (3 per category + servings scaler) ----
         const servingsById = {};
+        let activePdfJobId = 0;
 
         function getCurrentLang() {
             if (window.languageSwitcher?.getCurrentLanguage) return window.languageSwitcher.getCurrentLanguage();
@@ -335,6 +353,7 @@
                                 <span class="recipe-servings-value">${servings}</span>
                                 <button class="recipe-servings-btn" data-action="inc" aria-label="increase">+</button>
                             </div>
+                            <button class="recipe-pdf-btn" data-action="pdf" type="button">${ui.downloadPdf}</button>
                         </div>
                     </div>
                     <div class="recipe-ingredients">
@@ -388,6 +407,197 @@
                 servingsById[recipe.id] = next;
                 updateRecipeIngredients(card, recipe, next);
             });
+
+            const pdfBtn = card.querySelector('button[data-action="pdf"]');
+            if (pdfBtn) {
+                pdfBtn.addEventListener('click', () => {
+                    const currentServings = servingsById[recipe.id] || 1;
+                    generateRecipePdfWithProgress(recipe, lang, currentServings);
+                });
+            }
+        }
+
+        // ---- Real PDF generation with progress modal (jsPDF + html2canvas) ----
+        const pdfModal = document.getElementById('pdfModal');
+        const pdfModalTitle = document.getElementById('pdfModalTitle');
+        const pdfModalSubtitle = document.getElementById('pdfModalSubtitle');
+        const pdfModalPercent = document.getElementById('pdfModalPercent');
+        const pdfModalProgressBar = document.getElementById('pdfModalProgressBar');
+        const pdfModalCancel = document.getElementById('pdfModalCancel');
+
+        function getUi(lang) {
+            return translations?.[lang]?.ketoFoodRecipesUI || translations?.ru?.ketoFoodRecipesUI;
+        }
+
+        function showPdfModal(lang) {
+            const ui = getUi(lang);
+            pdfModalTitle.textContent = ui.pdfModalTitle;
+            pdfModalCancel.textContent = ui.pdfCancel;
+            setPdfProgress(0, ui.pdfPreparing);
+            pdfModal.classList.add('active');
+            pdfModal.setAttribute('aria-hidden', 'false');
+        }
+
+        function hidePdfModal() {
+            pdfModal.classList.remove('active');
+            pdfModal.setAttribute('aria-hidden', 'true');
+        }
+
+        function setPdfProgress(percent, subtitle) {
+            const p = clampInt(percent, 0, 100);
+            pdfModalPercent.textContent = `${p}%`;
+            pdfModalProgressBar.style.width = `${p}%`;
+            if (typeof subtitle === 'string') pdfModalSubtitle.textContent = subtitle;
+        }
+
+        function loadScriptOnce(src, globalCheck) {
+            return new Promise((resolve, reject) => {
+                if (globalCheck()) return resolve();
+                const existing = document.querySelector(`script[data-src="${src}"]`);
+                if (existing) {
+                    existing.addEventListener('load', () => resolve());
+                    existing.addEventListener('error', () => reject(new Error('Failed to load script')));
+                    return;
+                }
+                const s = document.createElement('script');
+                s.src = src;
+                s.async = true;
+                s.defer = true;
+                s.dataset.src = src;
+                s.onload = () => resolve();
+                s.onerror = () => reject(new Error('Failed to load script'));
+                document.head.appendChild(s);
+            });
+        }
+
+        function ensurePdfLibs(lang) {
+            const ui = getUi(lang);
+            setPdfProgress(10, ui.pdfLoadingLibs);
+            return loadScriptOnce(
+                'https://cdn.jsdelivr.net/npm/jspdf@3.0.2/dist/jspdf.umd.min.js',
+                () => !!(window.jspdf && window.jspdf.jsPDF)
+            ).then(() => {
+                setPdfProgress(20, ui.pdfLoadingLibs);
+                return loadScriptOnce(
+                    'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js',
+                    () => typeof window.html2canvas === 'function'
+                );
+            });
+        }
+
+        function buildPdfDom(recipe, lang, servings) {
+            const ui = getUi(lang);
+            const photoPath = `/img/recipes/${recipe.slug}.jpg`;
+
+            const root = document.createElement('div');
+            root.className = 'pdf-render-root';
+            root.innerHTML = `
+                <div class="pdf-sheet">
+                    <div class="pdf-head">
+                        <div>
+                            <div class="pdf-brand">Course Health</div>
+                            <div class="pdf-title">${recipe.name}</div>
+                            <div class="pdf-meta">
+                                <div>${ui.servings}: <strong>${servings}</strong></div>
+                                <div>${ui.photo} <span class="pdf-code">${photoPath}</span></div>
+                            </div>
+                        </div>
+                        <div class="pdf-badge">${ui.free}</div>
+                    </div>
+                    <div class="pdf-card">
+                        <div class="pdf-card-title">${ui.ingredients}</div>
+                        <div class="pdf-table">
+                            ${recipe.ingredients.map((ing) => {
+                                const scaled = ing.amount * servings;
+                                const amountText = formatAmount(scaled);
+                                const unitText = ing.unit ? ` ${ing.unit}` : '';
+                                return `
+                                    <div class="pdf-row">
+                                        <div class="pdf-cell-name">${ing.name}</div>
+                                        <div class="pdf-cell-qty">${amountText}${unitText}</div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                        <div class="pdf-foot">${recipe.slug}.pdf</div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(root);
+            return root;
+        }
+
+        function cleanupPdfDom(node) {
+            if (node && node.parentNode) node.parentNode.removeChild(node);
+        }
+
+        async function generateRecipePdfWithProgress(recipe, lang, servings) {
+            const ui = getUi(lang);
+            const myJobId = ++activePdfJobId;
+            let pdfDom = null;
+
+            const cancel = () => {
+                if (myJobId === activePdfJobId) {
+                    activePdfJobId++;
+                    hidePdfModal();
+                }
+            };
+
+            pdfModalCancel.onclick = cancel;
+            showPdfModal(lang);
+
+            try {
+                await ensurePdfLibs(lang);
+                if (myJobId !== activePdfJobId) return;
+
+                setPdfProgress(35, ui.pdfRendering);
+                pdfDom = buildPdfDom(recipe, lang, servings);
+
+                // Let layout settle
+                await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+                if (myJobId !== activePdfJobId) return;
+
+                setPdfProgress(55, ui.pdfRendering);
+                const canvas = await window.html2canvas(pdfDom.querySelector('.pdf-sheet'), {
+                    backgroundColor: '#0b0b0f',
+                    scale: 2,
+                    useCORS: true
+                });
+                if (myJobId !== activePdfJobId) return;
+
+                setPdfProgress(75, ui.pdfBuilding);
+                const imgData = canvas.toDataURL('image/png');
+
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+                const pageW = doc.internal.pageSize.getWidth();
+                const pageH = doc.internal.pageSize.getHeight();
+
+                // Fit image into A4
+                const imgW = canvas.width;
+                const imgH = canvas.height;
+                const ratio = Math.min(pageW / imgW, pageH / imgH);
+                const drawW = imgW * ratio;
+                const drawH = imgH * ratio;
+                const x = (pageW - drawW) / 2;
+                const y = (pageH - drawH) / 2;
+                doc.addImage(imgData, 'PNG', x, y, drawW, drawH, undefined, 'FAST');
+
+                setPdfProgress(90, ui.pdfSaving);
+                const filename = `${recipe.slug}-x${servings}.pdf`;
+                doc.save(filename);
+
+                setPdfProgress(100, ui.pdfDone);
+                setTimeout(() => {
+                    if (myJobId === activePdfJobId) hidePdfModal();
+                }, 650);
+            } catch (e) {
+                setPdfProgress(100, ui.pdfError);
+                setTimeout(() => hidePdfModal(), 1400);
+            } finally {
+                cleanupPdfDom(pdfDom);
+                if (myJobId === activePdfJobId) pdfModalCancel.onclick = null;
+            }
         }
 
         function renderAllRecipes() {
