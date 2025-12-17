@@ -106,7 +106,7 @@ const translations = {
         about: {
             title: "О нас",
             description: "Мы помогаем людям изменить свою жизнь через правильное питание и здоровый образ жизни",
-            ctaTitle: "Готов присоединиться?",
+            ctaTitle: "ГОТОВ НАЧАТЬ!",
             ctaDescription: "Начни свой путь к здоровью вместе с Course Health уже сегодня",
             badge: "О платформе",
             heroTitle: "Мы меняем подход к здоровому образу жизни",
@@ -156,6 +156,213 @@ const translations = {
             snacksDesc: "Полезные кето-перекусы между приемами пищи",
             dessertsDesc: "Сладкие кето-десерты без сахара",
             comingSoon: "Блюда будут добавлены в ближайшее время"
+        },
+        // Keto Recipes UI
+        ketoFoodRecipesUI: {
+            servings: "Порции",
+            ingredients: "Ингредиенты",
+            photo: "Фото:",
+            free: "Бесплатно"
+        },
+        // Keto Recipes (free)
+        ketoRecipes: {
+            breakfast: [
+                {
+                    id: "breakfast_avocado_omelet",
+                    name: "Авокадо-омлет с сыром",
+                    slug: "avocado-cheese-omelet",
+                    ingredients: [
+                        { name: "Яйца", amount: 2, unit: "шт" },
+                        { name: "Авокадо", amount: 0.5, unit: "шт" },
+                        { name: "Сыр (твердый)", amount: 30, unit: "г" },
+                        { name: "Сливочное масло", amount: 10, unit: "г" },
+                        { name: "Соль", amount: 1, unit: "щепотка" },
+                        { name: "Перец", amount: 1, unit: "щепотка" }
+                    ]
+                },
+                {
+                    id: "breakfast_chia_pudding",
+                    name: "Чиа-пудинг на кокосовом молоке",
+                    slug: "chia-coconut-pudding",
+                    ingredients: [
+                        { name: "Семена чиа", amount: 25, unit: "г" },
+                        { name: "Кокосовое молоко", amount: 200, unit: "мл" },
+                        { name: "Эритритол", amount: 10, unit: "г" },
+                        { name: "Ваниль", amount: 0.25, unit: "ч. л." },
+                        { name: "Ягоды (по желанию)", amount: 50, unit: "г" }
+                    ]
+                },
+                {
+                    id: "breakfast_bacon_eggs_spinach",
+                    name: "Яичница с беконом и шпинатом",
+                    slug: "bacon-eggs-spinach",
+                    ingredients: [
+                        { name: "Яйца", amount: 2, unit: "шт" },
+                        { name: "Бекон", amount: 50, unit: "г" },
+                        { name: "Шпинат", amount: 50, unit: "г" },
+                        { name: "Оливковое масло", amount: 10, unit: "мл" },
+                        { name: "Помидоры черри", amount: 80, unit: "г" },
+                        { name: "Соль", amount: 1, unit: "щепотка" }
+                    ]
+                }
+            ],
+            lunch: [
+                {
+                    id: "lunch_keto_caesar",
+                    name: "Кето-Цезарь (без сухариков)",
+                    slug: "keto-caesar-salad",
+                    ingredients: [
+                        { name: "Куриная грудка (готовая)", amount: 150, unit: "г" },
+                        { name: "Салат ромэн", amount: 80, unit: "г" },
+                        { name: "Пармезан", amount: 25, unit: "г" },
+                        { name: "Майонез", amount: 20, unit: "г" },
+                        { name: "Оливковое масло", amount: 10, unit: "мл" },
+                        { name: "Лимонный сок", amount: 10, unit: "мл" },
+                        { name: "Чеснок", amount: 1, unit: "зубчик" }
+                    ]
+                },
+                {
+                    id: "lunch_broccoli_soup",
+                    name: "Крем-суп из брокколи со сливками",
+                    slug: "creamy-broccoli-soup",
+                    ingredients: [
+                        { name: "Брокколи", amount: 250, unit: "г" },
+                        { name: "Сливки 30–33%", amount: 120, unit: "мл" },
+                        { name: "Сыр", amount: 30, unit: "г" },
+                        { name: "Сливочное масло", amount: 15, unit: "г" },
+                        { name: "Чеснок", amount: 1, unit: "зубчик" },
+                        { name: "Соль", amount: 1, unit: "щепотка" }
+                    ]
+                },
+                {
+                    id: "lunch_tuna_lettuce_boats",
+                    name: "Тунец-салат в салатных лодочках",
+                    slug: "tuna-lettuce-boats",
+                    ingredients: [
+                        { name: "Тунец (консервы, в собственном соку)", amount: 120, unit: "г" },
+                        { name: "Майонез", amount: 20, unit: "г" },
+                        { name: "Сельдерей", amount: 30, unit: "г" },
+                        { name: "Огурец", amount: 50, unit: "г" },
+                        { name: "Листья салата", amount: 6, unit: "шт" },
+                        { name: "Лимонный сок", amount: 10, unit: "мл" }
+                    ]
+                }
+            ],
+            dinner: [
+                {
+                    id: "dinner_baked_salmon",
+                    name: "Лосось в духовке с лимоном и травами",
+                    slug: "baked-salmon-lemon-herbs",
+                    ingredients: [
+                        { name: "Лосось", amount: 180, unit: "г" },
+                        { name: "Оливковое масло", amount: 10, unit: "мл" },
+                        { name: "Лимон", amount: 0.5, unit: "шт" },
+                        { name: "Сухие травы", amount: 1, unit: "ч. л." },
+                        { name: "Соль", amount: 1, unit: "щепотка" },
+                        { name: "Перец", amount: 1, unit: "щепотка" }
+                    ]
+                },
+                {
+                    id: "dinner_chicken_mushroom_cream",
+                    name: "Куриные бедра в сливочно-грибном соусе",
+                    slug: "chicken-mushroom-cream",
+                    ingredients: [
+                        { name: "Куриные бедра", amount: 200, unit: "г" },
+                        { name: "Шампиньоны", amount: 150, unit: "г" },
+                        { name: "Сливки 30–33%", amount: 100, unit: "мл" },
+                        { name: "Сливочное масло", amount: 15, unit: "г" },
+                        { name: "Лук", amount: 50, unit: "г" },
+                        { name: "Чеснок", amount: 1, unit: "зубчик" }
+                    ]
+                },
+                {
+                    id: "dinner_beef_steak_salad",
+                    name: "Стейк из говядины с зелёным салатом",
+                    slug: "beef-steak-green-salad",
+                    ingredients: [
+                        { name: "Стейк говяжий", amount: 200, unit: "г" },
+                        { name: "Сливочное масло", amount: 10, unit: "г" },
+                        { name: "Руккола", amount: 50, unit: "г" },
+                        { name: "Авокадо", amount: 0.5, unit: "шт" },
+                        { name: "Оливковое масло", amount: 10, unit: "мл" },
+                        { name: "Соль", amount: 1, unit: "щепотка" }
+                    ]
+                }
+            ],
+            snacks: [
+                {
+                    id: "snack_cucumber_rolls",
+                    name: "Огуречные роллы с творожным сыром",
+                    slug: "cucumber-cream-cheese-rolls",
+                    ingredients: [
+                        { name: "Огурец", amount: 150, unit: "г" },
+                        { name: "Творожный сыр", amount: 60, unit: "г" },
+                        { name: "Лосось слабосоленый", amount: 50, unit: "г" },
+                        { name: "Укроп", amount: 5, unit: "г" },
+                        { name: "Лимонный сок", amount: 5, unit: "мл" }
+                    ]
+                },
+                {
+                    id: "snack_nuts_cheese_plate",
+                    name: "Орехово-сырная тарелка",
+                    slug: "nuts-cheese-plate",
+                    ingredients: [
+                        { name: "Миндаль", amount: 30, unit: "г" },
+                        { name: "Грецкие орехи", amount: 30, unit: "г" },
+                        { name: "Сыр", amount: 40, unit: "г" },
+                        { name: "Оливки", amount: 40, unit: "г" }
+                    ]
+                },
+                {
+                    id: "snack_deviled_eggs_avocado",
+                    name: "Яйца, фаршированные авокадо",
+                    slug: "deviled-eggs-avocado",
+                    ingredients: [
+                        { name: "Яйца (варёные)", amount: 2, unit: "шт" },
+                        { name: "Авокадо", amount: 0.5, unit: "шт" },
+                        { name: "Майонез", amount: 10, unit: "г" },
+                        { name: "Горчица", amount: 1, unit: "ч. л." },
+                        { name: "Соль", amount: 1, unit: "щепотка" }
+                    ]
+                }
+            ],
+            desserts: [
+                {
+                    id: "dessert_choco_mousse",
+                    name: "Кето-шоколадный мусс",
+                    slug: "keto-chocolate-mousse",
+                    ingredients: [
+                        { name: "Сливки 30–33%", amount: 150, unit: "мл" },
+                        { name: "Какао", amount: 15, unit: "г" },
+                        { name: "Эритритол", amount: 15, unit: "г" },
+                        { name: "Ваниль", amount: 0.25, unit: "ч. л." }
+                    ]
+                },
+                {
+                    id: "dessert_almond_cookies",
+                    name: "Миндальные кето-печенья",
+                    slug: "almond-keto-cookies",
+                    ingredients: [
+                        { name: "Миндальная мука", amount: 60, unit: "г" },
+                        { name: "Сливочное масло", amount: 30, unit: "г" },
+                        { name: "Яйцо", amount: 1, unit: "шт" },
+                        { name: "Эритритол", amount: 20, unit: "г" },
+                        { name: "Разрыхлитель", amount: 0.5, unit: "ч. л." }
+                    ]
+                },
+                {
+                    id: "dessert_berry_cheesecake_cup",
+                    name: "Ягодный чизкейк в стакане",
+                    slug: "berry-cheesecake-cup",
+                    ingredients: [
+                        { name: "Творожный сыр", amount: 120, unit: "г" },
+                        { name: "Сливки 30–33%", amount: 60, unit: "мл" },
+                        { name: "Эритритол", amount: 15, unit: "г" },
+                        { name: "Ягоды", amount: 60, unit: "г" },
+                        { name: "Ваниль", amount: 0.25, unit: "ч. л." }
+                    ]
+                }
+            ]
         },
         // CTA
         cta: {
@@ -235,6 +442,106 @@ const translations = {
             title: "Вход выполнен!",
             message: "Добро пожаловать обратно!",
             goToCourses: "Перейти к курсам"
+        },
+        // Course detail pages
+        courseDetail: {
+            common: {
+                back: "← Назад",
+                levelBeginner: "Начинающий",
+                included: "Что включено:",
+                payTitle: "Оплата курса",
+                courseCost: "Стоимость курса:",
+                paymentMethod: "Способ оплаты:",
+                payCard: "Банковская карта",
+                paySBP: "СБП (Система быстрых платежей)",
+                securePay: "Безопасная оплата",
+                securePayText: "Все платежи защищены шифрованием. Мы не храним данные вашей карты.",
+                payButton: "Оплатить 1,500₽",
+                cancel: "Отмена",
+                moneyBack: "Гарантия возврата денег в течение 14 дней",
+                guaranteeTitle: "Гарантия возврата",
+                guaranteeText: "14 дней на возврат денег",
+                learnProgram: "Узнать подробнее о программе",
+                startLearning: "Начать обучение",
+                buyFull: "Приобрести полный доступ",
+                reserveDiscount: "Забронировать место со скидкой"
+            },
+            interval: {
+                metaTitle: "Интервальное Голодание: Ваш Режим Дня - Course Health",
+                crumbCurrent: "Интервальное голодание",
+                stats1: "⭐ 4.8 (2156 отзывов)",
+                stats2: "👥 8,721 студентов",
+                stats3: "📚 36 уроков",
+                introHtml: `
+<p>А что если главный секрет здоровья, стройности и энергии лежит не в том, <strong>ЧТО</strong> есть, а в том, <strong>КОГДА</strong> есть? Представьте, что вы можете улучшить самочувствие, снизить вес и очистить организм, не отказывая себе в любимых продуктах и не подсчитывая каждую калорию.</p>
+
+<p>Интервальное голодание (IF) — это не диета, а паттерн питания, который использует естественные механизмы нашего тела. Когда вы даете пищеварительной системе продолжительный перерыв, запускаются процессы <strong>автофагии</strong> («самоочищения» клеток), нормализуется гормональный фон и уходит воспаление.</p>
+
+<p>Вам не нужно покупать особые продукты или готовить сложные блюда. Вам нужно лишь <strong>переставить часы приема пищи</strong>. Но как сделать это правильно, чтобы не мучиться от голода и получить максимум пользы?</p>
+
+<p><strong>В этом курсе вы построите свой индивидуальный график, который впишется в вашу жизнь:</strong></p>
+
+<ul class="course-features-list">
+  <li><strong>Выберите свой идеальный протокол:</strong> 16/8, 18/6, 20/4 или 24-часовое — какой подойдет именно вам?</li>
+  <li><strong>Что можно и нужно пить в период «голода»</strong>, чтобы усилить эффект и чувствовать себя комфортно.</li>
+  <li><strong>Как совмещать тренировки и голодание</strong> для максимальной эффективности.</li>
+  <li><strong>Главные ошибки новичков:</strong> почему вы можете не худеть и как это исправить.</li>
+  <li><strong>Научный бонус:</strong> как IF влияет на долголетие, мозговую активность и устойчивость к стрессу.</li>
+</ul>
+
+<p><strong>Это курс для занятых людей, которые хотят упростить жизнь, избавиться от навязчивых мыслей о еде и стать энергичнее, просто изменив расписание. Сделайте время своим союзником.</strong></p>
+                `,
+                freePreviewTitle: "15% курса бесплатно!",
+                freePreviewText: "5 уроков доступны без оплаты",
+                includedListHtml: `
+<li>✓ 36 видеоуроков в HD качестве</li>
+<li>✓ 🎁 5 уроков бесплатно (15%)</li>
+<li>✓ Пожизненный доступ к материалам</li>
+<li>✓ Индивидуальный план голодания</li>
+<li>✓ Гайд по совмещению с тренировками</li>
+<li>✓ Чат с инструктором</li>
+<li>✓ Сертификат об окончании</li>
+                `,
+                paySubtitle: "Интервальное Голодание: Ваш Режим Дня для Здоровья и Энергии"
+            },
+            keto: {
+                metaTitle: "Кето Диета: Наука Жиросжигания - Course Health",
+                crumbCurrent: "Кето-диета",
+                stats1: "⭐ 4.9 (2847 отзывов)",
+                stats2: "👥 12,453 студентов",
+                stats3: "📚 48 уроков",
+                introHtml: `
+<p>Вы устали от диет, которые требуют бесконечной силы воли, оставляют чувство голода и дают временный результат? Что если существует способ перестроить ваше тело так, чтобы оно начало работать как машина по сжиганию жира — и делало это на автопилоте?</p>
+
+<p>Кето диета — это не просто отказ от углеводов. Это фундаментальный метаболический переключатель. Когда вы даете телу правильное топливо (жиры), оно перестает зависеть от сахарных качелей и начинает использовать ваши собственные жировые запасы как неиссякаемый источник энергии.</p>
+
+<p>Но вокруг Кето столько шума: «это вредно для почек», «невозможно без углеводов», «кетогрипп», «сорвешься за неделю». Большинство бросают, так и не узнав главных правил.</p>
+
+<p><strong>В этом курсе не будет теории «из интернета». Вы получите четкую, пошаговую систему:</strong></p>
+
+<ul class="course-features-list">
+  <li><strong>Как войти в кетоз без «гриппа»</strong> и уже в первую неделю почувствовать прилив энергии и ясность ума.</li>
+  <li><strong>Что есть на самом деле:</strong> от простых бюджетных продуктов до ресторанных блюд. Списки, планы, рецепты.</li>
+  <li><strong>Как отслеживать прогресс</strong> не только по весам, а по ключевым показателям здоровья.</li>
+  <li><strong>Лайфхаки для социальной жизни:</strong> как оставаться на Кето в гостях, путешествиях и на праздниках.</li>
+  <li><strong>Решение частых проблем:</strong> плато, тяга к сладкому, электролитный баланс.</li>
+</ul>
+
+<p><strong>Это курс для тех, кто хочет не «посидеть на диете», а понять свое тело и получить инструмент управления энергией и весом на всю жизнь. Готовы перезагрузить свой метаболизм?</strong></p>
+                `,
+                freePreviewTitle: "15% курса бесплатно!",
+                freePreviewText: "7 уроков доступны без оплаты",
+                includedListHtml: `
+<li>✓ 48 видеоуроков в HD качестве</li>
+<li>✓ 🎁 7 уроков бесплатно (15%)</li>
+<li>✓ Пожизненный доступ к материалам</li>
+<li>✓ Готовые планы питания на неделю</li>
+<li>✓ Рецепты кето-блюд</li>
+<li>✓ Чат с инструктором</li>
+<li>✓ Сертификат об окончании</li>
+                `,
+                paySubtitle: "Кето Диета: Наука Жиросжигания. От Мифов к Результатам"
+            }
         }
     },
     en: {
@@ -343,7 +650,7 @@ const translations = {
         about: {
             title: "About us",
             description: "We help people change their lives through proper nutrition and healthy lifestyle",
-            ctaTitle: "Ready to join?",
+            ctaTitle: "READY TO START!",
             ctaDescription: "Start your journey to health with Course Health today",
             badge: "About platform",
             heroTitle: "We are changing the approach to healthy lifestyle",
@@ -393,6 +700,213 @@ const translations = {
             snacksDesc: "Healthy keto snacks between meals",
             dessertsDesc: "Sweet keto desserts without sugar",
             comingSoon: "Dishes will be added soon"
+        },
+        // Keto Recipes UI
+        ketoFoodRecipesUI: {
+            servings: "Servings",
+            ingredients: "Ingredients",
+            photo: "Photo:",
+            free: "Free"
+        },
+        // Keto Recipes (free)
+        ketoRecipes: {
+            breakfast: [
+                {
+                    id: "breakfast_avocado_omelet",
+                    name: "Avocado Cheese Omelet",
+                    slug: "avocado-cheese-omelet",
+                    ingredients: [
+                        { name: "Eggs", amount: 2, unit: "pcs" },
+                        { name: "Avocado", amount: 0.5, unit: "pcs" },
+                        { name: "Hard cheese", amount: 30, unit: "g" },
+                        { name: "Butter", amount: 10, unit: "g" },
+                        { name: "Salt", amount: 1, unit: "pinch" },
+                        { name: "Pepper", amount: 1, unit: "pinch" }
+                    ]
+                },
+                {
+                    id: "breakfast_chia_pudding",
+                    name: "Chia Pudding with Coconut Milk",
+                    slug: "chia-coconut-pudding",
+                    ingredients: [
+                        { name: "Chia seeds", amount: 25, unit: "g" },
+                        { name: "Coconut milk", amount: 200, unit: "ml" },
+                        { name: "Erythritol", amount: 10, unit: "g" },
+                        { name: "Vanilla", amount: 0.25, unit: "tsp" },
+                        { name: "Berries (optional)", amount: 50, unit: "g" }
+                    ]
+                },
+                {
+                    id: "breakfast_bacon_eggs_spinach",
+                    name: "Eggs with Bacon and Spinach",
+                    slug: "bacon-eggs-spinach",
+                    ingredients: [
+                        { name: "Eggs", amount: 2, unit: "pcs" },
+                        { name: "Bacon", amount: 50, unit: "g" },
+                        { name: "Spinach", amount: 50, unit: "g" },
+                        { name: "Olive oil", amount: 10, unit: "ml" },
+                        { name: "Cherry tomatoes", amount: 80, unit: "g" },
+                        { name: "Salt", amount: 1, unit: "pinch" }
+                    ]
+                }
+            ],
+            lunch: [
+                {
+                    id: "lunch_keto_caesar",
+                    name: "Keto Caesar Salad (No Croutons)",
+                    slug: "keto-caesar-salad",
+                    ingredients: [
+                        { name: "Chicken breast (cooked)", amount: 150, unit: "g" },
+                        { name: "Romaine lettuce", amount: 80, unit: "g" },
+                        { name: "Parmesan", amount: 25, unit: "g" },
+                        { name: "Mayonnaise", amount: 20, unit: "g" },
+                        { name: "Olive oil", amount: 10, unit: "ml" },
+                        { name: "Lemon juice", amount: 10, unit: "ml" },
+                        { name: "Garlic", amount: 1, unit: "clove" }
+                    ]
+                },
+                {
+                    id: "lunch_broccoli_soup",
+                    name: "Creamy Broccoli Soup",
+                    slug: "creamy-broccoli-soup",
+                    ingredients: [
+                        { name: "Broccoli", amount: 250, unit: "g" },
+                        { name: "Heavy cream", amount: 120, unit: "ml" },
+                        { name: "Cheese", amount: 30, unit: "g" },
+                        { name: "Butter", amount: 15, unit: "g" },
+                        { name: "Garlic", amount: 1, unit: "clove" },
+                        { name: "Salt", amount: 1, unit: "pinch" }
+                    ]
+                },
+                {
+                    id: "lunch_tuna_lettuce_boats",
+                    name: "Tuna Salad Lettuce Boats",
+                    slug: "tuna-lettuce-boats",
+                    ingredients: [
+                        { name: "Canned tuna (in water)", amount: 120, unit: "g" },
+                        { name: "Mayonnaise", amount: 20, unit: "g" },
+                        { name: "Celery", amount: 30, unit: "g" },
+                        { name: "Cucumber", amount: 50, unit: "g" },
+                        { name: "Lettuce leaves", amount: 6, unit: "pcs" },
+                        { name: "Lemon juice", amount: 10, unit: "ml" }
+                    ]
+                }
+            ],
+            dinner: [
+                {
+                    id: "dinner_baked_salmon",
+                    name: "Baked Salmon with Lemon and Herbs",
+                    slug: "baked-salmon-lemon-herbs",
+                    ingredients: [
+                        { name: "Salmon", amount: 180, unit: "g" },
+                        { name: "Olive oil", amount: 10, unit: "ml" },
+                        { name: "Lemon", amount: 0.5, unit: "pcs" },
+                        { name: "Dried herbs", amount: 1, unit: "tsp" },
+                        { name: "Salt", amount: 1, unit: "pinch" },
+                        { name: "Pepper", amount: 1, unit: "pinch" }
+                    ]
+                },
+                {
+                    id: "dinner_chicken_mushroom_cream",
+                    name: "Chicken with Creamy Mushroom Sauce",
+                    slug: "chicken-mushroom-cream",
+                    ingredients: [
+                        { name: "Chicken thighs", amount: 200, unit: "g" },
+                        { name: "Mushrooms", amount: 150, unit: "g" },
+                        { name: "Heavy cream", amount: 100, unit: "ml" },
+                        { name: "Butter", amount: 15, unit: "g" },
+                        { name: "Onion", amount: 50, unit: "g" },
+                        { name: "Garlic", amount: 1, unit: "clove" }
+                    ]
+                },
+                {
+                    id: "dinner_beef_steak_salad",
+                    name: "Beef Steak with Green Salad",
+                    slug: "beef-steak-green-salad",
+                    ingredients: [
+                        { name: "Beef steak", amount: 200, unit: "g" },
+                        { name: "Butter", amount: 10, unit: "g" },
+                        { name: "Arugula", amount: 50, unit: "g" },
+                        { name: "Avocado", amount: 0.5, unit: "pcs" },
+                        { name: "Olive oil", amount: 10, unit: "ml" },
+                        { name: "Salt", amount: 1, unit: "pinch" }
+                    ]
+                }
+            ],
+            snacks: [
+                {
+                    id: "snack_cucumber_rolls",
+                    name: "Cucumber Rolls with Cream Cheese",
+                    slug: "cucumber-cream-cheese-rolls",
+                    ingredients: [
+                        { name: "Cucumber", amount: 150, unit: "g" },
+                        { name: "Cream cheese", amount: 60, unit: "g" },
+                        { name: "Smoked salmon", amount: 50, unit: "g" },
+                        { name: "Dill", amount: 5, unit: "g" },
+                        { name: "Lemon juice", amount: 5, unit: "ml" }
+                    ]
+                },
+                {
+                    id: "snack_nuts_cheese_plate",
+                    name: "Nuts & Cheese Plate",
+                    slug: "nuts-cheese-plate",
+                    ingredients: [
+                        { name: "Almonds", amount: 30, unit: "g" },
+                        { name: "Walnuts", amount: 30, unit: "g" },
+                        { name: "Cheese", amount: 40, unit: "g" },
+                        { name: "Olives", amount: 40, unit: "g" }
+                    ]
+                },
+                {
+                    id: "snack_deviled_eggs_avocado",
+                    name: "Deviled Eggs with Avocado",
+                    slug: "deviled-eggs-avocado",
+                    ingredients: [
+                        { name: "Boiled eggs", amount: 2, unit: "pcs" },
+                        { name: "Avocado", amount: 0.5, unit: "pcs" },
+                        { name: "Mayonnaise", amount: 10, unit: "g" },
+                        { name: "Mustard", amount: 1, unit: "tsp" },
+                        { name: "Salt", amount: 1, unit: "pinch" }
+                    ]
+                }
+            ],
+            desserts: [
+                {
+                    id: "dessert_choco_mousse",
+                    name: "Keto Chocolate Mousse",
+                    slug: "keto-chocolate-mousse",
+                    ingredients: [
+                        { name: "Heavy cream", amount: 150, unit: "ml" },
+                        { name: "Cocoa powder", amount: 15, unit: "g" },
+                        { name: "Erythritol", amount: 15, unit: "g" },
+                        { name: "Vanilla", amount: 0.25, unit: "tsp" }
+                    ]
+                },
+                {
+                    id: "dessert_almond_cookies",
+                    name: "Almond Keto Cookies",
+                    slug: "almond-keto-cookies",
+                    ingredients: [
+                        { name: "Almond flour", amount: 60, unit: "g" },
+                        { name: "Butter", amount: 30, unit: "g" },
+                        { name: "Egg", amount: 1, unit: "pcs" },
+                        { name: "Erythritol", amount: 20, unit: "g" },
+                        { name: "Baking powder", amount: 0.5, unit: "tsp" }
+                    ]
+                },
+                {
+                    id: "dessert_berry_cheesecake_cup",
+                    name: "Berry Cheesecake in a Cup",
+                    slug: "berry-cheesecake-cup",
+                    ingredients: [
+                        { name: "Cream cheese", amount: 120, unit: "g" },
+                        { name: "Heavy cream", amount: 60, unit: "ml" },
+                        { name: "Erythritol", amount: 15, unit: "g" },
+                        { name: "Berries", amount: 60, unit: "g" },
+                        { name: "Vanilla", amount: 0.25, unit: "tsp" }
+                    ]
+                }
+            ]
         },
         // CTA
         cta: {
@@ -472,6 +986,106 @@ const translations = {
             title: "Login successful!",
             message: "Welcome back!",
             goToCourses: "Go to courses"
+        },
+        // Course detail pages
+        courseDetail: {
+            common: {
+                back: "← Back",
+                levelBeginner: "Beginner",
+                included: "What's included:",
+                payTitle: "Course payment",
+                courseCost: "Course price:",
+                paymentMethod: "Payment method:",
+                payCard: "Bank card",
+                paySBP: "SBP (Fast Payments System)",
+                securePay: "Secure payment",
+                securePayText: "All payments are encrypted. We don't store your card details.",
+                payButton: "Pay 1,500₽",
+                cancel: "Cancel",
+                moneyBack: "Money-back guarantee within 14 days",
+                guaranteeTitle: "Money-back guarantee",
+                guaranteeText: "14 days to request a refund",
+                learnProgram: "Learn more about the program",
+                startLearning: "Start learning",
+                buyFull: "Get full access",
+                reserveDiscount: "Reserve a discounted spot"
+            },
+            interval: {
+                metaTitle: "Intermittent Fasting: Your Daily Routine - Course Health",
+                crumbCurrent: "Intermittent fasting",
+                stats1: "⭐ 4.8 (2156 reviews)",
+                stats2: "👥 8,721 students",
+                stats3: "📚 36 lessons",
+                introHtml: `
+<p>What if the main secret to health, a lean body and energy is not <strong>WHAT</strong> you eat, but <strong>WHEN</strong> you eat? Imagine improving how you feel, losing weight and supporting detox processes without giving up your favorite foods or counting every calorie.</p>
+
+<p>Intermittent fasting (IF) is not a diet — it's an eating pattern that uses the body's natural mechanisms. When you give your digestive system a longer break, <strong>autophagy</strong> (“cell cleanup”) processes activate, hormones balance out, and inflammation may decrease.</p>
+
+<p>You don't need special products or complicated recipes. You only need to <strong>shift your eating hours</strong>. But how do you do it correctly, without suffering from hunger, and get the maximum benefit?</p>
+
+<p><strong>In this course you'll build a personal schedule that fits your life:</strong></p>
+
+<ul class="course-features-list">
+  <li><strong>Pick your ideal protocol:</strong> 16/8, 18/6, 20/4 or 24-hour — which one fits you best?</li>
+  <li><strong>What you can (and should) drink during the fasting window</strong> to feel comfortable and boost the effect.</li>
+  <li><strong>How to combine training with fasting</strong> for better results.</li>
+  <li><strong>Common beginner mistakes:</strong> why you might not lose weight and how to fix it.</li>
+  <li><strong>Science bonus:</strong> how IF can affect longevity, brain performance and stress resilience.</li>
+</ul>
+
+<p><strong>This course is for busy people who want to simplify life, stop obsessing about food and feel more energized by changing their schedule. Make time your ally.</strong></p>
+                `,
+                freePreviewTitle: "15% of the course is free!",
+                freePreviewText: "5 lessons available without payment",
+                includedListHtml: `
+<li>✓ 36 HD video lessons</li>
+<li>✓ 🎁 5 lessons free (15%)</li>
+<li>✓ Lifetime access to materials</li>
+<li>✓ Personalized fasting plan</li>
+<li>✓ Training compatibility guide</li>
+<li>✓ Instructor chat</li>
+<li>✓ Completion certificate</li>
+                `,
+                paySubtitle: "Intermittent Fasting: Your Daily Routine for Health and Energy"
+            },
+            keto: {
+                metaTitle: "Keto Diet: The Science of Fat Burning - Course Health",
+                crumbCurrent: "Keto diet",
+                stats1: "⭐ 4.9 (2847 reviews)",
+                stats2: "👥 12,453 students",
+                stats3: "📚 48 lessons",
+                introHtml: `
+<p>Tired of diets that require endless willpower, leave you hungry and only give temporary results? What if there were a way to reprogram your body so it becomes a fat-burning machine — on autopilot?</p>
+
+<p>The keto diet is more than cutting carbs. It's a fundamental metabolic switch. When you give your body the right fuel (fat), it stops riding the sugar rollercoaster and starts using your fat stores as a stable, long-lasting energy source.</p>
+
+<p>But keto is surrounded by myths: “it's bad for kidneys”, “it's impossible without carbs”, “keto flu”, “you'll quit in a week”. Most people give up before learning the key rules.</p>
+
+<p><strong>This course is not random theory from the internet. You'll get a clear, step-by-step system:</strong></p>
+
+<ul class="course-features-list">
+  <li><strong>How to enter ketosis without the “flu”</strong> and feel more energy and mental clarity in the first week.</li>
+  <li><strong>What to actually eat:</strong> from simple budget foods to restaurant-level meals. Lists, plans, recipes.</li>
+  <li><strong>How to track progress</strong> beyond the scale — with key health markers.</li>
+  <li><strong>Real-life hacks:</strong> staying keto at parties, while traveling, and during holidays.</li>
+  <li><strong>Solving common issues:</strong> plateaus, sugar cravings, electrolyte balance.</li>
+</ul>
+
+<p><strong>This course is for those who want to understand their body and gain a lifelong tool for managing energy and weight. Ready to reboot your metabolism?</strong></p>
+                `,
+                freePreviewTitle: "15% of the course is free!",
+                freePreviewText: "7 lessons available without payment",
+                includedListHtml: `
+<li>✓ 48 HD video lessons</li>
+<li>✓ 🎁 7 lessons free (15%)</li>
+<li>✓ Lifetime access to materials</li>
+<li>✓ Ready-made weekly meal plans</li>
+<li>✓ Keto recipes</li>
+<li>✓ Instructor chat</li>
+<li>✓ Completion certificate</li>
+                `,
+                paySubtitle: "Keto Diet: The Science of Fat Burning. From Myths to Results"
+            }
         }
     }
 };

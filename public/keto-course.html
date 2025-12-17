@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Кето Диета: Наука Жиросжигания - Course Health</title>
+    <title data-i18n="courseDetail.keto.metaTitle">Кето Диета: Наука Жиросжигания - Course Health</title>
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/course-page.css">
+    <script src="/js/translations.js"></script>
+    <script src="/js/language.js"></script>
 </head>
 <body>
     <!-- Header -->
@@ -24,14 +26,31 @@
                     </a>
                 </div>
                 <ul class="nav-links">
-                    <li><a href="/index.html">Главная</a></li>
-                    <li><a href="/courses.html">Курсы</a></li>
-                    <li><a href="/promotions.html">Акции</a></li>
-                    <li><a href="/about.html">О нас</a></li>
+                    <li><a href="/index.html" data-i18n="nav.home">Главная</a></li>
+                    <li><a href="/courses.html" data-i18n="nav.courses">Курсы</a></li>
+                    <li><a href="/promotions.html" data-i18n="nav.promotions">Акции</a></li>
+                    <li><a href="/about.html" data-i18n="nav.about">О нас</a></li>
                 </ul>
                 <div class="nav-actions">
-                    <a href="/login.html" class="btn-secondary">Войти</a>
-                    <a href="/courses.html" class="btn-primary">Начать</a>
+                    <div class="language-switcher">
+                        <button class="language-button" id="languageButton" aria-label="Выбрать язык">
+                            <span class="lang-icon">🇷🇺</span>
+                        </button>
+                        <div class="language-dropdown" id="languageDropdown">
+                            <div class="lang-option active" data-lang="ru">
+                                <span class="lang-option-flag">🇷🇺</span>
+                                <span class="lang-option-name">Русский</span>
+                                <span class="lang-option-check">✓</span>
+                            </div>
+                            <div class="lang-option" data-lang="en">
+                                <span class="lang-option-flag">🇬🇧</span>
+                                <span class="lang-option-name">English</span>
+                                <span class="lang-option-check">✓</span>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="/login.html" class="btn-secondary" data-i18n="header.login">Войти</a>
+                    <a href="/courses.html" class="btn-primary" data-i18n="header.start">Начать</a>
                 </div>
             </nav>
         </div>
@@ -47,14 +66,14 @@
                 <span class="logo-icon">💚</span>
                 <span class="logo-text">Course Health</span>
             </div>
-            <button class="mobile-menu-close" id="mobileMenuClose" aria-label="Закрыть меню">×</button>
+            <button class="mobile-menu-close" id="mobileMenuClose" aria-label="Закрыть меню" data-i18n="header.closeMenu">×</button>
         </div>
         <ul class="mobile-menu-links">
-            <li><a href="/index.html">Главная</a></li>
-            <li><a href="/courses.html">Курсы</a></li>
-            <li><a href="/promotions.html">Акции</a></li>
-            <li><a href="/about.html">О нас</a></li>
-            <li><a href="#" class="mobile-menu-profile" style="opacity: 0.5; pointer-events: none;">Профиль</a></li>
+            <li><a href="/index.html" data-i18n="nav.home">Главная</a></li>
+            <li><a href="/courses.html" data-i18n="nav.courses">Курсы</a></li>
+            <li><a href="/promotions.html" data-i18n="nav.promotions">Акции</a></li>
+            <li><a href="/about.html" data-i18n="nav.about">О нас</a></li>
+            <li><a href="#" class="mobile-menu-profile" style="opacity: 0.5; pointer-events: none;" data-i18n="nav.profile">Профиль</a></li>
         </ul>
     </div>
 
@@ -63,14 +82,14 @@
         <div class="container">
             <div class="breadcrumb">
                 <button onclick="history.back()" class="btn-back">
-                    ← Назад
+                    <span data-i18n="courseDetail.common.back">← Назад</span>
                 </button>
                 <div style="margin-top: 10px;">
-                    <a href="/index.html">Главная</a>
+                    <a href="/index.html" data-i18n="nav.home">Главная</a>
                     <span> / </span>
-                    <a href="/courses.html">Курсы</a>
+                    <a href="/courses.html" data-i18n="nav.courses">Курсы</a>
                     <span> / </span>
-                    <span>Кето-диета</span>
+                    <span data-i18n="courseDetail.keto.crumbCurrent">Кето-диета</span>
                 </div>
             </div>
 
@@ -81,36 +100,20 @@
                     </div>
                     
                     <div class="course-badges">
-                        <span class="badge badge-electric">Здоровье</span>
-                        <span class="badge badge-neon">Начинающий</span>
+                        <span class="badge badge-electric" data-i18n="courses.category.health">Здоровье</span>
+                        <span class="badge badge-neon" data-i18n="courseDetail.common.levelBeginner">Начинающий</span>
                     </div>
                     
-                    <h1 class="course-title">Кето Диета: Наука Жиросжигания. От Мифов к Результатам</h1>
+                    <h1 class="course-title" data-i18n="courses.keto.title">Кето Диета: Наука Жиросжигания. От Мифов к Результатам</h1>
                     
                     <div class="course-stats">
-                        <span>⭐ 4.9 (2847 отзывов)</span>
-                        <span>👥 12,453 студентов</span>
-                        <span>📚 48 уроков</span>
+                        <span data-i18n="courseDetail.keto.stats1">⭐ 4.9 (2847 отзывов)</span>
+                        <span data-i18n="courseDetail.keto.stats2">👥 12,453 студентов</span>
+                        <span data-i18n="courseDetail.keto.stats3">📚 48 уроков</span>
                     </div>
 
-                    <div class="course-intro">
-                        <p>Вы устали от диет, которые требуют бесконечной силы воли, оставляют чувство голода и дают временный результат? Что если существует способ перестроить ваше тело так, чтобы оно начало работать как машина по сжиганию жира — и делало это на автопилоте?</p>
-                        
-                        <p>Кето диета — это не просто отказ от углеводов. Это фундаментальный метаболический переключатель. Когда вы даете телу правильное топливо (жиры), оно перестает зависеть от сахарных качелей и начинает использовать ваши собственные жировые запасы как неиссякаемый источник энергии.</p>
-                        
-                        <p>Но вокруг Кето столько шума: «это вредно для почек», «невозможно без углеводов», «кетогрипп», «сорвешься за неделю». Большинство бросают, так и не узнав главных правил.</p>
-                        
-                        <p><strong>В этом курсе не будет теории «из интернета». Вы получите четкую, пошаговую систему:</strong></p>
-                        
-                        <ul class="course-features-list">
-                            <li><strong>Как войти в кетоз без «гриппа»</strong> и уже в первую неделю почувствовать прилив энергии и ясность ума.</li>
-                            <li><strong>Что есть на самом деле:</strong> от простых бюджетных продуктов до ресторанных блюд. Списки, планы, рецепты.</li>
-                            <li><strong>Как отслеживать прогресс</strong> не только по весам, а по ключевым показателям здоровья.</li>
-                            <li><strong>Лайфхаки для социальной жизни:</strong> как оставаться на Кето в гостях, путешествиях и на праздниках.</li>
-                            <li><strong>Решение частых проблем:</strong> плато, тяга к сладкому, электролитный баланс.</li>
-                        </ul>
-                        
-                        <p><strong>Это курс для тех, кто хочет не «посидеть на диете», а понять свое тело и получить инструмент управления энергией и весом на всю жизнь. Готовы перезагрузить свой метаболизм?</strong></p>
+                    <div class="course-intro" data-i18n-html="courseDetail.keto.introHtml">
+                        <!-- Filled by language switcher -->
                     </div>
                 </div>
 
@@ -118,42 +121,34 @@
                     <div class="course-card-sidebar">
                         <div class="course-price-box">
                             <div class="price-main">1,500₽</div>
-                            <div class="price-badge">15% бесплатно</div>
+                            <div class="price-badge" data-i18n="courses.free">15% бесплатно</div>
                         </div>
 
                         <button class="btn-primary btn-full" onclick="openPaymentModal()">
-                            Начать обучение
+                            <span data-i18n="courseDetail.common.startLearning">Начать обучение</span>
                         </button>
                         <button class="btn-secondary btn-full" onclick="scrollToFreeModule()">
-                            Узнать подробнее о программе
+                            <span data-i18n="courseDetail.common.learnProgram">Узнать подробнее о программе</span>
                         </button>
 
                         <div class="free-preview-box">
                             <div class="free-preview-icon">🎁</div>
                             <div>
-                                <div class="free-preview-title">15% курса бесплатно!</div>
-                                <div class="free-preview-text">7 уроков доступны без оплаты</div>
+                                <div class="free-preview-title" data-i18n="courseDetail.keto.freePreviewTitle">15% курса бесплатно!</div>
+                                <div class="free-preview-text" data-i18n="courseDetail.keto.freePreviewText">7 уроков доступны без оплаты</div>
                             </div>
                         </div>
 
                         <div class="course-features-box">
-                            <h3>Что включено:</h3>
-                            <ul class="features-list">
-                                <li>✓ 48 видеоуроков в HD качестве</li>
-                                <li>✓ 🎁 7 уроков бесплатно (15%)</li>
-                                <li>✓ Пожизненный доступ к материалам</li>
-                                <li>✓ Готовые планы питания на неделю</li>
-                                <li>✓ Рецепты кето-блюд</li>
-                                <li>✓ Чат с инструктором</li>
-                                <li>✓ Сертификат об окончании</li>
-                            </ul>
+                            <h3 data-i18n="courseDetail.common.included">Что включено:</h3>
+                            <ul class="features-list" data-i18n-html="courseDetail.keto.includedListHtml"></ul>
                         </div>
 
                         <div class="guarantee-box">
                             <div class="guarantee-icon">🏆</div>
                             <div>
-                                <div class="guarantee-title">Гарантия возврата</div>
-                                <div class="guarantee-text">14 дней на возврат денег</div>
+                                <div class="guarantee-title" data-i18n="courseDetail.common.guaranteeTitle">Гарантия возврата</div>
+                                <div class="guarantee-text" data-i18n="courseDetail.common.guaranteeText">14 дней на возврат денег</div>
                             </div>
                         </div>
                     </div>
@@ -327,41 +322,41 @@
             <span class="modal-close" onclick="closePaymentModal()">&times;</span>
             <div class="modal-header">
                 <div class="modal-icon">🔒</div>
-                <h2>Оплата курса</h2>
-                <p>Кето Диета: Наука Жиросжигания. От Мифов к Результатам</p>
+                <h2 data-i18n="courseDetail.common.payTitle">Оплата курса</h2>
+                <p data-i18n="courseDetail.keto.paySubtitle">Кето Диета: Наука Жиросжигания. От Мифов к Результатам</p>
             </div>
             <div class="modal-price-box">
-                <span>Стоимость курса:</span>
+                <span data-i18n="courseDetail.common.courseCost">Стоимость курса:</span>
                 <span class="modal-price">1,500₽</span>
             </div>
             <div class="modal-payment-methods">
-                <h3>Способ оплаты:</h3>
+                <h3 data-i18n="courseDetail.common.paymentMethod">Способ оплаты:</h3>
                 <button class="payment-method-btn">
                     <span>💳</span>
-                    <span>Банковская карта</span>
+                    <span data-i18n="courseDetail.common.payCard">Банковская карта</span>
                 </button>
                 <button class="payment-method-btn">
                     <span>💳</span>
-                    <span>СБП (Система быстрых платежей)</span>
+                    <span data-i18n="courseDetail.common.paySBP">СБП (Система быстрых платежей)</span>
                 </button>
             </div>
             <div class="modal-security">
                 <div class="security-icon">✓</div>
                 <div>
-                    <div class="security-title">Безопасная оплата</div>
-                    <div class="security-text">Все платежи защищены шифрованием. Мы не храним данные вашей карты.</div>
+                    <div class="security-title" data-i18n="courseDetail.common.securePay">Безопасная оплата</div>
+                    <div class="security-text" data-i18n="courseDetail.common.securePayText">Все платежи защищены шифрованием. Мы не храним данные вашей карты.</div>
                 </div>
             </div>
             <div class="modal-actions">
                 <button class="btn-primary btn-full" onclick="processPayment()">
-                    Оплатить 1,500₽
+                    <span data-i18n="courseDetail.common.payButton">Оплатить 1,500₽</span>
                 </button>
                 <button class="btn-secondary btn-full" onclick="closePaymentModal()">
-                    Отмена
+                    <span data-i18n="courseDetail.common.cancel">Отмена</span>
                 </button>
             </div>
             <div class="modal-guarantee">
-                Гарантия возврата денег в течение 14 дней
+                <span data-i18n="courseDetail.common.moneyBack">Гарантия возврата денег в течение 14 дней</span>
             </div>
         </div>
     </div>
@@ -375,16 +370,18 @@
                         <span class="logo-icon">💚</span>
                         <span class="logo-text">Course Health</span>
                     </div>
-                    <p class="footer-description">
+                    <p class="footer-description" data-i18n="footer.description">
                         Профессиональные курсы по кето-диете и интервальному голоданию от лучших экспертов
                     </p>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2024 Course Health. Все права защищены.</p>
+                <p>&copy; 2024 Course Health. <span data-i18n="footer.rights">Все права защищены.</span></p>
             </div>
         </div>
     </footer>
+
+    <script src="/js/main.js"></script>
 
     <script>
         function scrollToFreeModule() {

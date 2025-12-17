@@ -47,8 +47,19 @@ class LanguageSwitcher {
         this.currentLang = lang;
         localStorage.setItem('language', lang);
         
+        // Update all elements with data-i18n-html attribute (innerHTML)
+        // Use this for rich translations that contain markup (<strong>, <br>, lists, etc.)
+        document.querySelectorAll('[data-i18n-html]').forEach(element => {
+            const key = element.getAttribute('data-i18n-html');
+            const translation = this.getTranslation(key);
+            if (translation) {
+                element.innerHTML = translation;
+            }
+        });
+
         // Update all elements with data-i18n attribute
-        document.querySelectorAll('[data-i18n]').forEach(element => {
+        // Exclude nodes that use data-i18n-html to avoid overwriting innerHTML with textContent
+        document.querySelectorAll('[data-i18n]:not([data-i18n-html])').forEach(element => {
             const key = element.getAttribute('data-i18n');
             const translation = this.getTranslation(key);
             if (translation) {
