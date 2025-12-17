@@ -157,6 +157,12 @@ const translations = {
             dessertsDesc: "Сладкие кето-десерты без сахара",
             comingSoon: "Блюда будут добавлены в ближайшее время"
         },
+        coursesPage: {
+            recipesBadge: "Кето-рецепты",
+            recipesTitle: "Кето-рецепты: готовим вкусно",
+            recipesDescription: "3 бесплатных блюда в каждой категории + авто‑расчёт ингредиентов по порциям и скачивание в PDF",
+            recipesButton: "Открыть рецепты"
+        },
         // Keto Recipes UI
         ketoFoodRecipesUI: {
             servings: "Порции",
@@ -710,6 +716,12 @@ const translations = {
             snacksDesc: "Healthy keto snacks between meals",
             dessertsDesc: "Sweet keto desserts without sugar",
             comingSoon: "Dishes will be added soon"
+        },
+        coursesPage: {
+            recipesBadge: "Keto recipes",
+            recipesTitle: "Keto Recipes: Cook Deliciously",
+            recipesDescription: "3 free dishes in each category + auto ingredient scaling by servings and PDF download",
+            recipesButton: "Open recipes"
         },
         // Keto Recipes UI
         ketoFoodRecipesUI: {

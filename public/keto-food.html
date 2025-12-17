@@ -333,6 +333,7 @@
 
             card.innerHTML = `
                 <div class="food-item-image recipe-image">
+                    <img class="recipe-photo" alt="${recipe.name}" loading="lazy" />
                     <div class="recipe-image-gradient"></div>
                     <div class="recipe-badge-free">${ui.free}</div>
                     <div class="recipe-image-content">
@@ -367,8 +368,46 @@
             `;
 
             updateRecipeIngredients(card, recipe, servings);
+            loadRecipePhoto(card, recipe);
             attachRecipeHandlers(card, recipe, lang);
             return card;
+        }
+
+        function loadRecipePhoto(card, recipe) {
+            const img = card.querySelector('.recipe-photo');
+            if (!img) return;
+
+            const slugVariants = [recipe.slug];
+            // Handle common typo: omelet -> omlet
+            if (recipe.slug.includes('omelet')) slugVariants.push(recipe.slug.replace('omelet', 'omlet'));
+
+            const exts = ['jpg', 'jpeg', 'png', 'webp'];
+            const candidates = [];
+            slugVariants.forEach((slug) => {
+                exts.forEach((ext) => {
+                    candidates.push(`/img/recipes/${slug}.${ext}`);
+                });
+            });
+
+            let idx = 0;
+            const tryNext = () => {
+                if (idx >= candidates.length) {
+                    img.removeAttribute('src');
+                    card.classList.remove('has-photo');
+                    return;
+                }
+                const src = candidates[idx++];
+                img.src = src;
+            };
+
+            img.onload = () => {
+                card.classList.add('has-photo');
+            };
+            img.onerror = () => {
+                tryNext();
+            };
+
+            tryNext();
         }
 
         function updateRecipeIngredients(card, recipe, servings) {

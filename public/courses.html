@@ -136,6 +136,48 @@
         </div>
     </section>
 
+    <!-- Keto Recipes (same as main page section) -->
+    <section class="section keto-food-section">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-badge">
+                    <span class="badge-icon">🍽️</span>
+                    <span data-i18n="coursesPage.recipesBadge">Кето-рецепты</span>
+                </div>
+                <h2 class="section-title">
+                    <span data-i18n="coursesPage.recipesTitle">Кето-рецепты: готовим вкусно</span>
+                </h2>
+                <p class="section-description" data-i18n="coursesPage.recipesDescription">
+                    3 бесплатных блюда в каждой категории + авто‑расчёт ингредиентов по порциям и скачивание в PDF
+                </p>
+            </div>
+
+            <div class="keto-food-content">
+                <div class="keto-food-image">
+                    <div class="keto-food-image-wrapper">
+                        <img src="/img/keto_food.png" alt="Кето-рецепты">
+                        <div class="keto-food-overlay">
+                            <div class="keto-food-badge">🍽️</div>
+                            <h3 class="keto-food-title" data-i18n="ketoFood.recipes">100 лучших кето рецептов</h3>
+                            <p class="keto-food-subtitle" data-i18n="ketoFood.subtitle">от завтрака до ужина</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="keto-food-text">
+                    <h3 data-i18n="ketoFood.heading">Кето-диета — это не ограничение, это новый уровень вкуса!</h3>
+                    <p data-i18n="ketoFood.text">Научитесь готовить сытные, вкусные и полезные блюда, которые помогут вам достичь ваших целей и наслаждаться каждым приемом пищи.</p>
+                    
+                    <div class="recipes-mini-grid" id="recipesMiniGrid"></div>
+
+                    <a href="/keto-food.html" class="btn-primary btn-large" data-i18n="coursesPage.recipesButton">
+                        Открыть рецепты
+                        <span>→</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
@@ -157,6 +199,78 @@
     </footer>
 
     <script src="/js/main.js"></script>
+    <script>
+        // Render 3 recipe mini cards (translated)
+        function getCurrentLang() {
+            if (window.languageSwitcher?.getCurrentLanguage) return window.languageSwitcher.getCurrentLanguage();
+            return localStorage.getItem('language') || 'ru';
+        }
+
+        function loadMiniPhoto(imgEl, slug) {
+            const slugVariants = [slug];
+            if (slug.includes('omelet')) slugVariants.push(slug.replace('omelet', 'omlet'));
+            const exts = ['jpg', 'jpeg', 'png', 'webp'];
+            const candidates = [];
+            slugVariants.forEach(s => exts.forEach(ext => candidates.push(`/img/recipes/${s}.${ext}`)));
+
+            let idx = 0;
+            const tryNext = () => {
+                if (idx >= candidates.length) {
+                    imgEl.removeAttribute('src');
+                    imgEl.closest('.recipes-mini-card')?.classList.remove('has-photo');
+                    return;
+                }
+                imgEl.src = candidates[idx++];
+            };
+
+            imgEl.onload = () => imgEl.closest('.recipes-mini-card')?.classList.add('has-photo');
+            imgEl.onerror = () => tryNext();
+            tryNext();
+        }
+
+        function pickMiniRecipes(data) {
+            // Prefer breakfast first 3 (usually have photos), fallback to any category
+            const out = [];
+            (data.breakfast || []).forEach(r => out.push(r));
+            ['lunch', 'dinner', 'snacks', 'desserts'].forEach(k => (data[k] || []).forEach(r => out.push(r)));
+            return out.slice(0, 3);
+        }
+
+        function renderMiniRecipes() {
+            const grid = document.getElementById('recipesMiniGrid');
+            if (!grid) return;
+
+            const lang = getCurrentLang();
+            const data = translations?.[lang]?.ketoRecipes || translations?.ru?.ketoRecipes;
+            if (!data) return;
+
+            const recipes = pickMiniRecipes(data);
+            grid.innerHTML = recipes.map((r) => `
+                <a class="recipes-mini-card" href="/keto-food.html" aria-label="${r.name}">
+                    <div class="recipes-mini-image">
+                        <img class="recipes-mini-photo" alt="${r.name}" loading="lazy" />
+                        <div class="recipes-mini-gradient"></div>
+                    </div>
+                    <div class="recipes-mini-title">${r.name}</div>
+                </a>
+            `).join('');
+
+            // Load images with fallback
+            const cards = grid.querySelectorAll('.recipes-mini-card');
+            cards.forEach((card, i) => {
+                const img = card.querySelector('.recipes-mini-photo');
+                if (!img) return;
+                loadMiniPhoto(img, recipes[i].slug);
+            });
+        }
+
+        document.addEventListener('languageChanged', renderMiniRecipes);
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', renderMiniRecipes);
+        } else {
+            renderMiniRecipes();
+        }
+    </script>
 </body>
 </html>
 
