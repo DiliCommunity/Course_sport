@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Профиль - Course Health</title>
     <link rel="stylesheet" href="/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/js/supabase-client.js"></script>
     <script src="/js/translations.js"></script>
     <script src="/js/language.js"></script>
     <style>
@@ -668,23 +670,34 @@
         </div>
     </footer>
 
-    <script src="/js/main.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="/js/telegram-webapp.js"></script>
+    <script src="/js/main.js"></script>
     <script>
         // Profile data
         let profileData = null;
 
-        // Check authentication
+        // Check authentication - использует Supabase напрямую
         async function checkAuth() {
             try {
+                // Ждем загрузки Supabase
+                let attempts = 0;
+                while (!window.SupabaseAuth && attempts < 30) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    attempts++;
+                }
+                
+                if (!window.SupabaseAuth) {
+                    showError('Ошибка загрузки. Обновите страницу.');
+                    return;
+                }
+                
                 // Если в Telegram WebApp, сначала пытаемся авторизоваться
                 if (window.TelegramWebApp && window.TelegramWebApp.isTelegramWebApp()) {
                     const tg = window.Telegram.WebApp;
                     const user = tg.initDataUnsafe?.user;
                     
                     if (user) {
-                        // Автоматическая авторизация через Telegram
                         try {
                             const authResponse = await fetch('/api/auth/telegram', {
                                 method: 'POST',
@@ -713,12 +726,10 @@
                     }
                 }
 
-                const response = await fetch('/api/profile/data', {
-                    credentials: 'include'
-                });
+                // Загружаем профиль через Supabase
+                profileData = await window.SupabaseAuth.checkAuthAndGetProfile();
                 
-                if (response.ok) {
-                    profileData = await response.json();
+                if (profileData && profileData.user) {
                     displayProfile();
                     
                     // Show auth buttons
@@ -737,11 +748,12 @@
                         mobileProfileLink.style.display = 'block';
                     }
                 } else {
-                    // Если не авторизован и в Telegram WebApp, показываем кнопку регистрации
+                    // Не авторизован - редирект на логин
                     if (window.TelegramWebApp && window.TelegramWebApp.isTelegramWebApp()) {
                         showError('Нажмите кнопку ниже для регистрации');
                     } else {
-                        showError('Необходима авторизация');
+                        // Редирект на страницу входа
+                        window.location.href = '/login.html';
                     }
                 }
             } catch (error) {

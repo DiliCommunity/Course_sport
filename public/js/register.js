@@ -1,5 +1,4 @@
-// Register functionality
-// Supabase credentials will be handled by API endpoints
+// Register functionality - использует Supabase напрямую
 
 // Current registration method
 let currentRegistrationMethod = 'email'; // 'email' or 'phone'
@@ -19,40 +18,26 @@ function switchRegistrationMethod(method) {
     const confirmPasswordInput = document.getElementById('confirmPassword');
     
     if (method === 'email') {
-        // Activate email tab
         emailTab.classList.add('active');
         phoneTab.classList.remove('active');
-        
-        // Show email field, hide phone field
         emailFieldGroup.style.display = 'block';
         phoneFieldGroup.style.display = 'none';
         passwordFieldsGroup.style.display = 'block';
-        
-        // Set required attributes
         emailInput.required = true;
         phoneInput.required = false;
         passwordInput.required = true;
         confirmPasswordInput.required = true;
-        
-        // Clear phone input
         phoneInput.value = '';
     } else {
-        // Activate phone tab
         phoneTab.classList.add('active');
         emailTab.classList.remove('active');
-        
-        // Show phone field, hide email field
         emailFieldGroup.style.display = 'none';
         phoneFieldGroup.style.display = 'block';
         passwordFieldsGroup.style.display = 'none';
-        
-        // Set required attributes
         emailInput.required = false;
         phoneInput.required = true;
         passwordInput.required = false;
         confirmPasswordInput.required = false;
-        
-        // Clear email and password inputs
         emailInput.value = '';
         passwordInput.value = '';
         confirmPasswordInput.value = '';
@@ -61,20 +46,16 @@ function switchRegistrationMethod(method) {
 
 // Format phone number
 function formatPhoneNumber(value) {
-    // Remove all non-digit characters
     let cleaned = value.replace(/\D/g, '');
     
-    // If starts with 8, replace with +7
     if (cleaned.startsWith('8')) {
         cleaned = '7' + cleaned.substring(1);
     }
     
-    // If doesn't start with +7, add it
     if (!cleaned.startsWith('7') && cleaned.length > 0) {
         cleaned = '7' + cleaned;
     }
     
-    // Format: +7 (XXX) XXX-XX-XX
     if (cleaned.length > 0) {
         let formatted = '+7';
         if (cleaned.length > 1) {
@@ -122,7 +103,7 @@ function toggleConfirmPassword() {
     }
 }
 
-// Handle form registration
+// Handle form registration - через Supabase
 async function handleRegister(event) {
     event.preventDefault();
     
@@ -131,7 +112,6 @@ async function handleRegister(event) {
     const successDiv = document.getElementById('registerSuccess');
     const submitBtn = form.querySelector('button[type="submit"]');
     
-    // Hide previous messages
     errorDiv.style.display = 'none';
     successDiv.style.display = 'none';
     
@@ -154,7 +134,6 @@ async function handleRegister(event) {
         return;
     }
     
-    // Validate based on registration method
     if (currentRegistrationMethod === 'email') {
         if (!email) {
             showError('Введите email');
@@ -176,16 +155,8 @@ async function handleRegister(event) {
             return;
         }
     } else {
-        // Phone registration
         if (!phone) {
             showError('Введите номер телефона');
-            return;
-        }
-        
-        // Format phone number
-        let formattedPhone = formatPhoneNumber(phone);
-        if (!formattedPhone.startsWith('+7') || formattedPhone.length < 12) {
-            showError('Введите корректный номер телефона');
             return;
         }
     }
@@ -195,86 +166,77 @@ async function handleRegister(event) {
     submitBtn.innerHTML = '<span>Регистрация...</span>';
     
     try {
+        // Проверяем что Supabase загружен
+        if (!window.SupabaseAuth) {
+            throw new Error('Supabase не загружен. Обновите страницу.');
+        }
+        
         // Получаем реферальный код из URL
         const urlParams = new URLSearchParams(window.location.search);
         const referralCode = urlParams.get('ref');
-
-        // Prepare request body based on method
-        let requestBody = { name };
-        
-        if (referralCode) {
-            requestBody.referral_code = referralCode;
-        }
         
         if (currentRegistrationMethod === 'email') {
-            requestBody.email = email;
-            requestBody.password = password;
+            // Регистрация по email через Supabase
+            const data = await window.SupabaseAuth.signUpWithEmail(email, password, name, referralCode);
+            
+            if (!data.user) {
+                throw new Error('Не удалось создать аккаунт');
+            }
+            
+            console.log('Registration successful:', data.user.id);
+            
+            // Проверяем, нужно ли подтверждение email
+            if (data.session) {
+                // Автоматический вход - редирект на профиль
+                form.style.display = 'none';
+                successDiv.innerHTML = `
+                    <div class="success-icon">✅</div>
+                    <h3>Регистрация успешна!</h3>
+                    <p>Добро пожаловать, ${name}!</p>
+                    <a href="/profile.html" class="btn-primary btn-full">Перейти в профиль</a>
+                `;
+                successDiv.style.display = 'block';
+                
+                setTimeout(() => {
+                    window.location.href = '/profile.html';
+                }, 2000);
+            } else {
+                // Нужно подтвердить email
+                form.style.display = 'none';
+                successDiv.innerHTML = `
+                    <div class="success-icon">📧</div>
+                    <h3>Проверьте почту!</h3>
+                    <p>Мы отправили письмо на <strong>${email}</strong></p>
+                    <p>Перейдите по ссылке в письме для завершения регистрации.</p>
+                    <a href="/login.html" class="btn-primary btn-full">Перейти ко входу</a>
+                `;
+                successDiv.style.display = 'block';
+            }
+            
         } else {
-            // Format phone: +7XXXXXXXXXX
-            let cleanedPhone = phone.replace(/\D/g, '');
-            if (cleanedPhone.startsWith('8')) {
-                cleanedPhone = '7' + cleanedPhone.substring(1);
-            }
-            if (!cleanedPhone.startsWith('7')) {
-                cleanedPhone = '7' + cleanedPhone;
-            }
-            requestBody.phone = '+' + cleanedPhone;
+            // Регистрация по телефону - отправка OTP
+            const data = await window.SupabaseAuth.signInWithPhone(phone, name);
+            
+            console.log('OTP sent to:', data.phone);
+            
+            // Показываем форму ввода OTP
+            showOTPForm(data.phone, name);
         }
-        
-        // Register through API endpoint
-        const response = await fetch('/api/auth/register', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestBody),
-            credentials: 'include',
-        });
-        
-        const data = await response.json();
-        
-        if (!response.ok) {
-            throw new Error(data.error || data.message || 'Ошибка регистрации');
-        }
-        
-        // If phone registration, OTP was sent
-        if (currentRegistrationMethod === 'phone' && data.success) {
-            // Show OTP input form with formatted phone from response
-            const phoneToShow = data.phone || requestBody.phone;
-            showOTPForm(phoneToShow, name);
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<span>Создать аккаунт</span><span>→</span>';
-            return;
-        }
-        
-        // Email registration success
-        form.style.display = 'none';
-        successDiv.style.display = 'block';
-        
-        // Save to localStorage
-        if (data.user_id) {
-            localStorage.setItem('user_id', data.user_id);
-        } else if (data.user && data.user.id) {
-            localStorage.setItem('user_id', data.user.id);
-        }
-        
-        if (email) {
-            localStorage.setItem('user_email', email);
-        }
-        localStorage.setItem('user_name', name);
-        
-        if (data.access_token) {
-            localStorage.setItem('access_token', data.access_token);
-        }
-        
-        // Redirect after 2 seconds
-        setTimeout(() => {
-            window.location.href = '/profile.html';
-        }, 2000);
         
     } catch (error) {
         console.error('Registration error:', error);
-        showError(error.message || 'Ошибка регистрации. Попробуйте позже.');
+        let message = error.message || 'Ошибка регистрации';
+        
+        // Translate common errors
+        if (message.includes('User already registered')) {
+            message = 'Пользователь с таким email уже зарегистрирован';
+        } else if (message.includes('Password should be')) {
+            message = 'Пароль должен быть минимум 6 символов';
+        } else if (message.includes('Invalid email')) {
+            message = 'Некорректный email адрес';
+        }
+        
+        showError(message);
         submitBtn.disabled = false;
         submitBtn.innerHTML = '<span>Создать аккаунт</span><span>→</span>';
     }
@@ -286,27 +248,9 @@ function showOTPForm(phone, name) {
     const errorDiv = document.getElementById('registerError');
     errorDiv.style.display = 'none';
     
-    // Escape HTML to prevent XSS
-    const safePhone = phone.replace(/[&<>"']/g, function(m) {
-        const escapeMap = {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#039;'
-        };
-        return escapeMap[m];
-    });
-    const safeName = name.replace(/[&<>"']/g, function(m) {
-        const escapeMap = {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#039;'
-        };
-        return escapeMap[m];
-    });
+    const safePhone = phone.replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+    }[m]));
     
     form.innerHTML = `
         <div class="otp-verification">
@@ -327,7 +271,7 @@ function showOTPForm(phone, name) {
                     inputmode="numeric"
                 >
             </div>
-            <button type="button" class="btn-primary btn-full btn-large" onclick="verifyOTP('${safePhone}', '${safeName}')">
+            <button type="button" class="btn-primary btn-full btn-large" onclick="verifyOTP('${safePhone}')">
                 <span>Подтвердить</span>
                 <span>→</span>
             </button>
@@ -337,19 +281,16 @@ function showOTPForm(phone, name) {
         </div>
     `;
     
-    // Focus on OTP input
     setTimeout(() => {
         const otpInput = document.getElementById('otpCode');
-        if (otpInput) {
-            otpInput.focus();
-        }
+        if (otpInput) otpInput.focus();
     }, 100);
 }
 
 // Verify OTP code
-async function verifyOTP(phone, name) {
+async function verifyOTP(phone) {
     const otpInput = document.getElementById('otpCode');
-    const otpCode = otpInput.value.trim().replace(/\D/g, ''); // Only digits
+    const otpCode = otpInput.value.trim().replace(/\D/g, '');
     const errorDiv = document.getElementById('registerError');
     const successDiv = document.getElementById('registerSuccess');
     const submitBtn = document.querySelector('.otp-verification .btn-primary');
@@ -362,65 +303,49 @@ async function verifyOTP(phone, name) {
     
     errorDiv.style.display = 'none';
     
-    // Disable button
     if (submitBtn) {
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<span>Проверка...</span>';
     }
     
     try {
-        const response = await fetch('/api/auth/phone/verify-otp', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                phone: phone,
-                token: otpCode,
-                name: name,
-            }),
-            credentials: 'include',
-        });
-        
-        const data = await response.json();
-        
-        if (!response.ok) {
-            throw new Error(data.error || 'Неверный код подтверждения');
+        if (!window.SupabaseAuth) {
+            throw new Error('Supabase не загружен');
         }
+        
+        const data = await window.SupabaseAuth.verifyOTP(phone, otpCode);
+        
+        if (!data.user) {
+            throw new Error('Не удалось подтвердить номер');
+        }
+        
+        console.log('OTP verified:', data.user.id);
         
         // Success
         const form = document.getElementById('registerForm');
-        if (form) {
-            form.style.display = 'none';
-        }
+        if (form) form.style.display = 'none';
+        
+        successDiv.innerHTML = `
+            <div class="success-icon">✅</div>
+            <h3>Регистрация успешна!</h3>
+            <p>Добро пожаловать!</p>
+            <a href="/profile.html" class="btn-primary btn-full">Перейти в профиль</a>
+        `;
         successDiv.style.display = 'block';
         
-        // Save to localStorage
-        if (data.user) {
-            localStorage.setItem('user_id', data.user.id);
-            localStorage.setItem('user_phone', phone);
-            localStorage.setItem('user_name', name);
-        }
-        if (data.session) {
-            localStorage.setItem('telegram_auth', 'true');
-        }
-        
-        // Redirect
         setTimeout(() => {
             window.location.href = '/profile.html';
         }, 2000);
         
     } catch (error) {
         console.error('OTP verification error:', error);
-        showError(error.message || 'Ошибка подтверждения кода');
+        showError(error.message || 'Неверный код подтверждения');
         
-        // Re-enable button
         if (submitBtn) {
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<span>Подтвердить</span><span>→</span>';
         }
         
-        // Clear and focus OTP input
         if (otpInput) {
             otpInput.value = '';
             otpInput.focus();
@@ -433,10 +358,8 @@ function backToRegistration() {
     window.location.reload();
 }
 
-
 // Register with Telegram
 function registerWithTelegram() {
-    // Check if Telegram WebApp is available
     if (window.Telegram && window.Telegram.WebApp) {
         const tg = window.Telegram.WebApp;
         const user = tg.initDataUnsafe?.user;
@@ -444,18 +367,15 @@ function registerWithTelegram() {
         if (user) {
             handleTelegramRegistration(user);
         } else {
-            // Open Telegram bot
             window.open('https://t.me/Course_Sport_bot', '_blank');
         }
     } else {
-        // Open Telegram bot
         window.open('https://t.me/Course_Sport_bot', '_blank');
     }
 }
 
 // Register with VK (placeholder)
 function registerWithVK() {
-    // TODO: Implement VK OAuth
     alert('Регистрация через ВКонтакте скоро будет доступна');
 }
 
@@ -482,7 +402,7 @@ async function handleTelegramRegistration(telegramUser) {
                 photo_url: telegramUser.photo_url,
                 phone_number: telegramUser.phone_number,
             }),
-            credentials: 'include', // Важно для сохранения сессии
+            credentials: 'include',
         });
         
         const data = await response.json();
@@ -491,29 +411,11 @@ async function handleTelegramRegistration(telegramUser) {
             throw new Error(data.error || 'Ошибка регистрации через Telegram');
         }
         
-        if (data.requires_otp) {
-            showError('Для завершения регистрации необходимо подтвердить номер телефона через SMS');
-            return;
-        }
-        
-        // Save to localStorage
-        if (data.user_id) {
-            localStorage.setItem('telegram_user_id', String(telegramUser.id));
-            localStorage.setItem('telegram_id', String(telegramUser.id));
-            localStorage.setItem('user_id', data.user_id);
-        }
-        if (data.user) {
-            localStorage.setItem('user_id', data.user.id);
-        }
-        localStorage.setItem('user_name', `${telegramUser.first_name} ${telegramUser.last_name || ''}`.trim());
-        localStorage.setItem('telegram_auth', 'true');
-        
         // Show success
         form.style.display = 'none';
         if (telegramDiv) telegramDiv.style.display = 'none';
         successDiv.style.display = 'block';
         
-        // Redirect
         setTimeout(() => {
             window.location.href = '/profile.html';
         }, 1000);
@@ -532,85 +434,22 @@ function showError(message) {
     errorMessage.textContent = message;
     errorDiv.style.display = 'block';
     
-    // Scroll to error
     errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
-    // Phone input formatting
+// Phone input formatting
+document.addEventListener('DOMContentLoaded', () => {
     const phoneInput = document.getElementById('phone');
     
     if (phoneInput) {
         phoneInput.addEventListener('input', function(e) {
-            let value = e.target.value;
-            // Format phone number
-            let formatted = formatPhoneNumber(value);
-            e.target.value = formatted;
-        });
-        
-        phoneInput.addEventListener('keydown', function(e) {
-            // Allow backspace, delete, tab, escape, enter
-            if ([8, 9, 27, 13, 46].indexOf(e.keyCode) !== -1 ||
-                // Allow Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
-                (e.keyCode === 65 && e.ctrlKey === true) ||
-                (e.keyCode === 67 && e.ctrlKey === true) ||
-                (e.keyCode === 86 && e.ctrlKey === true) ||
-                (e.keyCode === 88 && e.ctrlKey === true) ||
-                // Allow home, end, left, right
-                (e.keyCode >= 35 && e.keyCode <= 39)) {
-                return;
-            }
-            // Allow +, space, parentheses, dash
-            if ([43, 32, 40, 41, 45].indexOf(e.keyCode) !== -1) {
-                return;
-            }
-            // Ensure that it is a number and stop the keypress
-            if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
-                e.preventDefault();
-            }
+            e.target.value = formatPhoneNumber(e.target.value);
         });
     }
-    
-    // OTP input formatting (only digits)
-    document.addEventListener('DOMContentLoaded', () => {
-        // This will be called when OTP form is shown
-        const observer = new MutationObserver(function(mutations) {
-            const otpInput = document.getElementById('otpCode');
-            if (otpInput && !otpInput.hasAttribute('data-listener-added')) {
-                otpInput.setAttribute('data-listener-added', 'true');
-                otpInput.addEventListener('input', function(e) {
-                    // Only allow digits
-                    e.target.value = e.target.value.replace(/\D/g, '').substring(0, 6);
-                });
-                
-                otpInput.addEventListener('keydown', function(e) {
-                    // Allow backspace, delete, tab, escape, enter
-                    if ([8, 9, 27, 13, 46].indexOf(e.keyCode) !== -1 ||
-                        // Allow Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
-                        (e.keyCode === 65 && e.ctrlKey === true) ||
-                        (e.keyCode === 67 && e.ctrlKey === true) ||
-                        (e.keyCode === 86 && e.ctrlKey === true) ||
-                        (e.keyCode === 88 && e.ctrlKey === true) ||
-                        // Allow home, end, left, right
-                        (e.keyCode >= 35 && e.keyCode <= 39)) {
-                        return;
-                    }
-                    // Only allow digits
-                    if ((e.keyCode < 48 || e.keyCode > 57) && (e.keyCode < 96 || e.keyCode > 105)) {
-                        e.preventDefault();
-                    }
-                });
-            }
-        });
-        
-        const form = document.getElementById('registerForm');
-        if (form) {
-            observer.observe(form, { childList: true, subtree: true });
-        }
-    });
-    
-    // Check if user is already logged in
-    window.addEventListener('DOMContentLoaded', () => {
-    
+});
+
+// Check if user is already logged in
+window.addEventListener('DOMContentLoaded', async () => {
     // Check Telegram WebApp
     if (window.Telegram && window.Telegram.WebApp) {
         const tg = window.Telegram.WebApp;
@@ -619,7 +458,6 @@ function showError(message) {
         
         const user = tg.initDataUnsafe?.user;
         if (user) {
-            // Auto-register if in Telegram
             const telegramDiv = document.getElementById('telegramRegister');
             if (telegramDiv) {
                 const button = telegramDiv.querySelector('button');
@@ -630,10 +468,28 @@ function showError(message) {
         }
     }
     
-    // НЕ редиректим автоматически - пусть пользователь сам решает
-    // Если хотите автоматический редирект, раскомментируйте:
-    // if (localStorage.getItem('user_id') || localStorage.getItem('telegram_user_id')) {
-    //     window.location.href = '/courses.html';
-    // }
+    // Ждем инициализации Supabase
+    await new Promise(resolve => {
+        if (window.SupabaseAuth) {
+            resolve();
+        } else {
+            const check = setInterval(() => {
+                if (window.SupabaseAuth) {
+                    clearInterval(check);
+                    resolve();
+                }
+            }, 100);
+            setTimeout(() => { clearInterval(check); resolve(); }, 3000);
+        }
+    });
+    
+    // Проверяем авторизацию через Supabase
+    if (window.SupabaseAuth) {
+        const user = await window.SupabaseAuth.getCurrentUser();
+        if (user) {
+            // Пользователь уже авторизован - редирект на профиль
+            window.location.href = '/profile.html';
+            return;
+        }
+    }
 });
-

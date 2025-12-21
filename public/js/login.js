@@ -1,5 +1,4 @@
-// Login functionality
-// Supabase credentials will be handled by API endpoints
+// Login functionality - использует Supabase напрямую
 
 // Toggle password visibility
 function toggleLoginPassword() {
@@ -15,7 +14,7 @@ function toggleLoginPassword() {
     }
 }
 
-// Handle form login
+// Handle form login - через Supabase
 async function handleLogin(event) {
     event.preventDefault();
     
@@ -31,42 +30,25 @@ async function handleLogin(event) {
     // Get form data
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
-    const remember = document.getElementById('remember').checked;
     
     // Disable button
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<span>Вход...</span>';
     
     try {
-        // Login through API endpoint
-        const response = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                email: email,
-                password: password,
-                remember: remember,
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (!response.ok) {
-            throw new Error(data.error || data.message || 'Неверный email или пароль');
+        // Проверяем что Supabase загружен
+        if (!window.SupabaseAuth) {
+            throw new Error('Supabase не загружен. Обновите страницу.');
         }
         
-        // Save to localStorage
-        if (data.user_id) {
-            localStorage.setItem('user_id', data.user_id);
-            localStorage.setItem('user_email', email);
-            localStorage.setItem('access_token', data.access_token || '');
-            
-            if (remember) {
-                localStorage.setItem('remember_me', 'true');
-            }
+        // Вход через Supabase
+        const data = await window.SupabaseAuth.signInWithEmail(email, password);
+        
+        if (!data.user) {
+            throw new Error('Не удалось войти');
         }
+        
+        console.log('Login successful:', data.user.id);
         
         // Show success
         form.style.display = 'none';
@@ -74,12 +56,21 @@ async function handleLogin(event) {
         
         // Redirect after 1 second
         setTimeout(() => {
-            window.location.href = '/courses.html';
+            window.location.href = '/profile.html';
         }, 1000);
         
     } catch (error) {
         console.error('Login error:', error);
-        showLoginError(error.message || 'Ошибка входа. Проверьте данные.');
+        let message = error.message || 'Ошибка входа';
+        
+        // Translate common errors
+        if (message.includes('Invalid login credentials')) {
+            message = 'Неверный email или пароль';
+        } else if (message.includes('Email not confirmed')) {
+            message = 'Email не подтверждён. Проверьте почту.';
+        }
+        
+        showLoginError(message);
         submitBtn.disabled = false;
         submitBtn.innerHTML = '<span>Войти</span><span>→</span>';
     }
@@ -95,18 +86,15 @@ function loginWithTelegram() {
         if (user) {
             handleTelegramLogin(user);
         } else {
-            // Open Telegram bot
             window.open('https://t.me/Course_Sport_bot', '_blank');
         }
     } else {
-        // Open Telegram bot
         window.open('https://t.me/Course_Sport_bot', '_blank');
     }
 }
 
 // Login with VK (placeholder)
 function loginWithVK() {
-    // TODO: Implement VK OAuth
     alert('Вход через ВКонтакте скоро будет доступен');
 }
 
@@ -120,6 +108,7 @@ async function handleTelegramLogin(telegramUser) {
     errorDiv.style.display = 'none';
     
     try {
+        // Отправляем на API для обработки Telegram авторизации
         const response = await fetch('/api/auth/telegram', {
             method: 'POST',
             headers: {
@@ -133,7 +122,7 @@ async function handleTelegramLogin(telegramUser) {
                 photo_url: telegramUser.photo_url,
                 phone_number: telegramUser.phone_number,
             }),
-            credentials: 'include', // Важно для сохранения сессии
+            credentials: 'include',
         });
         
         const data = await response.json();
@@ -141,23 +130,6 @@ async function handleTelegramLogin(telegramUser) {
         if (!response.ok) {
             throw new Error(data.error || 'Ошибка входа через Telegram');
         }
-        
-        if (data.requires_otp) {
-            showLoginError('Для завершения входа необходимо подтвердить номер телефона через SMS');
-            return;
-        }
-        
-        // Save to localStorage
-        if (data.user_id) {
-            localStorage.setItem('telegram_user_id', String(telegramUser.id));
-            localStorage.setItem('telegram_id', String(telegramUser.id));
-            localStorage.setItem('user_id', data.user_id);
-        }
-        if (data.user) {
-            localStorage.setItem('user_id', data.user.id);
-        }
-        localStorage.setItem('user_name', `${telegramUser.first_name} ${telegramUser.last_name || ''}`.trim());
-        localStorage.setItem('telegram_auth', 'true');
         
         // Show success
         form.style.display = 'none';
@@ -183,25 +155,24 @@ function showLoginError(message) {
     errorMessage.textContent = message;
     errorDiv.style.display = 'block';
     
-    // Scroll to error
     errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
-// Clear all auth data (logout)
-function clearAuthData() {
-    localStorage.removeItem('user_id');
-    localStorage.removeItem('user_email');
-    localStorage.removeItem('user_name');
-    localStorage.removeItem('user_phone');
-    localStorage.removeItem('telegram_user_id');
-    localStorage.removeItem('telegram_id');
-    localStorage.removeItem('telegram_auth');
-    localStorage.removeItem('access_token');
-    // Keep remember_me preference
+// Logout function
+async function logout() {
+    try {
+        if (window.SupabaseAuth) {
+            await window.SupabaseAuth.signOut();
+        }
+        window.location.href = '/login.html';
+    } catch (error) {
+        console.error('Logout error:', error);
+        window.location.href = '/login.html';
+    }
 }
 
 // Check if user is already logged in
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
     // Check Telegram WebApp
     if (window.Telegram && window.Telegram.WebApp) {
         const tg = window.Telegram.WebApp;
@@ -210,7 +181,6 @@ window.addEventListener('DOMContentLoaded', () => {
         
         const user = tg.initDataUnsafe?.user;
         if (user) {
-            // Auto-login if in Telegram
             const telegramDiv = document.getElementById('telegramLogin');
             if (telegramDiv) {
                 const button = telegramDiv.querySelector('button');
@@ -221,18 +191,37 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // НЕ редиректим автоматически - пусть пользователь сам решает
-    // Если хотите автоматический редирект, раскомментируйте:
-    // if (localStorage.getItem('user_id') || localStorage.getItem('telegram_user_id')) {
-    //     window.location.href = '/courses.html';
-    // }
+    // Ждем инициализации Supabase
+    await new Promise(resolve => {
+        if (window.SupabaseAuth) {
+            resolve();
+        } else {
+            const check = setInterval(() => {
+                if (window.SupabaseAuth) {
+                    clearInterval(check);
+                    resolve();
+                }
+            }, 100);
+            setTimeout(() => { clearInterval(check); resolve(); }, 3000);
+        }
+    });
+    
+    // Проверяем авторизацию через Supabase
+    if (window.SupabaseAuth) {
+        const user = await window.SupabaseAuth.getCurrentUser();
+        if (user) {
+            // Пользователь уже авторизован - редирект на профиль
+            window.location.href = '/profile.html';
+            return;
+        }
+    }
     
     // Auto-fill email if remembered
-    if (localStorage.getItem('remember_me') === 'true' && localStorage.getItem('user_email')) {
+    const rememberedEmail = localStorage.getItem('remember_email');
+    if (rememberedEmail) {
         const emailInput = document.getElementById('loginEmail');
         const rememberCheckbox = document.getElementById('remember');
-        if (emailInput) emailInput.value = localStorage.getItem('user_email');
+        if (emailInput) emailInput.value = rememberedEmail;
         if (rememberCheckbox) rememberCheckbox.checked = true;
     }
 });
-

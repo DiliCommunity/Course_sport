@@ -104,19 +104,32 @@ if (burgerMenu && mobileMenu && mobileMenuOverlay && mobileMenuClose) {
     });
 }
 
-// Check authentication and show/hide profile links
-function checkAuth() {
+// Check authentication through Supabase and show/hide profile links
+async function checkAuth() {
     const authButtons = document.getElementById('authButtons');
     const guestButtons = document.getElementById('guestButtons');
     const mobileProfileLink = document.getElementById('mobileProfileLink');
     
-    // Проверяем localStorage на наличие признаков авторизации
-    const userId = localStorage.getItem('user_id');
-    const telegramAuth = localStorage.getItem('telegram_auth');
-    const isAuthenticated = userId || telegramAuth === 'true';
+    // Ждем загрузки Supabase
+    let attempts = 0;
+    while (!window.SupabaseAuth && attempts < 30) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+    }
+    
+    let isAuthenticated = false;
+    
+    if (window.SupabaseAuth) {
+        try {
+            const user = await window.SupabaseAuth.getCurrentUser();
+            isAuthenticated = !!user;
+        } catch (error) {
+            console.error('Auth check error:', error);
+        }
+    }
     
     if (isAuthenticated) {
-        // User is authenticated (based on localStorage)
+        // User is authenticated
         if (authButtons && guestButtons) {
             authButtons.style.display = 'flex';
             authButtons.style.gap = '10px';
@@ -142,8 +155,22 @@ function checkAuth() {
     }
 }
 
-// Check auth on page load (без сетевых запросов)
-checkAuth();
+// Logout function (global)
+async function logout() {
+    try {
+        if (window.SupabaseAuth) {
+            await window.SupabaseAuth.signOut();
+        }
+        window.location.href = '/index.html';
+    } catch (error) {
+        console.error('Logout error:', error);
+        window.location.href = '/index.html';
+    }
+}
+
+// Check auth on page load
+document.addEventListener('DOMContentLoaded', () => {
+    checkAuth();
+});
 
 console.log('Course Health - сайт загружен успешно!');
-
