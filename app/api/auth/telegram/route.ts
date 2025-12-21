@@ -1,72 +1,49 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+import { getUserByTelegramId, createUser, updateUser } from '@/lib/vercel/kv'
+import { createUserSession } from '@/lib/auth-session'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { telegramUser } = body
+    const { id, first_name, last_name, username, photo_url } = body
 
-    if (!telegramUser || !telegramUser.id) {
+    if (!id || !first_name) {
       return NextResponse.json(
-        { error: 'Telegram user data required' },
+        { error: 'Telegram user data is required' },
         { status: 400 }
       )
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey)
-    const telegramId = String(telegramUser.id)
+    const telegramId = String(id)
+    const name = `${first_name} ${last_name || ''}`.trim()
 
     // Проверяем, есть ли пользователь
-    const { data: existingUser } = await supabase
-      .from('users')
-      .select('*')
-      .eq('telegram_id', telegramId)
-      .single()
+    let user = await getUserByTelegramId(telegramId)
 
-    let userId: string
-
-    if (existingUser) {
-      // Обновляем данные существующего пользователя
-      userId = (existingUser as any).id
-      await supabase
-        .from('users')
-        .update({
-          name: `${telegramUser.first_name} ${telegramUser.last_name || ''}`.trim(),
-          telegram_username: telegramUser.username || null,
-          avatar_url: telegramUser.photo_url || null,
-        } as never)
-        .eq('telegram_id', telegramId)
+    if (user) {
+      // Обновляем данные пользователя
+      user = await updateUser(user.id, {
+        name,
+        telegram_username: username || null,
+        avatar_url: photo_url || null,
+      })
     } else {
       // Создаём нового пользователя
-      const { data: newUser, error: insertError } = await supabase
-        .from('users')
-        .insert({
-          name: `${telegramUser.first_name} ${telegramUser.last_name || ''}`.trim(),
-          telegram_id: telegramId,
-          telegram_username: telegramUser.username || null,
-          avatar_url: telegramUser.photo_url || null,
-        } as never)
-        .select()
-        .single()
-
-      if (insertError) {
-        console.error('Error creating user:', insertError)
-        return NextResponse.json(
-          { error: 'Failed to create user' },
-          { status: 500 }
-        )
-      }
-
-      userId = (newUser as any).id
+      user = await createUser({
+        name,
+        telegram_id: telegramId,
+        telegram_username: username || null,
+        avatar_url: photo_url || null,
+      })
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      userId: userId,
-      telegramId: telegramId
+    const sessionId = await createUserSession(user.id)
+
+    return NextResponse.json({
+      success: true,
+      user_id: user.id,
+      telegram_id: user.telegram_id,
+      session_id: sessionId,
     })
   } catch (error: any) {
     console.error('Telegram auth error:', error)
@@ -76,4 +53,3 @@ export async function POST(request: NextRequest) {
     )
   }
 }
-

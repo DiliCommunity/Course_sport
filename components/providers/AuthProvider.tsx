@@ -1,12 +1,19 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
-import { createClient } from '@/lib/supabase/client'
-import type { User } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
+import { useTelegram } from './TelegramProvider'
+
+interface AuthUser {
+  id: string
+  email?: string
+  name?: string
+  avatar_url?: string
+  telegram_id?: string
+}
 
 interface AuthContextType {
-  user: User | null
+  user: AuthUser | null
   loading: boolean
   signOut: () => Promise<void>
 }
@@ -26,55 +33,66 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
+  const { user: telegramUser, isTelegramApp } = useTelegram()
 
   useEffect(() => {
-    // Проверяем наличие переменных окружения
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      setLoading(false)
-      return
-    }
-
-    try {
-      const supabase = createClient()
-
-      // Получаем текущего пользователя
-      supabase.auth.getUser().then(({ data: { user } }) => {
-        setUser(user)
-        setLoading(false)
-      }).catch(() => {
-        setLoading(false)
-      })
-
-      // Слушаем изменения авторизации
-      const {
-        data: { subscription },
-      } = supabase.auth.onAuthStateChange((_event, session) => {
-        setUser(session?.user ?? null)
-        setLoading(false)
-      })
-
-      return () => {
-        if (subscription) {
-          subscription.unsubscribe()
+    async function fetchUser() {
+      try {
+        const response = await fetch('/api/profile/data')
+        if (response.ok) {
+          const data = await response.json()
+          setUser(data.user)
+        } else {
+          // Если нет сессии, проверяем Telegram
+          if (isTelegramApp && telegramUser) {
+            // Авторизуем через Telegram
+            try {
+              const authResponse = await fetch('/api/auth/telegram', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  id: telegramUser.id,
+                  first_name: telegramUser.first_name,
+                  last_name: telegramUser.last_name,
+                  username: telegramUser.username,
+                  photo_url: telegramUser.photo_url,
+                }),
+              })
+              if (authResponse.ok) {
+                const authData = await authResponse.json()
+                // Получаем данные пользователя
+                const profileResponse = await fetch('/api/profile/data')
+                if (profileResponse.ok) {
+                  const profileData = await profileResponse.json()
+                  setUser(profileData.user)
+                }
+              }
+            } catch (error) {
+              console.error('Telegram auth error:', error)
+            }
+          }
         }
+      } catch (error) {
+        console.error('Auth fetch error:', error)
+      } finally {
+        setLoading(false)
       }
-    } catch (error) {
-      console.error('AuthProvider error:', error)
-      setLoading(false)
     }
-  }, [])
+
+    fetchUser()
+  }, [isTelegramApp, telegramUser])
 
   const signOut = async () => {
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      return
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' })
+      setUser(null)
+      router.push('/login')
+    } catch (error) {
+      console.error('Sign out error:', error)
     }
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    setUser(null)
-    router.push('/login')
   }
 
   return (
@@ -83,4 +101,3 @@ export function AuthProvider({ children }: AuthProviderProps) {
     </AuthContext.Provider>
   )
 }
-

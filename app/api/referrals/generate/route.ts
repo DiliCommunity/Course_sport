@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser } from '@/lib/auth-session'
+import { getUserBalance } from '@/lib/vercel/kv'
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
+    const user = await getCurrentUser()
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -16,20 +14,7 @@ export async function POST(request: NextRequest) {
     const referralCode = `REF-${user.id.slice(0, 8).toUpperCase()}-${Date.now().toString(36).toUpperCase().slice(-4)}`
 
     // Ensure user has balance record
-    const { data: balanceData } = await supabase
-      .from('user_balance')
-      .select('*')
-      .eq('user_id', user.id)
-      .single()
-
-    if (!balanceData) {
-      await supabase.from('user_balance').insert({
-        user_id: user.id,
-        balance: 0,
-        total_earned: 0,
-        total_withdrawn: 0,
-      } as never)
-    }
+    await getUserBalance(user.id)
 
     return NextResponse.json({ referralCode })
   } catch (error: any) {

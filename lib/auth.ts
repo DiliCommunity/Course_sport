@@ -1,8 +1,5 @@
 'use client'
 
-import { createClient } from '@/lib/supabase/client'
-import type { User } from '@supabase/supabase-js'
-
 export interface AuthUser {
   id: string
   email?: string
@@ -12,42 +9,35 @@ export interface AuthUser {
 }
 
 export async function signUp(email: string, password: string, name: string) {
-  const supabase = createClient()
-  
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        name,
-      },
-    },
+  const response = await fetch('/api/auth/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password, name }),
   })
 
-  if (error) throw error
-
-  // Создаём запись в таблице users
-  if (data.user) {
-    await supabase.from('users').insert({
-      id: data.user.id,
-      email: data.user.email,
-      name: name,
-    } as never)
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.error || 'Registration failed')
   }
 
-  return { user: data.user, error: null }
+  const data = await response.json()
+  return { user: { id: data.user_id, email: data.email }, error: null }
 }
 
 export async function signIn(email: string, password: string) {
-  const supabase = createClient()
-  
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
+  const response = await fetch('/api/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
   })
 
-  if (error) throw error
-  return { user: data.user, error: null }
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.error || 'Login failed')
+  }
+
+  const data = await response.json()
+  return { user: { id: data.user_id, email: data.email }, error: null }
 }
 
 export async function signInWithTelegram(telegramUser: {
@@ -57,65 +47,45 @@ export async function signInWithTelegram(telegramUser: {
   username?: string
   photo_url?: string
 }) {
-  const supabase = createClient()
-  const telegramId = String(telegramUser.id)
-  
-  // Проверяем, есть ли пользователь в БД
-  const { data: existingUser } = await supabase
-    .from('users')
-    .select('*')
-    .eq('telegram_id', telegramId)
-    .single()
+  const response = await fetch('/api/auth/telegram', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      id: telegramUser.id,
+      first_name: telegramUser.first_name,
+      last_name: telegramUser.last_name,
+      username: telegramUser.username,
+      photo_url: telegramUser.photo_url,
+    }),
+  })
 
-  let userId: string
-
-  if (existingUser) {
-    // Пользователь уже есть, обновляем данные
-    userId = (existingUser as any).id
-    await supabase
-      .from('users')
-      .update({
-        name: `${telegramUser.first_name} ${telegramUser.last_name || ''}`.trim(),
-        telegram_username: telegramUser.username || null,
-        avatar_url: telegramUser.photo_url || null,
-      } as never)
-      .eq('telegram_id', telegramId)
-  } else {
-    // Создаём нового пользователя
-    const { data: newUser, error: insertError } = await supabase
-      .from('users')
-      .insert({
-        name: `${telegramUser.first_name} ${telegramUser.last_name || ''}`.trim(),
-        telegram_id: telegramId,
-        telegram_username: telegramUser.username || null,
-        avatar_url: telegramUser.photo_url || null,
-      } as never)
-      .select()
-      .single()
-
-    if (insertError) throw insertError
-    userId = (newUser as any).id
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.error || 'Telegram auth failed')
   }
 
-  // Создаём сессию через Supabase Auth (используем magic link для Telegram)
-  // Для упрощения создаём временный токен или используем существующую систему
-  return { userId, telegramId }
+  const data = await response.json()
+  return { userId: data.user_id, telegramId: data.telegram_id }
 }
 
 export async function signOut() {
-  const supabase = createClient()
-  const { error } = await supabase.auth.signOut()
-  if (error) throw error
+  await fetch('/api/auth/logout', {
+    method: 'POST',
+  })
 }
 
-export async function getCurrentUser(): Promise<User | null> {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  return user
+export async function getCurrentUser(): Promise<AuthUser | null> {
+  try {
+    const response = await fetch('/api/profile/data')
+    if (!response.ok) return null
+    const data = await response.json()
+    return data.user
+  } catch {
+    return null
+  }
 }
 
 export async function getSession() {
-  const supabase = createClient()
-  const { data: { session } } = await supabase.auth.getSession()
-  return session
+  // Сессии теперь управляются через cookies на сервере
+  return null
 }

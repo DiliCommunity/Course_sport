@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createUser, getUserByEmail } from '@/lib/vercel/kv'
+import { createUserSession } from '@/lib/auth-session'
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,61 +14,29 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-    if (!supabaseUrl || !supabaseKey) {
+    // Проверяем, существует ли пользователь
+    const existingUser = await getUserByEmail(email)
+    if (existingUser) {
       return NextResponse.json(
-        { error: 'Supabase not configured' },
-        { status: 500 }
-      )
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseKey)
-
-    // Register user with Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          name: name,
-        }
-      }
-    })
-
-    if (authError) {
-      return NextResponse.json(
-        { error: authError.message || 'Registration failed' },
+        { error: 'User with this email already exists' },
         { status: 400 }
       )
     }
 
-    if (!authData.user) {
-      return NextResponse.json(
-        { error: 'Failed to create user' },
-        { status: 500 }
-      )
-    }
+    // Создаём пользователя
+    const user = await createUser({
+      email,
+      name,
+      password,
+    })
 
-    // Create user in database
-    const { error: dbError } = await supabase
-      .from('users')
-      .insert({
-        id: authData.user.id,
-        name: name,
-        email: email,
-      } as never)
-
-    if (dbError) {
-      console.error('Error creating user in DB:', dbError)
-      // Don't fail registration if DB insert fails - user is already in auth
-    }
+    const sessionId = await createUserSession(user.id)
 
     return NextResponse.json({
       success: true,
-      user_id: authData.user.id,
-      email: authData.user.email,
+      user_id: user.id,
+      email: user.email,
+      session_id: sessionId,
     })
   } catch (error: any) {
     console.error('Registration error:', error)
@@ -77,4 +46,3 @@ export async function POST(request: NextRequest) {
     )
   }
 }
-

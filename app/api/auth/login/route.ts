@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { getUserByEmail, verifyPassword } from '@/lib/vercel/kv'
+import { createUserSession } from '@/lib/auth-session'
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,43 +14,29 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-    if (!supabaseUrl || !supabaseKey) {
+    const user = await getUserByEmail(email)
+    if (!user) {
       return NextResponse.json(
-        { error: 'Supabase not configured' },
-        { status: 500 }
-      )
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseKey)
-
-    // Sign in user
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-
-    if (authError) {
-      return NextResponse.json(
-        { error: authError.message || 'Invalid email or password' },
+        { error: 'Invalid email or password' },
         { status: 401 }
       )
     }
 
-    if (!authData.user || !authData.session) {
+    const isValid = await verifyPassword(user, password)
+    if (!isValid) {
       return NextResponse.json(
-        { error: 'Login failed' },
-        { status: 500 }
+        { error: 'Invalid email or password' },
+        { status: 401 }
       )
     }
 
+    const sessionId = await createUserSession(user.id)
+
     return NextResponse.json({
       success: true,
-      user_id: authData.user.id,
-      email: authData.user.email,
-      access_token: authData.session.access_token,
+      user_id: user.id,
+      email: user.email,
+      session_id: sessionId,
     })
   } catch (error: any) {
     console.error('Login error:', error)
@@ -59,4 +46,3 @@ export async function POST(request: NextRequest) {
     )
   }
 }
-

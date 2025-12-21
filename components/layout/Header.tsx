@@ -22,7 +22,7 @@ export function Header() {
   const { user, signOut } = useAuth()
   const { user: telegramUser, isTelegramApp } = useTelegram()
   
-  // Проверяем авторизацию через Telegram или Supabase
+  // Проверяем авторизацию через Telegram или сессию
   const isAuthenticated = user || (isTelegramApp && telegramUser)
   const displayName = user?.email || telegramUser?.first_name || 'Пользователь'
 
