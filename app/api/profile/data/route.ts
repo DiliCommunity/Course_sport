@@ -55,12 +55,33 @@ export async function GET(request: NextRequest) {
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
 
-    // Получаем рефералы
+    // Получаем реферальный код пользователя
+    const { data: referralCode, error: referralCodeError } = await supabase
+      .from('user_referral_codes')
+      .select('*')
+      .eq('user_id', user.id)
+      .single()
+
+    // Получаем рефералов (кого пригласил пользователь)
     const { data: referrals, error: referralsError } = await supabase
       .from('referrals')
-      .select('*')
+      .select(`
+        *,
+        referred:users!referrals_referred_id_fkey(id, name, email, phone, telegram_username, created_at)
+      `)
       .eq('referrer_id', user.id)
       .order('created_at', { ascending: false })
+
+    // Получаем статистику по рефералам
+    const { data: referralStats } = await supabase
+      .from('referrals')
+      .select('referrer_earned, total_earned_from_purchases, status')
+      .eq('referrer_id', user.id)
+
+    // Вычисляем статистику
+    const totalReferrals = referrals?.length || 0
+    const activeReferrals = referrals?.filter(r => r.status === 'active').length || 0
+    const totalEarned = referralStats?.reduce((sum, r) => sum + (r.referrer_earned || 0) + (r.total_earned_from_purchases || 0), 0) || 0
 
     // Получаем транзакции
     const { data: transactions, error: transactionsError } = await supabase
@@ -82,8 +103,14 @@ export async function GET(request: NextRequest) {
         total_earned: 0,
         total_withdrawn: 0,
       },
-      enrollments: enrollments || [],
+      referralCode: referralCode || null,
       referrals: referrals || [],
+      referralStats: {
+        total: totalReferrals,
+        active: activeReferrals,
+        totalEarned: totalEarned,
+      },
+      enrollments: enrollments || [],
       transactions: transactions || [],
     })
   } catch (error: any) {

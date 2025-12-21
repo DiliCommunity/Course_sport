@@ -195,8 +195,16 @@ async function handleRegister(event) {
     submitBtn.innerHTML = '<span>Регистрация...</span>';
     
     try {
+        // Получаем реферальный код из URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const referralCode = urlParams.get('ref');
+
         // Prepare request body based on method
         let requestBody = { name };
+        
+        if (referralCode) {
+            requestBody.referral_code = referralCode;
+        }
         
         if (currentRegistrationMethod === 'email') {
             requestBody.email = email;

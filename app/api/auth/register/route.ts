@@ -7,10 +7,13 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
     const body = await request.json()
-    const { email, password, name, phone } = body
+    const { email, password, name, phone, referral_code } = body
 
     // Регистрация по email
     if (email && password && name) {
+      // Получаем реферальный код из query параметров или body
+      const referralCode = request.nextUrl.searchParams.get('ref') || referral_code
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -18,6 +21,7 @@ export async function POST(request: NextRequest) {
           data: {
             name,
             full_name: name,
+            referral_code: referralCode || null,
           },
         },
       })
@@ -27,6 +31,14 @@ export async function POST(request: NextRequest) {
           { error: error.message || 'Registration failed' },
           { status: 400 }
         )
+      }
+
+      // Обновляем метод регистрации в профиле
+      if (data.user) {
+        await supabase
+          .from('users')
+          .update({ registration_method: 'email' })
+          .eq('id', data.user.id)
       }
 
       return NextResponse.json({
@@ -49,12 +61,16 @@ export async function POST(request: NextRequest) {
       }
       const formattedPhone = '+' + cleanedPhone
 
+      // Получаем реферальный код
+      const referralCode = request.nextUrl.searchParams.get('ref') || referral_code
+
       const { data, error } = await supabase.auth.signInWithOtp({
         phone: formattedPhone,
         options: {
           data: {
             name,
             full_name: name,
+            referral_code: referralCode || null,
           },
         },
       })

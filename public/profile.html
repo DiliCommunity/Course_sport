@@ -793,24 +793,54 @@
             document.getElementById('totalWithdrawn').textContent = balance.total_withdrawn.toLocaleString('ru-RU') + ' ₽';
 
             // Referral
-            const referralCode = profileData.referralCode || 'REF-' + (profileData.user?.id?.slice(0, 8) || 'CODE').toUpperCase();
+            const referralCodeData = profileData.referralCode;
+            const referralCode = referralCodeData?.referral_code || 'REF-' + (profileData.user?.id?.slice(0, 8) || 'CODE').toUpperCase();
             const referralInput = document.getElementById('referralCodeInput');
-            referralInput.value = referralCode;
+            if (referralInput) {
+                referralInput.value = referralCode;
+            }
 
-            document.getElementById('totalReferred').textContent = referrals.length;
-            document.getElementById('totalEarnedRef').textContent = totalEarned.toLocaleString('ru-RU') + ' ₽';
+            const referralStats = profileData.referralStats || { total: 0, active: 0, totalEarned: 0 };
+            document.getElementById('totalReferred').textContent = referralStats.total || referrals.length;
+            document.getElementById('totalEarnedRef').textContent = (referralStats.totalEarned || 0).toLocaleString('ru-RU') + ' ₽';
+
+            // Telegram Wallet
+            const walletSection = document.getElementById('walletSection');
+            const walletNotConnected = document.getElementById('walletNotConnected');
+            const walletConnected = document.getElementById('walletConnected');
+            const walletAddress = document.getElementById('walletAddress');
+
+            if (profileData.user?.telegram_wallet_connected && profileData.user?.telegram_wallet_address) {
+                if (walletNotConnected) walletNotConnected.style.display = 'none';
+                if (walletConnected) walletConnected.style.display = 'block';
+                if (walletAddress) walletAddress.textContent = profileData.user.telegram_wallet_address;
+            } else {
+                if (walletNotConnected) walletNotConnected.style.display = 'block';
+                if (walletConnected) walletConnected.style.display = 'none';
+            }
 
             // Copy referral code
-            document.getElementById('copyBtn').addEventListener('click', () => {
-                referralInput.select();
-                document.execCommand('copy');
-                const btn = document.getElementById('copyBtn');
-                const originalText = btn.textContent;
-                btn.textContent = 'Скопировано!';
-                setTimeout(() => {
-                    btn.textContent = originalText;
-                }, 2000);
-            });
+            function copyReferralCode() {
+                const referralInput = document.getElementById('referralCodeInput');
+                if (referralInput) {
+                    referralInput.select();
+                    document.execCommand('copy');
+                    const btn = document.getElementById('copyBtn');
+                    if (btn) {
+                        const originalText = btn.textContent;
+                        btn.textContent = 'Скопировано!';
+                        setTimeout(() => {
+                            btn.textContent = originalText;
+                        }, 2000);
+                    }
+                }
+            }
+
+            // Copy referral code button
+            const copyBtn = document.getElementById('copyBtn');
+            if (copyBtn) {
+                copyBtn.addEventListener('click', copyReferralCode);
+            }
 
             // Courses
             const coursesList = document.getElementById('coursesList');

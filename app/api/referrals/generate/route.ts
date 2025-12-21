@@ -20,35 +20,87 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Генерируем реферальный код
-    const referralCode = `REF-${user.id.slice(0, 8).toUpperCase()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
-
-    // Проверяем, есть ли уже реферальный код у пользователя
-    const { data: existingReferral } = await supabase
-      .from('referrals')
-      .select('referral_code')
-      .eq('referrer_id', user.id)
-      .limit(1)
+    // Проверяем, есть ли уже реферальный код
+    const { data: existingCode } = await supabase
+      .from('user_referral_codes')
+      .select('*')
+      .eq('user_id', user.id)
       .single()
 
-    if (existingReferral) {
+    if (existingCode) {
       return NextResponse.json({
         success: true,
-        referral_code: existingReferral.referral_code,
+        referral_code: existingCode.referral_code,
+        referral_link: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://course-sport.vercel.app'}/register?ref=${existingCode.referral_code}`,
+        stats: {
+          total_uses: existingCode.total_uses,
+          total_earned: existingCode.total_earned,
+        },
       })
     }
 
-    // Создаем реферальный код (без referred_id, так как это код для приглашения)
-    // В реальном приложении можно создать отдельную таблицу для реферальных кодов
-    // или использовать существующую логику
+    // Генерируем новый код
+    const generateCode = () => {
+      const prefix = 'REF-'
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789' // Исключаем похожие символы
+      let code = prefix
+      for (let i = 0; i < 6; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length))
+      }
+      return code
+    }
+
+    let referralCode: string
+    let isUnique = false
+
+    // Генерируем уникальный код
+    while (!isUnique) {
+      referralCode = generateCode()
+      const { data: check } = await supabase
+        .from('user_referral_codes')
+        .select('id')
+        .eq('referral_code', referralCode)
+        .single()
+
+      if (!check) {
+        isUnique = true
+      }
+    }
+
+    // Создаем реферальный код
+    const { data: newCode, error: insertError } = await supabase
+      .from('user_referral_codes')
+      .insert({
+        user_id: user.id,
+        referral_code: referralCode!,
+        is_active: true,
+        total_uses: 0,
+        total_earned: 0,
+      })
+      .select()
+      .single()
+
+    if (insertError) {
+      console.error('Error creating referral code:', insertError)
+      return NextResponse.json(
+        { error: 'Failed to generate referral code' },
+        { status: 500 }
+      )
+    }
+
+    const referralLink = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://course-sport.vercel.app'}/register?ref=${referralCode}`
 
     return NextResponse.json({
       success: true,
       referral_code: referralCode,
-      referral_link: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/register?ref=${referralCode}`,
+      referral_link: referralLink,
+      stats: {
+        total_uses: 0,
+        total_earned: 0,
+      },
     })
   } catch (error: any) {
-    console.error('Generate referral error:', error)
+    console.error('Generate referral code error:', error)
     return NextResponse.json(
       { error: error.message || 'Internal server error' },
       { status: 500 }

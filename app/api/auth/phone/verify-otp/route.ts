@@ -37,7 +37,11 @@ export async function POST(request: NextRequest) {
     if (data.user && name) {
       const { error: updateError } = await supabase
         .from('users')
-        .update({ name })
+        .update({ 
+          name,
+          registration_method: 'phone',
+          phone_verified: true,
+        })
         .eq('id', data.user.id)
 
       if (updateError) {

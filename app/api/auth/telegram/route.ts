@@ -41,6 +41,13 @@ export async function POST(request: NextRequest) {
       // Пользователь существует, обновляем данные
       const userId = existingUser.id
 
+      // Получаем текущий метод регистрации, если его нет - ставим telegram
+      const { data: currentUser } = await supabase
+        .from('users')
+        .select('registration_method')
+        .eq('id', userId)
+        .single()
+
       const { error: updateError } = await supabase
         .from('users')
         .update({
@@ -48,6 +55,7 @@ export async function POST(request: NextRequest) {
           telegram_username: username || null,
           avatar_url: photo_url || null,
           telegram_verified: true,
+          registration_method: currentUser?.registration_method || 'telegram',
         })
         .eq('id', userId)
 
@@ -156,6 +164,7 @@ export async function POST(request: NextRequest) {
               telegram_username: username,
               avatar_url: photo_url || null,
               telegram_verified: true,
+              registration_method: 'telegram',
             })
             .eq('id', signUpData.user.id)
 
