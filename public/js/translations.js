@@ -564,6 +564,30 @@ const translations = {
             message: "Добро пожаловать обратно!",
             goToCourses: "Перейти к курсам"
         },
+        // Profile
+        profile: {
+            title: "Профиль",
+            settings: "Настройки",
+            myCourses: "Мои курсы",
+            allCourses: "Все курсы",
+            balance: "Баланс",
+            earned: "Заработано",
+            withdrawn: "Выведено",
+            referralProgram: "Реферальная программа",
+            referralLink: "Ваша реферальная ссылка",
+            copyLink: "Копировать ссылку",
+            linkCopied: "Скопировано!",
+            invited: "Приглашено",
+            totalEarned: "Заработано",
+            transactionsHistory: "История транзакций",
+            noCourses: "У вас пока нет купленных курсов",
+            chooseCourse: "Выбрать курс",
+            noTransactions: "История транзакций пуста",
+            completed: "Завершено",
+            progress: "завершено",
+            uploadAvatar: "Нажмите для загрузки",
+            changeAvatar: "Изменить аватар"
+        },
         // Course detail pages
         courseDetail: {
             common: {
@@ -1228,6 +1252,30 @@ const translations = {
             title: "Login successful!",
             message: "Welcome back!",
             goToCourses: "Go to courses"
+        },
+        // Profile
+        profile: {
+            title: "Profile",
+            settings: "Settings",
+            myCourses: "My Courses",
+            allCourses: "All Courses",
+            balance: "Balance",
+            earned: "Earned",
+            withdrawn: "Withdrawn",
+            referralProgram: "Referral Program",
+            referralLink: "Your referral link",
+            copyLink: "Copy link",
+            linkCopied: "Copied!",
+            invited: "Invited",
+            totalEarned: "Total Earned",
+            transactionsHistory: "Transaction History",
+            noCourses: "You don't have any purchased courses yet",
+            chooseCourse: "Choose Course",
+            noTransactions: "Transaction history is empty",
+            completed: "Completed",
+            progress: "completed",
+            uploadAvatar: "Click to upload",
+            changeAvatar: "Change Avatar"
         },
         // Course detail pages
         courseDetail: {

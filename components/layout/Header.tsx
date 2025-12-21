@@ -123,6 +123,13 @@ export function Header() {
                       >
                         Мои курсы
                       </Link>
+                      <Link
+                        href="/profile"
+                        className="block px-4 py-2 rounded-lg hover:bg-white/5 transition-colors text-sm"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        Профиль
+                      </Link>
                       {user && (
                         <button
                           onClick={async () => {
@@ -231,6 +238,14 @@ export function Header() {
                       >
                         <span className="w-1 h-6 bg-accent-teal rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
                         Мои курсы
+                      </Link>
+                      <Link
+                        href="/profile"
+                        className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-colors text-white/70 hover:text-white"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <span className="w-1 h-6 bg-accent-teal rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                        Профиль
                       </Link>
                       {user && (
                         <button

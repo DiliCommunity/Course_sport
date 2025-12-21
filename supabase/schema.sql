@@ -124,6 +124,46 @@ CREATE TABLE IF NOT EXISTS reviews (
 );
 
 -- =====================================================
+-- USER BALANCE TABLE
+-- =====================================================
+CREATE TABLE IF NOT EXISTS user_balance (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+    balance INTEGER NOT NULL DEFAULT 0 CHECK (balance >= 0),
+    total_earned INTEGER NOT NULL DEFAULT 0,
+    total_withdrawn INTEGER NOT NULL DEFAULT 0,
+    updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+-- =====================================================
+-- REFERRALS TABLE
+-- =====================================================
+CREATE TABLE IF NOT EXISTS referrals (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    referrer_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    referred_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+    referral_code VARCHAR(50) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'active', 'completed')),
+    earned_amount INTEGER NOT NULL DEFAULT 0,
+    completed_at TIMESTAMPTZ
+);
+
+-- =====================================================
+-- TRANSACTIONS TABLE
+-- =====================================================
+CREATE TABLE IF NOT EXISTS transactions (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    type VARCHAR(20) NOT NULL CHECK (type IN ('earned', 'withdrawn', 'spent', 'refund')),
+    amount INTEGER NOT NULL,
+    description TEXT NOT NULL,
+    reference_id UUID, -- ссылка на enrollment, referral и т.д.
+    reference_type VARCHAR(50) -- 'enrollment', 'referral', 'withdrawal' и т.д.
+);
+
+-- =====================================================
 -- INDEXES
 -- =====================================================
 CREATE INDEX IF NOT EXISTS idx_courses_category ON courses(category_id);
@@ -133,6 +173,12 @@ CREATE INDEX IF NOT EXISTS idx_lessons_course ON lessons(course_id);
 CREATE INDEX IF NOT EXISTS idx_enrollments_user ON enrollments(user_id);
 CREATE INDEX IF NOT EXISTS idx_enrollments_course ON enrollments(course_id);
 CREATE INDEX IF NOT EXISTS idx_users_telegram ON users(telegram_id);
+CREATE INDEX IF NOT EXISTS idx_user_balance_user ON user_balance(user_id);
+CREATE INDEX IF NOT EXISTS idx_referrals_referrer ON referrals(referrer_id);
+CREATE INDEX IF NOT EXISTS idx_referrals_referred ON referrals(referred_id);
+CREATE INDEX IF NOT EXISTS idx_referrals_code ON referrals(referral_code);
+CREATE INDEX IF NOT EXISTS idx_transactions_user ON transactions(user_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_type ON transactions(type);
 
 -- =====================================================
 -- TRIGGERS
@@ -201,6 +247,9 @@ ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE enrollments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE lesson_progress ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_balance ENABLE ROW LEVEL SECURITY;
+ALTER TABLE referrals ENABLE ROW LEVEL SECURITY;
+ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
 
 -- Public read access for categories, instructors, courses
 CREATE POLICY "Public read access for categories" ON categories FOR SELECT USING (true);
@@ -223,6 +272,18 @@ CREATE POLICY "Users can manage own lesson progress" ON lesson_progress FOR ALL 
 -- Reviews
 CREATE POLICY "Public read access for reviews" ON reviews FOR SELECT USING (true);
 CREATE POLICY "Users can manage own reviews" ON reviews FOR ALL USING (auth.uid()::text = user_id::text);
+
+-- User Balance
+CREATE POLICY "Users can read own balance" ON user_balance FOR SELECT USING (auth.uid()::text = user_id::text);
+CREATE POLICY "Users can update own balance" ON user_balance FOR UPDATE USING (auth.uid()::text = user_id::text);
+
+-- Referrals
+CREATE POLICY "Users can read own referrals" ON referrals FOR SELECT USING (auth.uid()::text = referrer_id::text OR auth.uid()::text = referred_id::text);
+CREATE POLICY "Users can create referrals" ON referrals FOR INSERT WITH CHECK (auth.uid()::text = referrer_id::text);
+
+-- Transactions
+CREATE POLICY "Users can read own transactions" ON transactions FOR SELECT USING (auth.uid()::text = user_id::text);
+CREATE POLICY "System can create transactions" ON transactions FOR INSERT WITH CHECK (true); -- через service role
 
 -- =====================================================
 -- SEED DATA

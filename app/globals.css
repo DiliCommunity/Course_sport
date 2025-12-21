@@ -357,5 +357,28 @@
   .preserve-3d {
     transform-style: preserve-3d;
   }
+
+  /* Profile page styles - SpaceX premium */
+  .profile-stats-card {
+    @apply relative overflow-hidden rounded-xl glass border border-white/10 p-4;
+    @apply hover:border-accent-teal/30 transition-all duration-300;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+  }
+
+  .profile-stats-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 0%, rgba(45, 212, 191, 0.05), transparent 70%);
+    pointer-events: none;
+  }
+
+  .profile-section-title {
+    @apply font-display font-bold text-2xl text-white mb-6;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 1), rgba(45, 212, 191, 0.8));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
 }
 

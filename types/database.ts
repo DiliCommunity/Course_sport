@@ -222,6 +222,96 @@ export interface Database {
           completed_at?: string | null
         }
       }
+      user_balance: {
+        Row: {
+          id: string
+          user_id: string
+          balance: number
+          total_earned: number
+          total_withdrawn: number
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          balance?: number
+          total_earned?: number
+          total_withdrawn?: number
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          balance?: number
+          total_earned?: number
+          total_withdrawn?: number
+          updated_at?: string
+        }
+      }
+      referrals: {
+        Row: {
+          id: string
+          created_at: string
+          referrer_id: string
+          referred_id: string
+          referral_code: string
+          status: 'pending' | 'active' | 'completed'
+          earned_amount: number
+          completed_at: string | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          referrer_id: string
+          referred_id: string
+          referral_code: string
+          status?: 'pending' | 'active' | 'completed'
+          earned_amount?: number
+          completed_at?: string | null
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          referrer_id?: string
+          referred_id?: string
+          referral_code?: string
+          status?: 'pending' | 'active' | 'completed'
+          earned_amount?: number
+          completed_at?: string | null
+        }
+      }
+      transactions: {
+        Row: {
+          id: string
+          created_at: string
+          user_id: string
+          type: 'earned' | 'withdrawn' | 'spent' | 'refund'
+          amount: number
+          description: string
+          reference_id: string | null
+          reference_type: string | null
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          user_id: string
+          type: 'earned' | 'withdrawn' | 'spent' | 'refund'
+          amount: number
+          description: string
+          reference_id?: string | null
+          reference_type?: string | null
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          user_id?: string
+          type?: 'earned' | 'withdrawn' | 'spent' | 'refund'
+          amount?: number
+          description?: string
+          reference_id?: string | null
+          reference_type?: string | null
+        }
+      }
     }
     Views: {
       [_ in never]: never
@@ -241,4 +331,7 @@ export type Instructor = Database['public']['Tables']['instructors']['Row']
 export type Lesson = Database['public']['Tables']['lessons']['Row']
 export type User = Database['public']['Tables']['users']['Row']
 export type Enrollment = Database['public']['Tables']['enrollments']['Row']
+export type UserBalance = Database['public']['Tables']['user_balance']['Row']
+export type Referral = Database['public']['Tables']['referrals']['Row']
+export type Transaction = Database['public']['Tables']['transactions']['Row']
 
