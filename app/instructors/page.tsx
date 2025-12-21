@@ -1,7 +1,5 @@
 'use client'
 
-export const dynamic = 'force-dynamic'
-
 import { motion } from 'framer-motion'
 import { GraduationCap } from 'lucide-react'
 import { InstructorCard } from '@/components/ui/InstructorCard'

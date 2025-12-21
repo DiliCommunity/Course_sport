@@ -39,11 +39,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true)
   const router = useRouter()
   const { user: telegramUser, isTelegramApp } = useTelegram()
-  const supabase = createClient()
 
   useEffect(() => {
+    // Создаем клиент только внутри useEffect
+    let supabase: ReturnType<typeof createClient> | null = null
+    try {
+      supabase = createClient()
+    } catch (error) {
+      console.warn('Supabase client not available:', error)
+      setLoading(false)
+      return
+    }
+
     // Получаем текущую сессию Supabase
     async function fetchUser() {
+      if (!supabase) {
+        setLoading(false)
+        return
+      }
+      
       try {
         const {
           data: { user: authUser },
@@ -115,6 +129,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     fetchUser()
 
     // Слушаем изменения в авторизации
+    if (!supabase) return
+
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -129,10 +145,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return () => {
       subscription.unsubscribe()
     }
-  }, [isTelegramApp, telegramUser, supabase])
+  }, [isTelegramApp, telegramUser])
 
   const signOut = async () => {
     try {
+      const supabase = createClient()
       await supabase.auth.signOut()
       setUser(null)
       router.push('/login')
