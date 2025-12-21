@@ -1890,76 +1890,74 @@ section > * {
     font-size: 16px;
 }
 
-/* Telegram Register */
-.telegram-register {
+/* Social Login */
+.social-login {
+    margin-top: 25px;
+    padding-top: 25px;
+    border-top: 1px solid var(--glass-border);
     text-align: center;
-    padding: 30px;
-    background: linear-gradient(135deg, rgba(0, 217, 255, 0.1), rgba(0, 102, 255, 0.1));
-    border: 1px solid rgba(0, 217, 255, 0.3);
-    border-radius: 20px;
-    margin-bottom: 30px;
 }
 
-.telegram-icon {
-    font-size: 48px;
-    margin-bottom: 15px;
-}
-
-.telegram-register h3 {
-    font-size: 20px;
-    margin-bottom: 10px;
-}
-
-.telegram-register p {
+.social-login-label {
     color: var(--text-gray);
-    margin-bottom: 20px;
-    font-size: 14px;
+    font-size: 13px;
+    margin-bottom: 15px;
+    display: block;
 }
 
-.btn-telegram {
-    width: 100%;
-    padding: 16px;
-    background: linear-gradient(135deg, #0088cc, #0066aa);
-    color: white;
-    border: none;
+.social-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    align-items: center;
+}
+
+.social-btn {
+    width: 44px;
+    height: 44px;
     border-radius: 12px;
-    font-size: 16px;
-    font-weight: 600;
+    border: 1px solid var(--glass-border);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-white);
     cursor: pointer;
-    transition: all 0.3s;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    transition: all 0.3s;
+    backdrop-filter: blur(10px);
+    padding: 0;
 }
 
-.btn-telegram:hover {
+.social-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 30px rgba(0, 136, 204, 0.4);
+    border-color: var(--accent-electric);
+    box-shadow: 0 6px 20px rgba(0, 217, 255, 0.3);
 }
 
-.divider {
-    margin: 30px 0;
-    position: relative;
-    text-align: center;
+.social-btn-telegram {
+    background: linear-gradient(135deg, rgba(0, 136, 204, 0.2), rgba(0, 102, 170, 0.2));
+    border-color: rgba(0, 136, 204, 0.4);
 }
 
-.divider::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: var(--glass-border);
+.social-btn-telegram:hover {
+    background: linear-gradient(135deg, rgba(0, 136, 204, 0.3), rgba(0, 102, 170, 0.3));
+    box-shadow: 0 6px 20px rgba(0, 136, 204, 0.4);
 }
 
-.divider span {
-    background: var(--bg-dark);
-    padding: 0 20px;
-    color: var(--text-gray);
-    position: relative;
-    z-index: 1;
+.social-btn-vk {
+    background: linear-gradient(135deg, rgba(76, 117, 163, 0.2), rgba(56, 97, 143, 0.2));
+    border-color: rgba(76, 117, 163, 0.4);
+}
+
+.social-btn-vk:hover {
+    background: linear-gradient(135deg, rgba(76, 117, 163, 0.3), rgba(56, 97, 143, 0.3));
+    box-shadow: 0 6px 20px rgba(76, 117, 163, 0.4);
+}
+
+.social-btn svg {
+    width: 20px;
+    height: 20px;
+    display: block;
 }
 
 /* Register Form */

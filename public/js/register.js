@@ -430,12 +430,18 @@ function registerWithTelegram() {
             handleTelegramRegistration(user);
         } else {
             // Open Telegram bot
-            window.open('https://t.me/CourseHealthBot', '_blank');
+            window.open('https://t.me/Course_Sport_bot', '_blank');
         }
     } else {
         // Open Telegram bot
-        window.open('https://t.me/CourseHealthBot', '_blank');
+        window.open('https://t.me/Course_Sport_bot', '_blank');
     }
+}
+
+// Register with VK (placeholder)
+function registerWithVK() {
+    // TODO: Implement VK OAuth
+    alert('Регистрация через ВКонтакте скоро будет доступна');
 }
 
 // Handle Telegram registration
