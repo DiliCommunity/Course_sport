@@ -412,21 +412,27 @@ section > * {
 }
 
 .mobile-menu-close {
-    width: 30px;
-    height: 30px;
-    background: transparent;
-    border: none;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--text-white);
-    font-size: 24px;
-    transition: transform 0.3s;
+    font-size: 20px;
+    font-weight: 600;
+    transition: all 0.3s;
+    padding: 0;
 }
 
 .mobile-menu-close:hover {
-    transform: rotate(90deg);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--accent-electric);
+    transform: translateX(-3px);
+    box-shadow: 0 4px 15px rgba(0, 217, 255, 0.3);
 }
 
 .mobile-menu-links {
