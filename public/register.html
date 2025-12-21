@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="/css/style.css">
     <script src="/js/translations.js"></script>
     <script src="/js/language.js"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="/js/telegram-webapp.js"></script>
 </head>
 <body>
     <!-- Header -->
@@ -101,6 +103,28 @@
                         </div>
                     </div>
 
+                    <!-- Registration Method Switcher -->
+                    <div class="registration-method-switcher">
+                        <button 
+                            type="button" 
+                            class="method-tab active" 
+                            id="emailTab"
+                            onclick="switchRegistrationMethod('email')"
+                            data-i18n="register.methodEmail"
+                        >
+                            📧 Email
+                        </button>
+                        <button 
+                            type="button" 
+                            class="method-tab" 
+                            id="phoneTab"
+                            onclick="switchRegistrationMethod('phone')"
+                            data-i18n="register.methodPhone"
+                        >
+                            📱 Телефон
+                        </button>
+                    </div>
+
                     <!-- Email Registration Form -->
                     <form class="register-form" id="registerForm" onsubmit="handleRegister(event)">
                         <div class="form-group">
@@ -115,7 +139,8 @@
                             >
                         </div>
 
-                        <div class="form-group">
+                        <!-- Email Field (shown when email method is selected) -->
+                        <div class="form-group" id="emailFieldGroup">
                             <label for="email" data-i18n="register.email">Email</label>
                             <input 
                                 type="email" 
@@ -123,42 +148,56 @@
                                 name="email" 
                                 data-i18n-placeholder="register.emailPlaceholder"
                                 placeholder="your@email.com"
-                                required
                             >
                         </div>
 
-                        <div class="form-group">
-                            <label for="password" data-i18n="register.password">Пароль</label>
-                            <div class="password-input">
-                                <input 
-                                    type="password" 
-                                    id="password" 
-                                    name="password" 
-                                    data-i18n-placeholder="register.passwordPlaceholder"
-                                    placeholder="Минимум 6 символов"
-                                    required
-                                    minlength="6"
-                                >
-                                <button type="button" class="password-toggle" onclick="togglePassword()">
-                                    <span class="eye-icon">👁️</span>
-                                </button>
-                            </div>
+                        <!-- Phone Field (shown when phone method is selected) -->
+                        <div class="form-group" id="phoneFieldGroup" style="display: none;">
+                            <label for="phone" data-i18n="register.phone">Телефон</label>
+                            <input 
+                                type="tel" 
+                                id="phone" 
+                                name="phone" 
+                                data-i18n-placeholder="register.phonePlaceholder"
+                                placeholder="+7 (999) 123-45-67"
+                                pattern="\+?[0-9\s\-\(\)]+"
+                            >
+                            <small class="form-hint" data-i18n="register.phoneHint">Мы отправим SMS с кодом подтверждения</small>
                         </div>
 
-                        <div class="form-group">
-                            <label for="confirmPassword" data-i18n="register.confirmPassword">Подтвердите пароль</label>
-                            <div class="password-input">
-                                <input 
-                                    type="password" 
-                                    id="confirmPassword" 
-                                    name="confirmPassword" 
-                                    data-i18n-placeholder="register.confirmPasswordPlaceholder"
-                                    placeholder="Повторите пароль"
-                                    required
-                                >
-                                <button type="button" class="password-toggle" onclick="toggleConfirmPassword()">
-                                    <span class="eye-icon">👁️</span>
-                                </button>
+                        <!-- Password Fields (only for email registration) -->
+                        <div id="passwordFieldsGroup">
+                            <div class="form-group">
+                                <label for="password" data-i18n="register.password">Пароль</label>
+                                <div class="password-input">
+                                    <input 
+                                        type="password" 
+                                        id="password" 
+                                        name="password" 
+                                        data-i18n-placeholder="register.passwordPlaceholder"
+                                        placeholder="Минимум 6 символов"
+                                        minlength="6"
+                                    >
+                                    <button type="button" class="password-toggle" onclick="togglePassword()">
+                                        <span class="eye-icon">👁️</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="confirmPassword" data-i18n="register.confirmPassword">Подтвердите пароль</label>
+                                <div class="password-input">
+                                    <input 
+                                        type="password" 
+                                        id="confirmPassword" 
+                                        name="confirmPassword" 
+                                        data-i18n-placeholder="register.confirmPasswordPlaceholder"
+                                        placeholder="Повторите пароль"
+                                    >
+                                    <button type="button" class="password-toggle" onclick="toggleConfirmPassword()">
+                                        <span class="eye-icon">👁️</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
 

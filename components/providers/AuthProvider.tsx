@@ -88,9 +88,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
             })
           }
         } else {
-          // Если нет сессии, проверяем Telegram
+          // Если нет сессии, проверяем Telegram WebApp
           if (isTelegramApp && telegramUser) {
-            // Авторизуем через Telegram
+            // Автоматически авторизуем через Telegram WebApp
             try {
               const authResponse = await fetch('/api/auth/telegram', {
                 method: 'POST',
@@ -101,17 +101,57 @@ export function AuthProvider({ children }: AuthProviderProps) {
                   last_name: telegramUser.last_name,
                   username: telegramUser.username,
                   photo_url: telegramUser.photo_url,
+                  phone_number: telegramUser.phone_number,
                 }),
+                credentials: 'include', // Важно для сохранения сессии
               })
+              
               if (authResponse.ok) {
                 const authData = await authResponse.json()
-                if (authData.user) {
-                  setUser({
-                    id: authData.user.id,
-                    email: authData.user.email,
-                    phone: authData.user.phone,
-                    telegram_id: String(telegramUser.id),
+                
+                // Если требуется OTP, пропускаем автоматическую авторизацию
+                if (authData.requires_otp) {
+                  console.log('OTP required for phone verification')
+                  setLoading(false)
+                  return
+                }
+                
+                if (authData.user && authData.session) {
+                  // Сессия создана, получаем профиль
+                  const profileResponse = await fetch('/api/profile/data', {
+                    credentials: 'include',
                   })
+                  
+                  if (profileResponse.ok) {
+                    const profileData = await profileResponse.json()
+                    setUser({
+                      id: profileData.user.id,
+                      email: profileData.user.email,
+                      phone: profileData.user.phone,
+                      name: profileData.user.name,
+                      avatar_url: profileData.user.avatar_url,
+                      telegram_id: String(telegramUser.id),
+                    })
+                  }
+                } else if (authData.user_id) {
+                  // Пользователь существует, но нужно получить сессию
+                  // Повторно запрашиваем профиль
+                  setTimeout(async () => {
+                    const profileResponse = await fetch('/api/profile/data', {
+                      credentials: 'include',
+                    })
+                    if (profileResponse.ok) {
+                      const profileData = await profileResponse.json()
+                      setUser({
+                        id: profileData.user.id,
+                        email: profileData.user.email,
+                        phone: profileData.user.phone,
+                        name: profileData.user.name,
+                        avatar_url: profileData.user.avatar_url,
+                        telegram_id: String(telegramUser.id),
+                      })
+                    }
+                  }, 500)
                 }
               }
             } catch (error) {

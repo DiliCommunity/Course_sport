@@ -39,8 +39,18 @@ export async function POST(request: NextRequest) {
 
     // Регистрация по телефону (отправка OTP)
     if (phone && name) {
+      // Форматируем телефон: убираем все кроме цифр и добавляем +
+      let cleanedPhone = phone.replace(/\D/g, '')
+      if (cleanedPhone.startsWith('8')) {
+        cleanedPhone = '7' + cleanedPhone.substring(1)
+      }
+      if (!cleanedPhone.startsWith('7')) {
+        cleanedPhone = '7' + cleanedPhone
+      }
+      const formattedPhone = '+' + cleanedPhone
+
       const { data, error } = await supabase.auth.signInWithOtp({
-        phone,
+        phone: formattedPhone,
         options: {
           data: {
             name,
@@ -59,6 +69,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         message: 'OTP code sent to your phone. Please verify to complete registration.',
+        phone: formattedPhone,
       })
     }
 

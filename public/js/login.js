@@ -120,14 +120,14 @@ async function handleTelegramLogin(telegramUser) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                telegramUser: {
-                    id: telegramUser.id,
-                    first_name: telegramUser.first_name,
-                    last_name: telegramUser.last_name,
-                    username: telegramUser.username,
-                    photo_url: telegramUser.photo_url,
-                }
-            })
+                id: telegramUser.id,
+                first_name: telegramUser.first_name,
+                last_name: telegramUser.last_name,
+                username: telegramUser.username,
+                photo_url: telegramUser.photo_url,
+                phone_number: telegramUser.phone_number,
+            }),
+            credentials: 'include', // Важно для сохранения сессии
         });
         
         const data = await response.json();
@@ -136,19 +136,31 @@ async function handleTelegramLogin(telegramUser) {
             throw new Error(data.error || 'Ошибка входа через Telegram');
         }
         
+        if (data.requires_otp) {
+            showLoginError('Для завершения входа необходимо подтвердить номер телефона через SMS');
+            return;
+        }
+        
         // Save to localStorage
-        localStorage.setItem('telegram_user_id', data.userId);
-        localStorage.setItem('telegram_id', data.telegramId);
+        if (data.user_id) {
+            localStorage.setItem('telegram_user_id', String(telegramUser.id));
+            localStorage.setItem('telegram_id', String(telegramUser.id));
+            localStorage.setItem('user_id', data.user_id);
+        }
+        if (data.user) {
+            localStorage.setItem('user_id', data.user.id);
+        }
         localStorage.setItem('user_name', `${telegramUser.first_name} ${telegramUser.last_name || ''}`.trim());
+        localStorage.setItem('telegram_auth', 'true');
         
         // Show success
         form.style.display = 'none';
-        telegramDiv.style.display = 'none';
+        if (telegramDiv) telegramDiv.style.display = 'none';
         successDiv.style.display = 'block';
         
         // Redirect
         setTimeout(() => {
-            window.location.href = '/courses.html';
+            window.location.href = '/profile.html';
         }, 1000);
         
     } catch (error) {

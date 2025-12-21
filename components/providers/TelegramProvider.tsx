@@ -9,6 +9,7 @@ interface TelegramUser {
   username?: string
   language_code?: string
   photo_url?: string
+  phone_number?: string
 }
 
 interface TelegramWebApp {

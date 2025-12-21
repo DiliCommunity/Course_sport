@@ -8,9 +8,11 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
     const body = await request.json()
-    const { phone, otp, name } = body
+    const { phone, token, otp, name } = body
 
-    if (!phone || !otp) {
+    const otpCode = token || otp
+
+    if (!phone || !otpCode) {
       return NextResponse.json(
         { error: 'Phone and OTP code are required' },
         { status: 400 }
@@ -20,7 +22,7 @@ export async function POST(request: NextRequest) {
     // Проверяем OTP код
     const { data, error } = await supabase.auth.verifyOtp({
       phone,
-      token: otp,
+      token: otpCode,
       type: 'sms',
     })
 

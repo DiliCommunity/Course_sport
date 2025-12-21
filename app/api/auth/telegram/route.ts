@@ -37,11 +37,9 @@ export async function POST(request: NextRequest) {
       console.error('Find user error:', findError)
     }
 
-    let userId: string
-
     if (existingUser) {
       // Пользователь существует, обновляем данные
-      userId = existingUser.id
+      const userId = existingUser.id
 
       const { error: updateError } = await supabase
         .from('users')
@@ -56,11 +54,52 @@ export async function POST(request: NextRequest) {
       if (updateError) {
         console.error('Update user error:', updateError)
       }
+
+      // Проверяем текущую сессию
+      const { data: { session: currentSession } } = await supabase.auth.getSession()
+      
+      // Если есть активная сессия для этого пользователя, возвращаем её
+      if (currentSession && currentSession.user.id === userId) {
+        return NextResponse.json({
+          success: true,
+          user_id: userId,
+          telegram_id: telegramId,
+          session: currentSession,
+          user: {
+            id: userId,
+            email: existingUser.email,
+            phone: existingUser.phone,
+          },
+        })
+      }
+
+      // Если нет сессии, но есть phone_number в запросе и он совпадает с сохраненным
+      if (phone_number && existingUser.phone === phone_number) {
+        // Пытаемся отправить OTP для авторизации
+        const { data: otpData, error: otpError } = await supabase.auth.signInWithOtp({
+          phone: phone_number,
+        })
+        
+        if (!otpError && otpData) {
+          return NextResponse.json({
+            success: true,
+            requires_otp: true,
+            message: 'OTP code sent to your phone',
+          })
+        }
+      }
+
+      // Возвращаем информацию о пользователе (сессия будет создана при следующем входе)
+      return NextResponse.json({
+        success: true,
+        user_id: userId,
+        telegram_id: telegramId,
+        message: 'User updated successfully',
+      })
     } else {
       // Новый пользователь - создаем через Supabase Auth
-      // Если есть номер телефона, используем его для авторизации
       if (phone_number) {
-        // Отправляем OTP на телефон
+        // Отправляем OTP на телефон для регистрации
         const { data: otpData, error: otpError } = await supabase.auth.signInWithOtp({
           phone: phone_number,
           options: {
@@ -86,8 +125,7 @@ export async function POST(request: NextRequest) {
           message: 'OTP code sent to your phone. Please verify to complete registration.',
         })
       } else {
-        // Если нет телефона, создаем пользователя с email (временный)
-        // В реальном приложении лучше требовать телефон
+        // Если нет телефона, создаем пользователя с временным email
         const tempEmail = `telegram_${telegramId}@temp.com`
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email: tempEmail,
@@ -124,6 +162,22 @@ export async function POST(request: NextRequest) {
           if (updateError) {
             console.error('Update profile error:', updateError)
           }
+
+          // Создаем баланс для нового пользователя
+          const { error: balanceError } = await supabase
+            .from('user_balance')
+            .upsert({
+              user_id: signUpData.user.id,
+              balance: 0,
+              total_earned: 0,
+              total_withdrawn: 0,
+            }, {
+              onConflict: 'user_id',
+            })
+
+          if (balanceError) {
+            console.error('Balance creation error:', balanceError)
+          }
         }
 
         return NextResponse.json({
@@ -133,15 +187,6 @@ export async function POST(request: NextRequest) {
         })
       }
     }
-
-    // Если пользователь уже существует, получаем сессию
-    const { data: { user } } = await supabase.auth.getUser()
-
-    return NextResponse.json({
-      success: true,
-      user_id: userId,
-      telegram_id: telegramId,
-    })
   } catch (error: any) {
     console.error('Telegram auth error:', error)
     return NextResponse.json(

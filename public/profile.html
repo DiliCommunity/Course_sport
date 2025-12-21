@@ -671,6 +671,8 @@
     </footer>
 
     <script src="/js/main.js"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="/js/telegram-webapp.js"></script>
     <script>
         // Profile data
         let profileData = null;
@@ -678,6 +680,41 @@
         // Check authentication
         async function checkAuth() {
             try {
+                // Если в Telegram WebApp, сначала пытаемся авторизоваться
+                if (window.TelegramWebApp && window.TelegramWebApp.isTelegramWebApp()) {
+                    const tg = window.Telegram.WebApp;
+                    const user = tg.initDataUnsafe?.user;
+                    
+                    if (user) {
+                        // Автоматическая авторизация через Telegram
+                        try {
+                            const authResponse = await fetch('/api/auth/telegram', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    id: user.id,
+                                    first_name: user.first_name,
+                                    last_name: user.last_name,
+                                    username: user.username,
+                                    photo_url: user.photo_url,
+                                    phone_number: user.phone_number,
+                                }),
+                                credentials: 'include',
+                            });
+                            
+                            if (authResponse.ok) {
+                                const authData = await authResponse.json();
+                                if (authData.requires_otp) {
+                                    showError('Необходимо подтвердить номер телефона через SMS');
+                                    return;
+                                }
+                            }
+                        } catch (error) {
+                            console.error('Telegram auto-auth error:', error);
+                        }
+                    }
+                }
+
                 const response = await fetch('/api/profile/data', {
                     credentials: 'include'
                 });
@@ -702,7 +739,12 @@
                         mobileProfileLink.style.display = 'block';
                     }
                 } else {
-                    showError('Необходима авторизация');
+                    // Если не авторизован и в Telegram WebApp, показываем кнопку регистрации
+                    if (window.TelegramWebApp && window.TelegramWebApp.isTelegramWebApp()) {
+                        showError('Нажмите кнопку ниже для регистрации');
+                    } else {
+                        showError('Необходима авторизация');
+                    }
                 }
             } catch (error) {
                 console.error('Auth check error:', error);
