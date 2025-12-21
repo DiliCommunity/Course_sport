@@ -87,7 +87,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
                   last_name: telegramUser.last_name,
                   username: telegramUser.username,
                   photo_url: telegramUser.photo_url,
-                  phone_number: telegramUser.phone_number,
                 }),
               })
               if (authResponse.ok) {
