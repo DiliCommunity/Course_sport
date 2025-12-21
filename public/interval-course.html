@@ -30,6 +30,7 @@
                 <ul class="nav-links">
                     <li><a href="/index.html" data-i18n="nav.home">Главная</a></li>
                     <li><a href="/courses.html" data-i18n="nav.courses">Курсы</a></li>
+                    <li><a href="/reviews.html" data-i18n="nav.reviews">Отзывы</a></li>
                     <li><a href="/promotions.html" data-i18n="nav.promotions">Акции</a></li>
                     <li><a href="/about.html" data-i18n="nav.about">О нас</a></li>
                 </ul>
@@ -72,6 +73,7 @@
         <ul class="mobile-menu-links">
             <li><a href="/index.html" data-i18n="nav.home">Главная</a></li>
             <li><a href="/courses.html" data-i18n="nav.courses">Курсы</a></li>
+            <li><a href="/reviews.html" data-i18n="nav.reviews">Отзывы</a></li>
             <li><a href="/promotions.html" data-i18n="nav.promotions">Акции</a></li>
             <li><a href="/about.html" data-i18n="nav.about">О нас</a></li>
             <li><a href="#" class="mobile-menu-profile" style="opacity: 0.5; pointer-events: none;" data-i18n="nav.profile">Профиль</a></li>
@@ -120,12 +122,20 @@
 
                 <div class="course-sidebar">
                     <div class="course-card-sidebar">
-                        <div class="course-price-box">
-                            <div class="price-main">1,500₽</div>
+                        <!-- Акционный блок -->
+                        <div class="sale-banner">
+                            <div class="sale-badge">🔥 БОЛЬШАЯ АКЦИЯ</div>
+                            <div class="sale-timer">Успей купить!</div>
+                        </div>
+                        
+                        <div class="course-price-box price-box-sale">
+                            <div class="price-old">14 000₽</div>
+                            <div class="price-discount">-89%</div>
+                            <div class="price-main price-sale">1 499₽</div>
                             <div class="price-badge" data-i18n="courses.free">15% бесплатно</div>
                         </div>
 
-                        <button class="btn-primary btn-full" onclick="openPaymentModal()">
+                        <button class="btn-primary btn-full btn-pulse" onclick="openPaymentModal()">
                             <span data-i18n="courseDetail.common.startLearning">Начать обучение</span>
                         </button>
                         <button class="btn-secondary btn-full" onclick="scrollToFreeModule()">
@@ -514,9 +524,13 @@
                 <h2 data-i18n="courseDetail.common.payTitle">Оплата курса</h2>
                 <p data-i18n="courseDetail.interval.paySubtitle">Интервальное Голодание: Ваш Режим Дня для Здоровья и Энергии</p>
             </div>
-            <div class="modal-price-box">
+            <div class="modal-price-box modal-price-sale">
                 <span data-i18n="courseDetail.common.courseCost">Стоимость курса:</span>
-                <span class="modal-price">1,500₽</span>
+                <div class="modal-price-wrapper">
+                    <span class="modal-price-old">14 000₽</span>
+                    <span class="modal-price">1 499₽</span>
+                </div>
+                <div class="modal-discount-badge">Скидка 89%</div>
             </div>
             <div class="modal-payment-methods">
                 <h3 data-i18n="courseDetail.common.paymentMethod">Способ оплаты:</h3>
@@ -538,7 +552,7 @@
             </div>
             <div class="modal-actions">
                 <button class="btn-primary btn-full" onclick="processPayment()">
-                    <span data-i18n="courseDetail.common.payButton">Оплатить 1,500₽</span>
+                    <span data-i18n="courseDetail.common.payButton">Оплатить 1 499₽</span>
                 </button>
                 <button class="btn-secondary btn-full" onclick="closePaymentModal()">
                     <span data-i18n="courseDetail.common.cancel">Отмена</span>
