@@ -124,7 +124,8 @@ async function checkAuth() {
             const user = await window.SupabaseAuth.getCurrentUser();
             isAuthenticated = !!user;
         } catch (error) {
-            console.error('Auth check error:', error);
+            // Игнорируем ошибки - просто считаем что не авторизован
+            isAuthenticated = false;
         }
     }
     

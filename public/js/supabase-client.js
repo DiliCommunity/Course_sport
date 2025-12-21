@@ -49,12 +49,20 @@ async function getCurrentUser() {
     const client = initSupabase();
     if (!client) return null;
     
-    const { data: { user }, error } = await client.auth.getUser();
-    if (error) {
-        console.error('Error getting user:', error);
+    try {
+        const { data: { user }, error } = await client.auth.getUser();
+        if (error) {
+            // Не логируем ошибку "Auth session missing" - это нормально для неавторизованных
+            if (!error.message?.includes('session')) {
+                console.error('Error getting user:', error);
+            }
+            return null;
+        }
+        return user;
+    } catch (e) {
+        // Игнорируем ошибки сети
         return null;
     }
-    return user;
 }
 
 // Регистрация по email

@@ -4,6 +4,10 @@
 (function() {
     'use strict';
 
+    // Флаг для предотвращения повторных вызовов
+    let authInProgress = false;
+    let authAttempted = false;
+
     // Проверяем, что мы в Telegram WebApp
     function isTelegramWebApp() {
         return typeof window !== 'undefined' && 
@@ -33,8 +37,50 @@
         tg.setBackgroundColor('#0a0a0b');
         tg.enableClosingConfirmation();
 
-        // Автоматическая регистрация/авторизация
-        autoAuthWithTelegram(user, tg);
+        // Проверяем, была ли уже попытка авторизации в этой сессии
+        const lastAuthAttempt = sessionStorage.getItem('telegram_auth_attempt');
+        const now = Date.now();
+        
+        // Не пытаемся авторизоваться чаще чем раз в 60 секунд
+        if (lastAuthAttempt && (now - parseInt(lastAuthAttempt)) < 60000) {
+            console.log('Telegram auth: waiting for cooldown');
+            return;
+        }
+
+        // Автоматическая регистрация/авторизация только если еще не авторизованы
+        checkAndAuth(user, tg);
+    }
+
+    // Проверяем авторизацию и авторизуем если нужно
+    async function checkAndAuth(telegramUser, tg) {
+        if (authInProgress || authAttempted) {
+            return;
+        }
+
+        // Сначала проверяем, есть ли уже сессия через Supabase
+        if (window.SupabaseAuth) {
+            try {
+                const session = await window.SupabaseAuth.getSession();
+                if (session) {
+                    console.log('Already authenticated via Supabase');
+                    updateUIForAuthenticatedUser();
+                    return;
+                }
+            } catch (e) {
+                // Игнорируем ошибки проверки сессии
+            }
+        }
+
+        // Если нет сессии, пытаемся авторизоваться через Telegram
+        authInProgress = true;
+        authAttempted = true;
+        sessionStorage.setItem('telegram_auth_attempt', Date.now().toString());
+
+        try {
+            await autoAuthWithTelegram(telegramUser, tg);
+        } finally {
+            authInProgress = false;
+        }
     }
 
     // Автоматическая авторизация через Telegram
@@ -53,91 +99,45 @@
                     photo_url: telegramUser.photo_url,
                     phone_number: telegramUser.phone_number,
                 }),
-                credentials: 'include', // Важно для сохранения сессии
+                credentials: 'include',
             });
 
             const data = await response.json();
 
             if (response.ok) {
                 if (data.requires_otp) {
-                    // Требуется подтверждение телефона
                     console.log('OTP required');
-                    tg.showAlert('Для завершения регистрации необходимо подтвердить номер телефона через SMS', () => {
-                        // Можно перенаправить на страницу ввода OTP
-                        if (window.location.pathname.includes('login.html') || window.location.pathname.includes('register.html')) {
-                            // Показываем форму ввода OTP или перенаправляем
-                        }
-                    });
                     return;
                 }
 
-                if (data.user && data.session) {
-                    // Успешная регистрация/авторизация
+                if (data.user || data.user_id) {
                     console.log('Telegram auth successful');
-                    
-                    // Сохраняем данные в localStorage для синхронизации
-                    localStorage.setItem('telegram_auth', 'true');
-                    localStorage.setItem('telegram_user_id', String(telegramUser.id));
-                    localStorage.setItem('user_id', data.user.id);
-                    
-                    // Обновляем UI
                     updateUIForAuthenticatedUser();
                     
-                    // Показываем уведомление и перенаправляем
-                    tg.showAlert('Добро пожаловать, ' + telegramUser.first_name + '!', () => {
-                        // Перенаправляем на профиль или главную
-                        const currentPath = window.location.pathname;
-                        if (currentPath.includes('login.html') || currentPath.includes('register.html')) {
+                    // Перенаправляем только со страниц логина/регистрации
+                    const currentPath = window.location.pathname;
+                    if (currentPath.includes('login.html') || currentPath.includes('register.html')) {
+                        tg.showAlert('Добро пожаловать, ' + telegramUser.first_name + '!', () => {
                             window.location.href = '/profile.html';
-                        }
-                    });
-                    tg.HapticFeedback.notificationOccurred('success');
-                } else if (data.user_id) {
-                    // Пользователь существует
-                    localStorage.setItem('telegram_auth', 'true');
-                    localStorage.setItem('telegram_user_id', String(telegramUser.id));
-                    localStorage.setItem('user_id', data.user_id);
-                    
-                    // Если есть сессия, обновляем UI сразу
-                    if (data.session) {
-                        updateUIForAuthenticatedUser();
-                        const currentPath = window.location.pathname;
-                        if (currentPath.includes('login.html') || currentPath.includes('register.html')) {
-                            setTimeout(() => {
-                                window.location.href = '/profile.html';
-                            }, 1000);
-                        }
-                    } else {
-                        // Если нет сессии, проверяем через профиль
-                        setTimeout(async () => {
-                            const profileResponse = await fetch('/api/profile/data', {
-                                credentials: 'include',
-                            });
-                            if (profileResponse.ok) {
-                                updateUIForAuthenticatedUser();
-                                const currentPath = window.location.pathname;
-                                if (currentPath.includes('login.html') || currentPath.includes('register.html')) {
-                                    window.location.href = '/profile.html';
-                                }
-                            }
-                        }, 500);
+                        });
                     }
+                    tg.HapticFeedback.notificationOccurred('success');
                 }
             } else {
+                // Если ошибка rate limiting, не показываем popup
+                if (data.error && data.error.includes('security purposes')) {
+                    console.log('Rate limited, will retry later');
+                    return;
+                }
                 console.error('Telegram auth error:', data.error);
-                tg.showAlert('Ошибка авторизации: ' + (data.error || 'Неизвестная ошибка'));
             }
         } catch (error) {
-            console.error('Telegram auth error:', error);
-            if (tg) {
-                tg.showAlert('Ошибка подключения. Проверьте интернет-соединение.');
-            }
+            console.error('Telegram auth network error:', error);
         }
     }
 
     // Обновление UI для авторизованного пользователя
     function updateUIForAuthenticatedUser() {
-        // Обновляем навигацию
         const authButtons = document.getElementById('authButtons');
         const guestButtons = document.getElementById('guestButtons');
         const mobileProfileLink = document.getElementById('mobileProfileLink');
@@ -152,70 +152,21 @@
         if (mobileProfileLink) {
             mobileProfileLink.style.display = 'block';
         }
-
-        // Проверяем, на какой странице мы находимся
-        const currentPath = window.location.pathname;
-        
-        // Если на странице логина/регистрации, перенаправляем
-        if (currentPath.includes('login.html') || currentPath.includes('register.html')) {
-            setTimeout(() => {
-                window.location.href = '/profile.html';
-            }, 1000);
-        }
-        
-        // Если на главной странице и в WebApp, можно перенаправить на профиль
-        if (currentPath === '/' || currentPath === '/index.html') {
-            const tg = window.Telegram?.WebApp;
-            if (tg && tg.initData) {
-                // В WebApp можно автоматически перенаправить на профиль
-                // Раскомментируйте, если нужно:
-                // setTimeout(() => {
-                //     window.location.href = '/profile.html';
-                // }, 2000);
-            }
-        }
-    }
-
-    // Синхронизация с браузером (для случаев, когда пользователь открывает сайт в браузере после WebApp)
-    function syncWithBrowser() {
-        const telegramAuth = localStorage.getItem('telegram_auth');
-        const userId = localStorage.getItem('user_id');
-
-        if (telegramAuth === 'true' && userId) {
-            // Проверяем сессию на сервере
-            fetch('/api/profile/data', {
-                credentials: 'include',
-            })
-            .then(response => {
-                if (response.ok) {
-                    updateUIForAuthenticatedUser();
-                } else {
-                    // Сессия истекла, очищаем localStorage
-                    localStorage.removeItem('telegram_auth');
-                    localStorage.removeItem('user_id');
-                }
-            })
-            .catch(error => {
-                console.error('Sync error:', error);
-            });
-        }
     }
 
     // Инициализация при загрузке страницы
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
-            initTelegramWebApp();
-            syncWithBrowser();
+            // Ждем загрузки SupabaseAuth
+            setTimeout(initTelegramWebApp, 500);
         });
     } else {
-        initTelegramWebApp();
-        syncWithBrowser();
+        setTimeout(initTelegramWebApp, 500);
     }
 
-    // Экспортируем функции для использования в других скриптах
+    // Экспортируем функции
     window.TelegramWebApp = {
         isTelegramWebApp: isTelegramWebApp,
         init: initTelegramWebApp,
-        sync: syncWithBrowser,
     };
 })();
