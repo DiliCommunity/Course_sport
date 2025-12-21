@@ -2,11 +2,13 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 import { useTelegram } from './TelegramProvider'
 
 interface AuthUser {
   id: string
   email?: string
+  phone?: string
   name?: string
   avatar_url?: string
   telegram_id?: string
@@ -37,14 +39,40 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true)
   const router = useRouter()
   const { user: telegramUser, isTelegramApp } = useTelegram()
+  const supabase = createClient()
 
   useEffect(() => {
+    // Получаем текущую сессию Supabase
     async function fetchUser() {
       try {
-        const response = await fetch('/api/profile/data')
-        if (response.ok) {
-          const data = await response.json()
-          setUser(data.user)
+        const {
+          data: { user: authUser },
+        } = await supabase.auth.getUser()
+
+        if (authUser) {
+          // Получаем профиль пользователя
+          const { data: profile } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', authUser.id)
+            .single()
+
+          if (profile) {
+            setUser({
+              id: authUser.id,
+              email: authUser.email,
+              phone: authUser.phone,
+              name: profile.name,
+              avatar_url: profile.avatar_url,
+              telegram_id: profile.telegram_id,
+            })
+          } else {
+            setUser({
+              id: authUser.id,
+              email: authUser.email,
+              phone: authUser.phone,
+            })
+          }
         } else {
           // Если нет сессии, проверяем Telegram
           if (isTelegramApp && telegramUser) {
@@ -59,15 +87,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
                   last_name: telegramUser.last_name,
                   username: telegramUser.username,
                   photo_url: telegramUser.photo_url,
+                  phone_number: telegramUser.phone_number,
                 }),
               })
               if (authResponse.ok) {
                 const authData = await authResponse.json()
-                // Получаем данные пользователя
-                const profileResponse = await fetch('/api/profile/data')
-                if (profileResponse.ok) {
-                  const profileData = await profileResponse.json()
-                  setUser(profileData.user)
+                if (authData.user) {
+                  setUser({
+                    id: authData.user.id,
+                    email: authData.user.email,
+                    phone: authData.user.phone,
+                    telegram_id: String(telegramUser.id),
+                  })
                 }
               }
             } catch (error) {
@@ -83,11 +114,27 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     fetchUser()
-  }, [isTelegramApp, telegramUser])
+
+    // Слушаем изменения в авторизации
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        // Обновляем пользователя при изменении сессии
+        fetchUser()
+      } else {
+        setUser(null)
+      }
+    })
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [isTelegramApp, telegramUser, supabase])
 
   const signOut = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' })
+      await supabase.auth.signOut()
       setUser(null)
       router.push('/login')
     } catch (error) {

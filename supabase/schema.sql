@@ -5,6 +5,24 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- =====================================================
+-- USERS TABLE (расширение auth.users)
+-- =====================================================
+-- Связываем с auth.users через id
+CREATE TABLE IF NOT EXISTS public.users (
+    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    email VARCHAR(255),
+    phone VARCHAR(20) UNIQUE,
+    name VARCHAR(200) NOT NULL,
+    avatar_url TEXT,
+    telegram_id VARCHAR(50) UNIQUE,
+    telegram_username VARCHAR(100),
+    phone_verified BOOLEAN DEFAULT false,
+    email_verified BOOLEAN DEFAULT false,
+    telegram_verified BOOLEAN DEFAULT false
+);
+
+-- =====================================================
 -- CATEGORIES TABLE
 -- =====================================================
 CREATE TABLE IF NOT EXISTS categories (
@@ -72,25 +90,12 @@ CREATE TABLE IF NOT EXISTS lessons (
 );
 
 -- =====================================================
--- USERS TABLE
--- =====================================================
-CREATE TABLE IF NOT EXISTS users (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-    email VARCHAR(255) UNIQUE,
-    name VARCHAR(200) NOT NULL,
-    avatar_url TEXT,
-    telegram_id VARCHAR(50) UNIQUE,
-    telegram_username VARCHAR(100)
-);
-
--- =====================================================
 -- ENROLLMENTS TABLE
 -- =====================================================
 CREATE TABLE IF NOT EXISTS enrollments (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
     course_id UUID NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
     progress INTEGER NOT NULL DEFAULT 0 CHECK (progress >= 0 AND progress <= 100),
     completed_at TIMESTAMPTZ,
@@ -103,7 +108,7 @@ CREATE TABLE IF NOT EXISTS enrollments (
 CREATE TABLE IF NOT EXISTS lesson_progress (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
     lesson_id UUID NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
     completed BOOLEAN NOT NULL DEFAULT false,
     watch_time_seconds INTEGER NOT NULL DEFAULT 0,
@@ -116,7 +121,7 @@ CREATE TABLE IF NOT EXISTS lesson_progress (
 CREATE TABLE IF NOT EXISTS reviews (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
     course_id UUID NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
     rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
     comment TEXT,
@@ -128,7 +133,7 @@ CREATE TABLE IF NOT EXISTS reviews (
 -- =====================================================
 CREATE TABLE IF NOT EXISTS user_balance (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL UNIQUE REFERENCES public.users(id) ON DELETE CASCADE,
     balance INTEGER NOT NULL DEFAULT 0 CHECK (balance >= 0),
     total_earned INTEGER NOT NULL DEFAULT 0,
     total_withdrawn INTEGER NOT NULL DEFAULT 0,
@@ -141,9 +146,9 @@ CREATE TABLE IF NOT EXISTS user_balance (
 CREATE TABLE IF NOT EXISTS referrals (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-    referrer_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    referred_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
-    referral_code VARCHAR(50) NOT NULL,
+    referrer_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    referred_id UUID NOT NULL UNIQUE REFERENCES public.users(id) ON DELETE CASCADE,
+    referral_code VARCHAR(50) NOT NULL UNIQUE,
     status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'active', 'completed')),
     earned_amount INTEGER NOT NULL DEFAULT 0,
     completed_at TIMESTAMPTZ
@@ -155,12 +160,12 @@ CREATE TABLE IF NOT EXISTS referrals (
 CREATE TABLE IF NOT EXISTS transactions (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
     type VARCHAR(20) NOT NULL CHECK (type IN ('earned', 'withdrawn', 'spent', 'refund')),
     amount INTEGER NOT NULL,
     description TEXT NOT NULL,
-    reference_id UUID, -- ссылка на enrollment, referral и т.д.
-    reference_type VARCHAR(50) -- 'enrollment', 'referral', 'withdrawal' и т.д.
+    reference_id UUID,
+    reference_type VARCHAR(50)
 );
 
 -- =====================================================
@@ -172,7 +177,9 @@ CREATE INDEX IF NOT EXISTS idx_courses_published ON courses(is_published);
 CREATE INDEX IF NOT EXISTS idx_lessons_course ON lessons(course_id);
 CREATE INDEX IF NOT EXISTS idx_enrollments_user ON enrollments(user_id);
 CREATE INDEX IF NOT EXISTS idx_enrollments_course ON enrollments(course_id);
-CREATE INDEX IF NOT EXISTS idx_users_telegram ON users(telegram_id);
+CREATE INDEX IF NOT EXISTS idx_users_telegram ON public.users(telegram_id);
+CREATE INDEX IF NOT EXISTS idx_users_phone ON public.users(phone);
+CREATE INDEX IF NOT EXISTS idx_users_email ON public.users(email);
 CREATE INDEX IF NOT EXISTS idx_user_balance_user ON user_balance(user_id);
 CREATE INDEX IF NOT EXISTS idx_referrals_referrer ON referrals(referrer_id);
 CREATE INDEX IF NOT EXISTS idx_referrals_referred ON referrals(referred_id);
@@ -195,6 +202,11 @@ $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER update_courses_updated_at
     BEFORE UPDATE ON courses
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_user_balance_updated_at
+    BEFORE UPDATE ON user_balance
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
@@ -235,15 +247,54 @@ CREATE TRIGGER trigger_update_students_count
     EXECUTE FUNCTION update_course_students_count();
 
 -- =====================================================
--- ROW LEVEL SECURITY (RLS)
+-- FUNCTION: Создать профиль пользователя при регистрации
+-- =====================================================
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO public.users (id, email, phone, name)
+    VALUES (
+        NEW.id,
+        NEW.email,
+        NEW.phone,
+        COALESCE(NEW.raw_user_meta_data->>'name', NEW.raw_user_meta_data->>'full_name', 'Пользователь')
+    )
+    ON CONFLICT (id) DO NOTHING;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Триггер для автоматического создания профиля
+CREATE TRIGGER on_auth_user_created
+    AFTER INSERT ON auth.users
+    FOR EACH ROW
+    EXECUTE FUNCTION public.handle_new_user();
+
+-- =====================================================
+-- FUNCTION: Создать баланс пользователя
+-- =====================================================
+CREATE OR REPLACE FUNCTION public.create_user_balance()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO public.user_balance (user_id, balance, total_earned, total_withdrawn)
+    VALUES (NEW.id, 0, 0, 0)
+    ON CONFLICT (user_id) DO NOTHING;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Триггер для автоматического создания баланса
+CREATE TRIGGER on_user_created_balance
+    AFTER INSERT ON public.users
+    FOR EACH ROW
+    EXECUTE FUNCTION public.create_user_balance();
+
+-- =====================================================
+-- ROW LEVEL SECURITY (RLS) POLICIES
 -- =====================================================
 
--- Enable RLS
-ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
-ALTER TABLE instructors ENABLE ROW LEVEL SECURITY;
-ALTER TABLE courses ENABLE ROW LEVEL SECURITY;
-ALTER TABLE lessons ENABLE ROW LEVEL SECURITY;
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+-- Включаем RLS для всех таблиц
+ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE enrollments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE lesson_progress ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
@@ -251,39 +302,104 @@ ALTER TABLE user_balance ENABLE ROW LEVEL SECURITY;
 ALTER TABLE referrals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
 
--- Public read access for categories, instructors, courses
-CREATE POLICY "Public read access for categories" ON categories FOR SELECT USING (true);
-CREATE POLICY "Public read access for instructors" ON instructors FOR SELECT USING (true);
-CREATE POLICY "Public read access for published courses" ON courses FOR SELECT USING (is_published = true);
-CREATE POLICY "Public read access for lessons of published courses" ON lessons FOR SELECT 
-    USING (EXISTS (SELECT 1 FROM courses WHERE courses.id = lessons.course_id AND courses.is_published = true));
+-- =====================================================
+-- USERS POLICIES
+-- =====================================================
 
--- Users can read their own data
-CREATE POLICY "Users can read own data" ON users FOR SELECT USING (auth.uid()::text = id::text OR telegram_id IS NOT NULL);
-CREATE POLICY "Users can update own data" ON users FOR UPDATE USING (auth.uid()::text = id::text);
+-- Пользователи могут читать свой профиль
+CREATE POLICY "Users can read own profile"
+    ON public.users FOR SELECT
+    USING (auth.uid() = id);
 
--- Enrollments
-CREATE POLICY "Users can read own enrollments" ON enrollments FOR SELECT USING (auth.uid()::text = user_id::text);
-CREATE POLICY "Users can create enrollments" ON enrollments FOR INSERT WITH CHECK (auth.uid()::text = user_id::text);
+-- Пользователи могут обновлять свой профиль
+CREATE POLICY "Users can update own profile"
+    ON public.users FOR UPDATE
+    USING (auth.uid() = id);
 
--- Lesson progress
-CREATE POLICY "Users can manage own lesson progress" ON lesson_progress FOR ALL USING (auth.uid()::text = user_id::text);
+-- =====================================================
+-- ENROLLMENTS POLICIES
+-- =====================================================
 
--- Reviews
-CREATE POLICY "Public read access for reviews" ON reviews FOR SELECT USING (true);
-CREATE POLICY "Users can manage own reviews" ON reviews FOR ALL USING (auth.uid()::text = user_id::text);
+-- Пользователи могут читать свои записи на курсы
+CREATE POLICY "Users can read own enrollments"
+    ON enrollments FOR SELECT
+    USING (auth.uid() = user_id);
 
--- User Balance
-CREATE POLICY "Users can read own balance" ON user_balance FOR SELECT USING (auth.uid()::text = user_id::text);
-CREATE POLICY "Users can update own balance" ON user_balance FOR UPDATE USING (auth.uid()::text = user_id::text);
+-- Пользователи могут создавать записи на курсы
+CREATE POLICY "Users can create own enrollments"
+    ON enrollments FOR INSERT
+    WITH CHECK (auth.uid() = user_id);
 
--- Referrals
-CREATE POLICY "Users can read own referrals" ON referrals FOR SELECT USING (auth.uid()::text = referrer_id::text OR auth.uid()::text = referred_id::text);
-CREATE POLICY "Users can create referrals" ON referrals FOR INSERT WITH CHECK (auth.uid()::text = referrer_id::text);
+-- Пользователи могут обновлять свои записи
+CREATE POLICY "Users can update own enrollments"
+    ON enrollments FOR UPDATE
+    USING (auth.uid() = user_id);
 
--- Transactions
-CREATE POLICY "Users can read own transactions" ON transactions FOR SELECT USING (auth.uid()::text = user_id::text);
-CREATE POLICY "System can create transactions" ON transactions FOR INSERT WITH CHECK (true); -- через service role
+-- =====================================================
+-- LESSON PROGRESS POLICIES
+-- =====================================================
+
+-- Пользователи могут читать свой прогресс
+CREATE POLICY "Users can read own lesson progress"
+    ON lesson_progress FOR SELECT
+    USING (auth.uid() = user_id);
+
+-- Пользователи могут создавать/обновлять свой прогресс
+CREATE POLICY "Users can manage own lesson progress"
+    ON lesson_progress FOR ALL
+    USING (auth.uid() = user_id)
+    WITH CHECK (auth.uid() = user_id);
+
+-- =====================================================
+-- REVIEWS POLICIES
+-- =====================================================
+
+-- Все могут читать отзывы
+CREATE POLICY "Anyone can read reviews"
+    ON reviews FOR SELECT
+    USING (true);
+
+-- Пользователи могут создавать свои отзывы
+CREATE POLICY "Users can create own reviews"
+    ON reviews FOR INSERT
+    WITH CHECK (auth.uid() = user_id);
+
+-- Пользователи могут обновлять свои отзывы
+CREATE POLICY "Users can update own reviews"
+    ON reviews FOR UPDATE
+    USING (auth.uid() = user_id);
+
+-- =====================================================
+-- USER BALANCE POLICIES
+-- =====================================================
+
+-- Пользователи могут читать свой баланс
+CREATE POLICY "Users can read own balance"
+    ON user_balance FOR SELECT
+    USING (auth.uid() = user_id);
+
+-- =====================================================
+-- REFERRALS POLICIES
+-- =====================================================
+
+-- Пользователи могут читать свои рефералы
+CREATE POLICY "Users can read own referrals"
+    ON referrals FOR SELECT
+    USING (auth.uid() = referrer_id OR auth.uid() = referred_id);
+
+-- Пользователи могут создавать рефералы
+CREATE POLICY "Users can create referrals"
+    ON referrals FOR INSERT
+    WITH CHECK (auth.uid() = referrer_id);
+
+-- =====================================================
+-- TRANSACTIONS POLICIES
+-- =====================================================
+
+-- Пользователи могут читать свои транзакции
+CREATE POLICY "Users can read own transactions"
+    ON transactions FOR SELECT
+    USING (auth.uid() = user_id);
 
 -- =====================================================
 -- SEED DATA
@@ -308,4 +424,3 @@ INSERT INTO instructors (name, bio, avatar_url, specialization, experience_years
 ('Дмитрий Волков', 'Чемпион России по боксу, тренер сборной.', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400', 'Бокс и единоборства', 18, 5432, 4, 4.9),
 ('Марина Петрова', 'Сертифицированный CrossFit Level 3 тренер.', 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400', 'Кроссфит', 10, 7856, 5, 4.7)
 ON CONFLICT DO NOTHING;
-

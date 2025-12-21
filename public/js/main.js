@@ -92,10 +92,7 @@ if (burgerMenu && mobileMenu && mobileMenuOverlay && mobileMenuClose) {
     const mobileMenuLinks = mobileMenu.querySelectorAll('.mobile-menu-links a');
     mobileMenuLinks.forEach(link => {
         link.addEventListener('click', () => {
-            // Don't close if it's the profile link (disabled)
-            if (!link.classList.contains('mobile-menu-profile')) {
-                setTimeout(closeMenu, 200);
-            }
+            setTimeout(closeMenu, 200);
         });
     });
 
@@ -106,6 +103,65 @@ if (burgerMenu && mobileMenu && mobileMenuOverlay && mobileMenuClose) {
         }
     });
 }
+
+// Check authentication and show/hide profile links
+async function checkAuth() {
+    try {
+        const response = await fetch('/api/profile/data');
+        if (response.ok) {
+            // User is authenticated
+            const authButtons = document.getElementById('authButtons');
+            const guestButtons = document.getElementById('guestButtons');
+            const mobileProfileLink = document.getElementById('mobileProfileLink');
+            
+            if (authButtons && guestButtons) {
+                authButtons.style.display = 'flex';
+                authButtons.style.gap = '10px';
+                authButtons.style.alignItems = 'center';
+                guestButtons.style.display = 'none';
+            }
+            
+            if (mobileProfileLink) {
+                mobileProfileLink.style.display = 'block';
+            }
+        } else {
+            // User is not authenticated
+            const authButtons = document.getElementById('authButtons');
+            const guestButtons = document.getElementById('guestButtons');
+            const mobileProfileLink = document.getElementById('mobileProfileLink');
+            
+            if (authButtons && guestButtons) {
+                authButtons.style.display = 'none';
+                guestButtons.style.display = 'flex';
+                guestButtons.style.gap = '10px';
+                guestButtons.style.alignItems = 'center';
+            }
+            
+            if (mobileProfileLink) {
+                mobileProfileLink.style.display = 'none';
+            }
+        }
+    } catch (error) {
+        // Error checking auth - show guest buttons
+        const authButtons = document.getElementById('authButtons');
+        const guestButtons = document.getElementById('guestButtons');
+        const mobileProfileLink = document.getElementById('mobileProfileLink');
+        
+        if (authButtons && guestButtons) {
+            authButtons.style.display = 'none';
+            guestButtons.style.display = 'flex';
+            guestButtons.style.gap = '10px';
+            guestButtons.style.alignItems = 'center';
+        }
+        
+        if (mobileProfileLink) {
+            mobileProfileLink.style.display = 'none';
+        }
+    }
+}
+
+// Check auth on page load
+checkAuth();
 
 console.log('Course Health - сайт загружен успешно!');
 

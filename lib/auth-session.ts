@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers'
-import { getSession, createSession, deleteSession } from './vercel/kv'
-import { getUserById, type User } from './vercel/kv'
+import { getSession, createSession, deleteSession } from './turso/db'
+import { getUserById, type User } from './turso/db'
 
 const SESSION_COOKIE_NAME = 'session_id'
 const SESSION_MAX_AGE = 30 * 24 * 60 * 60 // 30 дней

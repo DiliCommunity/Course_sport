@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getUserByTelegramId, createUser, updateUser } from '@/lib/vercel/kv'
+import { getUserByTelegramId, createUser, updateUser } from '@/lib/turso/db'
 
 export async function POST(request: NextRequest) {
   try {

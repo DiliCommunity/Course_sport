@@ -81,17 +81,33 @@ export default function ProfilePage() {
   const fetchProfileData = async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/profile/data')
+      const response = await fetch('/api/profile/data', {
+        credentials: 'include', // Важно: отправляем cookies
+      })
       
       if (!response.ok) {
-        throw new Error('Failed to fetch profile data')
+        if (response.status === 401) {
+          // Пользователь не авторизован
+          router.push('/login')
+          return
+        }
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || 'Failed to fetch profile data')
       }
 
       const data = await response.json()
+      
+      // Проверяем, что данные принадлежат текущему пользователю
+      if (data.user && currentUserId && data.user.id !== currentUserId) {
+        console.warn('Profile data mismatch:', data.user.id, 'vs', currentUserId)
+        setError('Ошибка: данные профиля не соответствуют текущему пользователю')
+        return
+      }
+      
       setProfileData(data)
     } catch (err) {
       console.error('Profile fetch error:', err)
-      setError('Не удалось загрузить данные профиля')
+      setError(err instanceof Error ? err.message : 'Не удалось загрузить данные профиля')
     } finally {
       setLoading(false)
     }

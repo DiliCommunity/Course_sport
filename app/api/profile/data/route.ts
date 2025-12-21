@@ -1,77 +1,94 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/auth-session'
-import {
-  getUserBalance,
-  getUserEnrollments,
-  getCourse,
-  getUserReferrals,
-  getUserTransactions,
-} from '@/lib/vercel/kv'
+import { createClient } from '@/lib/supabase/server'
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser()
+    const supabase = await createClient()
 
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    // Получаем текущего пользователя
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
+
+    if (userError || !user) {
+      return NextResponse.json(
+        {
+          error: 'Unauthorized',
+          message: 'Please log in to view your profile',
+        },
+        { status: 401 }
+      )
     }
 
-    // Get balance
-    const balance = await getUserBalance(user.id)
+    // Получаем профиль пользователя
+    const { data: profile, error: profileError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', user.id)
+      .single()
 
-    // Get enrollments with course details
-    const enrollments = await getUserEnrollments(user.id)
-    const enrollmentsWithCourses = await Promise.all(
-      enrollments.map(async (enrollment) => {
-        const course = await getCourse(enrollment.course_id)
-        return {
-          ...enrollment,
-          courses: course,
-        }
-      })
-    )
-
-    // Get referrals
-    const referrals = await getUserReferrals(user.id)
-
-    // Generate referral code if doesn't exist
-    let referralCode = `REF-${user.id.slice(0, 8).toUpperCase()}`
-    const existingReferral = referrals.find((r) => r.referral_code)
-    if (existingReferral) {
-      referralCode = existingReferral.referral_code
+    if (profileError) {
+      console.error('Profile error:', profileError)
+      return NextResponse.json(
+        { error: 'Failed to fetch profile' },
+        { status: 500 }
+      )
     }
 
-    // Get transactions
-    const transactions = await getUserTransactions(user.id, 50)
+    // Получаем баланс
+    const { data: balance, error: balanceError } = await supabase
+      .from('user_balance')
+      .select('*')
+      .eq('user_id', user.id)
+      .single()
 
-    // Calculate referral stats
-    const referralStats = {
-      total_referred: referrals.length,
-      total_earned: balance.total_earned,
-      active_referrals: referrals.filter((r) => r.status === 'active').length,
-      completed_referrals: referrals.filter((r) => r.status === 'completed').length,
-    }
+    // Получаем записи на курсы
+    const { data: enrollments, error: enrollmentsError } = await supabase
+      .from('enrollments')
+      .select(`
+        *,
+        course:courses(*)
+      `)
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+
+    // Получаем рефералы
+    const { data: referrals, error: referralsError } = await supabase
+      .from('referrals')
+      .select('*')
+      .eq('referrer_id', user.id)
+      .order('created_at', { ascending: false })
+
+    // Получаем транзакции
+    const { data: transactions, error: transactionsError } = await supabase
+      .from('transactions')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(50)
 
     return NextResponse.json({
       user: {
         id: user.id,
-        name: user.name,
         email: user.email,
-        avatar_url: user.avatar_url,
-        telegram_id: user.telegram_id,
+        phone: user.phone,
+        ...profile,
       },
-      balance: {
-        balance: balance.balance,
-        total_earned: balance.total_earned,
-        total_withdrawn: balance.total_withdrawn,
+      balance: balance || {
+        balance: 0,
+        total_earned: 0,
+        total_withdrawn: 0,
       },
-      enrollments: enrollmentsWithCourses.filter((e) => e.courses !== null),
-      referralCode,
-      referralStats,
-      transactions,
+      enrollments: enrollments || [],
+      referrals: referrals || [],
+      transactions: transactions || [],
     })
   } catch (error: any) {
     console.error('Profile data error:', error)
-    return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: error.message || 'Internal server error' },
+      { status: 500 }
+    )
   }
 }
