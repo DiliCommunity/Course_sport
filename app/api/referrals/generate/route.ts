@@ -50,12 +50,11 @@ export async function POST(request: NextRequest) {
       return code
     }
 
-    let referralCode: string
+    let referralCode: string = generateCode()
     let isUnique = false
 
     // Генерируем уникальный код
     while (!isUnique) {
-      referralCode = generateCode()
       const { data: check } = await supabase
         .from('user_referral_codes')
         .select('id')
@@ -64,6 +63,8 @@ export async function POST(request: NextRequest) {
 
       if (!check) {
         isUnique = true
+      } else {
+        referralCode = generateCode()
       }
     }
 
@@ -72,7 +73,7 @@ export async function POST(request: NextRequest) {
       .from('user_referral_codes')
       .insert({
         user_id: user.id,
-        referral_code: referralCode!,
+        referral_code: referralCode,
         is_active: true,
         total_uses: 0,
         total_earned: 0,
