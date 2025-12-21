@@ -1,6 +1,8 @@
 import { createServerClient } from '@supabase/ssr'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 
+// Обычный клиент с cookies для пользовательских сессий
 export async function createClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -33,4 +35,22 @@ export async function createClient() {
       },
     }
   )
+}
+
+// Admin клиент с service_role для серверных операций (создание пользователей без подтверждения email)
+export function createAdminClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!url || !serviceRoleKey) {
+    console.warn('Missing SUPABASE_SERVICE_ROLE_KEY - admin operations will fail')
+    return null
+  }
+
+  return createSupabaseClient(url, serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  })
 }
