@@ -96,12 +96,18 @@ function loginWithTelegram() {
             handleTelegramLogin(user);
         } else {
             // Open Telegram bot
-            window.open('https://t.me/CourseHealthBot', '_blank');
+            window.open('https://t.me/Course_Sport_bot', '_blank');
         }
     } else {
         // Open Telegram bot
-        window.open('https://t.me/CourseHealthBot', '_blank');
+        window.open('https://t.me/Course_Sport_bot', '_blank');
     }
+}
+
+// Login with VK (placeholder)
+function loginWithVK() {
+    // TODO: Implement VK OAuth
+    alert('Вход через ВКонтакте скоро будет доступен');
 }
 
 // Handle Telegram login

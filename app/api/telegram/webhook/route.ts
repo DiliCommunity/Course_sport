@@ -61,6 +61,7 @@ async function sendTelegramMessage(
     return null
   }
 
+  console.log('Sending Telegram message to chat:', chatId)
   const telegramApiUrl = `https://api.telegram.org/bot${botToken}`
 
   try {
@@ -97,7 +98,9 @@ async function sendTelegramMessage(
         return null
       }
 
-      return await response.json()
+      const result = await response.json()
+      console.log('Photo sent successfully:', result.ok)
+      return result
     } else {
       // Отправляем текстовое сообщение
       const response = await fetch(`${telegramApiUrl}/sendMessage`, {
@@ -125,10 +128,12 @@ async function sendTelegramMessage(
         return null
       }
 
-      return await response.json()
+      const result = await response.json()
+      console.log('Message sent successfully:', result.ok)
+      return result
     }
-  } catch (error) {
-    console.error('Error sending Telegram message:', error)
+  } catch (error: any) {
+    console.error('Error sending Telegram message:', error.message || error)
     return null
   }
 }
@@ -137,8 +142,11 @@ async function sendTelegramMessage(
 async function handleStartCommand(chatId: number, userId: number, firstName: string) {
   const appUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://course-sport.vercel.app'
   
+  console.log('handleStartCommand called:', { chatId, userId, firstName, appUrl })
+  
   // URL изображения кето-диеты (используем из public/img)
   const photoUrl = `${appUrl}/img/keto_course.png`
+  console.log('Photo URL:', photoUrl)
 
   const welcomeText = `🎉 <b>Привет, ${firstName}!</b>
 
@@ -184,20 +192,26 @@ async function handleStartCommand(chatId: number, userId: number, firstName: str
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient()
+    // Логируем входящий запрос для отладки
+    console.log('Telegram webhook received')
+    
     const body = await request.json() as TelegramUpdate
+    console.log('Webhook body:', JSON.stringify(body, null, 2))
 
     // Проверка webhook secret (опционально)
     const webhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET
     if (webhookSecret) {
       const secret = request.headers.get('x-telegram-bot-api-secret-token')
       if (secret !== webhookSecret) {
+        console.error('Webhook secret mismatch')
         return NextResponse.json(
           { error: 'Unauthorized' },
           { status: 401 }
         )
       }
     }
+
+    const supabase = await createClient()
 
     // Обработка сообщения
     if (body.message) {
@@ -209,32 +223,45 @@ export async function POST(request: NextRequest) {
 
       // Обработка команды /start
       if (text === '/start' || text?.startsWith('/start')) {
-        await handleStartCommand(chatId, userId, firstName)
-
-        // Сохраняем информацию о пользователе в Supabase (опционально)
+        console.log('Processing /start command for user:', userId, firstName)
+        
         try {
-          const { error } = await supabase
-            .from('users')
-            .upsert(
-              {
-                telegram_id: String(userId),
-                name: firstName,
-                telegram_username: message.from.username || null,
-                telegram_verified: true,
-              },
-              {
-                onConflict: 'telegram_id',
-              }
-            )
+          const result = await handleStartCommand(chatId, userId, firstName)
+          console.log('Start command result:', result ? 'success' : 'failed')
 
-          if (error) {
-            console.error('Error saving user:', error)
+          // Сохраняем информацию о пользователе в Supabase (опционально)
+          try {
+            const { error } = await supabase
+              .from('users')
+              .upsert(
+                {
+                  telegram_id: String(userId),
+                  name: firstName,
+                  telegram_username: message.from.username || null,
+                  telegram_verified: true,
+                },
+                {
+                  onConflict: 'telegram_id',
+                }
+              )
+
+            if (error) {
+              console.error('Error saving user:', error)
+            } else {
+              console.log('User saved to Supabase')
+            }
+          } catch (error) {
+            console.error('Error in user save:', error)
           }
-        } catch (error) {
-          console.error('Error in user save:', error)
-        }
 
-        return NextResponse.json({ success: true, handled: 'start_command' })
+          return NextResponse.json({ success: true, handled: 'start_command' })
+        } catch (error: any) {
+          console.error('Error handling /start command:', error)
+          return NextResponse.json(
+            { error: error.message || 'Failed to handle /start' },
+            { status: 500 }
+          )
+        }
       }
 
       // Можно добавить обработку других команд здесь
@@ -253,9 +280,11 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    console.log('Webhook processed successfully')
     return NextResponse.json({ success: true })
   } catch (error: any) {
     console.error('Webhook error:', error)
+    console.error('Error stack:', error.stack)
     return NextResponse.json(
       { error: error.message || 'Internal server error' },
       { status: 500 }
