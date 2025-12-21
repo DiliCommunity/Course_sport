@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getUserByTelegramId, createUser, updateUser } from '@/lib/turso/db'
+import { createClient } from '@/lib/supabase/server'
 
 export async function POST(request: NextRequest) {
   try {
+    const supabase = await createClient()
     const body = await request.json()
     
     // Обработка webhook от Telegram

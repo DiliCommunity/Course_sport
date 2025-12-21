@@ -1,49 +1,51 @@
-import { cookies } from 'next/headers'
-import { getSession, createSession, deleteSession } from './turso/db'
-import { getUserById, type User } from './turso/db'
+import { createClient } from '@/lib/supabase/server'
 
-const SESSION_COOKIE_NAME = 'session_id'
-const SESSION_MAX_AGE = 30 * 24 * 60 * 60 // 30 дней
+export interface User {
+  id: string
+  email?: string
+  phone?: string
+  name?: string
+  avatar_url?: string | null
+  telegram_id?: string | null
+}
 
 export async function getCurrentUser(): Promise<User | null> {
-  const cookieStore = cookies()
-  const sessionId = cookieStore.get(SESSION_COOKIE_NAME)?.value
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user: authUser },
+      error,
+    } = await supabase.auth.getUser()
 
-  if (!sessionId) return null
+    if (error || !authUser) {
+      return null
+    }
 
-  const session = await getSession(sessionId)
-  if (!session) return null
+    // Получаем профиль пользователя
+    const { data: profile } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', authUser.id)
+      .single()
 
-  return getUserById(session.user_id)
-}
+    if (!profile) {
+      return {
+        id: authUser.id,
+        email: authUser.email,
+        phone: authUser.phone,
+      }
+    }
 
-export async function createUserSession(userId: string): Promise<string> {
-  const session = await createSession(userId, 30)
-  const cookieStore = cookies()
-  
-  cookieStore.set(SESSION_COOKIE_NAME, session.id, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: SESSION_MAX_AGE,
-    path: '/',
-  })
-
-  return session.id
-}
-
-export async function deleteUserSession(): Promise<void> {
-  const cookieStore = cookies()
-  const sessionId = cookieStore.get(SESSION_COOKIE_NAME)?.value
-
-  if (sessionId) {
-    await deleteSession(sessionId)
+    return {
+      id: authUser.id,
+      email: authUser.email,
+      phone: authUser.phone,
+      name: profile.name,
+      avatar_url: profile.avatar_url,
+      telegram_id: profile.telegram_id,
+    }
+  } catch (error) {
+    console.error('getCurrentUser error:', error)
+    return null
   }
-
-  cookieStore.delete(SESSION_COOKIE_NAME)
-}
-
-export async function getSessionId(): Promise<string | null> {
-  const cookieStore = cookies()
-  return cookieStore.get(SESSION_COOKIE_NAME)?.value || null
 }

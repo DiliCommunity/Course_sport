@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth-session'
+import { createClient } from '@/lib/supabase/server'
 
 // Временная заглушка - загрузка аватаров отключена
 export async function POST(request: NextRequest) {
