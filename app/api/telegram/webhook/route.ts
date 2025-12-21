@@ -82,7 +82,13 @@ async function sendTelegramMessage(
       })
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: await response.text() }))
+        let errorData
+        try {
+          errorData = await response.json()
+        } catch {
+          const errorText = await response.text()
+          errorData = { error: errorText }
+        }
         console.error('Telegram API error:', errorData)
         // Если не удалось отправить фото, попробуем отправить текст
         if (errorData.error_code === 400) {
@@ -108,7 +114,13 @@ async function sendTelegramMessage(
       })
 
       if (!response.ok) {
-        const error = await response.text()
+        let error
+        try {
+          const errorJson = await response.json()
+          error = errorJson.description || errorJson.error || JSON.stringify(errorJson)
+        } catch {
+          error = await response.text()
+        }
         console.error('Telegram API error:', error)
         return null
       }
