@@ -17,14 +17,19 @@ export async function POST(request: NextRequest) {
       })
 
       if (error) {
+        console.error('Login error:', error.message)
         return NextResponse.json(
-          { error: error.message || 'Invalid email or password' },
+          { error: error.message || 'Неверный email или пароль' },
           { status: 401 }
         )
       }
 
+      // Возвращаем данные в формате, который ожидает клиент
       return NextResponse.json({
         success: true,
+        user_id: data.user?.id,
+        email: data.user?.email,
+        access_token: data.session?.access_token,
         user: data.user,
         session: data.session,
       })
@@ -40,26 +45,29 @@ export async function POST(request: NextRequest) {
 
       if (error) {
         return NextResponse.json(
-          { error: error.message || 'Invalid OTP code' },
+          { error: error.message || 'Неверный код подтверждения' },
           { status: 401 }
         )
       }
 
       return NextResponse.json({
         success: true,
+        user_id: data.user?.id,
+        phone: data.user?.phone,
+        access_token: data.session?.access_token,
         user: data.user,
         session: data.session,
       })
     }
 
     return NextResponse.json(
-      { error: 'Email/password or phone/otp required' },
+      { error: 'Необходимо указать email и пароль' },
       { status: 400 }
     )
   } catch (error: any) {
     console.error('Login error:', error)
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
+      { error: error.message || 'Внутренняя ошибка сервера' },
       { status: 500 }
     )
   }

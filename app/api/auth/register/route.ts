@@ -43,9 +43,14 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({
         success: true,
+        user_id: data.user?.id,
+        email: data.user?.email,
+        access_token: data.session?.access_token,
         user: data.user,
         session: data.session,
-        message: 'Registration successful. Please check your email to verify your account.',
+        message: data.session 
+          ? 'Регистрация успешна!' 
+          : 'Регистрация успешна. Проверьте email для подтверждения.',
       })
     }
 

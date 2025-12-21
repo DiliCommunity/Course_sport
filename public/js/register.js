@@ -252,12 +252,19 @@ async function handleRegister(event) {
         successDiv.style.display = 'block';
         
         // Save to localStorage
-        if (data.user) {
+        if (data.user_id) {
+            localStorage.setItem('user_id', data.user_id);
+        } else if (data.user && data.user.id) {
             localStorage.setItem('user_id', data.user.id);
-            if (email) {
-                localStorage.setItem('user_email', email);
-            }
-            localStorage.setItem('user_name', name);
+        }
+        
+        if (email) {
+            localStorage.setItem('user_email', email);
+        }
+        localStorage.setItem('user_name', name);
+        
+        if (data.access_token) {
+            localStorage.setItem('access_token', data.access_token);
         }
         
         // Redirect after 2 seconds
@@ -623,9 +630,10 @@ function showError(message) {
         }
     }
     
-    // Check if already logged in
-    if (localStorage.getItem('user_id') || localStorage.getItem('telegram_user_id')) {
-        window.location.href = '/courses.html';
-    }
+    // НЕ редиректим автоматически - пусть пользователь сам решает
+    // Если хотите автоматический редирект, раскомментируйте:
+    // if (localStorage.getItem('user_id') || localStorage.getItem('telegram_user_id')) {
+    //     window.location.href = '/courses.html';
+    // }
 });
 

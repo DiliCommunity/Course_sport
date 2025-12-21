@@ -187,6 +187,19 @@ function showLoginError(message) {
     errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
+// Clear all auth data (logout)
+function clearAuthData() {
+    localStorage.removeItem('user_id');
+    localStorage.removeItem('user_email');
+    localStorage.removeItem('user_name');
+    localStorage.removeItem('user_phone');
+    localStorage.removeItem('telegram_user_id');
+    localStorage.removeItem('telegram_id');
+    localStorage.removeItem('telegram_auth');
+    localStorage.removeItem('access_token');
+    // Keep remember_me preference
+}
+
 // Check if user is already logged in
 window.addEventListener('DOMContentLoaded', () => {
     // Check Telegram WebApp
@@ -199,19 +212,27 @@ window.addEventListener('DOMContentLoaded', () => {
         if (user) {
             // Auto-login if in Telegram
             const telegramDiv = document.getElementById('telegramLogin');
-            telegramDiv.querySelector('button').textContent = 'Продолжить как ' + user.first_name;
+            if (telegramDiv) {
+                const button = telegramDiv.querySelector('button');
+                if (button) {
+                    button.textContent = 'Продолжить как ' + user.first_name;
+                }
+            }
         }
     }
     
-    // Check if already logged in
-    if (localStorage.getItem('user_id') || localStorage.getItem('telegram_user_id')) {
-        window.location.href = '/courses.html';
-    }
+    // НЕ редиректим автоматически - пусть пользователь сам решает
+    // Если хотите автоматический редирект, раскомментируйте:
+    // if (localStorage.getItem('user_id') || localStorage.getItem('telegram_user_id')) {
+    //     window.location.href = '/courses.html';
+    // }
     
     // Auto-fill email if remembered
     if (localStorage.getItem('remember_me') === 'true' && localStorage.getItem('user_email')) {
-        document.getElementById('loginEmail').value = localStorage.getItem('user_email');
-        document.getElementById('remember').checked = true;
+        const emailInput = document.getElementById('loginEmail');
+        const rememberCheckbox = document.getElementById('remember');
+        if (emailInput) emailInput.value = localStorage.getItem('user_email');
+        if (rememberCheckbox) rememberCheckbox.checked = true;
     }
 });
 
