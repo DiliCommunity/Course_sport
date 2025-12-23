@@ -22,8 +22,8 @@ function hashPassword(password: string): string {
   return `${iterations}:${salt}:${hash}`
 }
 
-// Проверка пароля
-export function verifyPassword(password: string, storedHash: string): boolean {
+// Проверка пароля (используется в login route)
+function verifyPassword(password: string, storedHash: string): boolean {
   const [iterations, salt, hash] = storedHash.split(':')
   
   const verifyHash = crypto.pbkdf2Sync(
