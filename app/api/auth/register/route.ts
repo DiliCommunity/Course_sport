@@ -4,7 +4,7 @@ import crypto from 'crypto'
 
 export const dynamic = 'force-dynamic'
 
-// Простое хеширование пароля (без bcrypt для избежания зависимостей)
+// Простое хеширование пароля
 function hashPassword(password: string): string {
   return crypto.createHash('sha256').update(password + 'course_health_salt_2024').digest('hex')
 }
@@ -67,7 +67,6 @@ export async function POST(request: NextRequest) {
         email: email || null,
         phone: phone || null,
         registration_method: 'username',
-        referred_by: referralCode || null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
@@ -80,6 +79,53 @@ export async function POST(request: NextRequest) {
         { error: 'Ошибка создания пользователя: ' + insertError.message },
         { status: 500 }
       )
+    }
+
+    // Обрабатываем реферальный код если есть
+    if (referralCode) {
+      try {
+        // Находим владельца реферального кода
+        const { data: referralOwner } = await supabase
+          .from('user_referral_codes')
+          .select('user_id')
+          .eq('referral_code', referralCode)
+          .eq('is_active', true)
+          .single()
+
+        if (referralOwner && referralOwner.user_id !== userId) {
+          // Создаем запись о реферале
+          await supabase
+            .from('referrals')
+            .insert({
+              referrer_id: referralOwner.user_id,
+              referred_id: userId,
+              referral_code: referralCode,
+              status: 'active',
+              referred_bonus: 10000, // 100 рублей
+              commission_percent: 10.00
+            })
+
+          // Обновляем статистику кода
+          const { data: codeData } = await supabase
+            .from('user_referral_codes')
+            .select('total_uses')
+            .eq('referral_code', referralCode)
+            .single()
+
+          if (codeData) {
+            await supabase
+              .from('user_referral_codes')
+              .update({ total_uses: (codeData.total_uses || 0) + 1 })
+              .eq('referral_code', referralCode)
+          }
+
+          // Начисляем бонусы (через транзакции)
+          // Это будет обработано триггерами или вручную
+        }
+      } catch (refError) {
+        console.error('Referral processing error:', refError)
+        // Не блокируем регистрацию если реферальный код не найден
+      }
     }
 
     return NextResponse.json({
