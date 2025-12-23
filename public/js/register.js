@@ -1,5 +1,15 @@
 // Простая регистрация (логин + пароль)
 
+// Получаем реферальный код из URL
+const urlParams = new URLSearchParams(window.location.search);
+const referralCode = urlParams.get('ref');
+
+// Если есть реферальный код - сохраняем его
+if (referralCode) {
+    localStorage.setItem('pending_referral', referralCode);
+    console.log('Реферальный код сохранён:', referralCode);
+}
+
 // Показать/скрыть пароль
 function togglePassword() {
     const passwordInput = document.getElementById('password');
@@ -98,6 +108,9 @@ async function handleRegister(event) {
         // Создаем пользователя (используем email как username@temp.local если email не указан)
         const userEmail = email || `${username}@temp.local`;
         
+        // Получаем сохраненный реферальный код
+        const savedReferral = localStorage.getItem('pending_referral');
+        
         const response = await fetch('/api/auth/register', {
             method: 'POST',
             headers: {
@@ -107,7 +120,8 @@ async function handleRegister(event) {
                 email: userEmail,
                 password: password,
                 name: name,
-                phone: phone || null
+                phone: phone || null,
+                referralCode: savedReferral || null
             })
         });
 
@@ -123,6 +137,9 @@ async function handleRegister(event) {
         localStorage.setItem('user_username', username);
         if (email) localStorage.setItem('user_email', email);
         if (phone) localStorage.setItem('user_phone', phone);
+        
+        // Удаляем использованный реферальный код
+        localStorage.removeItem('pending_referral');
 
         // Показываем успех
         showSuccess();

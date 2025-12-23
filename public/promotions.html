@@ -121,24 +121,139 @@
                 </div>
 
                 <!-- Акция 2: Реферальная программа -->
-                <div class="promotion-card promotion-new">
-                    <div class="promotion-badge" data-i18n="promotions.new">✨ Реферальная программа</div>
+                <div class="promotion-card promotion-new" id="referralCard">
+                    <div class="promotion-badge">✨ Реферальная программа</div>
                     <div class="promotion-content">
                         <div class="promotion-icon-large">👥</div>
-                        <h3 class="promotion-title" data-i18n="promotions.referral.title">Приведи друга — получи 30%</h3>
-                        <p class="promotion-description" data-i18n="promotions.referral.description">
-                            Пригласи друга на платформу! Если он купит курс, ты получишь 30% от суммы его покупки на свой счет.
-                        </p>
-                        <div class="promotion-benefits">
-                            <div class="benefits-title" data-i18n="promotions.referral.howItWorks">💎 Как это работает:</div>
-                            <ul class="benefits-list">
-                                <li data-i18n="promotions.referral.step1">✓ Получи свою реферальную ссылку</li>
-                                <li data-i18n="promotions.referral.step2">✓ Поделись с друзьями</li>
-                                <li data-i18n="promotions.referral.step3">✓ Получи 30% с каждой покупки друга</li>
-                                <li data-i18n="promotions.referral.step4">✓ Выводи средства или используй на курсы</li>
-                            </ul>
+                        <h3 class="promotion-title">Приведи друга — получи 30%</h3>
+                        
+                        <!-- Блок до покупки курса -->
+                        <div id="referralLocked">
+                            <p class="promotion-description">
+                                🔒 Чтобы получить реферальную ссылку, купите любой курс. После покупки здесь появится ваша персональная ссылка!
+                            </p>
+                            <div class="promotion-benefits">
+                                <div class="benefits-title">💎 Как это работает:</div>
+                                <ul class="benefits-list">
+                                    <li>✓ Купи любой курс</li>
+                                    <li>✓ Получи персональную реферальную ссылку</li>
+                                    <li>✓ Поделись с друзьями</li>
+                                    <li>✓ Получи 30% с каждой покупки друга</li>
+                                </ul>
+                            </div>
+                            <a href="/courses.html" class="btn-primary btn-full">Выбрать курс</a>
                         </div>
-                        <a href="/courses.html" class="btn-primary btn-full" data-i18n="promotions.referral.action">Получить реферальную ссылку</a>
+
+                        <!-- Блок после покупки курса -->
+                        <div id="referralUnlocked" style="display: none;">
+                            <p class="promotion-description" style="color: var(--accent-neon);">
+                                🎉 Поздравляем! Ваша реферальная ссылка готова!
+                            </p>
+                            
+                            <div style="
+                                background: rgba(0, 255, 136, 0.1);
+                                border: 2px solid var(--accent-neon);
+                                border-radius: 12px;
+                                padding: 15px;
+                                margin: 20px 0;
+                            ">
+                                <div style="font-size: 12px; color: var(--text-gray); margin-bottom: 8px;">Ваша ссылка:</div>
+                                <div style="
+                                    display: flex;
+                                    gap: 10px;
+                                    align-items: center;
+                                ">
+                                    <input 
+                                        type="text" 
+                                        id="referralLink" 
+                                        readonly 
+                                        style="
+                                            flex: 1;
+                                            background: rgba(0, 0, 0, 0.3);
+                                            border: 1px solid var(--glass-border);
+                                            border-radius: 8px;
+                                            padding: 12px;
+                                            color: var(--text-white);
+                                            font-size: 14px;
+                                        "
+                                    >
+                                    <button 
+                                        onclick="copyReferralLink()" 
+                                        style="
+                                            padding: 12px 20px;
+                                            background: var(--accent-neon);
+                                            border: none;
+                                            border-radius: 8px;
+                                            color: var(--bg-dark);
+                                            font-weight: 700;
+                                            cursor: pointer;
+                                            transition: all 0.3s;
+                                        "
+                                        onmouseover="this.style.transform='scale(1.05)'"
+                                        onmouseout="this.style.transform='scale(1)'"
+                                    >
+                                        📋 Копировать
+                                    </button>
+                                </div>
+                                <div id="copySuccess" style="
+                                    display: none;
+                                    color: var(--accent-neon);
+                                    font-size: 13px;
+                                    margin-top: 10px;
+                                    text-align: center;
+                                ">
+                                    ✓ Ссылка скопирована!
+                                </div>
+                            </div>
+
+                            <div class="promotion-benefits">
+                                <div class="benefits-title">💰 Ваша выгода:</div>
+                                <ul class="benefits-list">
+                                    <li>✓ 30% с каждой покупки друга</li>
+                                    <li>✓ Выводи на карту или используй на курсы</li>
+                                    <li>✓ Без лимита на количество друзей</li>
+                                </ul>
+                            </div>
+
+                            <div style="
+                                display: flex;
+                                gap: 10px;
+                                margin-top: 20px;
+                            ">
+                                <a href="https://t.me/share/url?url=REFERRAL_LINK" id="shareToTelegram" target="_blank" style="
+                                    flex: 1;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    gap: 8px;
+                                    padding: 14px;
+                                    background: #0088cc;
+                                    border-radius: 10px;
+                                    color: white;
+                                    text-decoration: none;
+                                    font-weight: 600;
+                                    transition: all 0.3s;
+                                " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                                    📱 Telegram
+                                </a>
+                                <a href="https://vk.com/share.php?url=REFERRAL_LINK" id="shareToVK" target="_blank" style="
+                                    flex: 1;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    gap: 8px;
+                                    padding: 14px;
+                                    background: #4C75A3;
+                                    border-radius: 10px;
+                                    color: white;
+                                    text-decoration: none;
+                                    font-weight: 600;
+                                    transition: all 0.3s;
+                                " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                                    💬 ВКонтакте
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -220,6 +335,67 @@
     </footer>
 
     <script src="/js/main.js"></script>
+    
+    <script>
+        // Генерация уникальной реферальной ссылки
+        function generateReferralCode(userId) {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+            let randomPart = '';
+            for (let i = 0; i < 8; i++) {
+                randomPart += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return `${userId.substring(0, 6)}_${randomPart}`;
+        }
+
+        // Проверка, купил ли пользователь курс
+        function checkReferralAccess() {
+            const purchasedCourses = JSON.parse(localStorage.getItem('purchased_courses') || '[]');
+            const userId = localStorage.getItem('user_id');
+            
+            if (purchasedCourses.length > 0 && userId) {
+                // Пользователь купил курс - показываем реферальную ссылку
+                document.getElementById('referralLocked').style.display = 'none';
+                document.getElementById('referralUnlocked').style.display = 'block';
+                
+                // Генерируем или получаем сохраненную реферальную ссылку
+                let referralCode = localStorage.getItem('referral_code');
+                if (!referralCode) {
+                    referralCode = generateReferralCode(userId);
+                    localStorage.setItem('referral_code', referralCode);
+                }
+                
+                const baseUrl = window.location.origin;
+                const referralLink = `${baseUrl}/register.html?ref=${referralCode}`;
+                
+                // Устанавливаем ссылку в поле ввода
+                document.getElementById('referralLink').value = referralLink;
+                
+                // Обновляем ссылки для шаринга
+                const encodedLink = encodeURIComponent(referralLink);
+                const shareText = encodeURIComponent('🎓 Крутые курсы по здоровому питанию! Кето-диета и интервальное голодание. Присоединяйся!');
+                
+                document.getElementById('shareToTelegram').href = `https://t.me/share/url?url=${encodedLink}&text=${shareText}`;
+                document.getElementById('shareToVK').href = `https://vk.com/share.php?url=${encodedLink}&title=${shareText}`;
+            }
+        }
+
+        // Копирование реферальной ссылки
+        function copyReferralLink() {
+            const linkInput = document.getElementById('referralLink');
+            linkInput.select();
+            document.execCommand('copy');
+            
+            // Показываем сообщение об успехе
+            const successMsg = document.getElementById('copySuccess');
+            successMsg.style.display = 'block';
+            setTimeout(() => {
+                successMsg.style.display = 'none';
+            }, 2000);
+        }
+
+        // Проверяем при загрузке страницы
+        document.addEventListener('DOMContentLoaded', checkReferralAccess);
+    </script>
 </body>
 </html>
 

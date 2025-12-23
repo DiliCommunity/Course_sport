@@ -605,7 +605,12 @@
         }
 
         function openPaymentModal() {
-            document.getElementById('paymentModal').style.display = 'flex';
+            // Перенаправляем на страницу оплаты с параметрами
+            const courseId = 'interval';
+            const courseTitle = encodeURIComponent('Интервальное Голодание: Ваш Режим Дня');
+            const coursePrice = 1000; // 10₽ для тестирования (в копейках)
+            
+            window.location.href = `/payment.html?course=${courseId}&title=${courseTitle}&price=${coursePrice}`;
         }
 
         function closePaymentModal() {
@@ -613,8 +618,8 @@
         }
 
         function processPayment() {
-            alert('Оплата успешно обработана! (Демо режим)');
-            closePaymentModal();
+            // Перенаправляем на страницу оплаты
+            openPaymentModal();
         }
 
         // IF Calculator Logic
