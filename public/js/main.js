@@ -1,3 +1,21 @@
+// Инициализация навигации (если auth.js загружен)
+if (typeof updateNavigation === 'function') {
+    updateNavigation();
+}
+
+// Обновление мобильного меню для авторизованных пользователей
+if (typeof isAuthenticated === 'function' && isAuthenticated()) {
+    const mobileProfileLink = document.getElementById('mobileProfileLink');
+    const mobileWalletLink = document.getElementById('mobileWalletLink');
+    const mobileEarnLink = document.getElementById('mobileEarnLink');
+    const mobileLogoutLink = document.getElementById('mobileLogoutLink');
+    
+    if (mobileProfileLink) mobileProfileLink.style.display = 'block';
+    if (mobileWalletLink) mobileWalletLink.style.display = 'block';
+    if (mobileEarnLink) mobileEarnLink.style.display = 'block';
+    if (mobileLogoutLink) mobileLogoutLink.style.display = 'block';
+}
+
 // Smooth scroll
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
