@@ -57,19 +57,24 @@ export async function POST(request: NextRequest) {
     // Создаем пользователя
     const userId = crypto.randomUUID()
     
+    // Формируем данные для вставки (только существующие колонки)
+    const userData: any = {
+      id: userId,
+      username: username,
+      password_hash: passwordHash,
+      name: name,
+      email: email || null,
+      phone: phone || null,
+      registration_method: 'username',
+      created_at: new Date().toISOString()
+    }
+    
+    // Добавляем updated_at только если колонка существует
+    userData.updated_at = new Date().toISOString()
+    
     const { data: newUser, error: insertError } = await supabase
       .from('users')
-      .insert({
-        id: userId,
-        username: username,
-        password_hash: passwordHash,
-        name: name,
-        email: email || null,
-        phone: phone || null,
-        registration_method: 'username',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
+      .insert(userData)
       .select()
       .single()
 
