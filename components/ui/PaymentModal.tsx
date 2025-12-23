@@ -1,7 +1,8 @@
 'use client'
 
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, CreditCard, Lock, CheckCircle2 } from 'lucide-react'
+import { X, Lock, CheckCircle2, Shield } from 'lucide-react'
 import { Button } from './Button'
 import { formatPrice } from '@/lib/utils'
 
@@ -10,23 +11,141 @@ interface PaymentModalProps {
   onClose: () => void
   courseTitle: string
   coursePrice: number
+  courseId?: string
   onPaymentSuccess?: () => void
 }
+
+// Платежные методы с реальными значками
+const paymentMethods = [
+  {
+    id: 'sbp',
+    name: 'СБП',
+    description: 'Система быстрых платежей',
+    icon: (
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+        <rect width="32" height="32" rx="6" fill="#1D1346"/>
+        <path d="M16 6L8 10.5V21.5L16 26L24 21.5V10.5L16 6Z" fill="url(#sbp_gradient)"/>
+        <defs>
+          <linearGradient id="sbp_gradient" x1="8" y1="6" x2="24" y2="26">
+            <stop stopColor="#5B57A2"/>
+            <stop offset="0.5" stopColor="#D90E7A"/>
+            <stop offset="1" stopColor="#FAA61A"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    )
+  },
+  {
+    id: 'card',
+    name: 'Банковская карта',
+    description: 'Visa, Mastercard, МИР',
+    icon: (
+      <svg width="40" height="28" viewBox="0 0 40 28" fill="none">
+        <rect width="40" height="28" rx="4" fill="#1A1A2E"/>
+        <rect x="0" y="7" width="40" height="5" fill="#FFD700"/>
+        {/* МИР */}
+        <circle cx="10" cy="18" r="4" fill="#4DB45E"/>
+        {/* Mastercard */}
+        <circle cx="22" cy="18" r="4" fill="#EB001B"/>
+        <circle cx="26" cy="18" r="4" fill="#F79E1B" fillOpacity="0.8"/>
+        {/* Visa */}
+        <path d="M32 15L35 21H33L32 15Z" fill="#1A1F71"/>
+      </svg>
+    )
+  },
+  {
+    id: 'sber_pay',
+    name: 'СберПей',
+    description: 'Оплата через Сбербанк',
+    icon: (
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+        <rect width="32" height="32" rx="8" fill="#21A038"/>
+        <path d="M16 7C11.03 7 7 11.03 7 16C7 20.97 11.03 25 16 25C20.97 25 25 20.97 25 16" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+        <path d="M16 7V16L22 10" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    )
+  },
+  {
+    id: 'tinkoff_pay',
+    name: 'Т-Пей',
+    description: 'Оплата через Тинькофф',
+    icon: (
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+        <rect width="32" height="32" rx="8" fill="#FFDD2D"/>
+        <path d="M8 12H24V14H17V22H15V14H8V12Z" fill="#333"/>
+      </svg>
+    )
+  },
+  {
+    id: 'yoomoney',
+    name: 'ЮMoney',
+    description: 'Электронный кошелек',
+    icon: (
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+        <rect width="32" height="32" rx="8" fill="#8B3FFD"/>
+        <circle cx="12" cy="16" r="6" fill="white"/>
+        <path d="M18 10L26 16L18 22V10Z" fill="white"/>
+      </svg>
+    )
+  }
+]
 
 export function PaymentModal({
   isOpen,
   onClose,
   courseTitle,
   coursePrice,
+  courseId,
   onPaymentSuccess,
 }: PaymentModalProps) {
-  const handlePayment = () => {
-    // Здесь будет логика оплаты
-    // Пока просто закрываем модальное окно
-    if (onPaymentSuccess) {
-      onPaymentSuccess()
+  const [selectedMethod, setSelectedMethod] = useState('sbp')
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handlePayment = async () => {
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      // Получаем userId из localStorage
+      const userId = typeof window !== 'undefined' ? localStorage.getItem('user_id') : null
+
+      const response = await fetch('/api/payments/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          courseId: courseId || 'unknown',
+          paymentMethod: selectedMethod,
+          amount: coursePrice, // Цена в копейках
+          userId: userId,
+          returnUrl: `${window.location.origin}/payment-success.html?course=${courseId}`
+        })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Ошибка создания платежа')
+      }
+
+      if (data.confirmationUrl) {
+        // Перенаправляем на страницу оплаты ЮКасса
+        window.location.href = data.confirmationUrl
+      } else {
+        // Для демо - просто показываем успех
+        if (onPaymentSuccess) {
+          onPaymentSuccess()
+        }
+        onClose()
+      }
+
+    } catch (err: any) {
+      console.error('Ошибка оплаты:', err)
+      setError(err.message || 'Произошла ошибка при оплате')
+      setIsLoading(false)
     }
-    onClose()
   }
 
   return (
@@ -50,7 +169,7 @@ export function PaymentModal({
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="card max-w-md w-full p-6 space-y-6 relative">
+            <div className="card max-w-lg w-full p-6 space-y-5 relative max-h-[90vh] overflow-y-auto">
               {/* Close Button */}
               <button
                 onClick={onClose}
@@ -62,8 +181,10 @@ export function PaymentModal({
               {/* Header */}
               <div className="space-y-2">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-accent-teal/20 flex items-center justify-center">
-                    <Lock className="w-6 h-6 text-accent-teal" />
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-gold to-accent-electric p-0.5">
+                    <div className="w-full h-full rounded-[10px] bg-dark-900 flex items-center justify-center">
+                      <Lock className="w-6 h-6 text-accent-gold" />
+                    </div>
                   </div>
                   <h2 className="font-display font-bold text-2xl text-white">
                     Оплата курса
@@ -75,62 +196,106 @@ export function PaymentModal({
               </div>
 
               {/* Price */}
-              <div className="p-4 rounded-xl bg-accent-electric/10 border border-accent-electric/20">
+              <div className="p-4 rounded-xl bg-gradient-to-r from-accent-gold/10 to-accent-electric/10 border border-accent-gold/20">
                 <div className="flex items-baseline justify-between">
-                  <span className="text-white/70">Стоимость курса:</span>
-                  <span className="font-display font-bold text-3xl text-white">
+                  <span className="text-white/70">К оплате:</span>
+                  <span className="font-display font-bold text-3xl bg-gradient-to-r from-accent-gold to-accent-electric bg-clip-text text-transparent">
                     {formatPrice(coursePrice)}
+                  </span>
+                </div>
+                <div className="mt-2 text-center">
+                  <span className="inline-block px-3 py-1 bg-accent-flame text-white text-xs font-bold rounded-full">
+                    🧪 Тестовая цена для проверки
                   </span>
                 </div>
               </div>
 
+              {/* Error */}
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm"
+                >
+                  {error}
+                </motion.div>
+              )}
+
               {/* Payment Methods */}
               <div className="space-y-3">
-                <h3 className="font-semibold text-white">Способ оплаты:</h3>
+                <h3 className="font-semibold text-white text-sm">Способ оплаты:</h3>
                 <div className="space-y-2">
-                  <button className="w-full p-4 rounded-xl glass hover:bg-white/10 transition-colors text-left flex items-center gap-3">
-                    <CreditCard className="w-5 h-5 text-accent-teal" />
-                    <span className="text-white">Банковская карта</span>
-                  </button>
-                  <button className="w-full p-4 rounded-xl glass hover:bg-white/10 transition-colors text-left flex items-center gap-3">
-                    <div className="w-5 h-5 rounded bg-accent-neon/20 flex items-center justify-center">
-                      <span className="text-xs">💳</span>
-                    </div>
-                    <span className="text-white">СБП (Система быстрых платежей)</span>
-                  </button>
+                  {paymentMethods.map((method) => (
+                    <button
+                      key={method.id}
+                      onClick={() => setSelectedMethod(method.id)}
+                      className={`w-full p-3 rounded-xl glass hover:bg-white/10 transition-all text-left flex items-center gap-3 ${
+                        selectedMethod === method.id
+                          ? 'border-2 border-accent-electric bg-accent-electric/10'
+                          : 'border-2 border-transparent'
+                      }`}
+                    >
+                      <div className="flex-shrink-0">
+                        {method.icon}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-white text-sm">{method.name}</div>
+                        <div className="text-white/50 text-xs">{method.description}</div>
+                      </div>
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                        selectedMethod === method.id
+                          ? 'border-accent-electric bg-accent-electric'
+                          : 'border-white/30'
+                      }`}>
+                        {selectedMethod === method.id && (
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="text-dark-900 text-xs font-bold"
+                          >
+                            ✓
+                          </motion.div>
+                        )}
+                      </div>
+                    </button>
+                  ))}
                 </div>
               </div>
 
               {/* Security Info */}
               <div className="flex items-start gap-3 p-3 rounded-lg bg-accent-neon/10 border border-accent-neon/20">
-                <CheckCircle2 className="w-5 h-5 text-accent-neon flex-shrink-0 mt-0.5" />
+                <Shield className="w-5 h-5 text-accent-neon flex-shrink-0 mt-0.5" />
                 <div className="text-sm text-white/70">
                   <div className="font-semibold text-white mb-1">Безопасная оплата</div>
-                  <div>Все платежи защищены шифрованием. Мы не храним данные вашей карты.</div>
+                  <div>Платеж защищен SSL-шифрованием через ЮKassa. Мы не храним данные вашей карты.</div>
                 </div>
               </div>
 
               {/* CTA Buttons */}
-              <div className="space-y-3 pt-4 border-t border-white/10">
+              <div className="space-y-3 pt-2">
                 <Button
                   className="w-full"
                   size="lg"
                   onClick={handlePayment}
+                  isLoading={isLoading}
+                  disabled={isLoading}
                 >
-                  Оплатить {formatPrice(coursePrice)}
+                  {isLoading ? 'Создание платежа...' : `Оплатить ${formatPrice(coursePrice)}`}
                 </Button>
                 <Button
                   variant="secondary"
                   className="w-full"
                   onClick={onClose}
+                  disabled={isLoading}
                 >
                   Отмена
                 </Button>
               </div>
 
-              {/* Guarantee */}
-              <div className="text-center text-xs text-white/50">
-                Гарантия возврата денег в течение 14 дней
+              {/* Payment Logos */}
+              <div className="flex items-center justify-center gap-4 pt-2 border-t border-white/10">
+                <span className="text-white/40 text-xs">Платежи обрабатывает:</span>
+                <span className="text-accent-electric font-bold text-sm">ЮKassa</span>
               </div>
             </div>
           </motion.div>
@@ -139,4 +304,3 @@ export function PaymentModal({
     </AnimatePresence>
   )
 }
-

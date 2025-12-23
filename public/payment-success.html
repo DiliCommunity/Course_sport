@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оплата успешна - Course Health</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .success-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+        
+        .success-card {
+            max-width: 500px;
+            width: 100%;
+            background: linear-gradient(135deg, var(--glass), rgba(255, 255, 255, 0.05));
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 50px 40px;
+            text-align: center;
+            backdrop-filter: blur(20px);
+        }
+        
+        .success-icon {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 30px;
+            background: linear-gradient(135deg, var(--accent-neon), var(--accent-electric));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            animation: success-pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes success-pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 30px rgba(0, 255, 136, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 0 50px rgba(0, 255, 136, 0.6); }
+        }
+        
+        .success-title {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--text-white);
+            margin-bottom: 15px;
+        }
+        
+        .success-message {
+            font-size: 18px;
+            color: var(--text-gray);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .success-details {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+        
+        .success-detail {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .success-detail:last-child {
+            border-bottom: none;
+        }
+        
+        .success-detail-label {
+            color: var(--text-gray);
+            font-size: 14px;
+        }
+        
+        .success-detail-value {
+            color: var(--text-white);
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .success-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .success-btn-primary {
+            width: 100%;
+            padding: 18px 32px;
+            font-size: 18px;
+            font-weight: 700;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            background: linear-gradient(135deg, var(--accent-gold), var(--accent-electric));
+            color: var(--bg-dark);
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+        
+        .success-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(255, 215, 0, 0.4);
+        }
+        
+        .success-btn-secondary {
+            width: 100%;
+            padding: 14px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            cursor: pointer;
+            background: transparent;
+            color: var(--text-white);
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+        
+        .success-btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent-electric);
+        }
+        
+        .confetti {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 1000;
+        }
+        
+        .confetti-piece {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            top: -20px;
+            animation: confetti-fall 3s ease-out forwards;
+        }
+        
+        @keyframes confetti-fall {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Конфетти -->
+    <div class="confetti" id="confetti"></div>
+
+    <section class="success-page">
+        <div class="success-card">
+            <div class="success-icon">✓</div>
+            <h1 class="success-title">Оплата успешна!</h1>
+            <p class="success-message">
+                Поздравляем! Вы получили доступ к курсу. Теперь вы можете начать обучение.
+            </p>
+            
+            <div class="success-details">
+                <div class="success-detail">
+                    <span class="success-detail-label">Курс:</span>
+                    <span class="success-detail-value" id="courseName">Загрузка...</span>
+                </div>
+                <div class="success-detail">
+                    <span class="success-detail-label">Статус:</span>
+                    <span class="success-detail-value" style="color: var(--accent-neon);">✓ Оплачен</span>
+                </div>
+                <div class="success-detail">
+                    <span class="success-detail-label">Доступ:</span>
+                    <span class="success-detail-value">Полный (100%)</span>
+                </div>
+            </div>
+            
+            <div class="success-actions">
+                <a href="/courses.html" class="success-btn-primary">
+                    Перейти к курсу →
+                </a>
+                <a href="/index.html" class="success-btn-secondary">
+                    На главную
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Получаем параметры
+        const urlParams = new URLSearchParams(window.location.search);
+        const courseId = urlParams.get('course');
+        
+        // Устанавливаем название курса
+        const courseNames = {
+            'keto': 'Кето Диета: Наука Жиросжигания',
+            'interval': 'Интервальное Голодание',
+            'recipes': 'Кето-рецепты: готовим вкусно'
+        };
+        
+        document.getElementById('courseName').textContent = courseNames[courseId] || 'Онлайн-курс';
+        
+        // Создаем конфетти
+        function createConfetti() {
+            const confettiContainer = document.getElementById('confetti');
+            const colors = ['#FFD700', '#00D9FF', '#00FF88', '#FF6B35', '#8B3FFD'];
+            
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const piece = document.createElement('div');
+                    piece.className = 'confetti-piece';
+                    piece.style.left = Math.random() * 100 + '%';
+                    piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    piece.style.animationDelay = Math.random() * 0.5 + 's';
+                    piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                    confettiContainer.appendChild(piece);
+                    
+                    setTimeout(() => piece.remove(), 3000);
+                }, i * 50);
+            }
+        }
+        
+        // Запускаем конфетти
+        createConfetti();
+        
+        // Сохраняем информацию о покупке
+        const purchasedCourses = JSON.parse(localStorage.getItem('purchased_courses') || '[]');
+        if (courseId && !purchasedCourses.includes(courseId)) {
+            purchasedCourses.push(courseId);
+            localStorage.setItem('purchased_courses', JSON.stringify(purchasedCourses));
+        }
+    </script>
+</body>
+</html>

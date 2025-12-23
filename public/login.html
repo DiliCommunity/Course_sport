@@ -91,28 +91,26 @@
                         <p class="register-subtitle" data-i18n="login.subtitle">Продолжи обучение с того места, где остановился</p>
                     </div>
 
-                    <!-- Email Login Form -->
+                    <!-- Простая форма входа -->
                     <form class="register-form" id="loginForm" onsubmit="handleLogin(event)">
                         <div class="form-group">
-                            <label for="loginEmail" data-i18n="login.email">Email</label>
+                            <label for="loginUsername">Логин</label>
                             <input 
-                                type="email" 
-                                id="loginEmail" 
-                                name="email" 
-                                data-i18n-placeholder="login.emailPlaceholder"
-                                placeholder="your@email.com"
+                                type="text" 
+                                id="loginUsername" 
+                                name="username" 
+                                placeholder="Введите логин"
                                 required
                             >
                         </div>
 
                         <div class="form-group">
-                            <label for="loginPassword" data-i18n="login.password">Пароль</label>
+                            <label for="loginPassword">Пароль</label>
                             <div class="password-input">
                                 <input 
                                     type="password" 
                                     id="loginPassword" 
                                     name="password" 
-                                    data-i18n-placeholder="login.passwordPlaceholder"
                                     placeholder="Введите пароль"
                                     required
                                 >
@@ -125,49 +123,17 @@
                         <div class="form-footer" style="justify-content: space-between; align-items: center; margin-top: 0;">
                             <div class="form-checkbox" style="margin: 0;">
                                 <input type="checkbox" id="remember" name="remember">
-                                <label for="remember" style="margin: 0;" data-i18n="login.remember">Запомнить меня</label>
+                                <label for="remember" style="margin: 0;">Запомнить меня</label>
                             </div>
-                            <a href="/forgot-password.html" style="color: var(--accent-electric); text-decoration: none; font-size: 14px;" data-i18n="login.forgotPassword">
-                                Забыли пароль?
-                            </a>
                         </div>
 
                         <button type="submit" class="btn-primary btn-full btn-large">
-                            <span data-i18n="login.loginButton">Войти</span>
+                            <span>Войти</span>
                             <span>→</span>
                         </button>
 
-                        <!-- Social Login -->
-                        <div class="social-login">
-                            <p class="social-login-label" data-i18n="login.socialLogin">Войти через соцсети:</p>
-                            <div class="social-buttons">
-                                <button 
-                                    type="button" 
-                                    class="social-btn social-btn-telegram" 
-                                    onclick="loginWithTelegram()"
-                                    aria-label="Войти через Telegram"
-                                    title="Telegram"
-                                >
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.161c-.17 1.816-.896 6.206-1.264 8.24-.15.84-.445 1.12-.73 1.147-.62.056-1.09-.41-1.69-.81-.93-.64-1.456-1.04-2.36-1.665-1.003-.64-.353-.992.219-1.567.15-.15 2.706-2.48 2.756-2.69.006-.02.012-.09-.056-.13-.067-.04-.165-.025-.235-.015-.1.01-1.69 1.08-4.77 3.17-.452.28-.86.42-1.23.41-.405-.01-1.18-.23-1.75-.42-.71-.24-1.27-.37-1.22-.78.024-.2.36-.4.99-.61 3.88-1.68 6.48-2.79 7.78-3.35 3.75-1.6 4.52-1.88 5.03-1.89.11 0 .36.027.52.16.13.11.17.26.19.36z"/>
-                                    </svg>
-                                </button>
-                                <button 
-                                    type="button" 
-                                    class="social-btn social-btn-vk" 
-                                    onclick="loginWithVK()"
-                                    aria-label="Войти через ВКонтакте"
-                                    title="ВКонтакте"
-                                >
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M12.785 16.241s.287-.029.435-.18c.136-.137.132-.393.132-.393s-.02-1.123.515-1.288c.526-.164 1.2 1.09 1.913 1.571.543.365.955.285.955.285l1.909-.028s1-.064.525-.855c-.039-.064-.277-.582-1.417-1.647-1.198-1.12-1.03-.47.402-1.44.274-.186 1.91-1.64 2.14-2.11.201-.41.141-.71-.141-.71h-1.909s-1.405.093-1.61.63c-.11.29-.22.75-.51 1.23-.46.72-.644.95-.88.78-.215-.15-.161-1.2-.161-1.84 0-1.002-.15-1.42-.6-1.52-.15-.03-.26-.05-.645-.05-.47 0-1.24.03-1.59.15-.21.07-.37.24-.27.24.1 0 .33.04.45.15.15.14.2.45.2.45s.12 1.52-.12 1.68c-.12.08-.21-.02-.41-.75-.24-.88-.61-1.85-.61-1.85s-.05-.12-.13-.18c-.1-.08-.24-.05-.24-.05h-1.83s-.27.01-.37.12c-.08.09-.06.27-.06.27s.9 2.13 1.92 3.21c.93.99 1.3 1.16 1.45 1.05.18-.13.14-1.05.14-1.61 0-.87-.07-1.23-.15-1.32-.12-.12-.33-.15-.45-.16-.12 0-.21-.02-.21-.02s.05-1.38.05-1.89c0-.68-.22-.95-.68-1.02-.18-.03-.31-.05-.77-.05-.58 0-1.52.02-1.92.1-.24.05-.42.2-.31.21.13.02.42.15.57.5.19.42.19 1.37.19 1.37s.11 1.64-.26 1.85c-.26.14-.62-.15-1.39-1.23-.39-.54-.68-1.14-.68-1.14s-.06-.15-.16-.23c-.12-.09-.29-.06-.29-.06h-1.84s-.27 0-.37.09c-.09.09-.02.27-.02.27s.72 1.69 1.53 2.55c1.46 1.46 2.12 1.76 2.38 1.66.6-.23.48-1.9.48-2.6 0-1.12.16-1.58-.33-1.7-.16-.04-.28-.07-.58-.07-.45 0-1.18.03-1.52.15-.2.07-.35.25-.26.25.11.01.36.05.5.19.17.17.2.5.2.5s0 .85-.4 1.02c-.2.08-.47-.05-1.05-.88-.29-.42-.51-.88-.51-.88s-.04-.1-.12-.16c-.09-.07-.22-.05-.22-.05l-1.81.02s-.27.02-.36.11c-.08.09-.01.28-.01.28s.9 2.11 1.87 3.18c.91.99 1.99 1.85 1.99 1.85s.09.06.14.09c.07.05.11.08.11.15 0 .08-.01.19-.09.27-.1.1-.24.13-.24.13h-1.89s-1.51.08-.67 1.2c.33.44.99 1.05 2.12 1.69 1.5.86 2.6.66 2.6.66h.64s.24-.02.37.15c.12.15.09.36.09.36s-.04 1.15.26 1.32c.3.17.68-.17 1.52-.67 1.05-.62 1.85-1.54 1.85-1.54s.16-.11.27-.08l1.89.02s1.01-.07.53-.9c-.03-.05-.24-.52-1.27-1.45-.11-.12-.09-.19-.03-.3.05-.08.15-.18.15-.18s2.2-1.91 2.43-2.57c.02-.05.02-.15-.02-.2-.04-.05-.12-.03-.12-.03z"/>
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-
                         <div class="form-footer">
-                            <p><span data-i18n="login.noAccount">Нет аккаунта?</span> <a href="/register.html" data-i18n="login.registerLink">Зарегистрироваться</a></p>
+                            <p>Нет аккаунта? <a href="/register.html">Зарегистрироваться</a></p>
                         </div>
                     </form>
 
