@@ -18,20 +18,29 @@ function showError(message) {
     const errorDiv = document.getElementById('loginError');
     const errorMessage = document.getElementById('loginErrorMessage');
     
-    errorDiv.style.display = 'block';
-    errorMessage.textContent = message;
+    if (errorDiv && errorMessage) {
+        errorDiv.style.display = 'block';
+        errorMessage.textContent = message;
+    } else {
+        alert(message);
+    }
 }
 
 // Скрыть ошибку
 function hideError() {
-    document.getElementById('loginError').style.display = 'none';
+    const errorDiv = document.getElementById('loginError');
+    if (errorDiv) errorDiv.style.display = 'none';
 }
 
 // Показать успех
 function showSuccess() {
-    document.getElementById('loginSuccess').style.display = 'block';
-    document.getElementById('loginForm').style.display = 'none';
-    document.getElementById('loginError').style.display = 'none';
+    const successDiv = document.getElementById('loginSuccess');
+    const formDiv = document.getElementById('loginForm');
+    const errorDiv = document.getElementById('loginError');
+    
+    if (successDiv) successDiv.style.display = 'block';
+    if (formDiv) formDiv.style.display = 'none';
+    if (errorDiv) errorDiv.style.display = 'none';
 }
 
 // Обработка входа
@@ -61,16 +70,13 @@ async function handleLogin(event) {
     submitBtn.disabled = true;
 
     try {
-        // Формируем email из логина если нужно
-        const userEmail = username.includes('@') ? username : `${username}@temp.local`;
-        
         const response = await fetch('/api/auth/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                email: userEmail,
+                username: username,
                 password: password
             })
         });
@@ -83,7 +89,9 @@ async function handleLogin(event) {
 
         // Сохраняем данные пользователя
         localStorage.setItem('user_id', data.user_id);
-        localStorage.setItem('user_email', data.email);
+        localStorage.setItem('user_username', data.username);
+        localStorage.setItem('user_name', data.name);
+        if (data.email) localStorage.setItem('user_email', data.email);
         
         if (remember) {
             localStorage.setItem('remember_login', 'true');

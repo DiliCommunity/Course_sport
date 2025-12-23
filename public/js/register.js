@@ -40,23 +40,33 @@ function showError(message) {
     const errorDiv = document.getElementById('registerError');
     const errorMessage = document.getElementById('errorMessage');
     
-    errorDiv.style.display = 'block';
-    errorMessage.textContent = message;
+    if (errorDiv && errorMessage) {
+        errorDiv.style.display = 'block';
+        errorMessage.textContent = message;
+    } else {
+        alert(message);
+    }
     
     // Скрыть форму успеха если была показана
-    document.getElementById('registerSuccess').style.display = 'none';
+    const successDiv = document.getElementById('registerSuccess');
+    if (successDiv) successDiv.style.display = 'none';
 }
 
 // Скрыть ошибку
 function hideError() {
-    document.getElementById('registerError').style.display = 'none';
+    const errorDiv = document.getElementById('registerError');
+    if (errorDiv) errorDiv.style.display = 'none';
 }
 
 // Показать успех
 function showSuccess() {
-    document.getElementById('registerSuccess').style.display = 'block';
-    document.getElementById('registerForm').style.display = 'none';
-    document.getElementById('registerError').style.display = 'none';
+    const successDiv = document.getElementById('registerSuccess');
+    const formDiv = document.getElementById('registerForm');
+    const errorDiv = document.getElementById('registerError');
+    
+    if (successDiv) successDiv.style.display = 'block';
+    if (formDiv) formDiv.style.display = 'none';
+    if (errorDiv) errorDiv.style.display = 'none';
 }
 
 // Обработка регистрации
@@ -105,9 +115,6 @@ async function handleRegister(event) {
     submitBtn.disabled = true;
 
     try {
-        // Создаем пользователя (используем email как username@temp.local если email не указан)
-        const userEmail = email || `${username}@temp.local`;
-        
         // Получаем сохраненный реферальный код
         const savedReferral = localStorage.getItem('pending_referral');
         
@@ -117,9 +124,10 @@ async function handleRegister(event) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                email: userEmail,
+                username: username,
                 password: password,
                 name: name,
+                email: email || null,
                 phone: phone || null,
                 referralCode: savedReferral || null
             })

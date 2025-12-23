@@ -1,69 +1,67 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import crypto from 'crypto'
 
 export const dynamic = 'force-dynamic'
+
+// То же хеширование что и при регистрации
+function hashPassword(password: string): string {
+  return crypto.createHash('sha256').update(password + 'course_health_salt_2024').digest('hex')
+}
 
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
     const body = await request.json()
-    const { email, password, phone, otp } = body
+    const { username, password } = body
 
-    // Авторизация по email
-    if (email && password) {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-
-      if (error) {
-        console.error('Login error:', error.message)
-        return NextResponse.json(
-          { error: error.message || 'Неверный email или пароль' },
-          { status: 401 }
-        )
-      }
-
-      // Возвращаем данные в формате, который ожидает клиент
-      return NextResponse.json({
-        success: true,
-        user_id: data.user?.id,
-        email: data.user?.email,
-        access_token: data.session?.access_token,
-        user: data.user,
-        session: data.session,
-      })
+    // Валидация
+    if (!username || !password) {
+      return NextResponse.json(
+        { error: 'Логин и пароль обязательны' },
+        { status: 400 }
+      )
     }
 
-    // Авторизация по телефону (OTP)
-    if (phone && otp) {
-      const { data, error } = await supabase.auth.verifyOtp({
-        phone,
-        token: otp,
-        type: 'sms',
-      })
+    // Ищем пользователя по логину
+    const { data: user, error: findError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('username', username)
+      .single()
 
-      if (error) {
-        return NextResponse.json(
-          { error: error.message || 'Неверный код подтверждения' },
-          { status: 401 }
-        )
-      }
-
-      return NextResponse.json({
-        success: true,
-        user_id: data.user?.id,
-        phone: data.user?.phone,
-        access_token: data.session?.access_token,
-        user: data.user,
-        session: data.session,
-      })
+    if (findError || !user) {
+      return NextResponse.json(
+        { error: 'Неверный логин или пароль' },
+        { status: 401 }
+      )
     }
 
-    return NextResponse.json(
-      { error: 'Необходимо указать email и пароль' },
-      { status: 400 }
-    )
+    // Проверяем пароль
+    const passwordHash = hashPassword(password)
+    
+    if (user.password_hash !== passwordHash) {
+      return NextResponse.json(
+        { error: 'Неверный логин или пароль' },
+        { status: 401 }
+      )
+    }
+
+    // Обновляем last_login
+    await supabase
+      .from('users')
+      .update({ last_login: new Date().toISOString() })
+      .eq('id', user.id)
+
+    return NextResponse.json({
+      success: true,
+      user_id: user.id,
+      username: user.username,
+      name: user.name,
+      email: user.email,
+      message: 'Вход выполнен успешно!'
+    })
+
   } catch (error: any) {
     console.error('Login error:', error)
     return NextResponse.json(

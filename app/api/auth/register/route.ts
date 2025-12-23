@@ -1,107 +1,99 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import crypto from 'crypto'
 
 export const dynamic = 'force-dynamic'
+
+// Простое хеширование пароля (без bcrypt для избежания зависимостей)
+function hashPassword(password: string): string {
+  return crypto.createHash('sha256').update(password + 'course_health_salt_2024').digest('hex')
+}
 
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
     const body = await request.json()
-    const { email, password, name, phone, referral_code } = body
+    const { username, password, name, email, phone, referralCode } = body
 
-    // Регистрация по email
-    if (email && password && name) {
-      // Получаем реферальный код из query параметров или body
-      const referralCode = request.nextUrl.searchParams.get('ref') || referral_code
-
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            name,
-            full_name: name,
-            referral_code: referralCode || null,
-          },
-        },
-      })
-
-      if (error) {
-        return NextResponse.json(
-          { error: error.message || 'Registration failed' },
-          { status: 400 }
-        )
-      }
-
-      // Обновляем метод регистрации в профиле
-      if (data.user) {
-        await supabase
-          .from('users')
-          .update({ registration_method: 'email' })
-          .eq('id', data.user.id)
-      }
-
-      return NextResponse.json({
-        success: true,
-        user_id: data.user?.id,
-        email: data.user?.email,
-        access_token: data.session?.access_token,
-        user: data.user,
-        session: data.session,
-        message: data.session 
-          ? 'Регистрация успешна!' 
-          : 'Регистрация успешна. Проверьте email для подтверждения.',
-      })
+    // Валидация
+    if (!username || !password || !name) {
+      return NextResponse.json(
+        { error: 'Логин, пароль и имя обязательны' },
+        { status: 400 }
+      )
     }
 
-    // Регистрация по телефону (отправка OTP)
-    if (phone && name) {
-      // Форматируем телефон: убираем все кроме цифр и добавляем +
-      let cleanedPhone = phone.replace(/\D/g, '')
-      if (cleanedPhone.startsWith('8')) {
-        cleanedPhone = '7' + cleanedPhone.substring(1)
-      }
-      if (!cleanedPhone.startsWith('7')) {
-        cleanedPhone = '7' + cleanedPhone
-      }
-      const formattedPhone = '+' + cleanedPhone
-
-      // Получаем реферальный код
-      const referralCode = request.nextUrl.searchParams.get('ref') || referral_code
-
-      const { data, error } = await supabase.auth.signInWithOtp({
-        phone: formattedPhone,
-        options: {
-          data: {
-            name,
-            full_name: name,
-            referral_code: referralCode || null,
-          },
-        },
-      })
-
-      if (error) {
-        return NextResponse.json(
-          { error: error.message || 'Failed to send OTP' },
-          { status: 400 }
-        )
-      }
-
-      return NextResponse.json({
-        success: true,
-        message: 'OTP code sent to your phone. Please verify to complete registration.',
-        phone: formattedPhone,
-      })
+    if (username.length < 3) {
+      return NextResponse.json(
+        { error: 'Логин должен быть минимум 3 символа' },
+        { status: 400 }
+      )
     }
 
-    return NextResponse.json(
-      { error: 'Email/password/name or phone/name required' },
-      { status: 400 }
-    )
+    if (password.length < 6) {
+      return NextResponse.json(
+        { error: 'Пароль должен быть минимум 6 символов' },
+        { status: 400 }
+      )
+    }
+
+    // Проверяем, существует ли пользователь с таким логином
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('id')
+      .eq('username', username)
+      .single()
+
+    if (existingUser) {
+      return NextResponse.json(
+        { error: 'Пользователь с таким логином уже существует' },
+        { status: 400 }
+      )
+    }
+
+    // Хешируем пароль
+    const passwordHash = hashPassword(password)
+
+    // Создаем пользователя
+    const userId = crypto.randomUUID()
+    
+    const { data: newUser, error: insertError } = await supabase
+      .from('users')
+      .insert({
+        id: userId,
+        username: username,
+        password_hash: passwordHash,
+        name: name,
+        email: email || null,
+        phone: phone || null,
+        registration_method: 'username',
+        referred_by: referralCode || null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single()
+
+    if (insertError) {
+      console.error('Insert error:', insertError)
+      return NextResponse.json(
+        { error: 'Ошибка создания пользователя: ' + insertError.message },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({
+      success: true,
+      user_id: userId,
+      username: username,
+      name: name,
+      message: 'Регистрация успешна!'
+    })
+
   } catch (error: any) {
     console.error('Registration error:', error)
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
+      { error: error.message || 'Внутренняя ошибка сервера' },
       { status: 500 }
     )
   }
