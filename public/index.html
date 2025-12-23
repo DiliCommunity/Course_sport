@@ -76,13 +76,16 @@
             </div>
             <button class="mobile-menu-close" id="mobileMenuClose" aria-label="Закрыть меню">←</button>
         </div>
-        <ul class="mobile-menu-links">
+            <ul class="mobile-menu-links">
             <li><a href="/index.html" data-i18n="nav.home">Главная</a></li>
             <li><a href="/courses.html" data-i18n="nav.courses">Курсы</a></li>
             <li><a href="/reviews.html" data-i18n="nav.reviews">Отзывы</a></li>
             <li><a href="/promotions.html" data-i18n="nav.promotions">Акции</a></li>
             <li><a href="/about.html" data-i18n="nav.about">О нас</a></li>
-            <li id="mobileProfileLink" style="display: none;"><a href="/profile.html" data-i18n="nav.profile">Профиль</a></li>
+            <li id="mobileProfileLink" style="display: none;"><a href="/profile.html">👤 Профиль</a></li>
+            <li id="mobileWalletLink" style="display: none;"><a href="/profile.html#wallet">💰 Кошелек</a></li>
+            <li id="mobileEarnLink" style="display: none;"><a href="/promotions.html#referral">💎 Заработать</a></li>
+            <li id="mobileLogoutLink" style="display: none;"><a href="#" onclick="if(typeof logout === 'function') { logout(); return false; }">🚪 Выйти</a></li>
         </ul>
     </div>
 
@@ -410,6 +413,7 @@
         </div>
     </footer>
 
+    <script src="/js/auth.js"></script>
     <script src="/js/main.js"></script>
 </body>
 </html>
