@@ -102,7 +102,7 @@ async function handleLogin(event) {
 
         // Перенаправляем через 1 секунду
         setTimeout(() => {
-            window.location.href = '/courses.html';
+            window.location.href = '/profile.html';
         }, 1000);
 
     } catch (error) {
@@ -118,7 +118,7 @@ async function handleLogin(event) {
 document.addEventListener('DOMContentLoaded', function() {
     const userId = localStorage.getItem('user_id');
     if (userId) {
-        // Уже авторизован - перенаправляем на курсы
-        window.location.href = '/courses.html';
+        // Уже авторизован - перенаправляем на профиль
+        window.location.href = '/profile.html';
     }
 });
