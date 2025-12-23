@@ -4,9 +4,37 @@ import crypto from 'crypto'
 
 export const dynamic = 'force-dynamic'
 
-// Простое хеширование пароля
+// Безопасное хеширование пароля с использованием PBKDF2
 function hashPassword(password: string): string {
-  return crypto.createHash('sha256').update(password + 'course_health_salt_2024').digest('hex')
+  const salt = crypto.randomBytes(32).toString('hex')
+  const iterations = 10000
+  const keyLength = 64
+  
+  const hash = crypto.pbkdf2Sync(
+    password,
+    salt,
+    iterations,
+    keyLength,
+    'sha512'
+  ).toString('hex')
+  
+  // Сохраняем в формате: iterations:salt:hash
+  return `${iterations}:${salt}:${hash}`
+}
+
+// Проверка пароля
+export function verifyPassword(password: string, storedHash: string): boolean {
+  const [iterations, salt, hash] = storedHash.split(':')
+  
+  const verifyHash = crypto.pbkdf2Sync(
+    password,
+    salt,
+    parseInt(iterations),
+    64,
+    'sha512'
+  ).toString('hex')
+  
+  return hash === verifyHash
 }
 
 export async function POST(request: NextRequest) {
@@ -51,30 +79,23 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Хешируем пароль
+    // Хешируем пароль безопасным способом
     const passwordHash = hashPassword(password)
 
     // Создаем пользователя
     const userId = crypto.randomUUID()
     
-    // Формируем данные для вставки (только существующие колонки)
-    const userData: any = {
-      id: userId,
-      username: username,
-      password_hash: passwordHash,
-      name: name,
-      email: email || null,
-      phone: phone || null,
-      registration_method: 'username',
-      created_at: new Date().toISOString()
-    }
-    
-    // Добавляем updated_at только если колонка существует
-    userData.updated_at = new Date().toISOString()
-    
     const { data: newUser, error: insertError } = await supabase
       .from('users')
-      .insert(userData)
+      .insert({
+        id: userId,
+        username: username,
+        password_hash: passwordHash,
+        name: name,
+        email: email || null,
+        phone: phone || null,
+        registration_method: 'username'
+      })
       .select()
       .single()
 
@@ -123,9 +144,6 @@ export async function POST(request: NextRequest) {
               .update({ total_uses: (codeData.total_uses || 0) + 1 })
               .eq('referral_code', referralCode)
           }
-
-          // Начисляем бонусы (через транзакции)
-          // Это будет обработано триггерами или вручную
         }
       } catch (refError) {
         console.error('Referral processing error:', refError)

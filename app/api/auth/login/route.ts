@@ -4,9 +4,28 @@ import crypto from 'crypto'
 
 export const dynamic = 'force-dynamic'
 
-// То же хеширование что и при регистрации
-function hashPassword(password: string): string {
-  return crypto.createHash('sha256').update(password + 'course_health_salt_2024').digest('hex')
+// Проверка пароля (PBKDF2)
+function verifyPassword(password: string, storedHash: string): boolean {
+  try {
+    const [iterations, salt, hash] = storedHash.split(':')
+    
+    if (!iterations || !salt || !hash) {
+      return false
+    }
+    
+    const verifyHash = crypto.pbkdf2Sync(
+      password,
+      salt,
+      parseInt(iterations),
+      64,
+      'sha512'
+    ).toString('hex')
+    
+    return hash === verifyHash
+  } catch (error) {
+    console.error('Password verification error:', error)
+    return false
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -38,9 +57,16 @@ export async function POST(request: NextRequest) {
     }
 
     // Проверяем пароль
-    const passwordHash = hashPassword(password)
+    if (!user.password_hash) {
+      return NextResponse.json(
+        { error: 'Ошибка аутентификации' },
+        { status: 401 }
+      )
+    }
+
+    const isPasswordValid = verifyPassword(password, user.password_hash)
     
-    if (user.password_hash !== passwordHash) {
+    if (!isPasswordValid) {
       return NextResponse.json(
         { error: 'Неверный логин или пароль' },
         { status: 401 }
