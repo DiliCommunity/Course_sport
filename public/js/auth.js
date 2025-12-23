@@ -124,12 +124,16 @@ function updateNavigation() {
 }
 
 // Инициализация при загрузке страницы
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() {
+(function() {
+    function initAuth() {
         updateNavigation();
-    });
-} else {
-    // DOM уже загружен
-    updateNavigation();
-}
+    }
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initAuth);
+    } else {
+        // DOM уже загружен
+        setTimeout(initAuth, 0);
+    }
+})();
 
