@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Lock, CheckCircle2, Shield, Loader2 } from 'lucide-react'
@@ -42,7 +42,7 @@ const paymentMethods = [
   },
 ]
 
-export default function PaymentPage() {
+function PaymentPageContent() {
   const searchParams = useSearchParams()
   const { user } = useAuth()
   
@@ -204,6 +204,21 @@ export default function PaymentPage() {
         </div>
       </motion.div>
     </main>
+  )
+}
+
+export default function PaymentPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen pt-28 pb-16 flex items-center justify-center px-4">
+        <div className="text-white text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+          <p>Загрузка...</p>
+        </div>
+      </main>
+    }>
+      <PaymentPageContent />
+    </Suspense>
   )
 }
 

@@ -9,11 +9,10 @@ import Link from 'next/link'
 import { 
   Play, Clock, Users, Star, Award, CheckCircle2, 
   BookOpen, Download, MessageCircle, ChevronRight,
-  Lock, PlayCircle, ArrowLeft
+  Lock, PlayCircle, ArrowLeft, FileText, Video, Image as ImageIcon
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { PaymentModal } from '@/components/ui/PaymentModal'
-import { FreeModule } from '@/components/ui/FreeModule'
 import { formatPrice, formatDuration } from '@/lib/utils'
 
 // Данные для курса Кето-диета (id: '1')
@@ -137,6 +136,76 @@ const intervalCourse = {
     { id: '8', title: 'IF для женщин: особенности', duration: 35, isFree: false },
     { id: '9', title: 'Продвинутые протоколы', duration: 40, isFree: false },
     { id: '10', title: 'IF и долголетие', duration: 20, isFree: false },
+  ],
+}
+
+// Данные платного модуля (20%) для Кето курса
+const ketoPaidModule = {
+  moduleTitle: 'Введение в программу (20% курса)',
+  lessons: [
+    {
+      id: '4',
+      title: 'Персональный расчет макросов — ваш ключ к успеху',
+      type: 'video' as const,
+      duration: 25,
+      content: `**Почему это важно:** Универсальные советы не работают. Ваш возраст, вес, уровень активности и цели уникальны. В этом уроке вы научитесь точно рассчитывать свои БЖУ.
+
+**Формула расчета калорий:**
+- **Мужчины:** 10 × вес(кг) + 6.25 × рост(см) − 5 × возраст + 5
+- **Женщины:** 10 × вес(кг) + 6.25 × рост(см) − 5 × возраст − 161
+
+**Распределение макросов для Кето:**
+- **Жиры:** 70-75% от общих калорий
+- **Белки:** 20-25% от общих калорий
+- **Углеводы:** 5-10% (не более 20-50г в день)`,
+      checklist: [
+        'Рассчитайте свой базовый метаболизм',
+        'Определите коэффициент активности',
+        'Вычислите целевой дефицит калорий',
+        'Распределите макросы по формуле',
+      ],
+    },
+    {
+      id: '5',
+      title: 'План питания на первую неделю — пошаговый гайд',
+      type: 'infographic' as const,
+      duration: 30,
+      content: `Готовый план питания на 7 дней с рецептами, списком продуктов и временем приготовления. Никаких сложностей — просто следуйте плану!
+
+**Пример дня 1:**
+- **Завтрак:** Омлет с авокадо и беконом (450 ккал, 35г жиров)
+- **Обед:** Салат с тунцом и оливковым маслом (380 ккал, 28г жиров)
+- **Ужин:** Стейк из лосося с зеленым салатом (520 ккал, 38г жиров)
+- **Перекус:** Орехи макадамия 30г (200 ккал, 21г жиров)`,
+      bonus: {
+        title: 'Готовый список покупок',
+        type: 'pdf' as const,
+        description: 'PDF со списком всех продуктов на неделю',
+      },
+    },
+    {
+      id: '6',
+      title: 'Как пережить первую неделю — борьба с кетогриппом',
+      type: 'text' as const,
+      duration: 20,
+      content: `**Честно:** Первая неделя может быть сложной. Но с правильными знаниями вы пройдете ее легко!
+
+**Симптомы:**
+- Головная боль
+- Усталость
+- Раздражительность
+- Туман в голове
+
+**Решения:**
+- Добавьте соль в воду
+- Магний и калий
+- Больше жиров
+- Достаточно сна
+
+**Рецепт "Кето-электролит":**
+1л воды + 1/2 ч.л. соли + сок лимона + стевия по вкусу
+Пейте 2-3 раза в день в первую неделю!`,
+    },
   ],
 }
 
@@ -327,11 +396,19 @@ function getFreeModuleData(id: string) {
   return ketoFreeModule
 }
 
+// Функция для получения данных платного модуля по ID курса
+function getPaidModuleData(id: string) {
+  if (id === '1') return ketoPaidModule
+  if (id === '2') return intervalPaidModule
+  return ketoPaidModule
+}
+
 export default function CoursePage({ params }: { params: { id: string } }) {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false)
-  const [showFreeModule, setShowFreeModule] = useState(false)
   const courseData = getCourseData(params.id)
   const freeModuleData = getFreeModuleData(params.id)
+  const paidModuleData = getPaidModuleData(params.id)
+  const [hasAccess, setHasAccess] = useState(false) // TODO: Проверять из БД
   const discount = courseData.originalPrice 
     ? Math.round((1 - courseData.price / courseData.originalPrice) * 100) 
     : 0
@@ -553,7 +630,9 @@ export default function CoursePage({ params }: { params: { id: string } }) {
                       variant="secondary" 
                       className="w-full" 
                       size="lg"
-                      onClick={() => setShowFreeModule(true)}
+                      onClick={() => {
+                        document.getElementById('free-module')?.scrollIntoView({ behavior: 'smooth' })
+                      }}
                     >
                       Узнать подробнее о программе
                     </Button>
@@ -602,25 +681,247 @@ export default function CoursePage({ params }: { params: { id: string } }) {
         </div>
       </section>
 
-      {/* Free Module Section */}
-      {showFreeModule && (
-        <section className="relative py-16">
-          <div className="absolute inset-0 bg-gradient-to-b from-dark-900 to-dark-800" />
-          <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
-            <FreeModule
-              courseId={params.id}
-              moduleTitle={freeModuleData.moduleTitle}
-              lessons={freeModuleData.lessons}
-              paidModules={freeModuleData.paidModules}
-              onClose={() => setShowFreeModule(false)}
-              onPurchase={() => {
-                setShowFreeModule(false)
-                setIsPaymentModalOpen(true)
-              }}
-            />
+      {/* Free Module Section - всегда виден */}
+      <section id="free-module" className="relative py-20">
+        <div className="absolute inset-0 bg-gradient-to-b from-dark-900 via-dark-800 to-dark-900" />
+        <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <span className="badge badge-neon mb-4">Бесплатный модуль</span>
+            <h2 className="font-display font-bold text-3xl sm:text-4xl text-white mb-4">
+              {freeModuleData.moduleTitle}
+            </h2>
+            <p className="text-white/60 text-lg max-w-2xl mx-auto">
+              Изучите основы бесплатно и решите, готовы ли вы получить полный доступ к курсу
+            </p>
+          </motion.div>
+
+          <div className="space-y-6 max-w-4xl mx-auto">
+            {freeModuleData.lessons.map((lesson, index) => (
+              <motion.div
+                key={lesson.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                className="glass rounded-2xl p-6 md:p-8"
+              >
+                <div className="flex items-start gap-4 mb-4">
+                  <div className="w-12 h-12 rounded-xl bg-accent-neon/20 flex items-center justify-center flex-shrink-0">
+                    {lesson.type === 'video' && <Video className="w-6 h-6 text-accent-neon" />}
+                    {lesson.type === 'infographic' && <ImageIcon className="w-6 h-6 text-accent-neon" />}
+                    {lesson.type === 'text' && <FileText className="w-6 h-6 text-accent-neon" />}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold text-white mb-2">{lesson.title}</h3>
+                    {lesson.duration && (
+                      <span className="text-white/60 text-sm flex items-center gap-1">
+                        <Clock className="w-4 h-4" />
+                        {formatDuration(lesson.duration)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="prose prose-invert max-w-none">
+                  {lesson.content.split('\n\n').map((paragraph, pIndex) => (
+                    <p key={pIndex} className="text-white/70 leading-relaxed mb-4 whitespace-pre-line">
+                      {paragraph.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>')}
+                    </p>
+                  ))}
+                </div>
+                {lesson.checklist && (
+                  <div className="mt-4 p-4 rounded-xl bg-accent-neon/10 border border-accent-neon/20">
+                    <h4 className="text-white font-semibold mb-2">Чек-лист:</h4>
+                    <ul className="space-y-2">
+                      {lesson.checklist.map((item, itemIndex) => (
+                        <li key={itemIndex} className="flex items-start gap-2 text-white/80">
+                          <CheckCircle2 className="w-5 h-5 text-accent-neon flex-shrink-0 mt-0.5" />
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {lesson.bonus && (
+                  <div className="mt-4 p-4 rounded-xl bg-accent-gold/10 border border-accent-gold/20">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">🎁</span>
+                      <div>
+                        <div className="font-semibold text-white">{lesson.bonus.title}</div>
+                        <div className="text-sm text-white/60">{lesson.bonus.description}</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            ))}
           </div>
-        </section>
-      )}
+        </div>
+      </section>
+
+      {/* Paid Module Section - 20% */}
+      <section id="paid-module" className="relative py-20">
+        <div className="absolute inset-0 bg-gradient-to-b from-dark-900 to-dark-800" />
+        <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <span className="badge badge-gold mb-4">💎 Платный контент</span>
+            <h2 className="font-display font-bold text-3xl sm:text-4xl text-white mb-4">
+              {paidModuleData.moduleTitle}
+            </h2>
+            <p className="text-white/60 text-lg max-w-2xl mx-auto">
+              Ваш первый шаг к трансформации — доступен после оплаты
+            </p>
+          </motion.div>
+
+          {!hasAccess ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              className="max-w-2xl mx-auto text-center glass rounded-2xl p-12"
+            >
+              <div className="text-6xl mb-6">🔒</div>
+              <h3 className="text-2xl font-bold text-white mb-4">Раздел доступен после оплаты</h3>
+              <p className="text-white/60 mb-8">
+                Оплатите курс, чтобы получить доступ к 20% введения и всему материалу
+              </p>
+              <Button size="lg" onClick={() => setIsPaymentModalOpen(true)}>
+                Получить доступ — {formatPrice(courseData.price)}
+              </Button>
+            </motion.div>
+          ) : (
+            <div className="space-y-6 max-w-4xl mx-auto">
+              {paidModuleData.lessons.map((lesson, index) => (
+                <motion.div
+                  key={lesson.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1 }}
+                  className="glass rounded-2xl p-6 md:p-8 border-2 border-accent-gold/30"
+                >
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-gold to-accent-electric flex items-center justify-center flex-shrink-0">
+                      <span className="text-2xl">💎</span>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="text-xl font-bold text-white">{lesson.title}</h3>
+                        <span className="badge badge-gold text-xs">ПЛАТНЫЙ</span>
+                      </div>
+                      {lesson.duration && (
+                        <span className="text-white/60 text-sm flex items-center gap-1">
+                          <Clock className="w-4 h-4" />
+                          {formatDuration(lesson.duration)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="prose prose-invert max-w-none">
+                    {lesson.content.split('\n\n').map((paragraph, pIndex) => (
+                      <p key={pIndex} className="text-white/70 leading-relaxed mb-4 whitespace-pre-line">
+                        {paragraph.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>')}
+                      </p>
+                    ))}
+                  </div>
+                  {lesson.checklist && (
+                    <div className="mt-4 p-4 rounded-xl bg-accent-gold/10 border border-accent-gold/20">
+                      <h4 className="text-white font-semibold mb-2">Ваш план действий:</h4>
+                      <ul className="space-y-2">
+                        {lesson.checklist.map((item, itemIndex) => (
+                          <li key={itemIndex} className="flex items-start gap-2 text-white/80">
+                            <CheckCircle2 className="w-5 h-5 text-accent-gold flex-shrink-0 mt-0.5" />
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {lesson.bonus && (
+                    <div className="mt-4 p-4 rounded-xl bg-accent-gold/10 border border-accent-gold/20">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">📋</span>
+                        <div>
+                          <div className="font-semibold text-white">Бонус: {lesson.bonus.title}</div>
+                          <div className="text-sm text-white/60">{lesson.bonus.description}</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              ))}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="text-center p-8 rounded-2xl bg-accent-neon/10 border border-accent-neon/20"
+              >
+                <div className="text-5xl mb-4">✅</div>
+                <h3 className="text-xl font-bold text-accent-neon mb-2">Вы получили доступ к 20% курса!</h3>
+                <p className="text-white/60">Продолжайте изучать остальные модули в личном кабинете</p>
+              </motion.div>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Remaining Modules Preview - 80% */}
+      <section className="relative py-20">
+        <div className="absolute inset-0 bg-gradient-to-b from-dark-800 to-dark-900" />
+        <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <h3 className="font-display font-bold text-3xl text-white mb-4">
+              Остальные модули курса (80%):
+            </h3>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto mb-12">
+            {freeModuleData.paidModules.map((module, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.1 }}
+                className="glass rounded-xl p-6 hover:border-accent-electric/50 transition-colors border border-white/10"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-accent-electric/20 flex items-center justify-center flex-shrink-0 text-accent-electric font-bold">
+                    {index + 1}
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-semibold text-white mb-2">{module.title}</h4>
+                    <p className="text-white/60 text-sm">{module.description}</p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="text-center space-y-4">
+            <Button size="lg" onClick={() => setIsPaymentModalOpen(true)}>
+              Приобрести полный доступ
+            </Button>
+            <Button variant="secondary" size="lg" onClick={() => setIsPaymentModalOpen(true)}>
+              Забронировать место со скидкой
+            </Button>
+          </div>
+        </div>
+      </section>
 
       {/* Payment Modal */}
       <PaymentModal
