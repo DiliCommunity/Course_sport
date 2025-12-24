@@ -10,6 +10,7 @@ import { BalanceCard } from '@/components/profile/BalanceCard'
 import { ReferralSection } from '@/components/profile/ReferralSection'
 import { CoursesList } from '@/components/profile/CoursesList'
 import { TransactionsHistory } from '@/components/profile/TransactionsHistory'
+import { MyCoursesModal } from '@/components/profile/MyCoursesModal'
 import { Loader2, Settings, ArrowLeft, Mail, Phone, Save } from 'lucide-react'
 import Link from 'next/link'
 
@@ -394,12 +395,14 @@ export default function ProfilePage() {
         >
           <div className="flex items-center justify-between mb-6">
             <h2 className="font-display font-bold text-2xl text-white">Мои курсы</h2>
-            <Link
-              href="/courses"
-              className="text-accent-teal hover:text-accent-mint transition-colors text-sm font-medium"
-            >
-              Все курсы →
-            </Link>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setIsMyCoursesModalOpen(true)}
+                className="text-accent-teal hover:text-accent-mint transition-colors text-sm font-medium"
+              >
+                Все курсы →
+              </button>
+            </div>
           </div>
           <CoursesList enrollments={profileData.enrollments} />
         </motion.div>
@@ -414,6 +417,12 @@ export default function ProfilePage() {
           <TransactionsHistory transactions={profileData.transactions} />
         </motion.div>
       </div>
+
+      {/* My Courses Modal */}
+      <MyCoursesModal
+        isOpen={isMyCoursesModalOpen}
+        onClose={() => setIsMyCoursesModalOpen(false)}
+      />
     </main>
   )
 }
