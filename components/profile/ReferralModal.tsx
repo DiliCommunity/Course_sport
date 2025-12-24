@@ -213,7 +213,8 @@ export function ReferralModal({ isOpen, onClose, referralCode, stats }: Referral
         </motion.div>
       </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   )
 }
 
