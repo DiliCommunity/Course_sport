@@ -98,10 +98,9 @@ export function WalletModal({ isOpen, onClose, balance, totalEarned, totalWithdr
     }
   }
 
-  if (!isOpen) return null
-
   return (
     <AnimatePresence>
+      {isOpen && (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         {/* Backdrop */}
         <motion.div
@@ -253,6 +252,7 @@ export function WalletModal({ isOpen, onClose, balance, totalEarned, totalWithdr
           </div>
         </motion.div>
       </div>
+      )}
     </AnimatePresence>
   )
 }

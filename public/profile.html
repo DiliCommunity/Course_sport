@@ -238,29 +238,29 @@
                 </div>
 
                 <div class="profile-menu">
-                    <a href="/courses.html" class="menu-item">
+                    <button onclick="openMyCoursesModal()" class="menu-item" style="border: none; background: linear-gradient(135deg, var(--glass), rgba(255, 255, 255, 0.05)); cursor: pointer;">
                         <div class="menu-icon">📚</div>
                         <div class="menu-content">
                             <h3>Мои курсы</h3>
                             <p>Продолжить обучение</p>
                         </div>
-                    </a>
+                    </button>
                     
-                    <a href="/profile.html#wallet" class="menu-item">
+                    <button onclick="openWalletModal()" class="menu-item" style="border: none; background: linear-gradient(135deg, var(--glass), rgba(255, 255, 255, 0.05)); cursor: pointer;">
                         <div class="menu-icon">💰</div>
                         <div class="menu-content">
                             <h3>Кошелек</h3>
                             <p>Баланс и транзакции</p>
                         </div>
-                    </a>
+                    </button>
                     
-                    <a href="/promotions.html#referral" class="menu-item">
+                    <button onclick="openReferralModal()" class="menu-item" style="border: none; background: linear-gradient(135deg, var(--glass), rgba(255, 255, 255, 0.05)); cursor: pointer;">
                         <div class="menu-icon">💎</div>
                         <div class="menu-content">
                             <h3>Заработать</h3>
                             <p>Реферальная программа</p>
                         </div>
-                    </a>
+                    </button>
                     
                 </div>
 
@@ -273,6 +273,12 @@
 
     <script src="/js/main.js"></script>
     <script>
+        // Перенаправляем на Next.js версию профиля, где есть модальные окна
+        // Это нужно сделать сразу, до загрузки остального контента
+        if (window.location.pathname === '/profile.html' || window.location.pathname === '/profile.html/') {
+            window.location.replace('/profile');
+        }
+        
         // Проверка авторизации
         if (!isAuthenticated()) {
             window.location.href = '/login.html';

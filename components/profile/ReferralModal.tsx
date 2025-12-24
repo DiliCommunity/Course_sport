@@ -48,10 +48,9 @@ export function ReferralModal({ isOpen, onClose, referralCode, stats }: Referral
     }
   }
 
-  if (!isOpen) return null
-
   return (
     <AnimatePresence>
+      {isOpen && (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         {/* Backdrop */}
         <motion.div
@@ -207,6 +206,7 @@ export function ReferralModal({ isOpen, onClose, referralCode, stats }: Referral
           </div>
         </motion.div>
       </div>
+      )}
     </AnimatePresence>
   )
 }
