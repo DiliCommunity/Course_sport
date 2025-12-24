@@ -781,7 +781,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
                     )
                   })}
                 </div>
-                {lesson.checklist && (
+                {'checklist' in lesson && lesson.checklist && (
                   <div className="mt-4 p-4 rounded-xl bg-accent-neon/10 border border-accent-neon/20">
                     <h4 className="text-white font-semibold mb-2">Чек-лист:</h4>
                     <ul className="space-y-2">
@@ -794,7 +794,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
                     </ul>
                   </div>
                 )}
-                {lesson.bonus && (
+                {'bonus' in lesson && lesson.bonus && (
                   <div className="mt-4 p-4 rounded-xl bg-accent-gold/10 border border-accent-gold/20">
                     <div className="flex items-center gap-3">
                       <span className="text-2xl">🎁</span>
@@ -900,7 +900,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
                       )
                     })}
                   </div>
-                  {lesson.checklist && (
+                  {'checklist' in lesson && lesson.checklist && (
                     <div className="mt-4 p-4 rounded-xl bg-accent-gold/10 border border-accent-gold/20">
                       <h4 className="text-white font-semibold mb-2">Ваш план действий:</h4>
                       <ul className="space-y-2">
@@ -913,7 +913,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
                       </ul>
                     </div>
                   )}
-                  {lesson.bonus && (
+                  {'bonus' in lesson && lesson.bonus && (
                     <div className="mt-4 p-4 rounded-xl bg-accent-gold/10 border border-accent-gold/20">
                       <div className="flex items-center gap-3">
                         <span className="text-2xl">📋</span>
