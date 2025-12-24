@@ -70,6 +70,7 @@ export default function ProfilePage() {
   const [editedEmail, setEditedEmail] = useState('')
   const [editedPhone, setEditedPhone] = useState('')
   const [saving, setSaving] = useState(false)
+  const [isMyCoursesModalOpen, setIsMyCoursesModalOpen] = useState(false)
 
   const isAuthenticated = authUser || (isTelegramApp && telegramUser)
   const currentUserId = authUser?.id || telegramUser?.id
