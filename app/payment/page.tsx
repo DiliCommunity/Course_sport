@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Lock, CheckCircle2, Shield, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
@@ -44,7 +44,6 @@ const paymentMethods = [
 
 export default function PaymentPage() {
   const searchParams = useSearchParams()
-  const router = useRouter()
   const { user } = useAuth()
   
   const courseId = searchParams.get('course')
@@ -64,6 +63,12 @@ export default function PaymentPage() {
     try {
       const userId = user?.id || null
 
+      if (typeof window === 'undefined') {
+        throw new Error('Ошибка инициализации')
+      }
+
+      const returnUrl = `${window.location.origin}/payment/success?${type === 'course_purchase' ? `course=${courseId}` : 'type=balance_topup'}`
+
       const response = await fetch('/api/payments/create', {
         method: 'POST',
         headers: {
@@ -75,7 +80,7 @@ export default function PaymentPage() {
           amount: amount * 100, // Конвертируем в копейки
           userId: userId,
           type: type,
-          returnUrl: `${window.location.origin}/payment/success?${type === 'course_purchase' ? `course=${courseId}` : 'type=balance_topup'}`,
+          returnUrl: returnUrl,
         }),
       })
 
