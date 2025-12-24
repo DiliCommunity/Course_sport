@@ -33,7 +33,7 @@ export function ReferralModal({ isOpen, onClose, referralCode, stats }: Referral
   }
 
   const shareLink = async () => {
-    if (navigator.share) {
+    if (typeof navigator !== 'undefined' && 'share' in navigator && typeof navigator.share === 'function') {
       try {
         await navigator.share({
           title: 'Присоединяйся к Course Health!',
@@ -142,7 +142,7 @@ export function ReferralModal({ isOpen, onClose, referralCode, stats }: Referral
                       <Copy className="w-5 h-5" />
                     )}
                   </motion.button>
-                  {navigator.share && (
+                  {typeof navigator !== 'undefined' && 'share' in navigator && (
                     <motion.button
                       onClick={shareLink}
                       className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all"
