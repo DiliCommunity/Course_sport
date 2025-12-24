@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { Mail, Lock, Eye, EyeOff, Zap, Send, ArrowRight, AlertCircle } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff, Heart, Send, ArrowRight, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useTelegram } from '@/components/providers/TelegramProvider'
 import { signIn } from '@/lib/auth'
@@ -100,7 +100,7 @@ export default function LoginPage() {
             <Link href="/" className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-electric to-accent-neon p-0.5">
                 <div className="w-full h-full rounded-[10px] bg-dark-900 flex items-center justify-center">
-                  <Zap className="w-6 h-6 text-accent-electric" />
+                  <span className="text-3xl">💚</span>
                 </div>
               </div>
               <span className="font-display font-bold text-2xl">

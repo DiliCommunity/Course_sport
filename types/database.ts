@@ -178,6 +178,8 @@ export interface Database {
           name: string
           avatar_url: string | null
           telegram_id: string | null
+          phone: string | null
+          is_admin: boolean
         }
         Insert: {
           id?: string
@@ -186,6 +188,8 @@ export interface Database {
           name: string
           avatar_url?: string | null
           telegram_id?: string | null
+          phone?: string | null
+          is_admin?: boolean
         }
         Update: {
           id?: string
@@ -194,6 +198,8 @@ export interface Database {
           name?: string
           avatar_url?: string | null
           telegram_id?: string | null
+          phone?: string | null
+          is_admin?: boolean
         }
       }
       enrollments: {

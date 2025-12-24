@@ -41,10 +41,25 @@ function updateNavigation() {
         
         // Показываем бургер-меню вместо кнопки входа
         if (authButtons) {
-            authButtons.style.display = 'block';
+            authButtons.style.display = 'flex';
+            authButtons.style.alignItems = 'center';
+            authButtons.style.gap = '10px';
             authButtons.innerHTML = `
                 <div class="user-menu-container" style="position: relative;">
-                    <button class="btn-primary" id="userMenuBtn" style="display: flex; align-items: center; gap: 8px;">
+                    <button class="btn-primary" id="userMenuBtn" style="
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        background: linear-gradient(135deg, var(--accent-electric), var(--accent-neon));
+                        border: none;
+                        padding: 10px 20px;
+                        border-radius: 12px;
+                        color: var(--bg-dark);
+                        font-weight: 600;
+                        cursor: pointer;
+                        box-shadow: 0 4px 15px rgba(0, 217, 255, 0.4);
+                        transition: all 0.3s;
+                    " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0, 217, 255, 0.6)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0, 217, 255, 0.4)'">
                         <span>👤</span>
                         <span>Мой профиль</span>
                         <span style="font-size: 12px;">▼</span>
@@ -55,13 +70,14 @@ function updateNavigation() {
                         top: 100%;
                         right: 0;
                         margin-top: 10px;
-                        background: linear-gradient(135deg, var(--glass), rgba(255, 255, 255, 0.05));
-                        border: 1px solid var(--glass-border);
+                        background: linear-gradient(135deg, rgba(15, 15, 18, 0.95), rgba(26, 26, 32, 0.95));
+                        border: 2px solid var(--accent-electric);
                         border-radius: 16px;
-                        padding: 10px;
-                        min-width: 200px;
+                        padding: 12px;
+                        min-width: 220px;
                         z-index: 1000;
                         backdrop-filter: blur(20px);
+                        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
                     ">
                         <a href="/profile.html" style="display: block; padding: 12px; color: var(--text-white); text-decoration: none; border-radius: 8px; transition: all 0.3s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">
                             👤 Профиль

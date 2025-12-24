@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
 import { 
-  Target, Heart, Zap, Users, Trophy, Globe, 
+  Target, Heart, Users, Trophy, Globe, 
   ArrowRight, Star, CheckCircle2 
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
@@ -28,7 +28,7 @@ const values = [
     description: 'Индивидуальный подход к каждому студенту. Поддержка тренеров на каждом этапе обучения.',
   },
   {
-    icon: Zap,
+    icon: Heart,
     title: 'Инновации',
     description: 'Используем передовые методики обучения и современные технологии для максимальной эффективности.',
   },

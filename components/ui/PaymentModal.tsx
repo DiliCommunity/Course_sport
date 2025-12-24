@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Lock, CheckCircle2, Shield } from 'lucide-react'
+import { useAuth } from '@/components/providers/AuthProvider'
 import { Button } from './Button'
 import { formatPrice } from '@/lib/utils'
 
@@ -101,25 +102,30 @@ export function PaymentModal({
   const [selectedMethod, setSelectedMethod] = useState('sbp')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { user } = useAuth()
 
   const handlePayment = async () => {
     setIsLoading(true)
     setError(null)
 
-    try {
-      // Получаем userId из localStorage
-      const userId = typeof window !== 'undefined' ? localStorage.getItem('user_id') : null
+    if (!user?.id) {
+      setError('Необходимо авторизоваться для оплаты')
+      setIsLoading(false)
+      return
+    }
 
+    try {
       const response = await fetch('/api/payments/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({
           courseId: courseId || 'unknown',
           paymentMethod: selectedMethod,
           amount: coursePrice, // Цена в копейках
-          userId: userId,
+          userId: user.id,
           returnUrl: `${window.location.origin}/payment-success.html?course=${courseId}`
         })
       })

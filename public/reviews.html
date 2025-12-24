@@ -182,7 +182,7 @@
                         <p>Начал с 16/8 по рекомендациям из курса. Энергии стало в разы больше! Раньше после обеда хотелось спать, теперь работаю до вечера на одном дыхании. Рекомендую всем, кто хочет повысить продуктивность.</p>
                     </div>
                     <div class="review-result">
-                        <span class="result-badge">⚡ Энергия весь день</span>
+                        <span class="result-badge">💚 Энергия весь день</span>
                     </div>
                 </div>
 
@@ -1044,7 +1044,7 @@
                         <p>Гипотиреоз, метаболизм замедлен. Кето разогнал обмен веществ! Похудела на 8 кг за 3 месяца, хотя раньше не могла сбросить ни грамма.</p>
                     </div>
                     <div class="review-result">
-                        <span class="result-badge">⚡ Ускорение метаболизма</span>
+                        <span class="result-badge">💚 Ускорение метаболизма</span>
                     </div>
                 </div>
 
@@ -1173,7 +1173,7 @@
                     Начните свой путь к здоровому телу уже сегодня. Большая акция — скидка 89%!
                 </p>
                 <div class="cta-price">
-                    <span class="cta-price-old">14 000₽</span>
+                    <span class="cta-price-old">4 999₽</span>
                     <span class="cta-price-new">1 499₽</span>
                 </div>
                 <a href="/courses.html" class="btn-primary btn-large">
@@ -1223,6 +1223,44 @@
     <script src="/js/auth.js"></script>
     <script src="/js/main.js"></script>
     <script>
+        // Функция для парсинга даты из формата DD.MM.YYYY
+        function parseDate(dateString) {
+            const [day, month, year] = dateString.split('.');
+            return new Date(year, month - 1, day);
+        }
+
+        // Функция сортировки отзывов по дате (от новых к старым)
+        function sortReviewsByDate() {
+            const reviewsGrid = document.querySelector('.reviews-grid');
+            if (!reviewsGrid) return;
+
+            const cards = Array.from(reviewsGrid.querySelectorAll('.review-card'));
+            
+            // Сортируем карточки по дате
+            cards.sort((a, b) => {
+                const dateA = a.querySelector('.review-date')?.textContent || '';
+                const dateB = b.querySelector('.review-date')?.textContent || '';
+                
+                if (!dateA || !dateB) return 0;
+                
+                const parsedDateA = parseDate(dateA);
+                const parsedDateB = parseDate(dateB);
+                
+                // Сортируем от новых к старым (по убыванию)
+                return parsedDateB - parsedDateA;
+            });
+
+            // Перемещаем отсортированные карточки в DOM
+            cards.forEach(card => {
+                reviewsGrid.appendChild(card);
+            });
+        }
+
+        // Сортируем отзывы при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            sortReviewsByDate();
+        });
+
         // Filter reviews
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.addEventListener('click', function() {
@@ -1241,6 +1279,11 @@
                         card.style.display = 'none';
                     }
                 });
+                
+                // Пересортировываем видимые отзывы после фильтрации
+                setTimeout(() => {
+                    sortReviewsByDate();
+                }, 100);
             });
         });
 

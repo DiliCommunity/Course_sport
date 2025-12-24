@@ -91,12 +91,16 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false })
       .limit(50)
 
+    // Проверяем, является ли пользователь админом
+    const isAdmin = profile?.is_admin === true || profile?.username === 'admini_mini'
+
     return NextResponse.json({
       user: {
         id: user.id,
-        email: user.email,
-        phone: user.phone,
+        email: user.email || profile?.email,
+        phone: profile?.phone || null,
         ...profile,
+        is_admin: isAdmin,
       },
       balance: balance || {
         balance: 0,

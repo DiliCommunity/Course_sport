@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Zap } from 'lucide-react'
+import { Heart } from 'lucide-react'
 
 interface LoadingProps {
   fullScreen?: boolean
@@ -24,7 +24,7 @@ export function Loading({ fullScreen = false, text = 'Загрузка...' }: Lo
         className="w-16 h-16 rounded-2xl bg-gradient-to-br from-accent-teal to-accent-mint p-0.5"
       >
         <div className="w-full h-full rounded-[14px] bg-dark-900 flex items-center justify-center">
-          <Zap className="w-8 h-8 text-accent-teal" />
+          <span className="text-4xl">💚</span>
         </div>
       </motion.div>
       

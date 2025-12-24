@@ -1,7 +1,9 @@
 'use client'
 
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Wallet, TrendingUp, TrendingDown, ArrowUpRight } from 'lucide-react'
+import { WalletModal } from './WalletModal'
 
 interface BalanceCardProps {
   balance: number
@@ -10,12 +12,16 @@ interface BalanceCardProps {
 }
 
 export function BalanceCard({ balance, totalEarned, totalWithdrawn }: BalanceCardProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false)
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="relative overflow-hidden rounded-2xl glass border border-white/10 p-6"
-    >
+    <>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden rounded-2xl glass border border-white/10 p-6 cursor-pointer hover:border-accent-teal/30 transition-all"
+        onClick={() => setIsModalOpen(true)}
+      >
       {/* Gradient background */}
       <div className="absolute inset-0 bg-gradient-to-br from-accent-teal/10 via-transparent to-accent-mint/10" />
       
@@ -56,5 +62,13 @@ export function BalanceCard({ balance, totalEarned, totalWithdrawn }: BalanceCar
         </div>
       </div>
     </motion.div>
+    <WalletModal
+      isOpen={isModalOpen}
+      onClose={() => setIsModalOpen(false)}
+      balance={balance}
+      totalEarned={totalEarned}
+      totalWithdrawn={totalWithdrawn}
+    />
+    </>
   )
 }

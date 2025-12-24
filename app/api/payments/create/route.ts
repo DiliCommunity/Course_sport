@@ -23,14 +23,25 @@ interface YooKassaPayment {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { courseId, paymentMethod, amount, userId, returnUrl } = body
+    const { courseId, paymentMethod, amount, userId, returnUrl, type } = body
 
     // Проверяем обязательные параметры
-    if (!courseId || !amount) {
-      return NextResponse.json(
-        { error: 'Не указан курс или сумма' },
-        { status: 400 }
-      )
+    if (type === 'balance_topup') {
+      // Для пополнения баланса нужна только сумма
+      if (!amount || amount < 10000) { // Минимум 100₽ в копейках
+        return NextResponse.json(
+          { error: 'Минимальная сумма пополнения: 100₽' },
+          { status: 400 }
+        )
+      }
+    } else {
+      // Для покупки курса нужны курс и сумма
+      if (!courseId || !amount) {
+        return NextResponse.json(
+          { error: 'Не указан курс или сумма' },
+          { status: 400 }
+        )
+      }
     }
 
     // Получаем данные ЮКасса из env
@@ -46,7 +57,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Генерируем уникальный idempotency key
-    const idempotencyKey = `${courseId}-${userId || 'guest'}-${Date.now()}`
+    const idempotencyKey = type === 'balance_topup' 
+      ? `balance-${userId || 'guest'}-${Date.now()}`
+      : `${courseId}-${userId || 'guest'}-${Date.now()}`
 
     // Определяем тип платежа для ЮКасса
     const getPaymentMethodData = (method: string) => {
@@ -76,11 +89,14 @@ export async function POST(request: NextRequest) {
         type: 'redirect',
         return_url: returnUrl || `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/payment/success?course=${courseId}`
       },
-      description: `Оплата курса #${courseId}`,
+      description: type === 'balance_topup' 
+        ? `Пополнение баланса на ${(amount / 100).toFixed(2)}₽`
+        : `Оплата курса #${courseId}`,
       metadata: {
-        course_id: courseId,
+        ...(courseId && { course_id: courseId }),
         user_id: userId || 'guest',
-        payment_method: paymentMethod || 'card'
+        payment_method: paymentMethod || 'card',
+        type: type || 'course_purchase'
       },
       payment_method_data: getPaymentMethodData(paymentMethod || 'card')
     }
@@ -111,14 +127,15 @@ export async function POST(request: NextRequest) {
       const supabase = await createClient()
       await supabase.from('payments').insert({
         user_id: userId,
-        course_id: courseId,
+        ...(courseId && { course_id: courseId }),
         amount: amount,
         currency: 'RUB',
         payment_method: paymentMethod || 'card',
         status: 'pending',
         metadata: {
           yookassa_payment_id: payment.id,
-          confirmation_url: payment.confirmation.confirmation_url
+          confirmation_url: payment.confirmation.confirmation_url,
+          type: type || 'course_purchase'
         }
       })
     }

@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Zap, Instagram, Youtube, Send, Mail, Phone, MapPin } from 'lucide-react'
+import { Heart, Instagram, Youtube, Send, Mail, Phone, MapPin } from 'lucide-react'
 
 const footerLinks = {
   courses: [
@@ -44,7 +44,7 @@ export function Footer() {
             <Link href="/" className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-teal to-accent-mint p-0.5">
                 <div className="w-full h-full rounded-[10px] bg-dark-900 flex items-center justify-center">
-                  <Zap className="w-5 h-5 text-accent-teal" />
+                  <span className="text-xl">💚</span>
                 </div>
               </div>
               <span className="font-display font-bold text-xl">

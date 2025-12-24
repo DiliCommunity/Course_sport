@@ -10,7 +10,7 @@ import { BalanceCard } from '@/components/profile/BalanceCard'
 import { ReferralSection } from '@/components/profile/ReferralSection'
 import { CoursesList } from '@/components/profile/CoursesList'
 import { TransactionsHistory } from '@/components/profile/TransactionsHistory'
-import { Loader2, Settings, ArrowLeft } from 'lucide-react'
+import { Loader2, Settings, ArrowLeft, Mail, Phone, Save } from 'lucide-react'
 import Link from 'next/link'
 
 interface ProfileData {
@@ -18,8 +18,10 @@ interface ProfileData {
     id: string
     name: string
     email: string | null
+    phone: string | null
     avatar_url: string | null
     telegram_id: string | null
+    is_admin?: boolean
   }
   balance: {
     balance: number
@@ -63,6 +65,10 @@ export default function ProfilePage() {
   const [profileData, setProfileData] = useState<ProfileData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editedEmail, setEditedEmail] = useState('')
+  const [editedPhone, setEditedPhone] = useState('')
+  const [saving, setSaving] = useState(false)
 
   const isAuthenticated = authUser || (isTelegramApp && telegramUser)
   const currentUserId = authUser?.id || telegramUser?.id
@@ -105,11 +111,52 @@ export default function ProfilePage() {
       }
       
       setProfileData(data)
+      setEditedEmail(data.user.email || '')
+      setEditedPhone(data.user.phone || '')
     } catch (err) {
       console.error('Profile fetch error:', err)
       setError(err instanceof Error ? err.message : 'Не удалось загрузить данные профиля')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleSaveContact = async () => {
+    try {
+      setSaving(true)
+      const response = await fetch('/api/profile/update', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          email: editedEmail,
+          phone: editedPhone,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Не удалось обновить контакты')
+      }
+
+      const data = await response.json()
+      if (profileData) {
+        setProfileData({
+          ...profileData,
+          user: {
+            ...profileData.user,
+            email: data.user.email,
+            phone: data.user.phone,
+          },
+        })
+      }
+      setIsEditing(false)
+    } catch (err) {
+      console.error('Save contact error:', err)
+      alert(err instanceof Error ? err.message : 'Ошибка при сохранении')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -182,18 +229,83 @@ export default function ProfilePage() {
             <div className="flex-1">
               <h1 className="font-display font-bold text-4xl text-white mb-2">
                 {profileData.user.name || 'Пользователь'}
+                {profileData.user.is_admin && (
+                  <span className="ml-3 px-3 py-1 text-xs font-semibold rounded-full bg-accent-gold/20 text-accent-gold border border-accent-gold/30">
+                    Админ
+                  </span>
+                )}
               </h1>
-              <p className="text-white/60">
-                {profileData.user.email || `Telegram: @${telegramUser?.username || 'user'}`}
-              </p>
+              {!isEditing ? (
+                <div className="space-y-1">
+                  {profileData.user.email && (
+                    <p className="text-white/60">📧 {profileData.user.email}</p>
+                  )}
+                  {profileData.user.phone && (
+                    <p className="text-white/60">📱 {profileData.user.phone}</p>
+                  )}
+                  {!profileData.user.email && !profileData.user.phone && (
+                    <p className="text-white/60">
+                      Telegram: @{telegramUser?.username || 'user'}
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-3 mt-4">
+                  <div>
+                    <label className="block text-sm text-white/60 mb-1">Email</label>
+                    <input
+                      type="email"
+                      value={editedEmail}
+                      onChange={(e) => setEditedEmail(e.target.value)}
+                      className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-accent-teal"
+                      placeholder="your@email.com"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-white/60 mb-1">Телефон</label>
+                    <input
+                      type="tel"
+                      value={editedPhone}
+                      onChange={(e) => setEditedPhone(e.target.value)}
+                      className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-accent-teal"
+                      placeholder="+7 (999) 123-45-67"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
-            <Link
-              href="/profile/settings"
-              className="px-4 py-2 rounded-xl glass border border-white/10 hover:border-accent-teal/30 transition-all flex items-center gap-2"
-            >
-              <Settings className="w-5 h-5" />
-              <span>Настройки</span>
-            </Link>
+            <div className="flex gap-2">
+              {isEditing ? (
+                <>
+                  <button
+                    onClick={handleSaveContact}
+                    disabled={saving}
+                    className="px-4 py-2 rounded-xl bg-accent-teal text-dark-900 font-semibold hover:bg-accent-mint transition-all flex items-center gap-2 disabled:opacity-50"
+                  >
+                    <Save className="w-5 h-5" />
+                    {saving ? 'Сохранение...' : 'Сохранить'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsEditing(false)
+                      setEditedEmail(profileData.user.email || '')
+                      setEditedPhone(profileData.user.phone || '')
+                    }}
+                    className="px-4 py-2 rounded-xl glass border border-white/10 hover:border-accent-teal/30 transition-all"
+                  >
+                    Отмена
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="px-4 py-2 rounded-xl glass border border-white/10 hover:border-accent-teal/30 transition-all flex items-center gap-2"
+                >
+                  <Settings className="w-5 h-5" />
+                  <span>Редактировать контакты</span>
+                </button>
+              )}
+            </div>
           </div>
         </motion.div>
 

@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { ArrowRight, Send, Zap } from 'lucide-react'
+import { ArrowRight, Send, Heart } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 
 export function CTA() {
@@ -41,7 +41,7 @@ export function CTA() {
                 animate={{ rotate: [0, 5, -5, 0] }}
                 transition={{ duration: 4, repeat: Infinity }}
               >
-                <Zap className="w-8 h-8 text-dark-900" />
+                <span className="text-4xl">💚</span>
               </motion.div>
 
               {/* Heading */}

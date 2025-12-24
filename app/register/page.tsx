@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Mail, Lock, Eye, EyeOff, User, Zap, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff, User, Heart, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { signUp } from '@/lib/auth'
 
@@ -68,7 +68,7 @@ export default function RegisterPage() {
             <Link href="/" className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-electric to-accent-neon p-0.5">
                 <div className="w-full h-full rounded-[10px] bg-dark-900 flex items-center justify-center">
-                  <Zap className="w-6 h-6 text-accent-electric" />
+                  <span className="text-3xl">💚</span>
                 </div>
               </div>
               <span className="font-display font-bold text-2xl">

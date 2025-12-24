@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, X, Zap, User, ChevronDown, LogOut } from 'lucide-react'
+import { Menu, X, Heart, User, ChevronDown, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { useTelegram } from '@/components/providers/TelegramProvider'
@@ -68,7 +68,7 @@ export function Header() {
               whileTap={{ scale: 0.95 }}
             >
               <div className="w-full h-full rounded-[10px] bg-dark-900 flex items-center justify-center">
-                <Zap className="w-5 h-5 text-accent-teal" />
+                <span className="text-2xl">💚</span>
               </div>
             </motion.div>
             <span className="font-display font-bold text-xl tracking-tight">

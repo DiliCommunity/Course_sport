@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Link2, Copy, Check, Users, TrendingUp, Gift } from 'lucide-react'
+import { ReferralModal } from './ReferralModal'
 
 interface ReferralSectionProps {
   referralCode: string
@@ -16,6 +17,7 @@ interface ReferralSectionProps {
 
 export function ReferralSection({ referralCode, stats }: ReferralSectionProps) {
   const [copied, setCopied] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
   const referralUrl = typeof window !== 'undefined' 
     ? `${window.location.origin}/register?ref=${referralCode}`
     : ''
@@ -31,6 +33,7 @@ export function ReferralSection({ referralCode, stats }: ReferralSectionProps) {
   }
 
   return (
+    <>
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -78,7 +81,7 @@ export function ReferralSection({ referralCode, stats }: ReferralSectionProps) {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4 mb-4">
           <div className="p-4 rounded-xl bg-white/5 border border-white/10">
             <div className="flex items-center gap-2 mb-2">
               <Users className="w-5 h-5 text-accent-teal" />
@@ -98,7 +101,24 @@ export function ReferralSection({ referralCode, stats }: ReferralSectionProps) {
             </p>
           </div>
         </div>
+
+        {/* Заработать Button */}
+        <motion.button
+          onClick={() => setIsModalOpen(true)}
+          className="w-full py-3 rounded-xl bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900 font-bold hover:shadow-lg hover:shadow-accent-gold/30 transition-all"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          💎 Заработать
+        </motion.button>
       </div>
     </motion.div>
+    <ReferralModal
+      isOpen={isModalOpen}
+      onClose={() => setIsModalOpen(false)}
+      referralCode={referralCode}
+      stats={stats}
+    />
+    </>
   )
 }

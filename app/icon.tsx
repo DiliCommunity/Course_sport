@@ -23,7 +23,7 @@ export default function Icon() {
           fontWeight: 'bold',
         }}
       >
-        ⚡
+        💚
       </div>
     ),
     {
