@@ -15,6 +15,46 @@ import { Button } from '@/components/ui/Button'
 import { PaymentModal } from '@/components/ui/PaymentModal'
 import { formatPrice, formatDuration } from '@/lib/utils'
 
+// Типы для уроков
+type LessonWithChecklist = {
+  id: string
+  title: string
+  type: 'video' | 'text' | 'infographic'
+  duration: number
+  content: string
+  checklist: string[]
+  bonus?: { title: string; type: 'pdf' | 'calculator' | 'guide'; description: string }
+}
+
+type LessonWithBonus = {
+  id: string
+  title: string
+  type: 'video' | 'text' | 'infographic'
+  duration: number
+  content: string
+  bonus: { title: string; type: 'pdf' | 'calculator' | 'guide'; description: string }
+  checklist?: string[]
+}
+
+type LessonBasic = {
+  id: string
+  title: string
+  type: 'video' | 'text' | 'infographic'
+  duration: number
+  content: string
+}
+
+type Lesson = LessonWithChecklist | LessonWithBonus | LessonBasic
+
+// Type guards
+function hasChecklist(lesson: Lesson): lesson is LessonWithChecklist {
+  return 'checklist' in lesson && Array.isArray(lesson.checklist)
+}
+
+function hasBonus(lesson: Lesson): lesson is LessonWithBonus {
+  return 'bonus' in lesson && lesson.bonus !== undefined
+}
+
 // Данные для курса Кето-диета (id: '1')
 const ketoCourse = {
   id: '1',
@@ -140,7 +180,10 @@ const intervalCourse = {
 }
 
 // Данные платного модуля (20%) для Кето курса
-const ketoPaidModule = {
+const ketoPaidModule: {
+  moduleTitle: string
+  lessons: Lesson[]
+} = {
   moduleTitle: 'Введение в программу (20% курса)',
   lessons: [
     {
@@ -210,7 +253,11 @@ const ketoPaidModule = {
 }
 
 // Данные бесплатного модуля для Кето курса
-const ketoFreeModule = {
+const ketoFreeModule: {
+  moduleTitle: string
+  lessons: Lesson[]
+  paidModules: Array<{ title: string; description: string }>
+} = {
   moduleTitle: 'Основы Кето. Запускаем метаболический переключатель',
   lessons: [
     {
@@ -298,7 +345,11 @@ const ketoFreeModule = {
 }
 
 // Данные бесплатного модуля для Интервального голодания
-const intervalFreeModule = {
+const intervalFreeModule: {
+  moduleTitle: string
+  lessons: Lesson[]
+  paidModules: Array<{ title: string; description: string }>
+} = {
   moduleTitle: 'IF не как диета, а как режим. Включаем внутреннего доктора',
   lessons: [
     {
@@ -383,7 +434,10 @@ const intervalFreeModule = {
 }
 
 // Данные платного модуля (20%) для Интервального голодания
-const intervalPaidModule = {
+const intervalPaidModule: {
+  moduleTitle: string
+  lessons: Lesson[]
+} = {
   moduleTitle: 'Введение в программу (20% курса)',
   lessons: [
     {
@@ -781,7 +835,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
                     )
                   })}
                 </div>
-                {'checklist' in lesson && lesson.checklist && (
+                {hasChecklist(lesson) && (
                   <div className="mt-4 p-4 rounded-xl bg-accent-neon/10 border border-accent-neon/20">
                     <h4 className="text-white font-semibold mb-2">Чек-лист:</h4>
                     <ul className="space-y-2">
@@ -794,7 +848,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
                     </ul>
                   </div>
                 )}
-                {'bonus' in lesson && lesson.bonus && (
+                {hasBonus(lesson) && (
                   <div className="mt-4 p-4 rounded-xl bg-accent-gold/10 border border-accent-gold/20">
                     <div className="flex items-center gap-3">
                       <span className="text-2xl">🎁</span>
@@ -900,7 +954,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
                       )
                     })}
                   </div>
-                  {'checklist' in lesson && lesson.checklist && (
+                  {hasChecklist(lesson) && (
                     <div className="mt-4 p-4 rounded-xl bg-accent-gold/10 border border-accent-gold/20">
                       <h4 className="text-white font-semibold mb-2">Ваш план действий:</h4>
                       <ul className="space-y-2">
@@ -913,7 +967,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
                       </ul>
                     </div>
                   )}
-                  {'bonus' in lesson && lesson.bonus && (
+                  {hasBonus(lesson) && (
                     <div className="mt-4 p-4 rounded-xl bg-accent-gold/10 border border-accent-gold/20">
                       <div className="flex items-center gap-3">
                         <span className="text-2xl">📋</span>
