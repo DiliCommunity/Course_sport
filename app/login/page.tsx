@@ -3,14 +3,14 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { Mail, Lock, Eye, EyeOff, Heart, Send, ArrowRight, AlertCircle } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff, Heart, Send, ArrowRight, AlertCircle, User } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useTelegram } from '@/components/providers/TelegramProvider'
 import { signIn } from '@/lib/auth'
 import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -73,7 +73,7 @@ export default function LoginPage() {
     setIsLoading(true)
     
     try {
-      await signIn(email, password)
+      await signIn(username, password)
       router.push('/courses')
       router.refresh()
     } catch (err: any) {
@@ -198,17 +198,17 @@ export default function LoginPage() {
               {/* Login Form */}
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
-                  <label htmlFor="email" className="block text-sm font-medium text-white/70">
-                    Email
+                  <label htmlFor="username" className="block text-sm font-medium text-white/70">
+                    Логин
                   </label>
                   <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
                     <input
-                      type="email"
-                      id="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="your@email.com"
+                      type="text"
+                      id="username"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      placeholder="Введите логин"
                       className="input pl-12"
                       required
                     />

@@ -9,8 +9,10 @@ import { Button } from '@/components/ui/Button'
 import { signUp } from '@/lib/auth'
 
 export default function RegisterPage() {
+  const [username, setUsername] = useState('')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -26,6 +28,16 @@ export default function RegisterPage() {
     setSuccess(false)
 
     // Валидация
+    if (!username || username.length < 3) {
+      setError('Логин должен быть минимум 3 символа')
+      return
+    }
+
+    if (!name) {
+      setError('Имя обязательно')
+      return
+    }
+
     if (password !== confirmPassword) {
       setError('Пароли не совпадают')
       return
@@ -39,7 +51,23 @@ export default function RegisterPage() {
     setIsLoading(true)
 
     try {
-      await signUp(email, password, name)
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username,
+          password,
+          name,
+          email: email || null,
+          phone: phone || null,
+        }),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Ошибка регистрации')
+      }
+
       setSuccess(true)
       setTimeout(() => {
         router.push('/login')
@@ -117,8 +145,27 @@ export default function RegisterPage() {
           {/* Register Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
+              <label htmlFor="username" className="block text-sm font-medium text-white/70">
+                Логин <span className="text-red-400">*</span>
+              </label>
+              <div className="relative">
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+                <input
+                  type="text"
+                  id="username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Введите логин"
+                  className="input pl-12"
+                  required
+                  minLength={3}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
               <label htmlFor="name" className="block text-sm font-medium text-white/70">
-                Имя
+                Имя <span className="text-red-400">*</span>
               </label>
               <div className="relative">
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
@@ -128,24 +175,6 @@ export default function RegisterPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Ваше имя"
-                  className="input pl-12"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-medium text-white/70">
-                Email
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
-                <input
-                  type="email"
-                  id="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@email.com"
                   className="input pl-12"
                   required
                 />
@@ -209,6 +238,49 @@ export default function RegisterPage() {
                     <Eye className="w-5 h-5" />
                   )}
                 </button>
+              </div>
+            </div>
+
+            {/* Опциональные поля */}
+            <div className="pt-4 border-t border-white/10">
+              <p className="text-sm text-white/60 mb-4">
+                📧 Email и телефон — необязательно (для уведомлений)
+              </p>
+              
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label htmlFor="email" className="block text-sm font-medium text-white/70">
+                    Email (необязательно)
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+                    <input
+                      type="email"
+                      id="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="your@email.com"
+                      className="input pl-12"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="phone" className="block text-sm font-medium text-white/70">
+                    Телефон (необязательно)
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
+                    <input
+                      type="tel"
+                      id="phone"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="+7 (999) 123-45-67"
+                      className="input pl-12"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 

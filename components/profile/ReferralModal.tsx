@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Link2, Copy, Check, Gift, Users, TrendingUp, Share2 } from 'lucide-react'
 
@@ -48,17 +49,20 @@ export function ReferralModal({ isOpen, onClose, referralCode, stats }: Referral
     }
   }
 
-  return (
+  if (typeof window === 'undefined') return null
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" style={{ position: 'fixed' }}>
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="absolute inset-0 bg-dark-900/80 backdrop-blur-sm"
+          className="absolute inset-0 bg-dark-900/90 backdrop-blur-md"
+          style={{ zIndex: 9998 }}
         />
 
         {/* Modal */}
@@ -67,6 +71,8 @@ export function ReferralModal({ isOpen, onClose, referralCode, stats }: Referral
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
           className="relative w-full max-w-2xl rounded-2xl glass border border-white/10 overflow-hidden"
+          style={{ zIndex: 9999 }}
+          onClick={(e) => e.stopPropagation()}
         >
           {/* Gradient background */}
           <div className="absolute inset-0 bg-gradient-to-br from-accent-gold/10 via-transparent to-accent-electric/10" />

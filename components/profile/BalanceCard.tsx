@@ -20,7 +20,11 @@ export function BalanceCard({ balance, totalEarned, totalWithdrawn }: BalanceCar
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="relative overflow-hidden rounded-2xl glass border border-white/10 p-6 cursor-pointer hover:border-accent-teal/30 transition-all"
-        onClick={() => setIsModalOpen(true)}
+        onClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          setIsModalOpen(true)
+        }}
       >
       {/* Gradient background */}
       <div className="absolute inset-0 bg-gradient-to-br from-accent-teal/10 via-transparent to-accent-mint/10" />

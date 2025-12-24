@@ -147,24 +147,12 @@ export function Header() {
                 </AnimatePresence>
               </div>
             ) : (
-              <>
-                <Link
-                  href="/login"
-                  className="px-4 py-2 text-white/70 hover:text-white font-medium transition-colors"
-                >
-                  Войти
-                </Link>
-                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                  <Link
-                    href="/courses"
-                    className="relative inline-flex items-center gap-2 px-6 py-2.5 rounded-xl font-display font-semibold text-dark-900 bg-gradient-to-r from-accent-teal to-accent-mint overflow-hidden group"
-                  >
-                    <span className="relative z-10">Начать</span>
-                    <ChevronDown className="w-4 h-4 -rotate-90 relative z-10 transition-transform group-hover:translate-x-1" />
-                    <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 transition-opacity" />
-                  </Link>
-                </motion.div>
-              </>
+              <Link
+                href="/login"
+                className="px-4 py-2 text-white/70 hover:text-white font-medium transition-colors"
+              >
+                Войти
+              </Link>
             )}
           </div>
 
@@ -198,25 +186,27 @@ export function Header() {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex flex-col h-full">
-                <div className="px-6 py-8 space-y-2">
-                  {navLinks.map((link, index) => (
-                    <motion.div
-                      key={link.href}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                    >
-                      <Link
-                        href={link.href}
-                        className="flex items-center gap-3 px-4 py-3 rounded-xl text-lg font-medium text-white/70 hover:text-white hover:bg-white/5 transition-all duration-200 group"
-                        onClick={() => setIsMobileMenuOpen(false)}
+                {!isTelegramApp && (
+                  <div className="px-6 py-8 space-y-2">
+                    {navLinks.map((link, index) => (
+                      <motion.div
+                        key={link.href}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1 }}
                       >
-                        <span className="w-1 h-6 bg-accent-teal rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                        {link.label}
-                      </Link>
-                    </motion.div>
-                  ))}
-                </div>
+                        <Link
+                          href={link.href}
+                          className="flex items-center gap-3 px-4 py-3 rounded-xl text-lg font-medium text-white/70 hover:text-white hover:bg-white/5 transition-all duration-200 group"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          <span className="w-1 h-6 bg-accent-teal rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                          {link.label}
+                        </Link>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
                 <div className="mt-auto px-6 py-6 border-t border-white/10 space-y-3">
                   {isAuthenticated ? (
                     <>
@@ -261,23 +251,14 @@ export function Header() {
                       )}
                     </>
                   ) : (
-                    <>
-                      <Link
-                        href="/login"
-                        className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-colors text-white/70 hover:text-white"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        <User className="w-5 h-5" />
-                        Войти
-                      </Link>
-                      <Link
-                        href="/courses"
-                        className="block w-full py-4 px-4 rounded-xl font-semibold text-center text-dark-900 bg-gradient-to-r from-accent-teal to-accent-mint hover:shadow-lg hover:shadow-accent-teal/20 transition-all"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        Начать обучение
-                      </Link>
-                    </>
+                    <Link
+                      href="/login"
+                      className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-colors text-white/70 hover:text-white"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      <User className="w-5 h-5" />
+                      Войти
+                    </Link>
                   )}
                 </div>
               </div>

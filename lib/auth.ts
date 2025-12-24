@@ -8,11 +8,17 @@ export interface AuthUser {
   telegram_id?: string
 }
 
-export async function signUp(email: string, password: string, name: string) {
+export async function signUp(username: string, password: string, name: string, email?: string, phone?: string) {
   const response = await fetch('/api/auth/register', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password, name }),
+    body: JSON.stringify({ 
+      username,
+      password, 
+      name,
+      email: email || null,
+      phone: phone || null,
+    }),
   })
 
   if (!response.ok) {
@@ -24,11 +30,11 @@ export async function signUp(email: string, password: string, name: string) {
   return { user: { id: data.user_id, email: data.email }, error: null }
 }
 
-export async function signIn(email: string, password: string) {
+export async function signIn(username: string, password: string) {
   const response = await fetch('/api/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ username, password }),
   })
 
   if (!response.ok) {

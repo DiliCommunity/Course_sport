@@ -104,7 +104,12 @@ export function ReferralSection({ referralCode, stats }: ReferralSectionProps) {
 
         {/* Заработать Button */}
         <motion.button
-          onClick={() => setIsModalOpen(true)}
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            setIsModalOpen(true)
+          }}
+          type="button"
           className="w-full py-3 rounded-xl bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900 font-bold hover:shadow-lg hover:shadow-accent-gold/30 transition-all"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}

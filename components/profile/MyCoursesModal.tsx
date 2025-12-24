@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, BookOpen, Play, Clock, CheckCircle2, ArrowRight, Lock } from 'lucide-react'
 import Image from 'next/image'
@@ -84,17 +85,20 @@ export function MyCoursesModal({ isOpen, onClose }: MyCoursesModalProps) {
     }
   }
 
-  return (
+  if (typeof window === 'undefined') return null
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" style={{ position: 'fixed' }}>
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="absolute inset-0 bg-dark-900/80 backdrop-blur-sm"
+          className="absolute inset-0 bg-dark-900/90 backdrop-blur-md"
+          style={{ zIndex: 9998 }}
         />
 
         {/* Modal */}
@@ -103,6 +107,8 @@ export function MyCoursesModal({ isOpen, onClose }: MyCoursesModalProps) {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
           className="relative w-full max-w-4xl max-h-[90vh] rounded-2xl glass border border-white/10 overflow-hidden flex flex-col"
+          style={{ zIndex: 9999 }}
+          onClick={(e) => e.stopPropagation()}
         >
           {/* Gradient background */}
           <div className="absolute inset-0 bg-gradient-to-br from-accent-teal/10 via-transparent to-accent-mint/10" />
