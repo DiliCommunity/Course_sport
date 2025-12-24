@@ -382,6 +382,34 @@ const intervalFreeModule = {
   ],
 }
 
+// Данные платного модуля (20%) для Интервального голодания
+const intervalPaidModule = {
+  moduleTitle: 'Введение в программу (20% курса)',
+  lessons: [
+    {
+      id: '4',
+      title: 'Циркадные ритмы и время приема пищи',
+      type: 'video' as const,
+      duration: 25,
+      content: `Глубокое погружение в циркадные ритмы. Когда именно есть для максимального эффекта?`,
+    },
+    {
+      id: '5',
+      title: 'IF + тренировки',
+      type: 'infographic' as const,
+      duration: 30,
+      content: `Когда тренироваться: в голоде или после еды? Протоколы для силы и для выносливости`,
+    },
+    {
+      id: '6',
+      title: 'Питание в окно',
+      type: 'text' as const,
+      duration: 20,
+      content: `Что есть, чтобы усилить эффект IF? Нужно ли считать калории?`,
+    },
+  ],
+}
+
 // Функция для получения данных курса по ID
 function getCourseData(id: string) {
   if (id === '1') return ketoCourse
@@ -727,11 +755,31 @@ export default function CoursePage({ params }: { params: { id: string } }) {
                   </div>
                 </div>
                 <div className="prose prose-invert max-w-none">
-                  {lesson.content.split('\n\n').map((paragraph, pIndex) => (
-                    <p key={pIndex} className="text-white/70 leading-relaxed mb-4 whitespace-pre-line">
-                      {paragraph.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>')}
-                    </p>
-                  ))}
+                  {lesson.content.split('\n\n').map((paragraph, pIndex) => {
+                    const parts: (string | JSX.Element)[] = []
+                    let lastIndex = 0
+                    const boldRegex = /\*\*(.*?)\*\*/g
+                    const italicRegex = /\*(.*?)\*/g
+                    let match
+                    
+                    // Обрабатываем жирный текст
+                    while ((match = boldRegex.exec(paragraph)) !== null) {
+                      if (match.index > lastIndex) {
+                        parts.push(paragraph.slice(lastIndex, match.index))
+                      }
+                      parts.push(<strong key={`bold-${pIndex}-${match.index}`}>{match[1]}</strong>)
+                      lastIndex = match.index + match[0].length
+                    }
+                    if (lastIndex < paragraph.length) {
+                      parts.push(paragraph.slice(lastIndex))
+                    }
+                    
+                    return (
+                      <p key={pIndex} className="text-white/70 leading-relaxed mb-4 whitespace-pre-line">
+                        {parts.length > 0 ? parts : paragraph}
+                      </p>
+                    )
+                  })}
                 </div>
                 {lesson.checklist && (
                   <div className="mt-4 p-4 rounded-xl bg-accent-neon/10 border border-accent-neon/20">
@@ -827,11 +875,30 @@ export default function CoursePage({ params }: { params: { id: string } }) {
                     </div>
                   </div>
                   <div className="prose prose-invert max-w-none">
-                    {lesson.content.split('\n\n').map((paragraph, pIndex) => (
-                      <p key={pIndex} className="text-white/70 leading-relaxed mb-4 whitespace-pre-line">
-                        {paragraph.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>')}
-                      </p>
-                    ))}
+                    {lesson.content.split('\n\n').map((paragraph, pIndex) => {
+                      const parts: (string | JSX.Element)[] = []
+                      let lastIndex = 0
+                      const boldRegex = /\*\*(.*?)\*\*/g
+                      let match
+                      
+                      // Обрабатываем жирный текст
+                      while ((match = boldRegex.exec(paragraph)) !== null) {
+                        if (match.index > lastIndex) {
+                          parts.push(paragraph.slice(lastIndex, match.index))
+                        }
+                        parts.push(<strong key={`bold-paid-${pIndex}-${match.index}`}>{match[1]}</strong>)
+                        lastIndex = match.index + match[0].length
+                      }
+                      if (lastIndex < paragraph.length) {
+                        parts.push(paragraph.slice(lastIndex))
+                      }
+                      
+                      return (
+                        <p key={pIndex} className="text-white/70 leading-relaxed mb-4 whitespace-pre-line">
+                          {parts.length > 0 ? parts : paragraph}
+                        </p>
+                      )
+                    })}
                   </div>
                   {lesson.checklist && (
                     <div className="mt-4 p-4 rounded-xl bg-accent-gold/10 border border-accent-gold/20">
