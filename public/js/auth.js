@@ -1,34 +1,68 @@
 // Общий файл для проверки авторизации и обновления навигации
+// Работает через API сессий (cookies)
 
-// Проверка авторизации
-function isAuthenticated() {
-    return !!localStorage.getItem('user_id');
+// Кэш данных пользователя
+let cachedUser = null;
+let isCheckingAuth = false;
+
+// Проверка авторизации через API
+async function checkAuth() {
+    // Предотвращаем множественные одновременные запросы
+    if (isCheckingAuth) {
+        return cachedUser;
+    }
+    
+    isCheckingAuth = true;
+    
+    try {
+        const response = await fetch('/api/profile/data', {
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            cachedUser = data.user;
+            return data.user;
+        }
+        
+        cachedUser = null;
+        return null;
+    } catch (error) {
+        console.error('Auth check error:', error);
+        cachedUser = null;
+        return null;
+    } finally {
+        isCheckingAuth = false;
+    }
 }
 
-// Получение данных пользователя
+// Синхронная проверка - для быстрого UI (использует кэш)
+function isAuthenticated() {
+    return cachedUser !== null;
+}
+
+// Получение данных пользователя из кэша
 function getUserData() {
-    return {
-        id: localStorage.getItem('user_id'),
-        username: localStorage.getItem('user_username'),
-        name: localStorage.getItem('user_name'),
-        email: localStorage.getItem('user_email'),
-        phone: localStorage.getItem('user_phone')
-    };
+    return cachedUser;
 }
 
 // Выход
-function logout() {
-    localStorage.removeItem('user_id');
-    localStorage.removeItem('user_username');
-    localStorage.removeItem('user_name');
-    localStorage.removeItem('user_email');
-    localStorage.removeItem('user_phone');
-    localStorage.removeItem('remember_login');
+async function logout() {
+    try {
+        await fetch('/api/auth/logout', {
+            method: 'POST',
+            credentials: 'include'
+        });
+    } catch (error) {
+        console.error('Logout error:', error);
+    }
+    
+    cachedUser = null;
     window.location.href = '/index.html';
 }
 
 // Обновление навигации на всех страницах
-function updateNavigation() {
+function updateNavigation(user) {
     const authButtons = document.getElementById('authButtons');
     const guestButtons = document.getElementById('guestButtons');
     const mobileProfileLink = document.getElementById('mobileProfileLink');
@@ -36,9 +70,7 @@ function updateNavigation() {
     const mobileEarnLink = document.getElementById('mobileEarnLink');
     const mobileLogoutLink = document.getElementById('mobileLogoutLink');
     
-    if (isAuthenticated()) {
-        const user = getUserData();
-        
+    if (user) {
         // Показываем бургер-меню вместо кнопки входа
         if (authButtons) {
             authButtons.style.display = 'flex';
@@ -61,7 +93,7 @@ function updateNavigation() {
                         transition: all 0.3s;
                     " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(0, 217, 255, 0.6)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0, 217, 255, 0.4)'">
                         <span>👤</span>
-                        <span>Мой профиль</span>
+                        <span>${user.name || 'Мой профиль'}</span>
                         <span style="font-size: 12px;">▼</span>
                     </button>
                     <div class="user-dropdown" id="userDropdown" style="
@@ -140,16 +172,16 @@ function updateNavigation() {
 }
 
 // Инициализация при загрузке страницы
-(function() {
-    function initAuth() {
-        updateNavigation();
+(async function() {
+    async function initAuth() {
+        const user = await checkAuth();
+        updateNavigation(user);
     }
     
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initAuth);
     } else {
         // DOM уже загружен
-        setTimeout(initAuth, 0);
+        await initAuth();
     }
 })();
-

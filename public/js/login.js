@@ -1,4 +1,5 @@
 // Простой вход (логин + пароль)
+// Сессия устанавливается через cookie на сервере
 
 // Показать/скрыть пароль
 function toggleLoginPassword() {
@@ -50,7 +51,6 @@ async function handleLogin(event) {
 
     const username = document.getElementById('loginUsername').value.trim();
     const password = document.getElementById('loginPassword').value;
-    const remember = document.getElementById('remember')?.checked || false;
 
     // Валидация
     if (!username) {
@@ -75,6 +75,7 @@ async function handleLogin(event) {
             headers: {
                 'Content-Type': 'application/json'
             },
+            credentials: 'include', // Важно для cookies
             body: JSON.stringify({
                 username: username,
                 password: password
@@ -87,16 +88,7 @@ async function handleLogin(event) {
             throw new Error(data.error || 'Неверный логин или пароль');
         }
 
-        // Сохраняем данные пользователя
-        localStorage.setItem('user_id', data.user_id);
-        localStorage.setItem('user_username', data.username);
-        localStorage.setItem('user_name', data.name);
-        if (data.email) localStorage.setItem('user_email', data.email);
-        
-        if (remember) {
-            localStorage.setItem('remember_login', 'true');
-        }
-
+        // Cookie сессии устанавливается сервером автоматически
         // Показываем успех
         showSuccess();
 
@@ -115,10 +107,17 @@ async function handleLogin(event) {
 }
 
 // Проверяем, авторизован ли пользователь
-document.addEventListener('DOMContentLoaded', function() {
-    const userId = localStorage.getItem('user_id');
-    if (userId) {
-        // Уже авторизован - перенаправляем на профиль
-        window.location.href = '/profile.html';
+document.addEventListener('DOMContentLoaded', async function() {
+    try {
+        const response = await fetch('/api/profile/data', {
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            // Уже авторизован - перенаправляем на профиль
+            window.location.href = '/profile.html';
+        }
+    } catch (error) {
+        // Не авторизован - остаёмся на странице
     }
 });

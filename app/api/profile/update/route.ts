@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { getUserFromSession } from '@/lib/session-utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -8,12 +9,9 @@ export async function PATCH(request: NextRequest) {
     const supabase = await createClient()
 
     // Получаем текущего пользователя
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser()
+    const user = await getUserFromSession(supabase)
 
-    if (userError || !user) {
+    if (!user) {
       return NextResponse.json(
         {
           error: 'Unauthorized',
@@ -24,12 +22,13 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { email, phone } = body
+    const { email, phone, name } = body
 
     // Обновляем профиль пользователя
-    const updateData: any = {}
+    const updateData: Record<string, unknown> = {}
     if (email !== undefined) updateData.email = email
     if (phone !== undefined) updateData.phone = phone
+    if (name !== undefined) updateData.name = name
 
     const { data: updatedProfile, error: updateError } = await supabase
       .from('users')
@@ -58,4 +57,3 @@ export async function PATCH(request: NextRequest) {
     )
   }
 }
-

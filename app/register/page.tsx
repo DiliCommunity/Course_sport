@@ -1,12 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Mail, Lock, Eye, EyeOff, User, Heart, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff, User, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
-import { signUp } from '@/lib/auth'
+import { useTelegram } from '@/components/providers/TelegramProvider'
+import { useAuth } from '@/components/providers/AuthProvider'
 
 export default function RegisterPage() {
   const [username, setUsername] = useState('')
@@ -21,6 +22,18 @@ export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const router = useRouter()
+  const { isTelegramApp, user: telegramUser, isReady } = useTelegram()
+  const { user, loading: authLoading, refreshUser } = useAuth()
+
+  // Если пользователь уже авторизован - редирект на курсы
+  useEffect(() => {
+    if (!authLoading && user) {
+      router.replace('/courses')
+    }
+  }, [authLoading, user, router])
+
+  // Для Telegram пользователей - автоматическая регистрация уже происходит в AuthProvider
+  // Здесь показываем форму только для НЕ-Telegram пользователей
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -54,6 +67,7 @@ export default function RegisterPage() {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           username,
           password,
@@ -63,19 +77,50 @@ export default function RegisterPage() {
         }),
       })
 
+      const data = await response.json()
+
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Ошибка регистрации')
+        throw new Error(data.error || 'Ошибка регистрации')
       }
 
       setSuccess(true)
+      
+      // Обновляем данные пользователя и редиректим
+      await refreshUser()
       setTimeout(() => {
-        router.push('/login')
-      }, 2000)
+        router.push('/courses')
+      }, 1500)
     } catch (err: any) {
       setError(err.message || 'Ошибка регистрации. Попробуйте снова.')
       setIsLoading(false)
     }
+  }
+
+  // Показываем загрузку пока проверяем авторизацию
+  if (authLoading || (!isReady && isTelegramApp)) {
+    return (
+      <main className="min-h-screen flex items-center justify-center px-4 py-20">
+        <div className="text-center">
+          <div className="inline-block w-12 h-12 border-4 border-accent-electric border-t-transparent rounded-full animate-spin mb-4" />
+          <p className="text-white/60">Проверка авторизации...</p>
+        </div>
+      </main>
+    )
+  }
+
+  // Для Telegram пользователей показываем статус авторизации
+  if (isTelegramApp && telegramUser) {
+    return (
+      <main className="min-h-screen flex items-center justify-center px-4 py-20">
+        <div className="text-center">
+          <div className="inline-block w-12 h-12 border-4 border-accent-electric border-t-transparent rounded-full animate-spin mb-4" />
+          <p className="text-white/60">Регистрация через Telegram...</p>
+          <p className="text-white/40 text-sm mt-2">
+            {telegramUser.first_name} {telegramUser.last_name || ''}
+          </p>
+        </div>
+      </main>
+    )
   }
 
   return (
@@ -125,7 +170,7 @@ export default function RegisterPage() {
             >
               <CheckCircle2 className="w-5 h-5 text-accent-neon flex-shrink-0" />
               <p className="text-sm text-accent-neon">
-                Регистрация успешна! Перенаправляем на страницу входа...
+                Регистрация успешна! Перенаправляем...
               </p>
             </motion.div>
           )}
@@ -183,7 +228,7 @@ export default function RegisterPage() {
 
             <div className="space-y-2">
               <label htmlFor="password" className="block text-sm font-medium text-white/70">
-                Пароль
+                Пароль <span className="text-red-400">*</span>
               </label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
@@ -213,7 +258,7 @@ export default function RegisterPage() {
 
             <div className="space-y-2">
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-white/70">
-                Подтвердите пароль
+                Подтвердите пароль <span className="text-red-400">*</span>
               </label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
@@ -307,4 +352,3 @@ export default function RegisterPage() {
     </main>
   )
 }
-

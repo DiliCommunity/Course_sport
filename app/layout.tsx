@@ -5,7 +5,7 @@ import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { TelegramProvider } from '@/components/providers/TelegramProvider'
 import { AuthProvider } from '@/components/providers/AuthProvider'
-import { BrowserRedirect } from '@/components/BrowserRedirect'
+import { TelegramGate } from '@/components/TelegramGate'
 import React from 'react'
 
 const spaceGrotesk = Space_Grotesk({
@@ -54,20 +54,21 @@ export default function RootLayout({
   return (
     <html lang="ru" className={`${spaceGrotesk.variable} ${outfit.variable} ${jetbrainsMono.variable}`}>
       <body className="bg-dark-900 text-white font-body antialiased relative">
-        <TelegramProvider>
-          <AuthProvider>
-            <BrowserRedirect />
-            <div className="flex flex-col min-h-screen relative z-10">
-              <Header />
-              <main className="flex-1 relative z-10">
-                {children}
-              </main>
-              <Footer />
-            </div>
-          </AuthProvider>
-        </TelegramProvider>
+        {/* TelegramGate - проверяет Telegram в самом начале и редиректит браузеры на HTML */}
+        <TelegramGate>
+          <TelegramProvider>
+            <AuthProvider>
+              <div className="flex flex-col min-h-screen relative z-10">
+                <Header />
+                <main className="flex-1 relative z-10">
+                  {children}
+                </main>
+                <Footer />
+              </div>
+            </AuthProvider>
+          </TelegramProvider>
+        </TelegramGate>
       </body>
     </html>
   )
 }
-

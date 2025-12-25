@@ -90,6 +90,7 @@ declare global {
 interface TelegramContextType {
   webApp: TelegramWebApp | null
   user: TelegramUser | null
+  initData: string | null
   isTelegramApp: boolean
   isReady: boolean
 }
@@ -97,6 +98,7 @@ interface TelegramContextType {
 const TelegramContext = createContext<TelegramContextType>({
   webApp: null,
   user: null,
+  initData: null,
   isTelegramApp: false,
   isReady: false,
 })
@@ -114,54 +116,50 @@ export function TelegramProvider({ children }: TelegramProviderProps) {
   const [isReady, setIsReady] = useState(false)
 
   useEffect(() => {
-    // Проверяем, что мы в браузере
     if (typeof window === 'undefined') {
       setIsReady(true)
       return
     }
 
-    try {
-      const script = document.createElement('script')
-      script.src = 'https://telegram.org/js/telegram-web-app.js'
-      script.async = true
-      script.onload = () => {
-        try {
-          const tg = window.Telegram?.WebApp
-          if (tg) {
-            tg.ready()
-            tg.expand()
-            tg.setHeaderColor('#0a0a0b')
-            tg.setBackgroundColor('#0a0a0b')
-            setWebApp(tg)
-          }
-        } catch (error) {
-          console.error('Telegram WebApp error:', error)
-        }
-        setIsReady(true)
+    // Ждём инициализации Telegram WebApp
+    const initTelegram = () => {
+      const tg = window.Telegram?.WebApp
+      if (tg?.initData) {
+        tg.ready()
+        tg.expand()
+        tg.setHeaderColor('#0a0a0b')
+        tg.setBackgroundColor('#0a0a0b')
+        setWebApp(tg)
       }
-      script.onerror = () => {
-        setIsReady(true)
-      }
-      document.head.appendChild(script)
-
-      return () => {
-        try {
-          if (document.head.contains(script)) {
-            document.head.removeChild(script)
-          }
-        } catch (error) {
-          // Игнорируем ошибки при удалении
-        }
-      }
-    } catch (error) {
-      console.error('TelegramProvider error:', error)
       setIsReady(true)
+    }
+
+    // Если скрипт уже загружен - инициализируем сразу
+    if (window.Telegram?.WebApp) {
+      initTelegram()
+    } else {
+      // Ждём загрузки скрипта
+      const checkInterval = setInterval(() => {
+        if (window.Telegram?.WebApp) {
+          clearInterval(checkInterval)
+          initTelegram()
+        }
+      }, 100)
+
+      // Timeout на случай если скрипт не загрузится
+      setTimeout(() => {
+        clearInterval(checkInterval)
+        setIsReady(true)
+      }, 2000)
+
+      return () => clearInterval(checkInterval)
     }
   }, [])
 
   const value: TelegramContextType = {
     webApp,
     user: webApp?.initDataUnsafe?.user || null,
+    initData: webApp?.initData || null,
     isTelegramApp: !!webApp?.initData,
     isReady,
   }
@@ -172,4 +170,3 @@ export function TelegramProvider({ children }: TelegramProviderProps) {
     </TelegramContext.Provider>
   )
 }
-

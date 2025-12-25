@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import crypto from 'crypto'
+import { cookies } from 'next/headers'
 
 export const dynamic = 'force-dynamic'
+
+// Генерация токена сессии
+function generateSessionToken(): string {
+  return crypto.randomBytes(32).toString('hex')
+}
 
 // Безопасное хеширование пароля с использованием PBKDF2
 function hashPassword(password: string): string {
@@ -20,21 +26,6 @@ function hashPassword(password: string): string {
   
   // Сохраняем в формате: iterations:salt:hash
   return `${iterations}:${salt}:${hash}`
-}
-
-// Проверка пароля (используется в login route)
-function verifyPassword(password: string, storedHash: string): boolean {
-  const [iterations, salt, hash] = storedHash.split(':')
-  
-  const verifyHash = crypto.pbkdf2Sync(
-    password,
-    salt,
-    parseInt(iterations),
-    64,
-    'sha512'
-  ).toString('hex')
-  
-  return hash === verifyHash
 }
 
 export async function POST(request: NextRequest) {
@@ -150,6 +141,36 @@ export async function POST(request: NextRequest) {
         // Не блокируем регистрацию если реферальный код не найден
       }
     }
+
+    // Создаём сессию автоматически после регистрации
+    const sessionToken = generateSessionToken()
+    const expiresAt = new Date()
+    expiresAt.setDate(expiresAt.getDate() + 7) // Сессия на 7 дней
+
+    const { error: sessionError } = await supabase
+      .from('sessions')
+      .insert({
+        user_id: userId,
+        token: sessionToken,
+        session_type: 'web',
+        user_agent: request.headers.get('user-agent') || null,
+        expires_at: expiresAt.toISOString(),
+        is_active: true,
+      })
+
+    if (sessionError) {
+      console.error('Create session error:', sessionError)
+    }
+
+    // Устанавливаем cookie с токеном сессии
+    const cookieStore = await cookies()
+    cookieStore.set('session_token', sessionToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      expires: expiresAt,
+    })
 
     return NextResponse.json({
       success: true,

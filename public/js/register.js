@@ -1,12 +1,13 @@
 // Простая регистрация (логин + пароль)
+// Сессия устанавливается через cookie на сервере
 
-// Получаем реферальный код из URL
+// Получаем реферальный код из URL и сохраняем в sessionStorage (не localStorage)
 const urlParams = new URLSearchParams(window.location.search);
 const referralCode = urlParams.get('ref');
 
-// Если есть реферальный код - сохраняем его
+// Если есть реферальный код - сохраняем его в sessionStorage
 if (referralCode) {
-    localStorage.setItem('pending_referral', referralCode);
+    sessionStorage.setItem('pending_referral', referralCode);
     console.log('Реферальный код сохранён:', referralCode);
 }
 
@@ -115,14 +116,15 @@ async function handleRegister(event) {
     submitBtn.disabled = true;
 
     try {
-        // Получаем сохраненный реферальный код
-        const savedReferral = localStorage.getItem('pending_referral');
+        // Получаем сохраненный реферальный код из sessionStorage
+        const savedReferral = sessionStorage.getItem('pending_referral');
         
         const response = await fetch('/api/auth/register', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
+            credentials: 'include', // Важно для cookies
             body: JSON.stringify({
                 username: username,
                 password: password,
@@ -139,15 +141,9 @@ async function handleRegister(event) {
             throw new Error(data.error || 'Ошибка регистрации');
         }
 
-        // Сохраняем данные пользователя
-        localStorage.setItem('user_id', data.user_id);
-        localStorage.setItem('user_name', name);
-        localStorage.setItem('user_username', username);
-        if (email) localStorage.setItem('user_email', email);
-        if (phone) localStorage.setItem('user_phone', phone);
-        
+        // Cookie сессии устанавливается сервером автоматически
         // Удаляем использованный реферальный код
-        localStorage.removeItem('pending_referral');
+        sessionStorage.removeItem('pending_referral');
 
         // Показываем успех
         showSuccess();
@@ -167,10 +163,17 @@ async function handleRegister(event) {
 }
 
 // Проверяем, авторизован ли пользователь
-document.addEventListener('DOMContentLoaded', function() {
-    const userId = localStorage.getItem('user_id');
-    if (userId) {
-        // Уже авторизован - перенаправляем на профиль
-        window.location.href = '/profile.html';
+document.addEventListener('DOMContentLoaded', async function() {
+    try {
+        const response = await fetch('/api/profile/data', {
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            // Уже авторизован - перенаправляем на профиль
+            window.location.href = '/profile.html';
+        }
+    } catch (error) {
+        // Не авторизован - остаёмся на странице
     }
 });

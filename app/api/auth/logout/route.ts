@@ -1,19 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { cookies } from 'next/headers'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
-    const { error } = await supabase.auth.signOut()
+    const cookieStore = await cookies()
+    
+    // Получаем токен сессии
+    const sessionToken = cookieStore.get('session_token')?.value
 
-    if (error) {
-      return NextResponse.json(
-        { error: error.message || 'Logout failed' },
-        { status: 400 }
-      )
+    if (sessionToken) {
+      // Деактивируем сессию в БД
+      await supabase
+        .from('sessions')
+        .update({ is_active: false })
+        .eq('token', sessionToken)
     }
+
+    // Удаляем cookies
+    cookieStore.delete('session_token')
+    cookieStore.delete('telegram_id')
 
     return NextResponse.json({
       success: true,

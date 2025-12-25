@@ -1,8 +1,7 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { useTelegram } from './TelegramProvider'
 
 interface AuthUser {
@@ -10,20 +9,25 @@ interface AuthUser {
   email?: string
   phone?: string
   name?: string
+  username?: string
   avatar_url?: string
   telegram_id?: string
+  telegram_username?: string
+  is_admin?: boolean
 }
 
 interface AuthContextType {
   user: AuthUser | null
   loading: boolean
   signOut: () => Promise<void>
+  refreshUser: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   signOut: async () => {},
+  refreshUser: async () => {},
 })
 
 export function useAuth() {
@@ -37,169 +41,124 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(true)
+  const [authAttempted, setAuthAttempted] = useState(false)
   const router = useRouter()
-  const { user: telegramUser, isTelegramApp } = useTelegram()
+  const { user: telegramUser, isTelegramApp, isReady } = useTelegram()
 
-  useEffect(() => {
-    // Создаем клиент только внутри useEffect
-    let supabase: ReturnType<typeof createClient> | null = null
+  // Функция для получения профиля пользователя
+  const fetchProfile = useCallback(async () => {
     try {
-      supabase = createClient()
-    } catch (error) {
-      console.warn('Supabase client not available:', error)
-      setLoading(false)
-      return
-    }
+      const response = await fetch('/api/profile/data', {
+        credentials: 'include',
+      })
 
-    // Получаем текущую сессию Supabase
-    async function fetchUser() {
-      if (!supabase) {
+      if (response.ok) {
+        const data = await response.json()
+        setUser({
+          id: data.user.id,
+          email: data.user.email,
+          phone: data.user.phone,
+          name: data.user.name,
+          username: data.user.username,
+          avatar_url: data.user.avatar_url,
+          telegram_id: data.user.telegram_id,
+          telegram_username: data.user.telegram_username,
+          is_admin: data.user.is_admin,
+        })
+        return true
+      }
+      return false
+    } catch (error) {
+      console.error('Fetch profile error:', error)
+      return false
+    }
+  }, [])
+
+  // Авторизация через Telegram
+  const authViaTelegram = useCallback(async () => {
+    if (!telegramUser) return false
+
+    try {
+      const response = await fetch('/api/auth/telegram', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          id: telegramUser.id,
+          first_name: telegramUser.first_name,
+          last_name: telegramUser.last_name,
+          username: telegramUser.username,
+          photo_url: telegramUser.photo_url,
+        }),
+      })
+
+      if (!response.ok) {
+        console.error('Telegram auth failed:', await response.text())
+        return false
+      }
+
+      const data = await response.json()
+      console.log('Telegram auth success:', data)
+      
+      // После успешной авторизации получаем профиль
+      return await fetchProfile()
+    } catch (error) {
+      console.error('Telegram auth error:', error)
+      return false
+    }
+  }, [telegramUser, fetchProfile])
+
+  // Основная логика авторизации
+  useEffect(() => {
+    if (!isReady || authAttempted) return
+
+    const initAuth = async () => {
+      setLoading(true)
+
+      // Сначала пробуем получить профиль (если уже есть сессия)
+      const hasSession = await fetchProfile()
+      
+      if (hasSession) {
         setLoading(false)
+        setAuthAttempted(true)
         return
       }
-      
-      try {
-        const {
-          data: { user: authUser },
-        } = await supabase.auth.getUser()
 
-        if (authUser) {
-          // Получаем профиль пользователя
-          const { data: profile } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', authUser.id)
-            .single()
-
-          if (profile) {
-            setUser({
-              id: authUser.id,
-              email: authUser.email,
-              phone: authUser.phone,
-              name: profile.name,
-              avatar_url: profile.avatar_url,
-              telegram_id: profile.telegram_id,
-            })
-          } else {
-            setUser({
-              id: authUser.id,
-              email: authUser.email,
-              phone: authUser.phone,
-            })
-          }
-        } else {
-          // Если нет сессии, проверяем Telegram WebApp
-          if (isTelegramApp && telegramUser) {
-            // Автоматически авторизуем через Telegram WebApp
-            try {
-              const authResponse = await fetch('/api/auth/telegram', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  id: telegramUser.id,
-                  first_name: telegramUser.first_name,
-                  last_name: telegramUser.last_name,
-                  username: telegramUser.username,
-                  photo_url: telegramUser.photo_url,
-                  phone_number: telegramUser.phone_number,
-                }),
-                credentials: 'include', // Важно для сохранения сессии
-              })
-              
-              if (authResponse.ok) {
-                const authData = await authResponse.json()
-                
-                // Если требуется OTP, пропускаем автоматическую авторизацию
-                if (authData.requires_otp) {
-                  console.log('OTP required for phone verification')
-                  setLoading(false)
-                  return
-                }
-                
-                if (authData.user && authData.session) {
-                  // Сессия создана, получаем профиль
-                  const profileResponse = await fetch('/api/profile/data', {
-                    credentials: 'include',
-                  })
-                  
-                  if (profileResponse.ok) {
-                    const profileData = await profileResponse.json()
-                    setUser({
-                      id: profileData.user.id,
-                      email: profileData.user.email,
-                      phone: profileData.user.phone,
-                      name: profileData.user.name,
-                      avatar_url: profileData.user.avatar_url,
-                      telegram_id: String(telegramUser.id),
-                    })
-                  }
-                } else if (authData.user_id) {
-                  // Пользователь существует, но нужно получить сессию
-                  // Повторно запрашиваем профиль
-                  setTimeout(async () => {
-                    const profileResponse = await fetch('/api/profile/data', {
-                      credentials: 'include',
-                    })
-                    if (profileResponse.ok) {
-                      const profileData = await profileResponse.json()
-                      setUser({
-                        id: profileData.user.id,
-                        email: profileData.user.email,
-                        phone: profileData.user.phone,
-                        name: profileData.user.name,
-                        avatar_url: profileData.user.avatar_url,
-                        telegram_id: String(telegramUser.id),
-                      })
-                    }
-                  }, 500)
-                }
-              }
-            } catch (error) {
-              console.error('Telegram auth error:', error)
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Auth fetch error:', error)
-      } finally {
-        setLoading(false)
+      // Если это Telegram WebApp - авторизуемся через Telegram
+      if (isTelegramApp && telegramUser) {
+        await authViaTelegram()
       }
+
+      setLoading(false)
+      setAuthAttempted(true)
     }
 
-    fetchUser()
+    initAuth()
+  }, [isReady, isTelegramApp, telegramUser, authAttempted, fetchProfile, authViaTelegram])
 
-    // Слушаем изменения в авторизации
-    if (!supabase) return
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        // Обновляем пользователя при изменении сессии
-        fetchUser()
-      } else {
-        setUser(null)
-      }
-    })
-
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [isTelegramApp, telegramUser])
-
+  // Функция выхода
   const signOut = async () => {
     try {
-      const supabase = createClient()
-      await supabase.auth.signOut()
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      })
       setUser(null)
-      router.push('/login')
+      router.push('/')
     } catch (error) {
       console.error('Sign out error:', error)
     }
   }
 
+  // Функция обновления пользователя
+  const refreshUser = async () => {
+    await fetchProfile()
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signOut, refreshUser }}>
       {children}
     </AuthContext.Provider>
   )

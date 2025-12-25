@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { getUserFromSession } from '@/lib/session-utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,31 +20,18 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Получаем текущего пользователя
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser()
+    // Получаем текущего пользователя из сессии
+    const user = await getUserFromSession(supabase)
 
-    if (userError || !user) {
+    if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       )
     }
 
-    // Получаем профиль пользователя
-    const { data: profile } = await supabase
-      .from('users')
-      .select('is_admin, username')
-      .eq('id', user.id)
-      .single()
-
-    // Проверяем, является ли пользователь админом
-    const isAdmin = profile?.is_admin === true || profile?.username === 'admini_mini'
-
     // Если админ - полный доступ
-    if (isAdmin) {
+    if (user.is_admin) {
       return NextResponse.json({
         hasAccess: true,
         isAdmin: true,
@@ -175,4 +163,3 @@ export async function GET(request: NextRequest) {
     )
   }
 }
-
