@@ -80,9 +80,9 @@ export default function AboutPage() {
                   Начать обучение
                 </Button>
               </Link>
-              <Link href="/instructors">
+              <Link href="/keto-food">
                 <Button variant="secondary" size="lg">
-                  Наши тренеры
+                  Кето-рецепты
                 </Button>
               </Link>
             </div>

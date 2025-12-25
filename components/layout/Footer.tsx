@@ -12,7 +12,6 @@ const footerLinks = {
   ],
   company: [
     { label: 'О нас', href: '/about' },
-    { label: 'Эксперты', href: '/instructors' },
   ],
   support: [
     { label: 'Войти', href: '/login' },

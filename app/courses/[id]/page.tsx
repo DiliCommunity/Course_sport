@@ -1350,7 +1350,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
               >
-                <Link href={`/instructors/${courseData.instructor.id}`} className="inline-flex items-center gap-4 p-4 rounded-xl glass hover:bg-white/10 transition-colors">
+                <div className="inline-flex items-center gap-4 p-4 rounded-xl glass">
                   <div className="relative w-14 h-14 rounded-full overflow-hidden ring-2 ring-accent-electric/30">
                     <Image
                       src={courseData.instructor.avatar}
@@ -1364,7 +1364,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
                     <div className="font-semibold text-white">{courseData.instructor.name}</div>
                     <div className="text-sm text-accent-electric">{courseData.instructor.specialization}</div>
                   </div>
-                </Link>
+                </div>
               </motion.div>
 
               {/* Description */}

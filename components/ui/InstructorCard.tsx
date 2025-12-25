@@ -2,7 +2,6 @@
 
 import { motion } from 'framer-motion'
 import Image from 'next/image'
-import Link from 'next/link'
 import { Star, Users, BookOpen, Award } from 'lucide-react'
 
 interface InstructorCardProps {
@@ -37,11 +36,10 @@ export function InstructorCard({
       viewport={{ once: true, margin: '-50px' }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
     >
-      <Link href={`/instructors/${id}`} className="block group">
-        <motion.div
-          className="card h-full overflow-hidden"
-          whileHover={{ y: -8 }}
-        >
+      <motion.div
+        className="card h-full overflow-hidden"
+        whileHover={{ y: -8 }}
+      >
           {/* Avatar Section */}
           <div className="relative h-48 overflow-hidden">
             <Image
@@ -70,7 +68,7 @@ export function InstructorCard({
           {/* Content */}
           <div className="p-6 space-y-4">
             <div>
-              <h3 className="font-display font-bold text-xl text-white group-hover:text-accent-teal transition-colors">
+              <h3 className="font-display font-bold text-xl text-white">
                 {name}
               </h3>
               <p className="text-accent-teal text-sm mt-1">{specialization}</p>
@@ -97,7 +95,6 @@ export function InstructorCard({
             </div>
           </div>
         </motion.div>
-      </Link>
     </motion.div>
   )
 }

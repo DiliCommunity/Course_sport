@@ -1,10 +1,8 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import Link from 'next/link'
-import { ArrowRight, GraduationCap } from 'lucide-react'
+import { GraduationCap } from 'lucide-react'
 import { InstructorCard } from '@/components/ui/InstructorCard'
-import { Button } from '@/components/ui/Button'
 
 const instructors = [
   {
@@ -81,18 +79,6 @@ export function Instructors() {
             </p>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <Link href="/instructors">
-              <Button variant="secondary" rightIcon={<ArrowRight className="w-5 h-5" />}>
-                Все тренеры
-              </Button>
-            </Link>
-          </motion.div>
         </div>
 
         {/* Instructors Grid */}
