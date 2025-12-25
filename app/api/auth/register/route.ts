@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
     const body = await request.json()
-    const { username, password, name, email, phone, referralCode } = body
+    const { username, password, name, email, phone, referralCode, telegram_id, telegram_username } = body
 
     // Валидация
     if (!username || !password || !name) {
@@ -85,7 +85,10 @@ export async function POST(request: NextRequest) {
         name: name,
         email: email || null,
         phone: phone || null,
-        registration_method: 'username'
+        telegram_id: telegram_id || null,
+        telegram_username: telegram_username || null,
+        telegram_verified: telegram_id ? true : false,
+        registration_method: telegram_id ? 'telegram' : 'username'
       })
       .select()
       .single()
@@ -145,14 +148,15 @@ export async function POST(request: NextRequest) {
     // Создаём сессию автоматически после регистрации
     const sessionToken = generateSessionToken()
     const expiresAt = new Date()
-    expiresAt.setDate(expiresAt.getDate() + 7) // Сессия на 7 дней
+    expiresAt.setDate(expiresAt.getDate() + telegram_id ? 30 : 7) // Telegram - 30 дней, web - 7 дней
 
     const { error: sessionError } = await supabase
       .from('sessions')
       .insert({
         user_id: userId,
         token: sessionToken,
-        session_type: 'web',
+        session_type: telegram_id ? 'telegram' : 'web',
+        telegram_id: telegram_id || null,
         user_agent: request.headers.get('user-agent') || null,
         expires_at: expiresAt.toISOString(),
         is_active: true,
@@ -162,7 +166,7 @@ export async function POST(request: NextRequest) {
       console.error('Create session error:', sessionError)
     }
 
-    // Устанавливаем cookie с токеном сессии
+    // Устанавливаем cookies
     const cookieStore = await cookies()
     cookieStore.set('session_token', sessionToken, {
       httpOnly: true,
@@ -171,6 +175,17 @@ export async function POST(request: NextRequest) {
       path: '/',
       expires: expiresAt,
     })
+
+    // Если регистрация из Telegram - устанавливаем telegram_id cookie
+    if (telegram_id) {
+      cookieStore.set('telegram_id', telegram_id, {
+        httpOnly: false,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        expires: expiresAt,
+      })
+    }
 
     return NextResponse.json({
       success: true,

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { Lock, Eye, EyeOff, Send, ArrowRight, AlertCircle, User } from 'lucide-react'
+import { Lock, Eye, EyeOff, Send, AlertCircle, User, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useTelegram } from '@/components/providers/TelegramProvider'
 import { useAuth } from '@/components/providers/AuthProvider'
@@ -14,7 +14,10 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [isTelegramLoading, setIsTelegramLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+  const [showLoginForm, setShowLoginForm] = useState(false)
   const { isTelegramApp, user: telegramUser, isReady } = useTelegram()
   const { user, loading: authLoading, refreshUser } = useAuth()
   const router = useRouter()
@@ -26,12 +29,50 @@ export default function LoginPage() {
     }
   }, [authLoading, user, router])
 
-  // Для Telegram авторизация происходит автоматически в AuthProvider
-  // Здесь просто показываем статус
+  // Автоматическая авторизация через Telegram (если не показываем форму логина)
+  const handleTelegramAuth = async () => {
+    if (!telegramUser) return
+    
+    setIsTelegramLoading(true)
+    setError(null)
 
+    try {
+      const response = await fetch('/api/auth/telegram', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          id: telegramUser.id,
+          first_name: telegramUser.first_name,
+          last_name: telegramUser.last_name,
+          username: telegramUser.username,
+          photo_url: telegramUser.photo_url,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Ошибка авторизации через Telegram')
+      }
+
+      setSuccess(data.isNewUser ? 'Регистрация успешна!' : 'Вход выполнен!')
+      await refreshUser()
+      
+      setTimeout(() => {
+        router.push('/courses')
+      }, 1000)
+    } catch (err: any) {
+      setError(err.message || 'Ошибка авторизации через Telegram')
+      setIsTelegramLoading(false)
+    }
+  }
+
+  // Вход по логину/паролю
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+    setSuccess(null)
     setIsLoading(true)
     
     try {
@@ -48,9 +89,29 @@ export default function LoginPage() {
         throw new Error(data.error || 'Ошибка входа')
       }
 
-      // Обновляем данные пользователя
+      // Если мы в Telegram - связываем аккаунт с Telegram ID
+      if (isTelegramApp && telegramUser) {
+        try {
+          await fetch('/api/profile/link-telegram', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              telegram_id: String(telegramUser.id),
+              telegram_username: telegramUser.username,
+            }),
+          })
+        } catch (linkError) {
+          console.log('Could not link Telegram account:', linkError)
+        }
+      }
+
+      setSuccess('Вход выполнен успешно!')
       await refreshUser()
-      router.push('/courses')
+      
+      setTimeout(() => {
+        router.push('/courses')
+      }, 1000)
     } catch (err: any) {
       setError(err.message || 'Ошибка входа. Проверьте данные.')
       setIsLoading(false)
@@ -58,7 +119,7 @@ export default function LoginPage() {
   }
 
   // Показываем загрузку пока проверяем авторизацию
-  if (authLoading || (!isReady && isTelegramApp)) {
+  if (authLoading || !isReady) {
     return (
       <main className="min-h-screen flex items-center justify-center px-4 py-20">
         <div className="text-center">
@@ -103,65 +164,109 @@ export default function LoginPage() {
               Добро пожаловать!
             </h1>
             <p className="text-white/60">
-              {isTelegramApp 
-                ? 'Автоматический вход через Telegram' 
-                : 'Войдите, чтобы продолжить обучение'}
+              Войдите, чтобы продолжить обучение
             </p>
           </div>
 
-          {/* Telegram Login (if in Telegram) */}
-          {isTelegramApp && telegramUser ? (
+          {/* Success Message */}
+          {success && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-4 rounded-lg bg-accent-neon/10 border border-accent-neon/30 flex items-center gap-3 mb-6"
+            >
+              <CheckCircle2 className="w-5 h-5 text-accent-neon flex-shrink-0" />
+              <p className="text-sm text-accent-neon">{success}</p>
+            </motion.div>
+          )}
+
+          {/* Error Message */}
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-4 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center gap-3 mb-6"
+            >
+              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
+              <p className="text-sm text-red-400">{error}</p>
+            </motion.div>
+          )}
+
+          {/* Telegram Quick Login (if in Telegram and not showing form) */}
+          {isTelegramApp && telegramUser && !showLoginForm ? (
             <div className="space-y-6">
-              <div className="text-center py-8">
-                <div className="inline-block w-8 h-8 border-4 border-accent-electric border-t-transparent rounded-full animate-spin mb-4" />
-                <p className="text-white/60">Авторизация через Telegram...</p>
-                <p className="text-white/40 text-sm mt-2">
+              {/* Telegram User Info */}
+              <div className="p-4 rounded-xl bg-[#0088cc]/10 border border-[#0088cc]/30">
+                <div className="flex items-center gap-3 mb-2">
+                  <Send className="w-5 h-5 text-[#0088cc]" />
+                  <span className="font-semibold text-white">Telegram аккаунт</span>
+                </div>
+                <p className="text-white/60 text-sm">
                   {telegramUser.first_name} {telegramUser.last_name || ''}
+                  {telegramUser.username && ` (@${telegramUser.username})`}
                 </p>
               </div>
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="p-4 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center gap-3"
-                >
-                  <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
-                  <p className="text-sm text-red-400">{error}</p>
-                </motion.div>
-              )}
-            </div>
-          ) : (
-            <>
-              {/* Telegram Quick Login */}
-              <motion.a
-                href="https://t.me/CourseSportBot"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-3 w-full p-4 rounded-xl bg-[#0088cc] hover:bg-[#0077b5] transition-colors mb-6"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+
+              {/* Continue with Telegram */}
+              <Button 
+                className="w-full" 
+                size="lg"
+                onClick={handleTelegramAuth}
+                isLoading={isTelegramLoading}
               >
-                <Send className="w-5 h-5 text-white" />
-                <span className="font-semibold text-white">Войти через Telegram</span>
-              </motion.a>
+                <Send className="w-5 h-5 mr-2" />
+                Войти через Telegram
+              </Button>
 
               {/* Divider */}
-              <div className="flex items-center gap-4 mb-6">
+              <div className="flex items-center gap-4">
                 <div className="flex-1 h-px bg-white/10" />
                 <span className="text-white/40 text-sm">или</span>
                 <div className="flex-1 h-px bg-white/10" />
               </div>
 
-              {/* Error Message */}
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="p-4 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center gap-3 mb-4"
+              {/* Show login form button */}
+              <button
+                onClick={() => setShowLoginForm(true)}
+                className="w-full p-4 rounded-xl border border-white/20 text-white/80 hover:bg-white/5 transition-colors text-center"
+              >
+                У меня есть аккаунт (логин/пароль)
+              </button>
+            </div>
+          ) : (
+            <>
+              {/* Back to Telegram button (if in Telegram) */}
+              {isTelegramApp && telegramUser && showLoginForm && (
+                <button
+                  onClick={() => setShowLoginForm(false)}
+                  className="mb-6 text-accent-electric hover:underline text-sm flex items-center gap-2"
                 >
-                  <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
-                  <p className="text-sm text-red-400">{error}</p>
-                </motion.div>
+                  ← Вернуться к входу через Telegram
+                </button>
+              )}
+
+              {/* Telegram Quick Login (if NOT in Telegram) */}
+              {!isTelegramApp && (
+                <>
+                  <motion.a
+                    href="https://t.me/CourseSportBot"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-3 w-full p-4 rounded-xl bg-[#0088cc] hover:bg-[#0077b5] transition-colors mb-6"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <Send className="w-5 h-5 text-white" />
+                    <span className="font-semibold text-white">Войти через Telegram</span>
+                  </motion.a>
+
+                  {/* Divider */}
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="flex-1 h-px bg-white/10" />
+                    <span className="text-white/40 text-sm">или</span>
+                    <div className="flex-1 h-px bg-white/10" />
+                  </div>
+                </>
               )}
 
               {/* Login Form */}
@@ -218,6 +323,7 @@ export default function LoginPage() {
                   className="w-full" 
                   size="lg" 
                   isLoading={isLoading}
+                  disabled={success !== null}
                 >
                   Войти
                 </Button>
