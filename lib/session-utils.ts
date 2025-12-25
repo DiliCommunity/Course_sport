@@ -3,13 +3,23 @@ import { createClient } from '@/lib/supabase/server'
 
 export interface SessionUser {
   id: string
-  email?: string
-  phone?: string
-  name?: string
-  username?: string
+  email?: string | null
+  phone?: string | null
+  name?: string | null
+  username?: string | null
   avatar_url?: string | null
   telegram_id?: string | null
   telegram_username?: string | null
+  telegram_wallet_address?: string | null
+  telegram_wallet_connected?: boolean | null
+  telegram_wallet_connected_at?: string | null
+  registration_method?: string | null
+  created_at?: string | null
+  updated_at?: string | null
+  last_login?: string | null
+  phone_verified?: boolean | null
+  email_verified?: boolean | null
+  telegram_verified?: boolean | null
   is_admin?: boolean
 }
 
@@ -70,6 +80,16 @@ export async function getUserFromSession(supabase: Awaited<ReturnType<typeof cre
       avatar_url: user.avatar_url,
       telegram_id: user.telegram_id,
       telegram_username: user.telegram_username,
+      telegram_wallet_address: user.telegram_wallet_address,
+      telegram_wallet_connected: user.telegram_wallet_connected,
+      telegram_wallet_connected_at: user.telegram_wallet_connected_at,
+      registration_method: user.registration_method,
+      created_at: user.created_at,
+      updated_at: user.updated_at,
+      last_login: user.last_login,
+      phone_verified: user.phone_verified,
+      email_verified: user.email_verified,
+      telegram_verified: user.telegram_verified,
       is_admin: user.is_admin === true || user.username === 'admini_mini',
     }
   }
@@ -95,10 +115,19 @@ export async function getUserFromSession(supabase: Awaited<ReturnType<typeof cre
       avatar_url: user.avatar_url,
       telegram_id: user.telegram_id,
       telegram_username: user.telegram_username,
+      telegram_wallet_address: user.telegram_wallet_address,
+      telegram_wallet_connected: user.telegram_wallet_connected,
+      telegram_wallet_connected_at: user.telegram_wallet_connected_at,
+      registration_method: user.registration_method,
+      created_at: user.created_at,
+      updated_at: user.updated_at,
+      last_login: user.last_login,
+      phone_verified: user.phone_verified,
+      email_verified: user.email_verified,
+      telegram_verified: user.telegram_verified,
       is_admin: user.is_admin === true || user.username === 'admini_mini',
     }
   }
 
   return null
 }
-
