@@ -63,7 +63,7 @@ export function CTA() {
                   </Button>
                 </Link>
                 <a
-                  href="https://t.me/CourseSportBot"
+                  href="https://t.me/Course_Sport_bot"
                   target="_blank"
                   rel="noopener noreferrer"
                 >

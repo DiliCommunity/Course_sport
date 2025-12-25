@@ -175,7 +175,7 @@ export function Header() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 top-20 bg-dark-900/98 backdrop-blur-2xl z-40 md:hidden"
+            className="fixed inset-0 top-20 bg-dark-900 z-40 md:hidden overflow-hidden"
             onClick={() => setIsMobileMenuOpen(false)}
           >
             <motion.div
@@ -183,7 +183,7 @@ export function Header() {
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="h-full w-80 bg-dark-800/95 backdrop-blur-xl border-r border-white/5 shadow-2xl"
+              className="h-full w-80 bg-dark-800 border-r border-white/10 shadow-2xl overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex flex-col h-full">

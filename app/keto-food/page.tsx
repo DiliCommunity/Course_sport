@@ -4,7 +4,51 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowLeft, Download, Clock, Flame, X, ChefHat } from 'lucide-react'
+import { ArrowLeft, Download, Clock, Flame, X, ChefHat, FileText, Minus, Plus, Users } from 'lucide-react'
+
+// PDF гайды по кето продуктам
+const ketoGuides = [
+  {
+    id: 'green',
+    title: 'Зелёный список',
+    description: 'Продукты, которые можно есть без ограничений на кето',
+    icon: '🥬',
+    colorClass: 'text-accent-neon',
+    bgClass: 'bg-accent-neon/10',
+    borderClass: 'border-accent-neon/30',
+    pdfUrl: '/files/keto_products_guide.pdf',
+  },
+  {
+    id: 'yellow',
+    title: 'Жёлтый список',
+    description: 'Продукты с умеренным содержанием углеводов - употребляйте осторожно',
+    icon: '🧀',
+    colorClass: 'text-accent-gold',
+    bgClass: 'bg-accent-gold/10',
+    borderClass: 'border-accent-gold/30',
+    pdfUrl: '/files/keto_products_guide.pdf',
+  },
+  {
+    id: 'red',
+    title: 'Красный список',
+    description: 'Продукты, которых следует избегать на кето диете',
+    icon: '🚫',
+    colorClass: 'text-accent-flame',
+    bgClass: 'bg-accent-flame/10',
+    borderClass: 'border-accent-flame/30',
+    pdfUrl: '/files/keto_products_guide.pdf',
+  },
+  {
+    id: 'full',
+    title: 'Полный гайд по кето продуктам',
+    description: 'Всё в одном файле: что можно, что нельзя, и почему',
+    icon: '📚',
+    colorClass: 'text-accent-electric',
+    bgClass: 'bg-accent-electric/10',
+    borderClass: 'border-accent-electric/30',
+    pdfUrl: '/files/keto_products_guide.pdf',
+  },
+]
 
 // Категории рецептов
 const categories = [
@@ -304,53 +348,93 @@ interface Recipe {
 export default function KetoFoodPage() {
   const [activeCategory, setActiveCategory] = useState('breakfast')
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
+  const [portions, setPortions] = useState(1)
 
-  const downloadRecipePDF = (recipe: Recipe) => {
+  // Скачать PDF гайд
+  const downloadGuide = (pdfUrl: string, title: string) => {
+    const link = document.createElement('a')
+    link.href = pdfUrl
+    link.download = `${title.replace(/\s+/g, '_')}.pdf`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  // Умножить ингредиенты на количество порций
+  const multiplyIngredient = (ingredient: string, multiplier: number): string => {
+    if (multiplier === 1) return ingredient
+    
+    // Регулярка для поиска чисел в начале ингредиента
+    const match = ingredient.match(/^(\d+(?:\/\d+)?(?:\.\d+)?)\s*(.*)/)
+    if (match) {
+      const num = eval(match[1]) * multiplier
+      const rest = match[2]
+      // Округляем до 1 знака после запятой
+      const roundedNum = Math.round(num * 10) / 10
+      return `${roundedNum} ${rest}`
+    }
+    return ingredient
+  }
+
+  const downloadRecipePDF = (recipe: Recipe, portionCount: number = 1) => {
+    // Пересчитываем ингредиенты на количество порций
+    const adjustedIngredients = recipe.ingredients.map(i => multiplyIngredient(i, portionCount))
+    
+    // Пересчитываем КБЖУ
+    const adjustedCalories = Math.round(recipe.calories * portionCount)
+    const adjustedProtein = Math.round(recipe.protein * portionCount)
+    const adjustedFat = Math.round(recipe.fat * portionCount)
+    const adjustedCarbs = Math.round(recipe.carbs * portionCount)
+
     // Создаём HTML контент для PDF
     const content = `
       <!DOCTYPE html>
       <html>
       <head>
         <meta charset="UTF-8">
-        <title>${recipe.name} - Кето рецепт</title>
+        <title>${recipe.name} - Кето рецепт (${portionCount} порц.)</title>
         <style>
-          body { font-family: Arial, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; }
+          body { font-family: Arial, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; background: #fff; }
           h1 { color: #00D9FF; border-bottom: 2px solid #00D9FF; padding-bottom: 10px; }
-          .stats { display: flex; gap: 20px; margin: 20px 0; }
-          .stat { background: #f5f5f5; padding: 15px; border-radius: 8px; text-align: center; }
+          .portions { background: #E8F5E9; padding: 10px 20px; border-radius: 8px; display: inline-block; margin-bottom: 20px; color: #2E7D32; font-weight: bold; }
+          .stats { display: flex; gap: 20px; margin: 20px 0; flex-wrap: wrap; }
+          .stat { background: #f5f5f5; padding: 15px 20px; border-radius: 8px; text-align: center; min-width: 100px; }
           .stat-value { font-size: 24px; font-weight: bold; color: #333; }
           .stat-label { font-size: 12px; color: #666; }
           h2 { color: #333; margin-top: 30px; }
-          ul, ol { line-height: 1.8; }
-          .footer { margin-top: 40px; text-align: center; color: #999; font-size: 12px; }
+          ul, ol { line-height: 2; }
+          li { margin-bottom: 8px; }
+          .footer { margin-top: 40px; text-align: center; color: #999; font-size: 12px; border-top: 1px solid #eee; padding-top: 20px; }
+          .time { color: #666; margin-bottom: 10px; }
         </style>
       </head>
       <body>
         <h1>🥑 ${recipe.name}</h1>
-        <p>⏱️ Время приготовления: ${recipe.time} минут</p>
+        <div class="portions">👥 Расчёт на ${portionCount} ${portionCount === 1 ? 'порцию' : portionCount < 5 ? 'порции' : 'порций'}</div>
+        <p class="time">⏱️ Время приготовления: ${recipe.time} минут</p>
         
         <div class="stats">
           <div class="stat">
-            <div class="stat-value">${recipe.calories}</div>
+            <div class="stat-value">${adjustedCalories}</div>
             <div class="stat-label">Калории</div>
           </div>
           <div class="stat">
-            <div class="stat-value">${recipe.protein}г</div>
+            <div class="stat-value">${adjustedProtein}г</div>
             <div class="stat-label">Белки</div>
           </div>
           <div class="stat">
-            <div class="stat-value">${recipe.fat}г</div>
+            <div class="stat-value">${adjustedFat}г</div>
             <div class="stat-label">Жиры</div>
           </div>
           <div class="stat">
-            <div class="stat-value">${recipe.carbs}г</div>
+            <div class="stat-value">${adjustedCarbs}г</div>
             <div class="stat-label">Углеводы</div>
           </div>
         </div>
         
-        <h2>📝 Ингредиенты:</h2>
+        <h2>📝 Ингредиенты (на ${portionCount} ${portionCount === 1 ? 'порцию' : portionCount < 5 ? 'порции' : 'порций'}):</h2>
         <ul>
-          ${recipe.ingredients.map(i => `<li>${i}</li>`).join('')}
+          ${adjustedIngredients.map(i => `<li>${i}</li>`).join('')}
         </ul>
         
         <h2>👨‍🍳 Приготовление:</h2>
@@ -359,8 +443,8 @@ export default function KetoFoodPage() {
         </ol>
         
         <div class="footer">
-          <p>Course Health - Кето рецепты</p>
-          <p>www.course-sport.vercel.app</p>
+          <p>🥗 Course Health - Кето рецепты</p>
+          <p>course-sport.vercel.app</p>
         </div>
       </body>
       </html>
@@ -371,7 +455,7 @@ export default function KetoFoodPage() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `${recipe.name.replace(/\s+/g, '_')}.html`
+    a.download = `${recipe.name.replace(/\s+/g, '_')}_${portionCount}_порций.html`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
@@ -398,6 +482,45 @@ export default function KetoFoodPage() {
             От завтрака до ужина. Вкусные и полезные блюда для кето-диеты с расчётом КБЖУ
           </p>
         </motion.div>
+      </section>
+
+      {/* Keto Product Guides Section */}
+      <section className="container mx-auto px-4 sm:px-6 lg:px-8 mb-16">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="text-center mb-8"
+        >
+          <h2 className="font-display font-bold text-2xl sm:text-3xl text-white mb-2">
+            📚 Гайды по кето продуктам
+          </h2>
+          <p className="text-white/60">Скачайте PDF со списками разрешённых и запрещённых продуктов</p>
+        </motion.div>
+        
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {ketoGuides.map((guide, index) => (
+            <motion.div
+              key={guide.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 + index * 0.1 }}
+              className={`glass rounded-2xl p-6 border ${guide.borderClass} hover:scale-[1.02] transition-transform`}
+            >
+              <div className="text-4xl mb-4">{guide.icon}</div>
+              <h3 className={`font-bold text-lg ${guide.colorClass} mb-2`}>{guide.title}</h3>
+              <p className="text-white/60 text-sm mb-4">{guide.description}</p>
+              <a
+                href={guide.pdfUrl}
+                download
+                className={`w-full py-3 rounded-xl ${guide.bgClass} border ${guide.borderClass} ${guide.colorClass} font-medium flex items-center justify-center gap-2 hover:opacity-80 transition-opacity`}
+              >
+                <Download className="w-4 h-4" />
+                Скачать PDF
+              </a>
+            </motion.div>
+          ))}
+        </div>
       </section>
 
       {/* Categories Navigation */}
@@ -445,10 +568,12 @@ export default function KetoFoodPage() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="glass rounded-2xl overflow-hidden hover:scale-[1.02] transition-transform cursor-pointer group"
-                  onClick={() => setSelectedRecipe(recipe)}
+                  className="glass rounded-2xl overflow-hidden hover:scale-[1.02] transition-transform group"
                 >
-                  <div className="relative aspect-video">
+                  <div 
+                    className="relative aspect-video cursor-pointer"
+                    onClick={() => { setSelectedRecipe(recipe); setPortions(1) }}
+                  >
                     <Image
                       src={recipe.image}
                       alt={recipe.name}
@@ -461,7 +586,7 @@ export default function KetoFoodPage() {
                     </div>
                   </div>
                   <div className="p-4">
-                    <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center justify-between text-sm mb-4">
                       <div className="flex items-center gap-4">
                         <span className="flex items-center gap-1 text-white/60">
                           <Clock className="w-4 h-4" />
@@ -475,6 +600,22 @@ export default function KetoFoodPage() {
                       <span className="text-accent-neon text-xs">
                         Б:{recipe.protein} Ж:{recipe.fat} У:{recipe.carbs}
                       </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => { setSelectedRecipe(recipe); setPortions(1) }}
+                        className="flex-1 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                      >
+                        <FileText className="w-4 h-4" />
+                        Смотреть рецепт
+                      </button>
+                      <button
+                        onClick={() => downloadRecipePDF(recipe, 1)}
+                        className="py-2 px-3 rounded-xl bg-accent-electric/20 hover:bg-accent-electric/30 text-accent-electric transition-colors"
+                        title="Скачать PDF"
+                      >
+                        <Download className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
                 </motion.div>
@@ -532,36 +673,62 @@ export default function KetoFoodPage() {
               </div>
 
               <div className="p-6">
-                {/* Macros */}
+                {/* Portion Selector */}
+                <div className="mb-6 p-4 rounded-xl bg-accent-teal/10 border border-accent-teal/30">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Users className="w-5 h-5 text-accent-teal" />
+                      <span className="font-medium text-white">Количество порций</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => setPortions(Math.max(1, portions - 1))}
+                        className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+                      >
+                        <Minus className="w-5 h-5 text-white" />
+                      </button>
+                      <span className="w-12 text-center text-2xl font-bold text-accent-teal">{portions}</span>
+                      <button
+                        onClick={() => setPortions(Math.min(10, portions + 1))}
+                        className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
+                      >
+                        <Plus className="w-5 h-5 text-white" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Macros - пересчитанные на порции */}
                 <div className="grid grid-cols-4 gap-3 mb-6">
                   <div className="p-3 rounded-xl bg-white/5 text-center">
-                    <div className="text-xl font-bold text-white">{selectedRecipe.calories}</div>
+                    <div className="text-xl font-bold text-white">{Math.round(selectedRecipe.calories * portions)}</div>
                     <div className="text-xs text-white/60">Калории</div>
                   </div>
                   <div className="p-3 rounded-xl bg-accent-electric/10 text-center">
-                    <div className="text-xl font-bold text-accent-electric">{selectedRecipe.protein}г</div>
+                    <div className="text-xl font-bold text-accent-electric">{Math.round(selectedRecipe.protein * portions)}г</div>
                     <div className="text-xs text-white/60">Белки</div>
                   </div>
                   <div className="p-3 rounded-xl bg-accent-gold/10 text-center">
-                    <div className="text-xl font-bold text-accent-gold">{selectedRecipe.fat}г</div>
+                    <div className="text-xl font-bold text-accent-gold">{Math.round(selectedRecipe.fat * portions)}г</div>
                     <div className="text-xs text-white/60">Жиры</div>
                   </div>
                   <div className="p-3 rounded-xl bg-accent-neon/10 text-center">
-                    <div className="text-xl font-bold text-accent-neon">{selectedRecipe.carbs}г</div>
+                    <div className="text-xl font-bold text-accent-neon">{Math.round(selectedRecipe.carbs * portions)}г</div>
                     <div className="text-xs text-white/60">Углеводы</div>
                   </div>
                 </div>
 
-                {/* Ingredients */}
+                {/* Ingredients - пересчитанные на порции */}
                 <div className="mb-6">
                   <h3 className="font-bold text-white mb-3 flex items-center gap-2">
                     <span className="text-xl">📝</span> Ингредиенты
+                    <span className="text-sm font-normal text-white/50">(на {portions} {portions === 1 ? 'порцию' : portions < 5 ? 'порции' : 'порций'})</span>
                   </h3>
                   <ul className="space-y-2">
                     {selectedRecipe.ingredients.map((ingredient, i) => (
                       <li key={i} className="flex items-center gap-2 text-white/80">
                         <span className="w-2 h-2 rounded-full bg-accent-electric" />
-                        {ingredient}
+                        {multiplyIngredient(ingredient, portions)}
                       </li>
                     ))}
                   </ul>
@@ -586,11 +753,11 @@ export default function KetoFoodPage() {
 
                 {/* Download Button */}
                 <button
-                  onClick={() => downloadRecipePDF(selectedRecipe)}
+                  onClick={() => downloadRecipePDF(selectedRecipe, portions)}
                   className="w-full py-4 rounded-xl bg-gradient-to-r from-accent-electric to-accent-neon text-dark-900 font-bold flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-accent-electric/30 transition-all"
                 >
                   <Download className="w-5 h-5" />
-                  Скачать рецепт
+                  Скачать рецепт на {portions} {portions === 1 ? 'порцию' : portions < 5 ? 'порции' : 'порций'}
                 </button>
               </div>
             </motion.div>

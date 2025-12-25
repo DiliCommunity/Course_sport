@@ -249,7 +249,7 @@ export default function LoginPage() {
               {!isTelegramApp && (
                 <>
                   <motion.a
-                    href="https://t.me/CourseSportBot"
+                    href="https://t.me/Course_Sport_bot"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center justify-center gap-3 w-full p-4 rounded-xl bg-[#0088cc] hover:bg-[#0077b5] transition-colors mb-6"
