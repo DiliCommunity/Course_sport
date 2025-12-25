@@ -3,39 +3,27 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/providers/AuthProvider'
-import { useTelegram } from '@/components/providers/TelegramProvider'
 
 /**
- * Главная страница
- * - Для авторизованных пользователей: показывает курсы
- * - Для неавторизованных в Telegram: показывает курсы
- * - Для неавторизованных в браузере: редирект на index.html
+ * Главная страница для Telegram WebApp
+ * (Браузер сюда не попадёт - middleware редиректит на index.html)
  */
 export default function HomePage() {
   const router = useRouter()
   const { user, loading } = useAuth()
-  const { isTelegramApp, isReady } = useTelegram()
 
   useEffect(() => {
-    if (loading || !isReady) return
+    if (loading) return
 
-    // Если пользователь авторизован - показываем курсы
+    // Авторизован - на курсы
     if (user) {
       router.replace('/courses')
-      return
-    }
-
-    // Если это Telegram - показываем логин
-    if (isTelegramApp) {
+    } else {
+      // Не авторизован - на логин
       router.replace('/login')
-      return
     }
+  }, [user, loading, router])
 
-    // Обычный браузер без авторизации - редирект на HTML версию
-    window.location.replace('/index.html')
-  }, [user, loading, isTelegramApp, isReady, router])
-
-  // Показываем загрузку пока определяемся
   return (
     <main className="min-h-screen flex items-center justify-center">
       <div className="text-center">
@@ -45,4 +33,3 @@ export default function HomePage() {
     </main>
   )
 }
-
