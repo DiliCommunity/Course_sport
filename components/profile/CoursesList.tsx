@@ -37,7 +37,7 @@ export function CoursesList({ enrollments }: CoursesListProps) {
         <p className="text-white/60">У вас пока нет купленных курсов</p>
         <Link
           href="/courses"
-          className="inline-flex items-center gap-2 mt-4 px-6 py-3 rounded-xl bg-gradient-to-r from-accent-teal to-accent-mint text-dark-900 font-bold hover:shadow-lg hover:shadow-accent-teal/30 transition-all"
+          className="inline-flex items-center gap-2 mt-4 px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 text-dark-900 font-bold shadow-[0_0_20px_rgba(52,211,153,0.4)] hover:shadow-[0_0_30px_rgba(52,211,153,0.6)] transition-all"
         >
           Выбрать курс
           <ArrowRight className="w-5 h-5" />
@@ -90,9 +90,9 @@ export function CoursesList({ enrollments }: CoursesListProps) {
                   </div>
 
                   {/* Progress Bar */}
-                  <div className="relative h-2 bg-white/5 rounded-full overflow-hidden">
+                  <div className="relative h-2 bg-white/10 rounded-full overflow-hidden">
                     <motion.div
-                      className="absolute inset-y-0 left-0 bg-gradient-to-r from-accent-teal to-accent-mint"
+                      className="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-400 to-teal-400"
                       initial={{ width: 0 }}
                       animate={{ width: `${enrollment.progress}%` }}
                       transition={{ duration: 0.8, delay: index * 0.1 }}
@@ -103,7 +103,7 @@ export function CoursesList({ enrollments }: CoursesListProps) {
 
                 <div className="flex items-center">
                   <motion.div
-                    className="w-10 h-10 rounded-xl bg-accent-teal/10 flex items-center justify-center text-accent-teal group-hover:bg-accent-teal group-hover:text-dark-900 transition-all"
+                    className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:bg-gradient-to-r group-hover:from-emerald-400 group-hover:to-teal-400 group-hover:text-dark-900 group-hover:shadow-[0_0_15px_rgba(52,211,153,0.5)] transition-all"
                     whileHover={{ x: 5 }}
                   >
                     <Play className="w-5 h-5 ml-0.5" fill="currentColor" />

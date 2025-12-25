@@ -36,6 +36,18 @@ export function MyCoursesModal({ isOpen, onClose }: MyCoursesModalProps) {
   const [isAdmin, setIsAdmin] = useState(false)
   const { user } = useAuth()
 
+  // Блокируем скролл body когда модалка открыта
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isOpen])
+
   useEffect(() => {
     if (isOpen && user?.id) {
       fetchCourses()
@@ -111,7 +123,7 @@ export function MyCoursesModal({ isOpen, onClose }: MyCoursesModalProps) {
           onClick={(e) => e.stopPropagation()}
         >
           {/* Gradient background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-accent-teal/10 via-transparent to-accent-mint/10" />
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-teal-500/10" />
           
           <div className="relative z-10 flex flex-col h-full">
             {/* Header */}
@@ -153,7 +165,7 @@ export function MyCoursesModal({ isOpen, onClose }: MyCoursesModalProps) {
                   <Link
                     href="/courses"
                     onClick={onClose}
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-accent-teal to-accent-mint text-dark-900 font-bold hover:shadow-lg hover:shadow-accent-teal/30 transition-all"
+                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 text-dark-900 font-bold shadow-[0_0_20px_rgba(52,211,153,0.4)] hover:shadow-[0_0_30px_rgba(52,211,153,0.6)] transition-all"
                   >
                     Выбрать курс
                     <ArrowRight className="w-5 h-5" />
@@ -235,13 +247,13 @@ export function MyCoursesModal({ isOpen, onClose }: MyCoursesModalProps) {
             </div>
 
             {/* Footer */}
-            <div className="p-6 border-t border-white/10 flex justify-between items-center">
+            <div className="p-6 border-t border-white/10 flex justify-between items-center flex-shrink-0">
               <p className="text-sm text-white/60">
                 Всего курсов: <span className="text-white font-semibold">{enrollments.length}</span>
               </p>
               <button
                 onClick={onClose}
-                className="px-6 py-3 rounded-xl bg-gradient-to-r from-accent-teal to-accent-mint text-dark-900 font-bold hover:shadow-lg hover:shadow-accent-teal/30 transition-all"
+                className="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 text-dark-900 font-bold shadow-[0_0_15px_rgba(52,211,153,0.4)] hover:shadow-[0_0_25px_rgba(52,211,153,0.6)] transition-all"
               >
                 Закрыть
               </button>

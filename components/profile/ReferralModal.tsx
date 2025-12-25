@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Link2, Copy, Check, Gift, Users, TrendingUp, Share2 } from 'lucide-react'
@@ -22,6 +22,18 @@ export function ReferralModal({ isOpen, onClose, referralCode = '', stats = { to
   const referralUrl = typeof window !== 'undefined' 
     ? `${window.location.origin}/register?ref=${referralCode}`
     : ''
+
+  // Блокируем скролл body когда модалка открыта
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isOpen])
 
   const copyToClipboard = async () => {
     try {
@@ -70,14 +82,14 @@ export function ReferralModal({ isOpen, onClose, referralCode = '', stats = { to
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          className="relative w-full max-w-2xl rounded-2xl glass border border-white/10 overflow-hidden"
+          className="relative w-full max-w-2xl max-h-[90vh] rounded-2xl glass border border-white/10 overflow-hidden flex flex-col"
           style={{ zIndex: 9999 }}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Gradient background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-accent-gold/10 via-transparent to-accent-electric/10" />
+          <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 via-transparent to-emerald-500/10" />
           
-          <div className="relative z-10">
+          <div className="relative z-10 flex flex-col h-full max-h-[90vh]">
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-white/10">
               <div className="flex items-center gap-3">
@@ -97,8 +109,8 @@ export function ReferralModal({ isOpen, onClose, referralCode = '', stats = { to
               </button>
             </div>
 
-            {/* Content */}
-            <div className="p-6 space-y-6">
+            {/* Content - scrollable */}
+            <div className="p-6 space-y-6 overflow-y-auto flex-1">
               {/* Instructions */}
               <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                 <h3 className="text-lg font-semibold text-white mb-3">Как это работает:</h3>
@@ -137,7 +149,7 @@ export function ReferralModal({ isOpen, onClose, referralCode = '', stats = { to
                   </div>
                   <motion.button
                     onClick={copyToClipboard}
-                    className="px-4 py-3 rounded-xl bg-gradient-to-r from-accent-teal to-accent-mint text-dark-900 font-bold hover:shadow-lg hover:shadow-accent-teal/30 transition-all"
+                    className="px-4 py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 text-dark-900 font-bold shadow-[0_0_15px_rgba(52,211,153,0.4)] hover:shadow-[0_0_25px_rgba(52,211,153,0.6)] transition-all"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
@@ -201,10 +213,10 @@ export function ReferralModal({ isOpen, onClose, referralCode = '', stats = { to
             </div>
 
             {/* Footer */}
-            <div className="p-6 border-t border-white/10 flex justify-end">
+            <div className="p-6 border-t border-white/10 flex justify-end flex-shrink-0">
               <button
                 onClick={onClose}
-                className="px-6 py-3 rounded-xl bg-gradient-to-r from-accent-teal to-accent-mint text-dark-900 font-bold hover:shadow-lg hover:shadow-accent-teal/30 transition-all"
+                className="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 text-dark-900 font-bold shadow-[0_0_15px_rgba(52,211,153,0.4)] hover:shadow-[0_0_25px_rgba(52,211,153,0.6)] transition-all"
               >
                 Понятно
               </button>

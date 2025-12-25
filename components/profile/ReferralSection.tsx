@@ -67,7 +67,7 @@ export function ReferralSection({ referralCode = '', stats = { total_referred: 0
             </div>
             <motion.button
               onClick={copyToClipboard}
-              className="px-4 py-3 rounded-xl bg-gradient-to-r from-accent-teal to-accent-mint text-dark-900 font-bold hover:shadow-lg hover:shadow-accent-teal/30 transition-all"
+              className="px-4 py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 text-dark-900 font-bold shadow-[0_0_15px_rgba(52,211,153,0.4)] hover:shadow-[0_0_25px_rgba(52,211,153,0.6)] transition-all"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -110,7 +110,7 @@ export function ReferralSection({ referralCode = '', stats = { total_referred: 0
             setIsModalOpen(true)
           }}
           type="button"
-          className="w-full py-3 rounded-xl bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900 font-bold hover:shadow-lg hover:shadow-accent-gold/30 transition-all"
+          className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-400 to-orange-400 text-dark-900 font-bold shadow-[0_0_20px_rgba(251,191,36,0.4)] hover:shadow-[0_0_30px_rgba(251,191,36,0.6)] transition-all"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >

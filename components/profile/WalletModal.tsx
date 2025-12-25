@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Wallet, TrendingUp, TrendingDown, CreditCard } from 'lucide-react'
@@ -46,6 +46,18 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
   const [selectedMethod, setSelectedMethod] = useState('card')
   const [isProcessing, setIsProcessing] = useState(false)
   const { user } = useAuth()
+
+  // Блокируем скролл body когда модалка открыта
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isOpen])
 
   const handleTopUp = async () => {
     const amountNum = parseFloat(amount)
@@ -120,14 +132,14 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          className="relative w-full max-w-2xl rounded-2xl glass border border-white/10 overflow-hidden"
+          className="relative w-full max-w-2xl max-h-[90vh] rounded-2xl glass border border-white/10 overflow-hidden flex flex-col"
           style={{ zIndex: 9999 }}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Gradient background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-accent-teal/10 via-transparent to-accent-mint/10" />
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-teal-500/10" />
           
-          <div className="relative z-10">
+          <div className="relative z-10 flex flex-col h-full max-h-[90vh]">
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-white/10">
               <div className="flex items-center gap-3">
@@ -147,8 +159,8 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
               </button>
             </div>
 
-            {/* Content */}
-            <div className="p-6 space-y-6">
+            {/* Content - scrollable */}
+            <div className="p-6 space-y-6 overflow-y-auto flex-1">
               {/* Balance Info */}
               <div className="p-6 rounded-xl bg-white/5 border border-white/10">
                 <div className="flex items-center justify-between mb-4">
@@ -231,7 +243,7 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
                 <button
                   onClick={handleTopUp}
                   disabled={!amount || parseFloat(amount) < 100 || isProcessing}
-                  className="w-full py-4 rounded-xl bg-gradient-to-r from-accent-teal to-accent-mint text-dark-900 font-bold text-lg hover:shadow-lg hover:shadow-accent-teal/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full py-4 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 text-dark-900 font-bold text-lg shadow-[0_0_20px_rgba(52,211,153,0.4)] hover:shadow-[0_0_30px_rgba(52,211,153,0.6)] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {isProcessing ? (
                     <>
