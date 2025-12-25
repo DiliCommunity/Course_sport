@@ -61,12 +61,12 @@ function PaymentSuccessContent() {
             Произошла ошибка при обработке платежа. Пожалуйста, попробуйте снова или обратитесь в поддержку.
           </p>
           <div className="space-y-3">
-            <Button asChild className="w-full">
-              <Link href="/payment">Попробовать снова</Link>
-            </Button>
-            <Button asChild variant="secondary" className="w-full">
-              <Link href="/">На главную</Link>
-            </Button>
+            <Link href="/payment" className="w-full">
+              <Button className="w-full">Попробовать снова</Button>
+            </Link>
+            <Link href="/" className="w-full">
+              <Button variant="secondary" className="w-full">На главную</Button>
+            </Link>
           </div>
         </div>
       </main>
@@ -163,27 +163,27 @@ function PaymentSuccessContent() {
         >
           {type === 'balance_topup' ? (
             <>
-              <Button asChild size="lg" className="w-full">
-                <Link href="/courses">
+              <Link href="/courses" className="w-full block">
+                <Button size="lg" className="w-full">
                   Выбрать курс
                   <ArrowRight className="ml-2 w-5 h-5" />
-                </Link>
-              </Button>
-              <Button asChild variant="secondary" size="lg" className="w-full">
-                <Link href="/profile">Перейти в профиль</Link>
-              </Button>
+                </Button>
+              </Link>
+              <Link href="/profile" className="w-full block">
+                <Button variant="secondary" size="lg" className="w-full">Перейти в профиль</Button>
+              </Link>
             </>
           ) : (
             <>
-              <Button asChild size="lg" className="w-full">
-                <Link href={courseId ? `/courses/${courseId}` : '/profile'}>
+              <Link href={courseId ? `/courses/${courseId}` : '/profile'} className="w-full block">
+                <Button size="lg" className="w-full">
                   Начать обучение
                   <ArrowRight className="ml-2 w-5 h-5" />
-                </Link>
-              </Button>
-              <Button asChild variant="secondary" size="lg" className="w-full">
-                <Link href="/profile">Мои курсы</Link>
-              </Button>
+                </Button>
+              </Link>
+              <Link href="/profile" className="w-full block">
+                <Button variant="secondary" size="lg" className="w-full">Мои курсы</Button>
+              </Link>
             </>
           )}
         </motion.div>
