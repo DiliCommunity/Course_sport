@@ -41,7 +41,7 @@ const paymentMethods = [
   }
 ]
 
-export function WalletModal({ isOpen, onClose, balance, totalEarned, totalWithdrawn }: WalletModalProps) {
+export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, totalWithdrawn = 0 }: WalletModalProps) {
   const [amount, setAmount] = useState('')
   const [selectedMethod, setSelectedMethod] = useState('card')
   const [isProcessing, setIsProcessing] = useState(false)

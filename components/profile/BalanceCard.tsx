@@ -11,7 +11,7 @@ interface BalanceCardProps {
   totalWithdrawn: number
 }
 
-export function BalanceCard({ balance, totalEarned, totalWithdrawn }: BalanceCardProps) {
+export function BalanceCard({ balance = 0, totalEarned = 0, totalWithdrawn = 0 }: BalanceCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   return (

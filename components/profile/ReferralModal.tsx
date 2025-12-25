@@ -17,7 +17,7 @@ interface ReferralModalProps {
   }
 }
 
-export function ReferralModal({ isOpen, onClose, referralCode, stats }: ReferralModalProps) {
+export function ReferralModal({ isOpen, onClose, referralCode = '', stats = { total_referred: 0, total_earned: 0, active_referrals: 0, completed_referrals: 0 } }: ReferralModalProps) {
   const [copied, setCopied] = useState(false)
   const referralUrl = typeof window !== 'undefined' 
     ? `${window.location.origin}/register?ref=${referralCode}`

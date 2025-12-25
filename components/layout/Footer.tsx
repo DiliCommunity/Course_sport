@@ -7,21 +7,17 @@ import { Heart, Instagram, Youtube, Send, Mail, Phone, MapPin } from 'lucide-rea
 const footerLinks = {
   courses: [
     { label: 'Все курсы', href: '/courses' },
-    { label: 'Кето-диета', href: '/courses?category=Здоровье' },
-    { label: 'Интервальное голодание', href: '/courses?category=Здоровье' },
-    { label: 'Кето-рецепты', href: '/courses?category=Еда' },
+    { label: 'Кето-рецепты', href: '/keto-food' },
+    { label: 'Отзывы', href: '/reviews' },
   ],
   company: [
     { label: 'О нас', href: '/about' },
     { label: 'Эксперты', href: '/instructors' },
-    { label: 'Блог', href: '/blog' },
-    { label: 'Карьера', href: '/careers' },
   ],
   support: [
-    { label: 'FAQ', href: '/faq' },
-    { label: 'Контакты', href: '/contact' },
-    { label: 'Политика конфиденциальности', href: '/privacy' },
-    { label: 'Условия использования', href: '/terms' },
+    { label: 'Войти', href: '/login' },
+    { label: 'Регистрация', href: '/register' },
+    { label: 'Профиль', href: '/profile' },
   ],
 }
 

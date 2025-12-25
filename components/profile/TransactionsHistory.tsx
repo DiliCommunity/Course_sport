@@ -22,8 +22,8 @@ const typeConfig = {
   refund: { icon: ArrowUpRight, color: 'text-accent-teal', bg: 'bg-accent-teal/10', label: 'Возврат' },
 }
 
-export function TransactionsHistory({ transactions }: TransactionsHistoryProps) {
-  if (transactions.length === 0) {
+export function TransactionsHistory({ transactions = [] }: TransactionsHistoryProps) {
+  if (!transactions || transactions.length === 0) {
     return (
       <div className="text-center py-8 rounded-2xl glass border border-white/10">
         <p className="text-white/60">История транзакций пуста</p>
@@ -62,7 +62,7 @@ export function TransactionsHistory({ transactions }: TransactionsHistoryProps) 
             <div className="text-right">
               <p className={`text-sm font-bold ${config.color}`}>
                 {transaction.type === 'earned' || transaction.type === 'refund' ? '+' : '-'}
-                {transaction.amount.toLocaleString('ru-RU')} ₽
+                {(transaction.amount || 0).toLocaleString('ru-RU')} ₽
               </p>
             </div>
           </motion.div>

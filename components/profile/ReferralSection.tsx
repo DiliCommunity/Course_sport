@@ -15,7 +15,7 @@ interface ReferralSectionProps {
   }
 }
 
-export function ReferralSection({ referralCode, stats }: ReferralSectionProps) {
+export function ReferralSection({ referralCode = '', stats = { total_referred: 0, total_earned: 0, active_referrals: 0, completed_referrals: 0 } }: ReferralSectionProps) {
   const [copied, setCopied] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const referralUrl = typeof window !== 'undefined' 
