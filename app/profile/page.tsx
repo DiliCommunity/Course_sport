@@ -11,7 +11,9 @@ import { ReferralSection } from '@/components/profile/ReferralSection'
 import { CoursesList } from '@/components/profile/CoursesList'
 import { TransactionsHistory } from '@/components/profile/TransactionsHistory'
 import { MyCoursesModal } from '@/components/profile/MyCoursesModal'
-import { Loader2, Settings, ArrowLeft, Mail, Phone, Save } from 'lucide-react'
+import { WalletModal } from '@/components/profile/WalletModal'
+import { ReferralModal } from '@/components/profile/ReferralModal'
+import { Loader2, Settings, ArrowLeft, Mail, Phone, Save, BookOpen, Wallet, Gift } from 'lucide-react'
 import Link from 'next/link'
 
 interface ProfileData {
@@ -71,6 +73,8 @@ export default function ProfilePage() {
   const [editedPhone, setEditedPhone] = useState('')
   const [saving, setSaving] = useState(false)
   const [isMyCoursesModalOpen, setIsMyCoursesModalOpen] = useState(false)
+  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
+  const [isReferralModalOpen, setIsReferralModalOpen] = useState(false)
 
   const isAuthenticated = authUser || (isTelegramApp && telegramUser)
   const currentUserId = authUser?.id || telegramUser?.id
@@ -311,8 +315,65 @@ export default function ProfilePage() {
           </div>
         </motion.div>
 
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            onClick={() => setIsMyCoursesModalOpen(true)}
+            className="rounded-xl glass border border-white/10 p-6 hover:border-accent-teal/50 transition-all group text-left"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-accent-teal to-accent-mint flex items-center justify-center group-hover:scale-110 transition-transform">
+                <BookOpen className="w-7 h-7 text-dark-900" />
+              </div>
+              <div>
+                <p className="text-lg font-bold text-white">Мои курсы</p>
+                <p className="text-sm text-white/60">{profileData.enrollments.length} курсов</p>
+              </div>
+            </div>
+          </motion.button>
+          
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            onClick={() => setIsWalletModalOpen(true)}
+            className="rounded-xl glass border border-white/10 p-6 hover:border-accent-gold/50 transition-all group text-left"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-accent-gold to-accent-electric flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Wallet className="w-7 h-7 text-dark-900" />
+              </div>
+              <div>
+                <p className="text-lg font-bold text-white">Кошелёк</p>
+                <p className="text-sm text-white/60">{profileData.balance.balance.toLocaleString('ru-RU')} ₽</p>
+              </div>
+            </div>
+          </motion.button>
+          
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            onClick={() => setIsReferralModalOpen(true)}
+            className="rounded-xl glass border border-white/10 p-6 hover:border-accent-flame/50 transition-all group text-left"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-accent-flame to-accent-gold flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Gift className="w-7 h-7 text-dark-900" />
+              </div>
+              <div>
+                <p className="text-lg font-bold text-white">Заработать</p>
+                <p className="text-sm text-white/60">+{profileData.referralStats.total_earned.toLocaleString('ru-RU')} ₽</p>
+              </div>
+            </div>
+          </motion.button>
+        </div>
+
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -419,10 +480,25 @@ export default function ProfilePage() {
         </motion.div>
       </div>
 
-      {/* My Courses Modal */}
+      {/* Modals */}
       <MyCoursesModal
         isOpen={isMyCoursesModalOpen}
         onClose={() => setIsMyCoursesModalOpen(false)}
+      />
+      
+      <WalletModal
+        isOpen={isWalletModalOpen}
+        onClose={() => setIsWalletModalOpen(false)}
+        balance={profileData.balance.balance}
+        totalEarned={profileData.balance.total_earned}
+        totalWithdrawn={profileData.balance.total_withdrawn}
+      />
+      
+      <ReferralModal
+        isOpen={isReferralModalOpen}
+        onClose={() => setIsReferralModalOpen(false)}
+        referralCode={profileData.referralCode}
+        stats={profileData.referralStats}
       />
     </main>
   )
