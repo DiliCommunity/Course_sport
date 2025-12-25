@@ -273,44 +273,59 @@
 
     <script src="/js/main.js"></script>
     <script>
-        // Перенаправляем на Next.js версию профиля, где есть модальные окна
-        // Это нужно сделать сразу, до загрузки остального контента
-        if (window.location.pathname === '/profile.html' || window.location.pathname === '/profile.html/') {
-            window.location.replace('/profile');
-        }
-        
-        // Проверка авторизации
-        if (!isAuthenticated()) {
-            window.location.href = '/login.html';
-        }
-
-        // Загрузка данных профиля
-        document.addEventListener('DOMContentLoaded', function() {
-            const user = getUserData();
-            
-            if (user.id) {
-                document.getElementById('profileName').textContent = user.name || 'Пользователь';
-                document.getElementById('profileUsername').textContent = '@' + (user.username || 'user');
+        // Загрузка данных профиля через API
+        async function loadProfile() {
+            try {
+                const response = await fetch('/api/profile/data', {
+                    credentials: 'include'
+                });
                 
-                // Загружаем статистику из БД
-                loadProfileStats(user.id);
-            } else {
+                if (!response.ok) {
+                    // Не авторизован - редирект на логин
+                    window.location.href = '/login.html';
+                    return;
+                }
+                
+                const data = await response.json();
+                const user = data.user;
+                
+                if (user && user.id) {
+                    document.getElementById('profileName').textContent = user.name || 'Пользователь';
+                    document.getElementById('profileUsername').textContent = '@' + (user.username || 'user');
+                    
+                    // Загружаем статистику из ответа API
+                    if (data.enrollments) {
+                        document.getElementById('coursesCount').textContent = data.enrollments.length;
+                    }
+                    if (data.balance !== undefined) {
+                        document.getElementById('balanceAmount').textContent = data.balance + ' ₽';
+                    }
+                    if (data.referralStats) {
+                        document.getElementById('referralsCount').textContent = data.referralStats.totalReferrals || 0;
+                    }
+                } else {
+                    window.location.href = '/login.html';
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки профиля:', error);
                 window.location.href = '/login.html';
             }
-        });
-
-        // Загрузка статистики
-        async function loadProfileStats(userId) {
-            try {
-                // Здесь можно добавить запросы к API для получения статистики
-                // Пока используем localStorage
-                const purchasedCourses = JSON.parse(localStorage.getItem('purchased_courses') || '[]');
-                document.getElementById('coursesCount').textContent = purchasedCourses.length;
-                
-                // Баланс и рефералы можно получить через API позже
-            } catch (error) {
-                console.error('Ошибка загрузки статистики:', error);
-            }
+        }
+        
+        // Запуск при загрузке
+        loadProfile();
+        
+        // Заглушки для модальных окон (реализовать полноценно позже)
+        function openMyCoursesModal() {
+            alert('Функционал "Мои курсы" доступен в приложении Telegram');
+        }
+        
+        function openWalletModal() {
+            alert('Функционал кошелька доступен в приложении Telegram');
+        }
+        
+        function openReferralModal() {
+            window.location.href = '/promotions.html#referral';
         }
     </script>
 </body>
