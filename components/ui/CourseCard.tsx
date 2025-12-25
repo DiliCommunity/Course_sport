@@ -138,9 +138,9 @@ export function CourseCard({
             </div>
 
             {/* Price & CTA */}
-            <div className="flex items-center justify-between pt-4 border-t border-white/5">
+            <div className="flex items-center justify-between pt-4 border-t border-white/10">
               <div className="flex items-baseline gap-2">
-                <span className="font-display font-bold text-2xl text-white">
+                <span className="font-display font-bold text-2xl bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
                   {formatPrice(price)}
                 </span>
                 {originalPrice && (
@@ -150,10 +150,10 @@ export function CourseCard({
                 )}
               </div>
               <motion.div
-                className="w-10 h-10 rounded-xl bg-accent-teal/10 flex items-center justify-center text-accent-teal group-hover:bg-accent-teal group-hover:text-dark-900 transition-all duration-300"
-                whileHover={{ x: 5 }}
+                className="w-12 h-12 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 flex items-center justify-center text-dark-900 shadow-[0_0_20px_rgba(52,211,153,0.4)] group-hover:shadow-[0_0_30px_rgba(52,211,153,0.6)] transition-all duration-300"
+                whileHover={{ x: 5, scale: 1.05 }}
               >
-                <ArrowRight className="w-5 h-5" />
+                <ArrowRight className="w-6 h-6" />
               </motion.div>
             </div>
           </div>
