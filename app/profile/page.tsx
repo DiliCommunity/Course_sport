@@ -330,7 +330,7 @@ export default function ProfilePage() {
               </div>
               <div>
                 <p className="text-lg font-bold text-white">Мои курсы</p>
-                <p className="text-sm text-white/60">{profileData.enrollments.length} курсов</p>
+                <p className="text-sm text-white/60">{profileData.enrollments?.length || 0} курсов</p>
               </div>
             </div>
           </motion.button>
@@ -382,7 +382,7 @@ export default function ProfilePage() {
           >
             <p className="text-sm text-white/60 mb-1">Куплено курсов</p>
             <p className="text-3xl font-display font-bold text-white">
-              {profileData.enrollments.length}
+              {profileData.enrollments?.length || 0}
             </p>
           </motion.div>
           <motion.div
@@ -393,7 +393,7 @@ export default function ProfilePage() {
           >
             <p className="text-sm text-white/60 mb-1">Завершено</p>
             <p className="text-3xl font-display font-bold text-accent-mint">
-              {profileData.enrollments.filter((e) => e.progress === 100).length}
+              {profileData.enrollments?.filter((e) => e.progress === 100).length || 0}
             </p>
           </motion.div>
           <motion.div
@@ -428,9 +428,9 @@ export default function ProfilePage() {
             transition={{ delay: 0.2 }}
           >
             <BalanceCard
-              balance={profileData.balance.balance}
-              totalEarned={profileData.balance.total_earned}
-              totalWithdrawn={profileData.balance.total_withdrawn}
+              balance={profileData.balance?.balance || 0}
+              totalEarned={profileData.balance?.total_earned || 0}
+              totalWithdrawn={profileData.balance?.total_withdrawn || 0}
             />
           </motion.div>
 
@@ -442,8 +442,8 @@ export default function ProfilePage() {
             className="lg:col-span-2"
           >
             <ReferralSection
-              referralCode={profileData.referralCode}
-              stats={profileData.referralStats}
+              referralCode={profileData.referralCode || ''}
+              stats={profileData.referralStats || { total_referred: 0, total_earned: 0, active_referrals: 0, completed_referrals: 0 }}
             />
           </motion.div>
         </div>
@@ -466,7 +466,7 @@ export default function ProfilePage() {
               </button>
             </div>
           </div>
-          <CoursesList enrollments={profileData.enrollments} />
+          <CoursesList enrollments={profileData.enrollments || []} />
         </motion.div>
 
         {/* Transactions Section */}
@@ -476,7 +476,7 @@ export default function ProfilePage() {
           transition={{ delay: 0.5 }}
         >
           <h2 className="font-display font-bold text-2xl text-white mb-6">История транзакций</h2>
-          <TransactionsHistory transactions={profileData.transactions} />
+          <TransactionsHistory transactions={profileData.transactions || []} />
         </motion.div>
       </div>
 
@@ -489,16 +489,16 @@ export default function ProfilePage() {
       <WalletModal
         isOpen={isWalletModalOpen}
         onClose={() => setIsWalletModalOpen(false)}
-        balance={profileData.balance.balance}
-        totalEarned={profileData.balance.total_earned}
-        totalWithdrawn={profileData.balance.total_withdrawn}
+        balance={profileData.balance?.balance || 0}
+        totalEarned={profileData.balance?.total_earned || 0}
+        totalWithdrawn={profileData.balance?.total_withdrawn || 0}
       />
       
       <ReferralModal
         isOpen={isReferralModalOpen}
         onClose={() => setIsReferralModalOpen(false)}
-        referralCode={profileData.referralCode}
-        stats={profileData.referralStats}
+        referralCode={profileData.referralCode || ''}
+        stats={profileData.referralStats || { total_referred: 0, total_earned: 0, active_referrals: 0, completed_referrals: 0 }}
       />
     </main>
   )
