@@ -77,6 +77,22 @@ export async function GET(request: NextRequest) {
     // Проверяем, является ли пользователь админом
     const isAdmin = user.is_admin === true || user.username === 'admini_mini'
 
+    // Форматируем enrollments для фронтенда
+    const formattedEnrollments = (enrollments || []).map(e => ({
+      id: e.id,
+      progress: e.progress || 0,
+      completed_at: e.completed_at,
+      courses: e.course || {
+        id: '',
+        title: '',
+        image_url: '',
+        price: 0,
+        duration_minutes: 0,
+        rating: 0,
+        students_count: 0,
+      }
+    }))
+
     return NextResponse.json({
       user: {
         id: user.id,
@@ -93,20 +109,27 @@ export async function GET(request: NextRequest) {
         created_at: user.created_at,
         is_admin: isAdmin,
       },
-      balance: balance || {
-        balance: 0,
-        total_earned: 0,
-        total_withdrawn: 0,
+      balance: {
+        balance: balance?.balance || 0,
+        total_earned: balance?.total_earned || 0,
+        total_withdrawn: balance?.total_withdrawn || 0,
       },
-      referralCode: referralCode || null,
+      referralCode: referralCode?.code || '',
       referrals: referrals || [],
       referralStats: {
-        total: totalReferrals,
-        active: activeReferrals,
-        totalEarned: totalEarned,
+        total_referred: totalReferrals,
+        total_earned: totalEarned,
+        active_referrals: activeReferrals,
+        completed_referrals: referrals?.filter(r => r.status === 'completed').length || 0,
       },
-      enrollments: enrollments || [],
-      transactions: transactions || [],
+      enrollments: formattedEnrollments,
+      transactions: (transactions || []).map(t => ({
+        id: t.id,
+        created_at: t.created_at,
+        type: t.type || 'earned',
+        amount: t.amount || 0,
+        description: t.description || '',
+      })),
     })
   } catch (error: any) {
     console.error('Profile data error:', error)
