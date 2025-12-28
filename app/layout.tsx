@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Space_Grotesk, Outfit, JetBrains_Mono } from 'next/font/google'
+import Script from 'next/script'
 import './globals.css'
 import './new-year-theme.css' // 🎄 Новогодняя тема
 import { Header } from '@/components/layout/Header'
@@ -55,6 +56,8 @@ export default function RootLayout({
   return (
     <html lang="ru" className={`${spaceGrotesk.variable} ${outfit.variable} ${jetbrainsMono.variable}`}>
       <body className="bg-dark-900 text-white font-body antialiased relative">
+        {/* Telegram WebApp Script - загружается автоматически Telegram, но добавляем для надёжности */}
+        <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" />
         <TelegramProvider>
           <AuthProvider>
             {/* 🎄 Новогодняя тема - автоматически активируется с 20 декабря по 15 января */}

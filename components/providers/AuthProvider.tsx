@@ -133,10 +133,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return
       }
 
-      // Если это Telegram WebApp - авторизуемся через Telegram
+      // Если это Telegram WebApp - автоматически авторизуемся через Telegram
+      // Пользователь уже авторизован в Telegram, поэтому просто регистрируем/входим
       if (isTelegramApp && telegramUser) {
-        console.log('[AuthProvider] Attempting Telegram auth for:', telegramUser.id)
-        await authViaTelegram()
+        console.log('[AuthProvider] Auto-authorizing Telegram user:', telegramUser.id)
+        const authSuccess = await authViaTelegram()
+        if (authSuccess) {
+          console.log('[AuthProvider] Telegram auto-auth successful')
+        }
       }
 
       console.log('[AuthProvider] Auth init complete')

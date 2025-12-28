@@ -192,60 +192,11 @@ export default function LoginPage() {
             </motion.div>
           )}
 
-          {/* Telegram Quick Login (if in Telegram and not showing form) */}
-          {isTelegramApp && telegramUser && !showLoginForm ? (
-            <div className="space-y-6">
-              {/* Telegram User Info */}
-              <div className="p-4 rounded-xl bg-[#0088cc]/10 border border-[#0088cc]/30">
-                <div className="flex items-center gap-3 mb-2">
-                  <Send className="w-5 h-5 text-[#0088cc]" />
-                  <span className="font-semibold text-white">Telegram аккаунт</span>
-                </div>
-                <p className="text-white/60 text-sm">
-                  {telegramUser.first_name} {telegramUser.last_name || ''}
-                  {telegramUser.username && ` (@${telegramUser.username})`}
-                </p>
-              </div>
-
-              {/* Continue with Telegram */}
-              <Button 
-                className="w-full" 
-                size="lg"
-                onClick={handleTelegramAuth}
-                isLoading={isTelegramLoading}
-              >
-                <Send className="w-5 h-5 mr-2" />
-                Войти через Telegram
-              </Button>
-
-              {/* Divider */}
-              <div className="flex items-center gap-4">
-                <div className="flex-1 h-px bg-white/10" />
-                <span className="text-white/40 text-sm">или</span>
-                <div className="flex-1 h-px bg-white/10" />
-              </div>
-
-              {/* Show login form button */}
-              <button
-                onClick={() => setShowLoginForm(true)}
-                className="w-full p-4 rounded-xl border border-white/20 text-white/80 hover:bg-white/5 transition-colors text-center"
-              >
-                У меня есть аккаунт (логин/пароль)
-              </button>
-            </div>
-          ) : (
+          {/* В Telegram WebApp авторизация происходит автоматически через AuthProvider */}
+          {/* Показываем форму логина только если пользователь не авторизован и не в WebApp, или явно выбрал форму */}
+          {(!isTelegramApp || showLoginForm) ? (
             <>
-              {/* Back to Telegram button (if in Telegram) */}
-              {isTelegramApp && telegramUser && showLoginForm && (
-                <button
-                  onClick={() => setShowLoginForm(false)}
-                  className="mb-6 text-accent-electric hover:underline text-sm flex items-center gap-2"
-                >
-                  ← Вернуться к входу через Telegram
-                </button>
-              )}
-
-              {/* Telegram Quick Login (if NOT in Telegram) */}
+              {/* Telegram Quick Login (if NOT in Telegram - показываем кнопку перехода на бота) */}
               {!isTelegramApp && (
                 <>
                   <motion.a
