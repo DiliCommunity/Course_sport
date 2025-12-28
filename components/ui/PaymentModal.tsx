@@ -1,9 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Lock, CheckCircle2, Shield } from 'lucide-react'
+import { X, Lock, CheckCircle2, Shield, LogIn } from 'lucide-react'
 import { useAuth } from '@/components/providers/AuthProvider'
+import { useTelegram } from '@/components/providers/TelegramProvider'
 import { Button } from './Button'
 import { formatPrice } from '@/lib/utils'
 
@@ -99,22 +101,46 @@ export function PaymentModal({
   courseId,
   onPaymentSuccess,
 }: PaymentModalProps) {
+  const router = useRouter()
   const [selectedMethod, setSelectedMethod] = useState('sbp')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const { user } = useAuth()
+  const { user: telegramUser, isTelegramApp } = useTelegram()
+  
+  // Проверка авторизации
+  const isAuthenticated = user || (isTelegramApp && telegramUser)
+
+  // Редирект на страницу входа если не авторизован
+  useEffect(() => {
+    if (isOpen && !isAuthenticated) {
+      onClose()
+      router.push(`/login?redirect=/courses/${courseId}`)
+    }
+  }, [isOpen, isAuthenticated, onClose, router, courseId])
 
   const handlePayment = async () => {
+    // Двойная проверка авторизации
+    if (!isAuthenticated) {
+      onClose()
+      router.push(`/login?redirect=/courses/${courseId}`)
+      return
+    }
+
     setIsLoading(true)
     setError(null)
 
-    if (!user?.id) {
+    const userId = user?.id || telegramUser?.id?.toString()
+    
+    if (!userId) {
       setError('Необходимо авторизоваться для оплаты')
       setIsLoading(false)
       return
     }
 
     try {
+      const userId = user?.id || telegramUser?.id?.toString()
+      
       const response = await fetch('/api/payments/create', {
         method: 'POST',
         headers: {
@@ -124,9 +150,9 @@ export function PaymentModal({
         body: JSON.stringify({
           courseId: courseId || 'unknown',
           paymentMethod: selectedMethod,
-          amount: coursePrice, // Цена в копейках
-          userId: user.id,
-          returnUrl: `${window.location.origin}/payment-success.html?course=${courseId}`
+          amount: coursePrice, // Цена в рублях
+          userId: userId,
+          returnUrl: `${window.location.origin}/payment/success?course=${courseId}`
         })
       })
 

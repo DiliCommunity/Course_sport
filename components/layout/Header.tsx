@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, X, Heart, User, ChevronDown, LogOut } from 'lucide-react'
+import { X, User, ChevronDown, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { useTelegram } from '@/components/providers/TelegramProvider'
@@ -25,7 +25,7 @@ export function Header() {
   
   // Проверяем авторизацию через Telegram или сессию
   const isAuthenticated = user || (isTelegramApp && telegramUser)
-  const displayName = user?.email || telegramUser?.first_name || 'Пользователь'
+  const displayName = user?.email?.split('@')[0] || telegramUser?.first_name || 'Профиль'
 
   useEffect(() => {
     const handleScroll = () => {
@@ -61,24 +61,44 @@ export function Header() {
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <nav className="flex items-center justify-between h-20">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <motion.div
-              className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-accent-teal to-accent-mint p-0.5"
-              whileHover={{ scale: 1.05, rotate: 5 }}
-              whileTap={{ scale: 0.95 }}
+          {/* Left: Burger Menu (Mobile) */}
+          <div className="flex items-center gap-4">
+            {/* Стильное бургер меню */}
+            <motion.button
+              className="md:hidden relative w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400/20 to-cyan-400/20 border border-emerald-400/30 flex flex-col items-center justify-center gap-1.5 shadow-[0_0_15px_rgba(52,211,153,0.2)] hover:shadow-[0_0_25px_rgba(52,211,153,0.4)] transition-all"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              whileTap={{ scale: 0.9 }}
             >
-              <div className="w-full h-full rounded-[10px] bg-dark-900 flex items-center justify-center">
-                <span className="text-2xl">💚</span>
-              </div>
-            </motion.div>
-            <span className="font-display font-bold text-xl tracking-tight">
-              <span className="text-white">Course</span>
-              <span className="gradient-text">Health</span>
-            </span>
-          </Link>
+              {isMobileMenuOpen ? (
+                <X className="w-5 h-5 text-emerald-400" />
+              ) : (
+                <>
+                  <span className="w-5 h-0.5 bg-emerald-400 rounded-full" />
+                  <span className="w-4 h-0.5 bg-emerald-400 rounded-full" />
+                  <span className="w-5 h-0.5 bg-emerald-400 rounded-full" />
+                </>
+              )}
+            </motion.button>
 
-          {/* Desktop Navigation */}
+            {/* Logo */}
+            <Link href="/" className="flex items-center gap-3 group">
+              <motion.div
+                className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-accent-teal to-accent-mint p-0.5"
+                whileHover={{ scale: 1.05, rotate: 5 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <div className="w-full h-full rounded-[10px] bg-dark-900 flex items-center justify-center">
+                  <span className="text-2xl">💚</span>
+                </div>
+              </motion.div>
+              <span className="font-display font-bold text-xl tracking-tight">
+                <span className="text-white">Course</span>
+                <span className="gradient-text">Health</span>
+              </span>
+            </Link>
+          </div>
+
+          {/* Center: Desktop Navigation */}
           <div className="hidden md:flex items-center gap-1">
             {navLinks.map((link) => (
               <Link
@@ -92,52 +112,57 @@ export function Header() {
             ))}
           </div>
 
-          {/* Desktop Actions */}
-          <div className="hidden md:flex items-center gap-4">
+          {/* Right: Auth Button */}
+          <div className="flex items-center gap-4">
             {isAuthenticated ? (
+              // Авторизованный пользователь - кнопка "Мой профиль"
               <div className="relative user-menu-container">
                 <motion.button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-white/5 transition-colors"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-400/20 to-cyan-400/20 border border-emerald-400/40 hover:border-emerald-400/70 shadow-[0_0_15px_rgba(52,211,153,0.2)] hover:shadow-[0_0_25px_rgba(52,211,153,0.4)] transition-all duration-300"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <div className="w-8 h-8 rounded-full bg-accent-teal/20 flex items-center justify-center">
-                    <User className="w-4 h-4 text-accent-teal" />
+                  <div className="w-7 h-7 rounded-full bg-emerald-400/30 flex items-center justify-center">
+                    <User className="w-4 h-4 text-emerald-400" />
                   </div>
-                  <span className="text-white/70 text-sm font-medium">{displayName}</span>
-                  <ChevronDown className={`w-4 h-4 text-white/40 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+                  <span className="text-emerald-400 text-sm font-bold hidden sm:block">
+                    {displayName}
+                  </span>
+                  <ChevronDown className={`w-4 h-4 text-emerald-400/60 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
                 </motion.button>
 
                 <AnimatePresence>
                   {isUserMenuOpen && (
                     <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="absolute right-0 top-full mt-2 w-48 rounded-xl glass p-2"
+                      initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                      className="absolute right-0 top-full mt-2 w-52 rounded-xl bg-dark-800/95 backdrop-blur-xl border border-emerald-400/20 p-2 shadow-[0_0_30px_rgba(0,0,0,0.5)]"
                     >
                       <Link
-                        href="/courses"
-                        className="block px-4 py-2 rounded-lg hover:bg-white/5 transition-colors text-sm"
+                        href="/profile"
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-emerald-400/10 transition-colors text-sm text-white/80 hover:text-emerald-400"
                         onClick={() => setIsUserMenuOpen(false)}
                       >
-                        Мои курсы
+                        <User className="w-4 h-4" />
+                        Мой профиль
                       </Link>
                       <Link
-                        href="/profile"
-                        className="block px-4 py-2 rounded-lg hover:bg-white/5 transition-colors text-sm"
+                        href="/courses"
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-emerald-400/10 transition-colors text-sm text-white/80 hover:text-emerald-400"
                         onClick={() => setIsUserMenuOpen(false)}
                       >
-                        Профиль
+                        📚 Мои курсы
                       </Link>
+                      <div className="my-2 border-t border-white/10" />
                       {user && (
                         <button
                           onClick={async () => {
                             await signOut()
                             setIsUserMenuOpen(false)
                           }}
-                          className="w-full text-left px-4 py-2 rounded-lg hover:bg-white/5 transition-colors text-sm text-red-400 flex items-center gap-2"
+                          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-red-500/10 transition-colors text-sm text-red-400"
                         >
                           <LogOut className="w-4 h-4" />
                           Выйти
@@ -148,23 +173,19 @@ export function Header() {
                 </AnimatePresence>
               </div>
             ) : (
-              <Link
-                href="/login"
-                className="px-5 py-2.5 rounded-xl font-bold text-dark-900 bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 hover:from-emerald-300 hover:via-teal-300 hover:to-cyan-300 shadow-[0_0_20px_rgba(52,211,153,0.4)] hover:shadow-[0_0_30px_rgba(52,211,153,0.6)] transition-all duration-300 hover:scale-105"
-              >
-                Войти
+              // Не авторизован - яркая кнопка "Войти"
+              <Link href="/login">
+                <motion.div
+                  className="px-5 py-2.5 rounded-xl font-bold text-dark-900 bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 shadow-[0_0_20px_rgba(52,211,153,0.5)] hover:shadow-[0_0_35px_rgba(52,211,153,0.7)] transition-all duration-300 flex items-center gap-2"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <User className="w-4 h-4" />
+                  <span>Войти</span>
+                </motion.div>
               </Link>
             )}
           </div>
-
-          {/* Mobile Menu Button */}
-          <motion.button
-            className="md:hidden p-2 text-white/70 hover:text-white"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            whileTap={{ scale: 0.9 }}
-          >
-            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </motion.button>
         </nav>
       </div>
 
@@ -175,7 +196,7 @@ export function Header() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 top-20 bg-dark-900 z-40 md:hidden overflow-hidden"
+            className="fixed inset-0 top-20 bg-dark-900/95 backdrop-blur-lg z-40 md:hidden overflow-hidden"
             onClick={() => setIsMobileMenuOpen(false)}
           >
             <motion.div
@@ -183,7 +204,7 @@ export function Header() {
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="h-full w-80 bg-dark-800 border-r border-white/10 shadow-2xl overflow-y-auto"
+              className="h-full w-80 bg-dark-800 border-r border-emerald-400/20 shadow-[5px_0_30px_rgba(0,0,0,0.5)] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex flex-col h-full">
@@ -198,45 +219,44 @@ export function Header() {
                       >
                         <Link
                           href={link.href}
-                          className="flex items-center gap-3 px-4 py-3 rounded-xl text-lg font-medium text-white/70 hover:text-white hover:bg-white/5 transition-all duration-200 group"
+                          className="flex items-center gap-3 px-4 py-3 rounded-xl text-lg font-medium text-white/70 hover:text-emerald-400 hover:bg-emerald-400/10 transition-all duration-200 group border border-transparent hover:border-emerald-400/20"
                           onClick={() => setIsMobileMenuOpen(false)}
                         >
-                          <span className="w-1 h-6 bg-accent-teal rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                          <span className="w-1.5 h-6 bg-emerald-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
                           {link.label}
                         </Link>
                       </motion.div>
                     ))}
                   </div>
                 )}
-                <div className="mt-auto px-6 py-6 border-t border-white/10 space-y-3">
+                <div className="mt-auto px-6 py-6 border-t border-emerald-400/20 space-y-3">
                   {isAuthenticated ? (
                     <>
-                      <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5">
-                        <div className="w-10 h-10 rounded-full bg-accent-teal/20 flex items-center justify-center">
-                          <User className="w-5 h-5 text-accent-teal" />
+                      <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-emerald-400/10 border border-emerald-400/20">
+                        <div className="w-10 h-10 rounded-full bg-emerald-400/20 flex items-center justify-center">
+                          <User className="w-5 h-5 text-emerald-400" />
                         </div>
                         <div>
-                          <div className="text-white font-medium">{displayName}</div>
+                          <div className="text-emerald-400 font-bold">{displayName}</div>
                           <div className="text-white/50 text-sm">
                             {isTelegramApp ? 'Telegram' : 'Email'}
                           </div>
                         </div>
                       </div>
                       <Link
-                        href="/courses"
-                        className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-colors text-white/70 hover:text-white"
+                        href="/profile"
+                        className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-400/10 transition-colors text-white/70 hover:text-emerald-400 border border-transparent hover:border-emerald-400/20"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
-                        <span className="w-1 h-6 bg-accent-teal rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                        Мои курсы
+                        <User className="w-5 h-5" />
+                        Мой профиль
                       </Link>
                       <Link
-                        href="/profile"
-                        className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-colors text-white/70 hover:text-white"
+                        href="/courses"
+                        className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-400/10 transition-colors text-white/70 hover:text-emerald-400 border border-transparent hover:border-emerald-400/20"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
-                        <span className="w-1 h-6 bg-accent-teal rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                        Профиль
+                        📚 Мои курсы
                       </Link>
                       {user && (
                         <button
@@ -244,7 +264,7 @@ export function Header() {
                             await signOut()
                             setIsMobileMenuOpen(false)
                           }}
-                          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-500/10 transition-colors text-red-400"
+                          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-500/10 transition-colors text-red-400 border border-transparent hover:border-red-400/20"
                         >
                           <LogOut className="w-5 h-5" />
                           Выйти
@@ -254,7 +274,7 @@ export function Header() {
                   ) : (
                     <Link
                       href="/login"
-                      className="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-dark-900 bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 shadow-[0_0_20px_rgba(52,211,153,0.4)] transition-all duration-300"
+                      className="flex items-center justify-center gap-3 px-4 py-4 rounded-xl font-bold text-dark-900 bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 shadow-[0_0_25px_rgba(52,211,153,0.5)] transition-all duration-300"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       <User className="w-5 h-5" />
@@ -270,4 +290,3 @@ export function Header() {
     </header>
   )
 }
-

@@ -23,7 +23,7 @@ export default function HomePage() {
             </h1>
             
             <p className="text-lg md:text-xl text-white/70 mb-8 max-w-2xl mx-auto">
-              Премиум обучение от лучших экспертов. 15% контента бесплатно, полный доступ за 1500₽
+              Премиум обучение от лучших экспертов. 15% контента бесплатно, полный доступ за 19₽
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
@@ -110,7 +110,7 @@ export default function HomePage() {
                 💎
               </div>
               <h3 className="text-xl font-bold mb-3">Доступные цены</h3>
-              <p className="text-white/60">Полный доступ к курсу всего за 1500₽, 15% контента бесплатно</p>
+              <p className="text-white/60">Полный доступ к курсу всего за 19₽ (тест), 15% контента бесплатно</p>
             </div>
             
             <div className="bg-glass border border-glass-border rounded-2xl p-8 hover:border-accent-neon transition-all duration-300">
