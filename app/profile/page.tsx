@@ -243,13 +243,18 @@ export default function ProfilePage() {
               </h1>
               {!isEditing ? (
                 <div className="space-y-1">
+                  {/* Показываем Telegram username, если пользователь зарегистрирован через Telegram */}
+                  {profileData.user.telegram_username && (
+                    <p className="text-white/60">✈️ Telegram: @{profileData.user.telegram_username}</p>
+                  )}
                   {profileData.user.email && (
                     <p className="text-white/60">📧 {profileData.user.email}</p>
                   )}
                   {profileData.user.phone && (
                     <p className="text-white/60">📱 {profileData.user.phone}</p>
                   )}
-                  {!profileData.user.email && !profileData.user.phone && (
+                  {/* Если нет ни почты, ни телефона, и нет Telegram username - показываем из контекста */}
+                  {!profileData.user.email && !profileData.user.phone && !profileData.user.telegram_username && (
                     <p className="text-white/60">
                       Telegram: @{telegramUser?.username || 'user'}
                     </p>

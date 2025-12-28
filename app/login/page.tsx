@@ -60,7 +60,7 @@ export default function LoginPage() {
       await refreshUser()
       
       setTimeout(() => {
-        router.push('/courses')
+        router.push('/profile')
       }, 1000)
     } catch (err: any) {
       setError(err.message || 'Ошибка авторизации через Telegram')
