@@ -24,6 +24,7 @@ interface ProfileData {
     phone: string | null
     avatar_url: string | null
     telegram_id: string | null
+    telegram_username: string | null
     is_admin?: boolean
   }
   balance: {

@@ -119,7 +119,8 @@ export default function LoginPage() {
   }
 
   // Показываем загрузку пока проверяем авторизацию
-  if (authLoading || !isReady) {
+  // В Telegram WebApp ждём инициализации только немного
+  if (authLoading || (isTelegramApp && !isReady)) {
     return (
       <main className="min-h-screen flex items-center justify-center px-4 py-20">
         <div className="text-center">
@@ -192,7 +193,7 @@ export default function LoginPage() {
             </motion.div>
           )}
 
-          {/* Кнопка "Войти через Telegram" - показываем и в WebApp, и в браузере */}
+          {/* Кнопка "Войти через Telegram" - показываем в WebApp если есть telegramUser */}
           {isTelegramApp && telegramUser && !showLoginForm ? (
             <div className="space-y-6">
               {/* Telegram User Info */}
