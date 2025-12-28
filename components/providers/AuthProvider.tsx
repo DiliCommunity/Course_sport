@@ -123,7 +123,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       console.log('[AuthProvider] Init auth started. isReady:', isReady, 'isTelegramApp:', isTelegramApp)
       setLoading(true)
 
-      // Сначала пробуем получить профиль (если уже есть сессия)
+      // Проверяем, есть ли уже сессия
       const hasSession = await fetchProfile()
       
       if (hasSession) {
@@ -133,23 +133,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return
       }
 
-      // Если это Telegram WebApp - автоматически авторизуемся через Telegram
-      // Пользователь уже авторизован в Telegram, поэтому просто регистрируем/входим
-      if (isTelegramApp && telegramUser) {
-        console.log('[AuthProvider] Auto-authorizing Telegram user:', telegramUser.id)
-        const authSuccess = await authViaTelegram()
-        if (authSuccess) {
-          console.log('[AuthProvider] Telegram auto-auth successful')
-        }
-      }
-
-      console.log('[AuthProvider] Auth init complete')
+      // Не авторизуем автоматически - пользователь должен нажать кнопку "Войти через Telegram"
+      console.log('[AuthProvider] Auth init complete - no session, waiting for user action')
       setLoading(false)
       setAuthAttempted(true)
     }
 
     initAuth()
-  }, [isReady, isTelegramApp, telegramUser, authAttempted, fetchProfile, authViaTelegram])
+  }, [isReady, authAttempted, fetchProfile])
 
   // Функция выхода
   const signOut = async () => {
