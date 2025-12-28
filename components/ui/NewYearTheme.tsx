@@ -68,7 +68,7 @@ export function NewYearTheme() {
 
       {/* Праздничный баннер */}
       <div className="new-year-banner">
-        🎄 С Новым 2025 Годом! 🎁
+        🎄 С Новым 2026 Годом! 🎁
       </div>
 
       {/* Огоньки в углах */}
