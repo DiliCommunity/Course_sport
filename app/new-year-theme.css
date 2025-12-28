@@ -1,5 +1,5 @@
 /* ================================================
-   🎄 НОВОГОДНЯЯ ТЕМА - New Year Theme 2025 🎄
+   🎄 НОВОГОДНЯЯ ТЕМА - New Year Theme 2026 🎄
    ================================================
    Подключите этот файл в layout.tsx:
    import './new-year-theme.css'
@@ -7,33 +7,23 @@
    И добавьте класс .new-year-theme к body или main
    ================================================ */
 
-/* === ГИРЛЯНДА ПО КРАЯМ СТРАНИЦЫ === */
+/* === МЯГКОЕ МЕРЦАНИЕ ПО КРАЯМ СТРАНИЦЫ === */
 .new-year-theme::before {
   content: '';
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  height: 8px;
-  background: linear-gradient(
-    90deg,
-    #ff0000 0%, #ff0000 10%,
-    #00ff00 10%, #00ff00 20%,
-    #ffd700 20%, #ffd700 30%,
-    #00d4ff 30%, #00d4ff 40%,
-    #ff00ff 40%, #ff00ff 50%,
-    #ff0000 50%, #ff0000 60%,
-    #00ff00 60%, #00ff00 70%,
-    #ffd700 70%, #ffd700 80%,
-    #00d4ff 80%, #00d4ff 90%,
-    #ff00ff 90%, #ff00ff 100%
+  height: 2px;
+  background: linear-gradient(90deg, 
+    transparent 0%,
+    rgba(255, 100, 100, 0.4) 20%,
+    rgba(100, 255, 100, 0.4) 40%,
+    rgba(255, 215, 0, 0.4) 60%,
+    rgba(100, 200, 255, 0.4) 80%,
+    transparent 100%
   );
-  background-size: 200% 100%;
-  animation: garland-move 3s linear infinite;
-  box-shadow: 
-    0 0 10px rgba(255, 0, 0, 0.5),
-    0 0 20px rgba(0, 255, 0, 0.3),
-    0 0 30px rgba(255, 215, 0, 0.3);
+  animation: soft-twinkle 3s ease-in-out infinite;
   z-index: 9999;
   pointer-events: none;
 }
@@ -44,77 +34,58 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 8px;
-  background: linear-gradient(
-    90deg,
-    #ff00ff 0%, #ff00ff 10%,
-    #00d4ff 10%, #00d4ff 20%,
-    #ffd700 20%, #ffd700 30%,
-    #00ff00 30%, #00ff00 40%,
-    #ff0000 40%, #ff0000 50%,
-    #ff00ff 50%, #ff00ff 60%,
-    #00d4ff 60%, #00d4ff 70%,
-    #ffd700 70%, #ffd700 80%,
-    #00ff00 80%, #00ff00 90%,
-    #ff0000 90%, #ff0000 100%
+  height: 2px;
+  background: linear-gradient(90deg, 
+    transparent 0%,
+    rgba(100, 200, 255, 0.4) 20%,
+    rgba(255, 215, 0, 0.4) 40%,
+    rgba(100, 255, 100, 0.4) 60%,
+    rgba(255, 100, 100, 0.4) 80%,
+    transparent 100%
   );
-  background-size: 200% 100%;
-  animation: garland-move 3s linear infinite reverse;
-  box-shadow: 
-    0 0 10px rgba(255, 0, 255, 0.5),
-    0 0 20px rgba(0, 212, 255, 0.3),
-    0 0 30px rgba(255, 215, 0, 0.3);
+  animation: soft-twinkle 3s ease-in-out infinite 1.5s;
   z-index: 9999;
   pointer-events: none;
 }
 
-@keyframes garland-move {
-  0% { background-position: 0% 0%; }
-  100% { background-position: 200% 0%; }
+@keyframes soft-twinkle {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
 }
 
-/* Боковые гирлянды */
+/* Боковые мерцающие полосы - мягкие */
 .garland-left,
 .garland-right {
   position: fixed;
   top: 0;
   bottom: 0;
-  width: 8px;
-  background: linear-gradient(
-    180deg,
-    #ff0000 0%, #ff0000 8%,
-    #00ff00 8%, #00ff00 16%,
-    #ffd700 16%, #ffd700 24%,
-    #00d4ff 24%, #00d4ff 32%,
-    #ff00ff 32%, #ff00ff 40%,
-    #ff0000 40%, #ff0000 48%,
-    #00ff00 48%, #00ff00 56%,
-    #ffd700 56%, #ffd700 64%,
-    #00d4ff 64%, #00d4ff 72%,
-    #ff00ff 72%, #ff00ff 80%,
-    #ff0000 80%, #ff0000 88%,
-    #00ff00 88%, #00ff00 100%
+  width: 2px;
+  background: linear-gradient(180deg, 
+    transparent 0%,
+    rgba(255, 100, 100, 0.3) 15%,
+    rgba(100, 255, 100, 0.3) 30%,
+    rgba(255, 215, 0, 0.3) 45%,
+    rgba(100, 200, 255, 0.3) 60%,
+    rgba(255, 100, 255, 0.3) 75%,
+    transparent 100%
   );
-  background-size: 100% 200%;
-  animation: garland-vertical 4s linear infinite;
+  animation: soft-twinkle-vertical 4s ease-in-out infinite;
   z-index: 9999;
   pointer-events: none;
 }
 
 .garland-left {
   left: 0;
-  box-shadow: 5px 0 15px rgba(255, 0, 0, 0.3);
 }
 
 .garland-right {
   right: 0;
-  animation-direction: reverse;
-  box-shadow: -5px 0 15px rgba(0, 255, 0, 0.3);
+  animation-delay: 2s;
 }
 
-@keyframes garland-vertical {
-  0% { background-position: 0% 0%; }
-  100% { background-position: 0% 200%; }
+@keyframes soft-twinkle-vertical {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.6; }
 }
 
 /* === СНЕЖИНКИ === */
@@ -188,33 +159,36 @@
   }
 }
 
-/* === ПРАЗДНИЧНЫЙ БАННЕР === */
+/* === ПРАЗДНИЧНЫЙ БАННЕР - ВНИЗУ ЭКРАНА === */
 .new-year-banner {
   position: fixed;
-  top: 12px;
+  bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
-  background: linear-gradient(135deg, #ff0000, #00ff00, #ffd700);
-  background-size: 300% 300%;
-  animation: banner-gradient 3s ease infinite;
-  padding: 8px 24px;
-  border-radius: 30px;
-  font-weight: bold;
-  color: #fff;
+  background: linear-gradient(135deg, 
+    rgba(0, 80, 0, 0.9) 0%, 
+    rgba(30, 60, 30, 0.9) 50%,
+    rgba(100, 20, 20, 0.9) 100%
+  );
+  background-size: 200% 200%;
+  animation: banner-gradient 4s ease infinite;
+  padding: 10px 28px;
+  border-radius: 20px;
+  font-weight: 600;
+  color: #ffd700;
   font-size: 14px;
   z-index: 10000;
+  backdrop-filter: blur(10px);
   box-shadow: 
-    0 4px 20px rgba(255, 0, 0, 0.4),
-    0 0 40px rgba(0, 255, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  border: 2px solid rgba(255, 255, 255, 0.3);
+    0 4px 20px rgba(0, 0, 0, 0.4),
+    0 0 20px rgba(255, 215, 0, 0.15);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 215, 0, 0.3);
 }
 
 @keyframes banner-gradient {
-  0% { background-position: 0% 50%; }
+  0%, 100% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
 }
 
 /* === ПРАЗДНИЧНЫЕ ОГОНЬКИ В УГЛАХ === */

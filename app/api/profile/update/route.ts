@@ -22,13 +22,14 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { email, phone, name } = body
+    const { email, phone, name, avatar_url } = body
 
     // Обновляем профиль пользователя
     const updateData: Record<string, unknown> = {}
     if (email !== undefined) updateData.email = email
     if (phone !== undefined) updateData.phone = phone
     if (name !== undefined) updateData.name = name
+    if (avatar_url !== undefined) updateData.avatar_url = avatar_url
 
     const { data: updatedProfile, error: updateError } = await supabase
       .from('users')

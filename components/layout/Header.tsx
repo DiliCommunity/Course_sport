@@ -150,7 +150,7 @@ export function Header() {
             ) : (
               <Link
                 href="/login"
-                className="px-4 py-2 text-white/70 hover:text-white font-medium transition-colors"
+                className="px-5 py-2.5 rounded-xl font-bold text-dark-900 bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 hover:from-emerald-300 hover:via-teal-300 hover:to-cyan-300 shadow-[0_0_20px_rgba(52,211,153,0.4)] hover:shadow-[0_0_30px_rgba(52,211,153,0.6)] transition-all duration-300 hover:scale-105"
               >
                 Войти
               </Link>
@@ -254,7 +254,7 @@ export function Header() {
                   ) : (
                     <Link
                       href="/login"
-                      className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-colors text-white/70 hover:text-white"
+                      className="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-dark-900 bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 shadow-[0_0_20px_rgba(52,211,153,0.4)] transition-all duration-300"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       <User className="w-5 h-5" />
