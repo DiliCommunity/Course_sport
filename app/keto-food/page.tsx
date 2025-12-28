@@ -513,10 +513,10 @@ export default function KetoFoodPage() {
               <a
                 href={guide.pdfUrl}
                 download
-                className={`w-full py-3 rounded-xl ${guide.bgClass} border ${guide.borderClass} ${guide.colorClass} font-medium flex items-center justify-center gap-2 hover:opacity-80 transition-opacity`}
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-orange-500 via-amber-400 to-yellow-400 text-dark-900 font-bold flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(255,107,53,0.5),0_0_30px_rgba(255,215,0,0.3)] hover:shadow-[0_0_25px_rgba(255,107,53,0.7),0_0_50px_rgba(255,215,0,0.5)] hover:scale-105 transition-all duration-300 border-2 border-yellow-300/50"
               >
-                <Download className="w-4 h-4" />
-                Скачать PDF
+                <Download className="w-5 h-5" />
+                📥 Скачать PDF
               </a>
             </motion.div>
           ))}
@@ -611,10 +611,10 @@ export default function KetoFoodPage() {
                       </button>
                       <button
                         onClick={() => downloadRecipePDF(recipe, 1)}
-                        className="py-2 px-3 rounded-xl bg-accent-electric/20 hover:bg-accent-electric/30 text-accent-electric transition-colors"
+                        className="py-2 px-4 rounded-xl bg-gradient-to-r from-orange-500 to-amber-400 text-dark-900 font-bold shadow-[0_0_10px_rgba(255,107,53,0.4)] hover:shadow-[0_0_20px_rgba(255,107,53,0.6)] hover:scale-110 transition-all duration-300 border border-yellow-300/50"
                         title="Скачать PDF"
                       >
-                        <Download className="w-4 h-4" />
+                        <Download className="w-5 h-5" />
                       </button>
                     </div>
                   </div>
@@ -751,13 +751,13 @@ export default function KetoFoodPage() {
                   </ol>
                 </div>
 
-                {/* Download Button */}
+                {/* Download Button - ЯРКАЯ КНОПКА */}
                 <button
                   onClick={() => downloadRecipePDF(selectedRecipe, portions)}
-                  className="w-full py-4 rounded-xl bg-gradient-to-r from-accent-electric to-accent-neon text-dark-900 font-bold flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-accent-electric/30 transition-all"
+                  className="w-full py-4 rounded-xl bg-gradient-to-r from-orange-500 via-amber-400 to-yellow-400 text-dark-900 font-bold text-lg flex items-center justify-center gap-3 shadow-[0_0_25px_rgba(255,107,53,0.6),0_0_50px_rgba(255,215,0,0.4)] hover:shadow-[0_0_40px_rgba(255,107,53,0.8),0_0_80px_rgba(255,215,0,0.6)] hover:scale-[1.02] transition-all duration-300 border-2 border-yellow-300/60"
                 >
-                  <Download className="w-5 h-5" />
-                  Скачать рецепт на {portions} {portions === 1 ? 'порцию' : portions < 5 ? 'порции' : 'порций'}
+                  <Download className="w-6 h-6" />
+                  📥 Скачать рецепт на {portions} {portions === 1 ? 'порцию' : portions < 5 ? 'порции' : 'порций'}
                 </button>
               </div>
             </motion.div>

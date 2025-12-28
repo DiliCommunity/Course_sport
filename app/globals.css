@@ -380,5 +380,205 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
+
+  /* ===== ЯРКИЕ СТИЛИ ДЛЯ КОНТЕНТА И КНОПОК ===== */
+  
+  /* Яркая рамка для контента курсов */
+  .content-border-bright {
+    @apply relative overflow-hidden rounded-xl;
+    border: 2px solid transparent;
+    background: linear-gradient(135deg, rgba(15, 15, 20, 0.95), rgba(10, 10, 15, 0.95)) padding-box,
+                linear-gradient(135deg, #00d4ff, #00ff88, #00d4ff) border-box;
+    box-shadow: 
+      0 0 20px rgba(0, 212, 255, 0.3),
+      0 0 40px rgba(0, 255, 136, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  .content-border-bright:hover {
+    box-shadow: 
+      0 0 30px rgba(0, 212, 255, 0.5),
+      0 0 60px rgba(0, 255, 136, 0.25),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  }
+
+  /* Рамка синего свечения */
+  .border-glow-blue {
+    border: 2px solid #00d4ff;
+    box-shadow: 
+      0 0 10px rgba(0, 212, 255, 0.5),
+      0 0 20px rgba(0, 212, 255, 0.3),
+      0 0 30px rgba(0, 212, 255, 0.1),
+      inset 0 0 15px rgba(0, 212, 255, 0.1);
+  }
+
+  /* Рамка зелёного свечения */
+  .border-glow-green {
+    border: 2px solid #00ff88;
+    box-shadow: 
+      0 0 10px rgba(0, 255, 136, 0.5),
+      0 0 20px rgba(0, 255, 136, 0.3),
+      0 0 30px rgba(0, 255, 136, 0.1),
+      inset 0 0 15px rgba(0, 255, 136, 0.1);
+  }
+
+  /* Рамка золотого свечения */
+  .border-glow-gold {
+    border: 2px solid #ffd700;
+    box-shadow: 
+      0 0 10px rgba(255, 215, 0, 0.5),
+      0 0 20px rgba(255, 215, 0, 0.3),
+      0 0 30px rgba(255, 215, 0, 0.1),
+      inset 0 0 15px rgba(255, 215, 0, 0.1);
+  }
+
+  /* Супер-яркая кнопка */
+  .btn-super-bright {
+    @apply relative overflow-hidden px-8 py-4 rounded-xl font-bold text-base;
+    background: linear-gradient(135deg, #00ff88, #00d4ff, #00ff88);
+    background-size: 200% 200%;
+    color: #0a0a0f;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 
+      0 0 20px rgba(0, 255, 136, 0.6),
+      0 0 40px rgba(0, 212, 255, 0.4),
+      0 0 60px rgba(0, 255, 136, 0.2),
+      inset 0 2px 0 rgba(255, 255, 255, 0.3);
+    animation: btn-gradient-shift 3s ease infinite;
+    transition: all 0.3s ease;
+  }
+
+  .btn-super-bright:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 
+      0 0 30px rgba(0, 255, 136, 0.8),
+      0 0 60px rgba(0, 212, 255, 0.6),
+      0 0 90px rgba(0, 255, 136, 0.3),
+      inset 0 2px 0 rgba(255, 255, 255, 0.4);
+  }
+
+  @keyframes btn-gradient-shift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  /* Яркая кнопка скачивания PDF */
+  .btn-download-pdf {
+    @apply relative overflow-hidden px-6 py-3 rounded-xl font-bold text-sm;
+    background: linear-gradient(135deg, #ff6b35, #ffd700, #ff6b35);
+    background-size: 200% 200%;
+    color: #0a0a0f;
+    border: 2px solid rgba(255, 215, 0, 0.5);
+    box-shadow: 
+      0 0 15px rgba(255, 107, 53, 0.5),
+      0 0 30px rgba(255, 215, 0, 0.3),
+      inset 0 2px 0 rgba(255, 255, 255, 0.3);
+    animation: btn-gradient-shift 2s ease infinite;
+    transition: all 0.3s ease;
+  }
+
+  .btn-download-pdf:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 
+      0 0 25px rgba(255, 107, 53, 0.7),
+      0 0 50px rgba(255, 215, 0, 0.5),
+      inset 0 2px 0 rgba(255, 255, 255, 0.4);
+  }
+
+  /* Карточка курса с ярким бордером */
+  .course-card-bright {
+    @apply relative rounded-2xl overflow-hidden;
+    background: linear-gradient(135deg, rgba(20, 20, 25, 0.95), rgba(15, 15, 20, 0.95));
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    transition: all 0.4s ease;
+  }
+
+  .course-card-bright::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    background: linear-gradient(135deg, #00d4ff, #00ff88, #ffd700, #00d4ff);
+    background-size: 300% 300%;
+    border-radius: inherit;
+    z-index: -1;
+    animation: border-rotate 4s linear infinite;
+  }
+
+  .course-card-bright::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(20, 20, 25, 0.98), rgba(15, 15, 20, 0.98));
+    border-radius: inherit;
+    z-index: -1;
+  }
+
+  @keyframes border-rotate {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  .course-card-bright:hover::before {
+    animation-duration: 2s;
+    filter: brightness(1.3);
+  }
+
+  /* Видео контейнер с яркой рамкой */
+  .video-container-bright {
+    @apply relative rounded-xl overflow-hidden;
+    border: 3px solid;
+    border-image: linear-gradient(135deg, #00d4ff, #00ff88) 1;
+    box-shadow: 
+      0 0 20px rgba(0, 212, 255, 0.4),
+      0 0 40px rgba(0, 255, 136, 0.2);
+  }
+
+  /* Кнопка действия (яркий вариант) */
+  .btn-action-bright {
+    @apply relative px-6 py-3 rounded-xl font-semibold;
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(0, 255, 136, 0.2));
+    border: 2px solid #00d4ff;
+    color: #fff;
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+    transition: all 0.3s ease;
+  }
+
+  .btn-action-bright:hover {
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.3), rgba(0, 255, 136, 0.3));
+    box-shadow: 0 0 25px rgba(0, 212, 255, 0.5);
+    transform: translateY(-2px);
+  }
+
+  /* Модуль курса с ярким акцентом */
+  .module-highlight {
+    @apply relative rounded-xl p-6;
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.08), rgba(0, 255, 136, 0.05));
+    border-left: 4px solid #00d4ff;
+    box-shadow: 
+      inset 0 0 30px rgba(0, 212, 255, 0.1),
+      0 4px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Бейдж "Бесплатно" яркий */
+  .badge-free-bright {
+    @apply px-4 py-2 rounded-full font-bold text-sm;
+    background: linear-gradient(135deg, #00ff88, #00d4ff);
+    color: #0a0a0f;
+    box-shadow: 
+      0 0 15px rgba(0, 255, 136, 0.5),
+      0 0 30px rgba(0, 212, 255, 0.3);
+    animation: pulse-glow-badge 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow-badge {
+    0%, 100% { 
+      box-shadow: 0 0 15px rgba(0, 255, 136, 0.5), 0 0 30px rgba(0, 212, 255, 0.3);
+    }
+    50% { 
+      box-shadow: 0 0 25px rgba(0, 255, 136, 0.7), 0 0 50px rgba(0, 212, 255, 0.5);
+    }
+  }
 }
 

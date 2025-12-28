@@ -32,12 +32,16 @@ export async function getUserFromSession(supabase: Awaited<ReturnType<typeof cre
   const sessionToken = cookieStore.get('session_token')?.value
   const telegramId = cookieStore.get('telegram_id')?.value
 
+  console.log('[Session] Checking session. Token exists:', !!sessionToken, 'TelegramId exists:', !!telegramId)
+
   if (!sessionToken && !telegramId) {
+    console.log('[Session] No session token or telegram_id found')
     return null
   }
 
   // Проверяем сессию по токену
   if (sessionToken) {
+    console.log('[Session] Checking session token...')
     const { data: session, error: sessionError } = await supabase
       .from('sessions')
       .select('user_id, expires_at, is_active')
@@ -46,13 +50,17 @@ export async function getUserFromSession(supabase: Awaited<ReturnType<typeof cre
       .single()
 
     if (sessionError || !session) {
+      console.log('[Session] Session not found or error:', sessionError?.message)
       return null
     }
 
     // Проверяем срок действия
     if (new Date(session.expires_at) < new Date()) {
+      console.log('[Session] Session expired at:', session.expires_at)
       return null
     }
+
+    console.log('[Session] Valid session found for user:', session.user_id)
 
     // Обновляем last_activity
     await supabase

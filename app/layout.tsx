@@ -1,10 +1,12 @@
 import type { Metadata, Viewport } from 'next'
 import { Space_Grotesk, Outfit, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
+import './new-year-theme.css' // 🎄 Новогодняя тема
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { TelegramProvider } from '@/components/providers/TelegramProvider'
 import { AuthProvider } from '@/components/providers/AuthProvider'
+import { NewYearTheme } from '@/components/ui/NewYearTheme'
 import React from 'react'
 
 const spaceGrotesk = Space_Grotesk({
@@ -55,6 +57,8 @@ export default function RootLayout({
       <body className="bg-dark-900 text-white font-body antialiased relative">
         <TelegramProvider>
           <AuthProvider>
+            {/* 🎄 Новогодняя тема - автоматически активируется с 20 декабря по 15 января */}
+            <NewYearTheme />
             <div className="flex flex-col min-h-screen relative z-10">
               <Header />
               <main className="flex-1 relative z-10">

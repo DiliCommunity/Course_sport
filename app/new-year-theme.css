@@ -1,0 +1,420 @@
+/* ================================================
+   🎄 НОВОГОДНЯЯ ТЕМА - New Year Theme 2025 🎄
+   ================================================
+   Подключите этот файл в layout.tsx:
+   import './new-year-theme.css'
+   
+   И добавьте класс .new-year-theme к body или main
+   ================================================ */
+
+/* === ГИРЛЯНДА ПО КРАЯМ СТРАНИЦЫ === */
+.new-year-theme::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background: linear-gradient(
+    90deg,
+    #ff0000 0%, #ff0000 10%,
+    #00ff00 10%, #00ff00 20%,
+    #ffd700 20%, #ffd700 30%,
+    #00d4ff 30%, #00d4ff 40%,
+    #ff00ff 40%, #ff00ff 50%,
+    #ff0000 50%, #ff0000 60%,
+    #00ff00 60%, #00ff00 70%,
+    #ffd700 70%, #ffd700 80%,
+    #00d4ff 80%, #00d4ff 90%,
+    #ff00ff 90%, #ff00ff 100%
+  );
+  background-size: 200% 100%;
+  animation: garland-move 3s linear infinite;
+  box-shadow: 
+    0 0 10px rgba(255, 0, 0, 0.5),
+    0 0 20px rgba(0, 255, 0, 0.3),
+    0 0 30px rgba(255, 215, 0, 0.3);
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.new-year-theme::after {
+  content: '';
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background: linear-gradient(
+    90deg,
+    #ff00ff 0%, #ff00ff 10%,
+    #00d4ff 10%, #00d4ff 20%,
+    #ffd700 20%, #ffd700 30%,
+    #00ff00 30%, #00ff00 40%,
+    #ff0000 40%, #ff0000 50%,
+    #ff00ff 50%, #ff00ff 60%,
+    #00d4ff 60%, #00d4ff 70%,
+    #ffd700 70%, #ffd700 80%,
+    #00ff00 80%, #00ff00 90%,
+    #ff0000 90%, #ff0000 100%
+  );
+  background-size: 200% 100%;
+  animation: garland-move 3s linear infinite reverse;
+  box-shadow: 
+    0 0 10px rgba(255, 0, 255, 0.5),
+    0 0 20px rgba(0, 212, 255, 0.3),
+    0 0 30px rgba(255, 215, 0, 0.3);
+  z-index: 9999;
+  pointer-events: none;
+}
+
+@keyframes garland-move {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 200% 0%; }
+}
+
+/* Боковые гирлянды */
+.garland-left,
+.garland-right {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  background: linear-gradient(
+    180deg,
+    #ff0000 0%, #ff0000 8%,
+    #00ff00 8%, #00ff00 16%,
+    #ffd700 16%, #ffd700 24%,
+    #00d4ff 24%, #00d4ff 32%,
+    #ff00ff 32%, #ff00ff 40%,
+    #ff0000 40%, #ff0000 48%,
+    #00ff00 48%, #00ff00 56%,
+    #ffd700 56%, #ffd700 64%,
+    #00d4ff 64%, #00d4ff 72%,
+    #ff00ff 72%, #ff00ff 80%,
+    #ff0000 80%, #ff0000 88%,
+    #00ff00 88%, #00ff00 100%
+  );
+  background-size: 100% 200%;
+  animation: garland-vertical 4s linear infinite;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.garland-left {
+  left: 0;
+  box-shadow: 5px 0 15px rgba(255, 0, 0, 0.3);
+}
+
+.garland-right {
+  right: 0;
+  animation-direction: reverse;
+  box-shadow: -5px 0 15px rgba(0, 255, 0, 0.3);
+}
+
+@keyframes garland-vertical {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 0% 200%; }
+}
+
+/* === СНЕЖИНКИ === */
+.snowflakes {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 9998;
+}
+
+.snowflake {
+  position: absolute;
+  top: -20px;
+  color: #fff;
+  font-size: 1rem;
+  opacity: 0.8;
+  animation: snowfall linear infinite;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+}
+
+.snowflake:nth-child(1) { left: 5%; animation-duration: 10s; animation-delay: 0s; font-size: 0.8rem; }
+.snowflake:nth-child(2) { left: 15%; animation-duration: 12s; animation-delay: 1s; font-size: 1.2rem; }
+.snowflake:nth-child(3) { left: 25%; animation-duration: 8s; animation-delay: 2s; font-size: 0.9rem; }
+.snowflake:nth-child(4) { left: 35%; animation-duration: 14s; animation-delay: 0.5s; font-size: 1rem; }
+.snowflake:nth-child(5) { left: 45%; animation-duration: 11s; animation-delay: 1.5s; font-size: 1.1rem; }
+.snowflake:nth-child(6) { left: 55%; animation-duration: 9s; animation-delay: 3s; font-size: 0.7rem; }
+.snowflake:nth-child(7) { left: 65%; animation-duration: 13s; animation-delay: 2.5s; font-size: 1.3rem; }
+.snowflake:nth-child(8) { left: 75%; animation-duration: 10s; animation-delay: 0.8s; font-size: 0.85rem; }
+.snowflake:nth-child(9) { left: 85%; animation-duration: 15s; animation-delay: 1.2s; font-size: 1rem; }
+.snowflake:nth-child(10) { left: 95%; animation-duration: 11s; animation-delay: 2s; font-size: 0.95rem; }
+
+@keyframes snowfall {
+  0% {
+    transform: translateY(-20px) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(360deg);
+    opacity: 0.3;
+  }
+}
+
+/* === МИНИ ЁЛОЧКИ === */
+.mini-tree {
+  position: fixed;
+  font-size: 2rem;
+  z-index: 9997;
+  animation: tree-glow 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 10px rgba(0, 255, 0, 0.5));
+  pointer-events: none;
+}
+
+.mini-tree-1 { bottom: 20px; left: 20px; animation-delay: 0s; }
+.mini-tree-2 { bottom: 20px; right: 20px; animation-delay: 0.5s; }
+.mini-tree-3 { top: 100px; left: 30px; font-size: 1.5rem; animation-delay: 1s; }
+.mini-tree-4 { top: 100px; right: 30px; font-size: 1.5rem; animation-delay: 1.5s; }
+
+@keyframes tree-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 10px rgba(0, 255, 0, 0.5));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 20px rgba(0, 255, 0, 0.8)) 
+            drop-shadow(0 0 30px rgba(255, 215, 0, 0.5));
+    transform: scale(1.1);
+  }
+}
+
+/* === ПРАЗДНИЧНЫЙ БАННЕР === */
+.new-year-banner {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #ff0000, #00ff00, #ffd700);
+  background-size: 300% 300%;
+  animation: banner-gradient 3s ease infinite;
+  padding: 8px 24px;
+  border-radius: 30px;
+  font-weight: bold;
+  color: #fff;
+  font-size: 14px;
+  z-index: 10000;
+  box-shadow: 
+    0 4px 20px rgba(255, 0, 0, 0.4),
+    0 0 40px rgba(0, 255, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+@keyframes banner-gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* === ПРАЗДНИЧНЫЕ ОГОНЬКИ В УГЛАХ === */
+.corner-lights {
+  position: fixed;
+  width: 100px;
+  height: 100px;
+  pointer-events: none;
+  z-index: 9996;
+}
+
+.corner-lights::before,
+.corner-lights::after {
+  content: '✨';
+  position: absolute;
+  font-size: 1.5rem;
+  animation: sparkle 1.5s ease-in-out infinite;
+}
+
+.corner-lights.top-left { top: 15px; left: 15px; }
+.corner-lights.top-right { top: 15px; right: 15px; }
+.corner-lights.bottom-left { bottom: 15px; left: 15px; }
+.corner-lights.bottom-right { bottom: 15px; right: 15px; }
+
+.corner-lights.top-left::before { animation-delay: 0s; }
+.corner-lights.top-left::after { left: 30px; animation-delay: 0.3s; }
+.corner-lights.top-right::before { animation-delay: 0.5s; }
+.corner-lights.top-right::after { right: 30px; animation-delay: 0.8s; }
+.corner-lights.bottom-left::before { animation-delay: 1s; }
+.corner-lights.bottom-left::after { left: 30px; animation-delay: 1.3s; }
+.corner-lights.bottom-right::before { animation-delay: 0.2s; }
+.corner-lights.bottom-right::after { right: 30px; animation-delay: 0.6s; }
+
+@keyframes sparkle {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+/* === НОВОГОДНИЙ СНЕГ НА КАРТОЧКАХ === */
+.card-snow {
+  position: relative;
+  overflow: visible;
+}
+
+.card-snow::before {
+  content: '❄️';
+  position: absolute;
+  top: -10px;
+  left: 10px;
+  font-size: 1rem;
+  animation: snow-shake 2s ease-in-out infinite;
+  z-index: 10;
+}
+
+.card-snow::after {
+  content: '❄️';
+  position: absolute;
+  top: -10px;
+  right: 15px;
+  font-size: 0.8rem;
+  animation: snow-shake 2s ease-in-out infinite 0.5s;
+  z-index: 10;
+}
+
+@keyframes snow-shake {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-3px) rotate(-10deg); }
+  75% { transform: translateY(-3px) rotate(10deg); }
+}
+
+/* === НОВОГОДНИЕ КНОПКИ === */
+.btn-new-year {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #c41e3a, #228b22) !important;
+  border: 2px solid #ffd700 !important;
+  box-shadow: 
+    0 0 15px rgba(196, 30, 58, 0.5),
+    0 0 30px rgba(34, 139, 34, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.btn-new-year::before {
+  content: '🎄';
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1rem;
+}
+
+.btn-new-year::after {
+  content: '🎁';
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1rem;
+}
+
+/* === ПРАЗДНИЧНЫЙ КУРСОР === */
+.new-year-theme * {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ctext x='0' y='24' font-size='24'%3E🎄%3C/text%3E%3C/svg%3E"), auto;
+}
+
+.new-year-theme a,
+.new-year-theme button {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Ctext x='0' y='24' font-size='24'%3E🎁%3C/text%3E%3C/svg%3E"), pointer;
+}
+
+/* === КОНФЕТТИ ЭФФЕКТ ПРИ КЛИКЕ === */
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-10px) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100px) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+/* === НОВОГОДНЕЕ СВЕЧЕНИЕ ДЛЯ ЗАГОЛОВКОВ === */
+.new-year-theme h1,
+.new-year-theme h2 {
+  text-shadow: 
+    0 0 10px rgba(255, 215, 0, 0.5),
+    0 0 20px rgba(255, 0, 0, 0.3),
+    0 0 30px rgba(0, 255, 0, 0.2);
+}
+
+/* === ЁЛОЧНЫЕ ШАРЫ В HEADER === */
+.header-ornaments {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 40px;
+  display: flex;
+  justify-content: space-around;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.ornament {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  position: relative;
+  animation: ornament-swing 3s ease-in-out infinite;
+  transform-origin: top center;
+}
+
+.ornament::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 10px;
+  background: #888;
+}
+
+.ornament:nth-child(1) { background: radial-gradient(circle at 30% 30%, #ff6b6b, #c41e3a); animation-delay: 0s; }
+.ornament:nth-child(2) { background: radial-gradient(circle at 30% 30%, #ffd700, #daa520); animation-delay: 0.5s; }
+.ornament:nth-child(3) { background: radial-gradient(circle at 30% 30%, #4ecdc4, #228b22); animation-delay: 1s; }
+.ornament:nth-child(4) { background: radial-gradient(circle at 30% 30%, #45b7d1, #1e90ff); animation-delay: 1.5s; }
+.ornament:nth-child(5) { background: radial-gradient(circle at 30% 30%, #f39c12, #e67e22); animation-delay: 0.3s; }
+.ornament:nth-child(6) { background: radial-gradient(circle at 30% 30%, #9b59b6, #8e44ad); animation-delay: 0.8s; }
+
+@keyframes ornament-swing {
+  0%, 100% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
+}
+
+/* === АДАПТИВНОСТЬ === */
+@media (max-width: 768px) {
+  .mini-tree { font-size: 1.5rem; }
+  .mini-tree-3, .mini-tree-4 { display: none; }
+  .new-year-banner { font-size: 12px; padding: 6px 16px; }
+  .garland-left, .garland-right { width: 5px; }
+}
+
+/* === ОТКЛЮЧЕНИЕ ДЛЯ ПОЛЬЗОВАТЕЛЕЙ С motion: reduce === */
+@media (prefers-reduced-motion: reduce) {
+  .snowflake,
+  .mini-tree,
+  .new-year-theme::before,
+  .new-year-theme::after,
+  .garland-left,
+  .garland-right,
+  .corner-lights::before,
+  .corner-lights::after,
+  .ornament {
+    animation: none;
+  }
+  
+  .snowflakes {
+    display: none;
+  }
+}
+

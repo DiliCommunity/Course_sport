@@ -48,12 +48,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Функция для получения профиля пользователя
   const fetchProfile = useCallback(async () => {
     try {
+      console.log('[AuthProvider] Fetching profile...')
       const response = await fetch('/api/profile/data', {
         credentials: 'include',
       })
 
+      console.log('[AuthProvider] Profile response status:', response.status)
+
       if (response.ok) {
         const data = await response.json()
+        console.log('[AuthProvider] Profile loaded for user:', data.user?.id, data.user?.username)
         setUser({
           id: data.user.id,
           email: data.user.email,
@@ -67,9 +71,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         })
         return true
       }
+      console.log('[AuthProvider] No session found or error')
       return false
     } catch (error) {
-      console.error('Fetch profile error:', error)
+      console.error('[AuthProvider] Fetch profile error:', error)
       return false
     }
   }, [])
@@ -115,12 +120,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     if (!isReady || authAttempted) return
 
     const initAuth = async () => {
+      console.log('[AuthProvider] Init auth started. isReady:', isReady, 'isTelegramApp:', isTelegramApp)
       setLoading(true)
 
       // Сначала пробуем получить профиль (если уже есть сессия)
       const hasSession = await fetchProfile()
       
       if (hasSession) {
+        console.log('[AuthProvider] Session found, auth complete')
         setLoading(false)
         setAuthAttempted(true)
         return
@@ -128,9 +135,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       // Если это Telegram WebApp - авторизуемся через Telegram
       if (isTelegramApp && telegramUser) {
+        console.log('[AuthProvider] Attempting Telegram auth for:', telegramUser.id)
         await authViaTelegram()
       }
 
+      console.log('[AuthProvider] Auth init complete')
       setLoading(false)
       setAuthAttempted(true)
     }

@@ -6,12 +6,14 @@ export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('[Profile API] Getting profile data...')
     const supabase = await createClient()
 
     // Получаем пользователя из сессии
     const user = await getUserFromSession(supabase)
 
     if (!user) {
+      console.log('[Profile API] No user in session')
       return NextResponse.json(
         {
           error: 'Unauthorized',
@@ -20,6 +22,8 @@ export async function GET(request: NextRequest) {
         { status: 401 }
       )
     }
+
+    console.log('[Profile API] User found:', user.id, user.username)
 
     // Получаем баланс
     const { data: balance } = await supabase

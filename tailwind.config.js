@@ -31,6 +31,13 @@ module.exports = {
           'mint': '#a7f3d0',
           'aqua': '#67e8f9',
           'turquoise': '#06b6d4',
+          // Яркие цвета для UI
+          'electric': '#00d4ff',
+          'neon': '#00ff88',
+          'gold': '#ffd700',
+          'flame': '#ff6b35',
+          'violet': '#8b5cf6',
+          'pink': '#ec4899',
         },
         dark: {
           900: '#1a1a1a',
