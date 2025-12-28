@@ -84,78 +84,79 @@ export function AvatarUpload({ currentAvatar, userId, onUploadComplete }: Avatar
       <AnimatePresence>
         {isPickerOpen && (
           <>
-            {/* Backdrop */}
+            {/* Backdrop + Centered Container */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsPickerOpen(false)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
-            />
-
-            {/* Picker */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[320px] max-w-[90vw]"
+              className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[9999] flex items-center justify-center p-4"
             >
-              <div className="bg-dark-800 rounded-2xl border border-white/10 shadow-2xl overflow-hidden">
-                {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b border-white/10">
-                  <h3 className="font-display font-bold text-lg text-white">
-                    Выберите аватар
-                  </h3>
-                  <button
-                    onClick={() => setIsPickerOpen(false)}
-                    className="p-1 rounded-lg hover:bg-white/10 transition-colors"
-                  >
-                    <X className="w-5 h-5 text-white/60" />
-                  </button>
-                </div>
+              {/* Picker */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                onClick={(e) => e.stopPropagation()}
+                className="w-full max-w-[300px] mx-auto"
+              >
+                <div className="bg-dark-800 rounded-2xl border border-emerald-400/20 shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden">
+                  {/* Header */}
+                  <div className="flex items-center justify-between p-4 border-b border-white/10 bg-emerald-400/5">
+                    <h3 className="font-display font-bold text-lg text-white">
+                      Выберите аватар
+                    </h3>
+                    <button
+                      onClick={() => setIsPickerOpen(false)}
+                      className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+                    >
+                      <X className="w-5 h-5 text-white/60" />
+                    </button>
+                  </div>
 
-                {/* Emoji Grid */}
-                <div className="p-4">
-                  <div className="grid grid-cols-6 gap-2">
-                    {AVATAR_EMOJIS.map((emoji) => (
-                      <motion.button
-                        key={emoji}
-                        onClick={() => handleEmojiSelect(emoji)}
-                        disabled={saving}
-                        className={`
-                          w-11 h-11 rounded-xl flex items-center justify-center text-2xl
-                          transition-all duration-200 relative
-                          ${displayEmoji === emoji 
-                            ? 'bg-accent-teal/30 ring-2 ring-accent-teal' 
-                            : 'hover:bg-white/10 bg-white/5'
-                          }
-                          ${saving ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-                        `}
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        {emoji}
-                        {displayEmoji === emoji && (
-                          <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-accent-teal flex items-center justify-center"
-                          >
-                            <Check className="w-3 h-3 text-dark-900" />
-                          </motion.div>
-                        )}
-                      </motion.button>
-                    ))}
+                  {/* Emoji Grid */}
+                  <div className="p-4">
+                    <div className="grid grid-cols-5 gap-2">
+                      {AVATAR_EMOJIS.map((emoji) => (
+                        <motion.button
+                          key={emoji}
+                          onClick={() => handleEmojiSelect(emoji)}
+                          disabled={saving}
+                          className={`
+                            w-12 h-12 rounded-xl flex items-center justify-center text-2xl
+                            transition-all duration-200 relative
+                            ${displayEmoji === emoji 
+                              ? 'bg-emerald-400/30 ring-2 ring-emerald-400' 
+                              : 'hover:bg-white/10 bg-white/5'
+                            }
+                            ${saving ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                          `}
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          {emoji}
+                          {displayEmoji === emoji && (
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-400 flex items-center justify-center"
+                            >
+                              <Check className="w-3 h-3 text-dark-900" />
+                            </motion.div>
+                          )}
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Footer */}
+                  <div className="p-4 pt-0">
+                    <p className="text-xs text-white/40 text-center">
+                      Нажмите на эмодзи для выбора
+                    </p>
                   </div>
                 </div>
-
-                {/* Footer */}
-                <div className="p-4 pt-0">
-                  <p className="text-xs text-white/40 text-center">
-                    Нажмите на эмодзи для выбора
-                  </p>
-                </div>
-              </div>
+              </motion.div>
             </motion.div>
           </>
         )}
