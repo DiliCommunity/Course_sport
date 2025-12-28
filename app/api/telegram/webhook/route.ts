@@ -155,13 +155,18 @@ async function handleStartCommand(chatId: number, userId: number, firstName: str
 🥑 <b>Что тебя ждет:</b>
 • Кето-диета: наука жиросжигания
 • Интервальное голодание: режим дня для энергии  
-• Вкусные рецепты и планы питания
-• Отслеживание прогресса
+• 100+ вкусных кето-рецептов
+• Планы питания и отслеживание прогресса
 
 💪 <b>15% контента бесплатно!</b>
-Полный доступ за 1500₽
+🎯 Полный доступ всего за <b>19₽</b> (акция!)
 
-🚀 Нажми кнопку ниже, чтобы начать обучение прямо сейчас!`
+📩 <b>Ежедневно буду присылать:</b>
+• Полезные советы по питанию
+• Бесплатные уроки из курсов
+• Вкусные кето-рецепты
+
+🚀 Нажми кнопку ниже, чтобы начать!`
 
   // Кнопка для открытия WebApp
   const replyMarkup = {
@@ -228,7 +233,7 @@ export async function POST(request: NextRequest) {
           const result = await handleStartCommand(chatId, userId, firstName)
           console.log('Start command result:', result ? 'success' : 'failed')
 
-          // Сохраняем информацию о пользователе в Supabase (опционально)
+          // Сохраняем информацию о пользователе в Supabase
           try {
             const { error } = await supabase
               .from('users')
@@ -251,6 +256,33 @@ export async function POST(request: NextRequest) {
             }
           } catch (error) {
             console.error('Error in user save:', error)
+          }
+
+          // Сохраняем подписчика для ежедневной рассылки
+          try {
+            const { error: subError } = await supabase
+              .from('telegram_subscribers')
+              .upsert(
+                {
+                  chat_id: chatId,
+                  telegram_id: userId,
+                  first_name: firstName,
+                  username: message.from.username || null,
+                  is_active: true,
+                  subscribed_at: new Date().toISOString(),
+                },
+                {
+                  onConflict: 'chat_id',
+                }
+              )
+
+            if (subError) {
+              console.error('Error saving subscriber:', subError)
+            } else {
+              console.log('Subscriber saved for daily broadcasts')
+            }
+          } catch (error) {
+            console.error('Error saving subscriber:', error)
           }
 
           return NextResponse.json({ success: true, handled: 'start_command' })
