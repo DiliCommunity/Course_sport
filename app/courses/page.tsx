@@ -87,7 +87,7 @@ export default function CoursesPage() {
         </motion.div>
 
         {/* Courses Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 mb-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 lg:gap-6 mb-16 max-w-4xl mx-auto">
           {allCourses.map((course, index) => (
             <CourseCard key={course.id} {...course} index={index} />
           ))}

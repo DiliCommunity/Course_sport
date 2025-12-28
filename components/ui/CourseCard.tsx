@@ -53,9 +53,9 @@ export function CourseCard({
       transition={{ duration: 0.5, delay: index * 0.1 }}
     >
       <Link href={`/courses/${id}`} className="block group">
-        <div className="card card-hover h-full">
+        <div className="card card-hover h-full border-2 border-emerald-400/30 hover:border-emerald-400/70 shadow-[0_0_20px_rgba(52,211,153,0.15)] hover:shadow-[0_0_40px_rgba(52,211,153,0.35)] transition-all duration-500">
           {/* Image Container */}
-          <div className="relative aspect-video overflow-hidden">
+          <div className="relative aspect-[16/10] overflow-hidden">
             <Image
               src={imageUrl}
               alt={title}
@@ -71,50 +71,50 @@ export function CourseCard({
               className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
               whileHover={{ scale: 1.1 }}
             >
-              <div className="w-16 h-16 rounded-full bg-accent-teal/90 backdrop-blur-sm flex items-center justify-center shadow-lg shadow-accent-teal/30">
-                <Play className="w-6 h-6 text-dark-900 ml-1" fill="currentColor" />
+              <div className="w-12 h-12 rounded-full bg-emerald-400/90 backdrop-blur-sm flex items-center justify-center shadow-lg shadow-emerald-400/40">
+                <Play className="w-5 h-5 text-dark-900 ml-0.5" fill="currentColor" />
               </div>
             </motion.div>
 
             {/* Category badge */}
-            <div className="absolute top-4 left-4">
-              <span className="badge glass">{category}</span>
+            <div className="absolute top-3 left-3">
+              <span className="badge glass text-xs px-2 py-1">{category}</span>
             </div>
 
             {/* Free preview badge */}
-            <div className="absolute top-4 right-4">
-              <span className="badge bg-accent-mint/90 text-dark-900 border-none font-semibold">
+            <div className="absolute top-3 right-3">
+              <span className="badge bg-emerald-400 text-dark-900 border-none font-bold text-xs px-2 py-1 shadow-[0_0_10px_rgba(52,211,153,0.5)]">
                 🎁 15% бесплатно
               </span>
             </div>
           </div>
 
           {/* Content */}
-          <div className="p-6 space-y-4">
+          <div className="p-4 space-y-3">
             {/* Difficulty & Duration */}
-            <div className="flex items-center gap-3">
-              <span className={cn('badge text-xs', difficultyLabels[difficulty].color)}>
+            <div className="flex items-center gap-2">
+              <span className={cn('badge text-xs px-2 py-0.5', difficultyLabels[difficulty].color)}>
                 {difficultyLabels[difficulty].label}
               </span>
-              <span className="flex items-center gap-1 text-sm text-white/50">
-                <Clock className="w-4 h-4" />
+              <span className="flex items-center gap-1 text-xs text-white/50">
+                <Clock className="w-3.5 h-3.5" />
                 {formatDuration(duration)}
               </span>
             </div>
 
             {/* Title */}
-            <h3 className="font-display font-bold text-xl text-white group-hover:text-accent-teal transition-colors line-clamp-2">
+            <h3 className="font-display font-bold text-base text-white group-hover:text-emerald-400 transition-colors line-clamp-2">
               {title}
             </h3>
 
             {/* Description */}
-            <p className="text-white/60 text-sm line-clamp-2 leading-relaxed">
+            <p className="text-white/60 text-xs line-clamp-2 leading-relaxed">
               {shortDescription}
             </p>
 
             {/* Instructor */}
-            <div className="flex items-center gap-3">
-              <div className="relative w-8 h-8 rounded-full overflow-hidden ring-2 ring-white/10">
+            <div className="flex items-center gap-2">
+              <div className="relative w-6 h-6 rounded-full overflow-hidden ring-2 ring-emerald-400/30">
                 <Image
                   src={instructorAvatar}
                   alt={instructorName}
@@ -122,38 +122,38 @@ export function CourseCard({
                   className="object-cover"
                 />
               </div>
-              <span className="text-sm text-white/70">{instructorName}</span>
+              <span className="text-xs text-white/70">{instructorName}</span>
             </div>
 
             {/* Stats */}
-            <div className="flex items-center gap-4 text-sm text-white/50">
+            <div className="flex items-center gap-3 text-xs text-white/50">
               <div className="flex items-center gap-1">
-                <Star className="w-4 h-4 text-accent-cream fill-accent-cream" />
+                <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
                 <span className="text-white font-medium">{rating.toFixed(1)}</span>
               </div>
               <div className="flex items-center gap-1">
-                <Users className="w-4 h-4" />
+                <Users className="w-3.5 h-3.5" />
                 <span>{studentsCount.toLocaleString('ru-RU')}</span>
               </div>
             </div>
 
             {/* Price & CTA */}
-            <div className="flex items-center justify-between pt-4 border-t border-white/10">
+            <div className="flex items-center justify-between pt-3 border-t border-emerald-400/20">
               <div className="flex items-baseline gap-2">
-                <span className="font-display font-bold text-2xl bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
+                <span className="font-display font-bold text-xl bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
                   {formatPrice(price)}
                 </span>
                 {originalPrice && (
-                  <span className="text-sm text-white/40 line-through">
+                  <span className="text-xs text-white/40 line-through">
                     {formatPrice(originalPrice)}
                   </span>
                 )}
               </div>
               <motion.div
-                className="w-12 h-12 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 flex items-center justify-center text-dark-900 shadow-[0_0_20px_rgba(52,211,153,0.4)] group-hover:shadow-[0_0_30px_rgba(52,211,153,0.6)] transition-all duration-300"
-                whileHover={{ x: 5, scale: 1.05 }}
+                className="w-10 h-10 rounded-lg bg-gradient-to-r from-emerald-400 to-cyan-400 flex items-center justify-center text-dark-900 shadow-[0_0_15px_rgba(52,211,153,0.4)] group-hover:shadow-[0_0_25px_rgba(52,211,153,0.6)] transition-all duration-300"
+                whileHover={{ x: 3, scale: 1.05 }}
               >
-                <ArrowRight className="w-6 h-6" />
+                <ArrowRight className="w-5 h-5" />
               </motion.div>
             </div>
           </div>
