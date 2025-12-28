@@ -132,21 +132,23 @@ export async function POST(request: NextRequest) {
 
     // Устанавливаем cookie с токеном сессии
     const cookieStore = await cookies()
+    
+    // Для Telegram WebApp (cross-site iframe) нужен sameSite: 'none' и secure: true
     cookieStore.set('session_token', sessionToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: true, // Обязательно для sameSite: 'none'
+      sameSite: 'none', // Необходимо для cross-site (Telegram WebApp)
       path: '/',
-      expires: expiresAt,
+      maxAge: 60 * 60 * 24 * 30, // 30 дней в секундах
     })
 
     // Также сохраняем telegram_id для быстрой проверки на клиенте
     cookieStore.set('telegram_id', telegramId, {
       httpOnly: false, // Клиент может читать
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: true, // Обязательно для sameSite: 'none'
+      sameSite: 'none', // Необходимо для cross-site
       path: '/',
-      expires: expiresAt,
+      maxAge: 60 * 60 * 24 * 30, // 30 дней в секундах
     })
 
     return NextResponse.json({

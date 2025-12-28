@@ -83,13 +83,16 @@ export default function ProfilePage() {
   useEffect(() => {
     if (authLoading) return
 
-    if (!isAuthenticated) {
+    // Не редиректим сразу, если это Telegram WebApp - даём время на авторизацию
+    // Проверяем авторизацию через fetchProfileData - если 401, тогда редиректим
+    if (!isAuthenticated && !isTelegramApp) {
       router.push('/login')
       return
     }
 
+    // Пытаемся загрузить профиль - если не получится, покажем ошибку
     fetchProfileData()
-  }, [authLoading, isAuthenticated, currentUserId])
+  }, [authLoading, isAuthenticated, currentUserId, isTelegramApp])
 
   const fetchProfileData = async () => {
     try {
@@ -101,7 +104,12 @@ export default function ProfilePage() {
       if (!response.ok) {
         if (response.status === 401) {
           // Пользователь не авторизован
-          router.push('/login')
+          // В Telegram WebApp не редиректим сразу - может быть авторизация в процессе
+          if (!isTelegramApp) {
+            router.push('/login')
+          } else {
+            setError('Необходимо авторизоваться через Telegram')
+          }
           return
         }
         const errorData = await response.json().catch(() => ({}))
