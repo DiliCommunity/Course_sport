@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Wallet, Loader2, CheckCircle2, ExternalLink } from 'lucide-react'
+import { Wallet, Loader2, CheckCircle2, Copy, ExternalLink, X, QrCode, Smartphone } from 'lucide-react'
 import { useTelegram } from '@/components/providers/TelegramProvider'
 
 interface TonPaymentButtonProps {
-  amountRub: number // Сумма в рублях
+  amountRub: number
   courseId: string
   courseName: string
   userId?: string
@@ -14,8 +15,39 @@ interface TonPaymentButtonProps {
   onError?: (error: string) => void
 }
 
-// Примерный курс TON/RUB (в реальности нужно получать через API)
-const TON_TO_RUB_RATE = 450 // 1 TON ≈ 450 RUB
+// Курс TON/RUB
+const TON_TO_RUB_RATE = 450
+
+// Адрес кошелька для приёма платежей
+const RECEIVER_ADDRESS = process.env.NEXT_PUBLIC_TON_WALLET_ADDRESS || ''
+
+// Поддерживаемые кошельки
+const WALLETS = [
+  {
+    id: 'tonkeeper',
+    name: 'Tonkeeper',
+    icon: '💎',
+    color: 'from-blue-500 to-blue-600',
+    universalLink: 'https://app.tonkeeper.com/transfer/',
+    deepLink: 'tonkeeper://transfer/',
+  },
+  {
+    id: 'tonhub',
+    name: 'TON Space',
+    icon: '🌐',
+    color: 'from-purple-500 to-purple-600',
+    universalLink: 'https://tonhub.com/transfer/',
+    deepLink: 'tonhub://transfer/',
+  },
+  {
+    id: 'mytonwallet',
+    name: 'MyTonWallet',
+    icon: '🔷',
+    color: 'from-cyan-500 to-cyan-600',
+    universalLink: 'https://mytonwallet.app/transfer/',
+    deepLink: 'mytonwallet://transfer/',
+  },
+]
 
 export function TonPaymentButton({ 
   amountRub, 
@@ -26,236 +58,234 @@ export function TonPaymentButton({
   onError 
 }: TonPaymentButtonProps) {
   const { isTelegramApp, webApp } = useTelegram()
-  const [isConnecting, setIsConnecting] = useState(false)
-  const [isProcessing, setIsProcessing] = useState(false)
-  const [walletConnected, setWalletConnected] = useState(false)
-  const [walletAddress, setWalletAddress] = useState<string | null>(null)
-  const [tonRate, setTonRate] = useState(TON_TO_RUB_RATE)
-  const [error, setError] = useState<string | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [copied, setCopied] = useState<'address' | 'amount' | 'comment' | null>(null)
+  const [selectedWallet, setSelectedWallet] = useState<typeof WALLETS[0] | null>(null)
 
   // Расчет суммы в TON
-  const amountTon = (amountRub / tonRate).toFixed(4)
+  const amountTon = (amountRub / TON_TO_RUB_RATE).toFixed(4)
+  const amountNano = Math.floor(parseFloat(amountTon) * 1_000_000_000)
+  
+  // Комментарий для идентификации платежа
+  const shortUserId = userId ? userId.substring(0, 8) : 'guest'
+  const shortCourseId = courseId.substring(0, 8)
+  const paymentComment = `CH-${shortCourseId}-${shortUserId}`
 
-  // Получаем актуальный курс TON (опционально)
-  useEffect(() => {
-    const fetchTonRate = async () => {
-      try {
-        // Можно использовать CoinGecko API для реального курса
-        // const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=the-open-network&vs_currencies=rub')
-        // const data = await response.json()
-        // setTonRate(data['the-open-network'].rub)
-      } catch (err) {
-        console.error('Failed to fetch TON rate:', err)
-      }
-    }
-
-    fetchTonRate()
-  }, [])
+  // Не показываем если адрес не настроен
+  if (!RECEIVER_ADDRESS || RECEIVER_ADDRESS === 'your_ton_wallet_address') {
+    return null
+  }
 
   // Показываем только в Telegram Web App
   if (!isTelegramApp) {
     return null
   }
 
-  const handleConnectWallet = async () => {
-    setIsConnecting(true)
-    setError(null)
-
+  const copyToClipboard = async (text: string, type: 'address' | 'amount' | 'comment') => {
     try {
-      // Здесь будет интеграция с TON Connect
-      // Для начала можно использовать Telegram Wallet API если доступен
-      
-      // Симуляция подключения (замените на реальную логику TON Connect)
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      
-      // В реальности здесь будет:
-      // const tonConnect = new TonConnect({ manifestUrl: '...' })
-      // const wallet = await tonConnect.connect([...wallets])
-      // setWalletAddress(wallet.account.address)
-      
-      setWalletConnected(true)
-      setWalletAddress('EQ...demo...address') // Демо адрес
-      
-    } catch (err: any) {
-      setError('Не удалось подключить кошелек')
-      onError?.(err.message)
-    } finally {
-      setIsConnecting(false)
+      await navigator.clipboard.writeText(text)
+      setCopied(type)
+      webApp?.HapticFeedback.notificationOccurred('success')
+      setTimeout(() => setCopied(null), 2000)
+    } catch (err) {
+      console.error('Copy failed:', err)
     }
   }
 
-  const handlePayment = async () => {
-    if (!walletConnected) {
-      handleConnectWallet()
-      return
-    }
-
-    setIsProcessing(true)
-    setError(null)
-
-    try {
-      // Адрес кошелька для приема платежей (замените на ваш реальный адрес)
-      const RECEIVER_ADDRESS = process.env.NEXT_PUBLIC_TON_WALLET_ADDRESS || 'EQBvW8Z5huBkMJYdnfAEM5JqTNkuWX3diqYENkWsIL0XggGG'
-      
-      // Создаем комментарий для идентификации платежа
-      const paymentId = `${courseId}_${userId || 'guest'}_${Date.now()}`
-      const comment = `Course:${paymentId}`
-
-      // Сумма в наноTON (1 TON = 1,000,000,000 nanoTON)
-      const amountNano = Math.floor(parseFloat(amountTon) * 1_000_000_000)
-
-      // В реальности здесь будет отправка транзакции через TON Connect:
-      // const transaction = {
-      //   validUntil: Math.floor(Date.now() / 1000) + 600,
-      //   messages: [{
-      //     address: RECEIVER_ADDRESS,
-      //     amount: amountNano.toString(),
-      //     payload: comment
-      //   }]
-      // }
-      // const result = await tonConnectUI.sendTransaction(transaction)
-
-      // Для демонстрации используем Telegram's openInvoice или показываем инструкцию
-      if (webApp) {
-        // Открываем ссылку для перевода через Tonkeeper/другой кошелек
-        const tonLink = `ton://transfer/${RECEIVER_ADDRESS}?amount=${amountNano}&text=${encodeURIComponent(comment)}`
-        
-        webApp.showPopup({
-          title: 'Оплата TON',
-          message: `Переведите ${amountTon} TON на указанный адрес.\n\nКомментарий к платежу:\n${comment}`,
-          buttons: [
-            { id: 'copy', type: 'default', text: 'Скопировать адрес' },
-            { id: 'open', type: 'default', text: 'Открыть кошелек' },
-            { id: 'cancel', type: 'cancel', text: 'Отмена' }
-          ]
-        }, async (buttonId) => {
-          if (buttonId === 'copy') {
-            navigator.clipboard.writeText(RECEIVER_ADDRESS)
-            webApp.showAlert('Адрес скопирован!')
-          } else if (buttonId === 'open') {
-            webApp.openLink(tonLink)
-          }
-        })
-
-        // Сохраняем pending платеж в БД
-        await fetch('/api/payments/create', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            courseId,
-            paymentMethod: 'crypto',
-            amount: amountRub * 100, // в копейках
-            userId,
-            type: 'course_purchase',
-            metadata: {
-              crypto: 'TON',
-              amountTon,
-              paymentId,
-              receiverAddress: RECEIVER_ADDRESS
-            }
-          })
-        })
-
-        webApp.HapticFeedback.notificationOccurred('success')
-      }
-
-    } catch (err: any) {
-      console.error('TON payment error:', err)
-      setError(err.message || 'Ошибка оплаты')
-      onError?.(err.message)
-      webApp?.HapticFeedback.notificationOccurred('error')
-    } finally {
-      setIsProcessing(false)
+  const openWallet = (wallet: typeof WALLETS[0]) => {
+    setSelectedWallet(wallet)
+    
+    // Формируем URL для перевода
+    const params = new URLSearchParams({
+      amount: amountNano.toString(),
+      text: paymentComment,
+    })
+    
+    // Используем universal link (работает везде)
+    const transferUrl = `${wallet.universalLink}${RECEIVER_ADDRESS}?${params.toString()}`
+    
+    // Пробуем открыть
+    if (webApp) {
+      // Telegram WebApp использует openLink для внешних ссылок
+      webApp.openLink(transferUrl)
+      webApp.HapticFeedback.impactOccurred('medium')
+    } else {
+      window.open(transferUrl, '_blank')
     }
   }
 
-  const handleDisconnect = () => {
-    setWalletConnected(false)
-    setWalletAddress(null)
+  const handleOpenModal = () => {
+    setIsModalOpen(true)
+    webApp?.HapticFeedback.impactOccurred('light')
   }
 
   return (
-    <div className="space-y-3">
-      {/* TON Payment Info */}
-      <div className="p-3 rounded-xl bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/20">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-white/60 text-sm">Сумма в TON:</span>
-          <span className="text-white font-bold text-lg">{amountTon} TON</span>
-        </div>
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-white/40">Курс: 1 TON ≈ {tonRate.toLocaleString('ru-RU')} ₽</span>
-          <span className="text-white/40">≈ {amountRub.toLocaleString('ru-RU')} ₽</span>
-        </div>
-      </div>
-
-      {/* Wallet Status */}
-      {walletConnected && walletAddress && (
-        <div className="flex items-center justify-between p-3 rounded-xl bg-accent-neon/10 border border-accent-neon/20">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-accent-neon" />
-            <span className="text-white/80 text-sm">
-              {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
-            </span>
-          </div>
-          <button
-            onClick={handleDisconnect}
-            className="text-xs text-white/40 hover:text-white/60 transition-colors"
-          >
-            Отключить
-          </button>
-        </div>
-      )}
-
-      {/* Error */}
-      <AnimatePresence>
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm"
-          >
-            {error}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Payment Button */}
+    <>
+      {/* Main Button */}
       <motion.button
-        onClick={handlePayment}
-        disabled={isConnecting || isProcessing}
+        onClick={handleOpenModal}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
-        className="w-full py-4 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold text-lg shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+        className="w-full py-4 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold text-lg shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 transition-all flex items-center justify-center gap-3"
       >
-        {isConnecting ? (
-          <>
-            <Loader2 className="w-5 h-5 animate-spin" />
-            Подключение кошелька...
-          </>
-        ) : isProcessing ? (
-          <>
-            <Loader2 className="w-5 h-5 animate-spin" />
-            Обработка...
-          </>
-        ) : walletConnected ? (
-          <>
-            <Wallet className="w-5 h-5" />
-            Оплатить {amountTon} TON
-          </>
-        ) : (
-          <>
-            <Wallet className="w-5 h-5" />
-            Подключить TON кошелек
-          </>
-        )}
+        <Wallet className="w-5 h-5" />
+        Оплатить {amountTon} TON
       </motion.button>
 
-      {/* Info */}
-      <p className="text-xs text-white/40 text-center">
-        Поддерживаются: Tonkeeper, TON Space, MyTonWallet
-      </p>
-    </div>
+      {/* Payment Modal */}
+      {typeof window !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {isModalOpen && (
+            <div className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-4">
+              {/* Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setIsModalOpen(false)}
+                className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+              />
+
+              {/* Modal */}
+              <motion.div
+                initial={{ opacity: 0, y: 100 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 100 }}
+                className="relative w-full sm:max-w-md bg-dark-800 rounded-t-3xl sm:rounded-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Header */}
+                <div className="sticky top-0 bg-dark-800 p-4 border-b border-white/10 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 flex items-center justify-center">
+                      <Wallet className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-white font-bold">Оплата TON</h3>
+                      <p className="text-white/50 text-sm">{courseName}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setIsModalOpen(false)}
+                    className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
+                  >
+                    <X className="w-4 h-4 text-white/70" />
+                  </button>
+                </div>
+
+                <div className="p-4 space-y-4">
+                  {/* Amount Info */}
+                  <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/20">
+                    <div className="text-center">
+                      <p className="text-white/50 text-sm mb-1">К оплате:</p>
+                      <p className="text-3xl font-bold text-white">{amountTon} TON</p>
+                      <p className="text-white/40 text-sm mt-1">≈ {amountRub.toLocaleString('ru-RU')} ₽</p>
+                    </div>
+                  </div>
+
+                  {/* Wallet Selection */}
+                  <div>
+                    <p className="text-white/70 text-sm mb-3 font-medium">Выберите кошелёк:</p>
+                    <div className="space-y-2">
+                      {WALLETS.map((wallet) => (
+                        <motion.button
+                          key={wallet.id}
+                          onClick={() => openWallet(wallet)}
+                          whileHover={{ scale: 1.01 }}
+                          whileTap={{ scale: 0.99 }}
+                          className={`w-full p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all flex items-center gap-4`}
+                        >
+                          <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${wallet.color} flex items-center justify-center text-2xl`}>
+                            {wallet.icon}
+                          </div>
+                          <div className="flex-1 text-left">
+                            <p className="text-white font-medium">{wallet.name}</p>
+                            <p className="text-white/40 text-sm">Открыть для оплаты</p>
+                          </div>
+                          <ExternalLink className="w-5 h-5 text-white/30" />
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Manual Payment */}
+                  <div className="pt-4 border-t border-white/10">
+                    <p className="text-white/70 text-sm mb-3 font-medium">Или переведите вручную:</p>
+                    
+                    {/* Address */}
+                    <div className="space-y-2">
+                      <div className="p-3 rounded-xl bg-white/5 border border-white/10">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-white/50 text-xs">Адрес:</span>
+                          <button
+                            onClick={() => copyToClipboard(RECEIVER_ADDRESS, 'address')}
+                            className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                          >
+                            {copied === 'address' ? <CheckCircle2 className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                            {copied === 'address' ? 'Скопировано!' : 'Копировать'}
+                          </button>
+                        </div>
+                        <p className="text-white font-mono text-sm break-all">{RECEIVER_ADDRESS}</p>
+                      </div>
+
+                      {/* Amount */}
+                      <div className="p-3 rounded-xl bg-white/5 border border-white/10">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-white/50 text-xs">Сумма:</span>
+                          <button
+                            onClick={() => copyToClipboard(amountTon, 'amount')}
+                            className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                          >
+                            {copied === 'amount' ? <CheckCircle2 className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                            {copied === 'amount' ? 'Скопировано!' : 'Копировать'}
+                          </button>
+                        </div>
+                        <p className="text-white font-bold">{amountTon} TON</p>
+                      </div>
+
+                      {/* Comment */}
+                      <div className="p-3 rounded-xl bg-white/5 border border-white/10">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-white/50 text-xs">Комментарий (обязательно!):</span>
+                          <button
+                            onClick={() => copyToClipboard(paymentComment, 'comment')}
+                            className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                          >
+                            {copied === 'comment' ? <CheckCircle2 className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                            {copied === 'comment' ? 'Скопировано!' : 'Копировать'}
+                          </button>
+                        </div>
+                        <p className="text-white font-mono text-sm">{paymentComment}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Warning */}
+                  <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                    <p className="text-amber-400 text-xs">
+                      ⚠️ Обязательно укажите комментарий при переводе! Без него платёж не будет идентифицирован.
+                    </p>
+                  </div>
+
+                  {/* Done Button */}
+                  <motion.button
+                    onClick={() => {
+                      setIsModalOpen(false)
+                      webApp?.showAlert('После перевода доступ откроется автоматически в течение 5 минут.')
+                    }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full py-4 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium transition-all"
+                  >
+                    Я оплатил
+                  </motion.button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
+    </>
   )
 }
-
