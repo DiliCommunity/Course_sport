@@ -1489,32 +1489,82 @@ export default function CoursePage({ params }: { params: { id: string } }) {
                 className="sticky top-28"
               >
                 <div className="card p-6 space-y-6">
-                  {/* Price */}
-                  <div>
-                    <div className="flex items-baseline gap-3 mb-2">
-                      <span className="font-display font-bold text-4xl text-white">
-                        {formatPrice(courseData.price)}
-                      </span>
+                  {/* 🔥 СУПЕР ВЫГОДНАЯ ЦЕНА - яркий блок */}
+                  <motion.div 
+                    className="relative overflow-hidden rounded-2xl"
+                    initial={{ scale: 0.95 }}
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 0.5, type: "spring" }}
+                  >
+                    {/* Animated gradient background */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 via-green-400 to-teal-500 animate-pulse" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+                    
+                    {/* Content */}
+                    <div className="relative p-5 text-center">
+                      {/* Discount badge */}
+                      {discount > 0 && (
+                        <motion.div 
+                          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-red-500 text-white font-bold text-sm mb-3 shadow-lg shadow-red-500/50"
+                          animate={{ scale: [1, 1.05, 1] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        >
+                          <span className="text-lg">🔥</span>
+                          СКИДКА {discount}%
+                        </motion.div>
+                      )}
+                      
+                      {/* Original price struck through */}
                       {courseData.originalPrice && (
-                        <span className="text-xl text-white/40 line-through">
+                        <div className="text-white/70 text-lg line-through mb-1">
                           {formatPrice(courseData.originalPrice)}
+                        </div>
+                      )}
+                      
+                      {/* Current price - HUGE */}
+                      <motion.div 
+                        className="flex items-center justify-center gap-2"
+                        animate={{ scale: [1, 1.02, 1] }}
+                        transition={{ duration: 3, repeat: Infinity }}
+                      >
+                        <span className="font-display font-black text-6xl text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.5)]">
+                          {formatPrice(courseData.price)}
                         </span>
+                      </motion.div>
+                      
+                      {/* Test price label */}
+                      <motion.div 
+                        className="mt-2 inline-flex items-center gap-1 px-3 py-1 rounded-full bg-yellow-400 text-yellow-900 font-bold text-xs"
+                        animate={{ y: [0, -3, 0] }}
+                        transition={{ duration: 1.5, repeat: Infinity }}
+                      >
+                        🎉 Тестовая цена для проверки
+                      </motion.div>
+                      
+                      {/* Savings */}
+                      {courseData.originalPrice && (
+                        <div className="mt-3 text-white/90 font-medium">
+                          Экономия: <span className="text-yellow-300 font-bold">{formatPrice(courseData.originalPrice - courseData.price)}</span>
+                        </div>
                       )}
                     </div>
-                    {discount > 0 && (
-                      <span className="badge badge-flame">Скидка {discount}%</span>
-                    )}
-                  </div>
+                  </motion.div>
 
                   {/* CTA Buttons */}
                   <div className="space-y-3">
-                    <Button 
-                      className="w-full" 
-                      size="lg"
-                      onClick={() => setIsPaymentModalOpen(true)}
+                    <motion.div
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
                     >
-                      Начать обучение
-                    </Button>
+                      <Button 
+                        className="w-full !py-5 !text-xl !font-bold !bg-gradient-to-r !from-emerald-500 !to-teal-500 hover:!from-emerald-400 hover:!to-teal-400 !shadow-lg !shadow-emerald-500/30" 
+                        size="lg"
+                        onClick={() => setIsPaymentModalOpen(true)}
+                      >
+                        <span className="mr-2">🚀</span>
+                        Начать обучение
+                      </Button>
+                    </motion.div>
                     <Button 
                       variant="secondary" 
                       className="w-full" 
@@ -2090,24 +2140,36 @@ export default function CoursePage({ params }: { params: { id: string } }) {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="max-w-3xl mx-auto mb-12 p-8 rounded-2xl bg-gradient-to-r from-accent-gold/10 via-accent-electric/10 to-accent-neon/10 border border-accent-gold/30"
+            className="max-w-3xl mx-auto mb-12 p-8 rounded-2xl bg-gradient-to-br from-emerald-900/50 via-dark-800 to-teal-900/50 border-2 border-emerald-500/30 shadow-[0_0_50px_rgba(16,185,129,0.2)]"
           >
-            <h4 className="text-xl font-bold text-white text-center mb-6">📊 Структура курса:</h4>
+            <h4 className="text-2xl font-bold text-white text-center mb-6">🎁 Структура курса:</h4>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center p-4 rounded-xl bg-accent-neon/10">
-                <div className="text-2xl font-bold text-accent-neon">15%</div>
-                <div className="text-sm text-white/60">Бесплатно</div>
-              </div>
-              <div className="text-center p-4 rounded-xl bg-accent-gold/10">
-                <div className="text-2xl font-bold text-accent-gold">20%</div>
-                <div className="text-sm text-white/60">Модуль 2</div>
-              </div>
-              <div className="text-center p-4 rounded-xl bg-accent-electric/10">
-                <div className="text-2xl font-bold text-accent-electric">20%</div>
-                <div className="text-sm text-white/60">Модуль 3</div>
-              </div>
-              <div className="text-center p-4 rounded-xl bg-accent-flame/10">
-                <div className="text-2xl font-bold text-accent-flame">20%</div>
+              <motion.div 
+                className="text-center p-4 rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 border border-emerald-500/30"
+                whileHover={{ scale: 1.05, y: -5 }}
+              >
+                <div className="text-3xl font-black text-emerald-400 drop-shadow-[0_0_10px_rgba(16,185,129,0.5)]">15%</div>
+                <div className="text-sm text-white/80 font-medium">Бесплатно</div>
+              </motion.div>
+              <motion.div 
+                className="text-center p-4 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-600/10 border border-amber-500/30"
+                whileHover={{ scale: 1.05, y: -5 }}
+              >
+                <div className="text-3xl font-black text-amber-400 drop-shadow-[0_0_10px_rgba(245,158,11,0.5)]">20%</div>
+                <div className="text-sm text-white/80 font-medium">Модуль 2</div>
+              </motion.div>
+              <motion.div 
+                className="text-center p-4 rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-600/10 border border-blue-500/30"
+                whileHover={{ scale: 1.05, y: -5 }}
+              >
+                <div className="text-3xl font-black text-blue-400 drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]">20%</div>
+                <div className="text-sm text-white/80 font-medium">Модуль 3</div>
+              </motion.div>
+              <motion.div 
+                className="text-center p-4 rounded-xl bg-gradient-to-br from-rose-500/20 to-rose-600/10 border border-rose-500/30"
+                whileHover={{ scale: 1.05, y: -5 }}
+              >
+                <div className="text-3xl font-black text-rose-400 drop-shadow-[0_0_10px_rgba(244,63,94,0.5)]">20%</div>
                 <div className="text-sm text-white/60">Модуль 4</div>
               </div>
             </div>
@@ -2116,14 +2178,43 @@ export default function CoursePage({ params }: { params: { id: string } }) {
             </div>
           </motion.div>
 
-          <div className="text-center space-y-4">
-            <Button size="lg" onClick={() => setIsPaymentModalOpen(true)}>
-              Получить полный доступ — {formatPrice(courseData.price)}
-            </Button>
-            <p className="text-white/40 text-sm">
-              Скидка {discount}% — экономия {formatPrice(courseData.originalPrice! - courseData.price)}
-            </p>
-          </div>
+          <motion.div 
+            className="text-center space-y-4"
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+          >
+            <motion.button
+              onClick={() => setIsPaymentModalOpen(true)}
+              className="relative px-12 py-5 rounded-2xl font-bold text-xl text-white overflow-hidden group"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              {/* Animated gradient background */}
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500 bg-[length:200%_100%] animate-shimmer" />
+              
+              {/* Glow effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/0 via-white/30 to-emerald-400/0 bg-[length:200%_100%] animate-shimmer opacity-50" />
+              
+              {/* Outer glow */}
+              <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl blur-lg opacity-50 group-hover:opacity-80 transition-opacity -z-10" />
+              
+              <span className="relative z-10 flex items-center justify-center gap-3">
+                <span className="text-2xl">🚀</span>
+                Получить полный доступ — {formatPrice(courseData.price)}
+              </span>
+            </motion.button>
+            
+            <motion.p 
+              className="text-lg font-medium"
+              animate={{ opacity: [0.6, 1, 0.6] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <span className="text-red-400">Скидка {discount}%</span>
+              <span className="text-white/60"> — экономия </span>
+              <span className="text-emerald-400 font-bold">{formatPrice(courseData.originalPrice! - courseData.price)}</span>
+            </motion.p>
+          </motion.div>
         </div>
       </section>
 
