@@ -2,8 +2,10 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
+import { useAuth } from '@/components/providers/AuthProvider'
+import { useTelegram } from '@/components/providers/TelegramProvider'
 import Image from 'next/image'
 import Link from 'next/link'
 import { 
@@ -1246,15 +1248,48 @@ function getPaidModule3Data(id: string) {
 
 export default function CoursePage({ params }: { params: { id: string } }) {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false)
+  const [hasAccess, setHasAccess] = useState(false)
+  const [isCheckingAccess, setIsCheckingAccess] = useState(true)
+  
+  const { user } = useAuth()
+  const { user: telegramUser, isTelegramApp } = useTelegram()
+  
   const courseData = getCourseData(params.id)
   const freeModuleData = getFreeModuleData(params.id)
   const paidModuleData = getPaidModuleData(params.id)
   const paidModule2Data = getPaidModule2Data(params.id)
   const paidModule3Data = getPaidModule3Data(params.id)
-  const [hasAccess, setHasAccess] = useState(false) // TODO: Проверять из БД
+  
   const discount = courseData.originalPrice 
     ? Math.round((1 - courseData.price / courseData.originalPrice) * 100) 
     : 0
+
+  // Проверка доступа к курсу
+  useEffect(() => {
+    const checkAccess = async () => {
+      const userId = user?.id || telegramUser?.id?.toString()
+      
+      if (!userId) {
+        setIsCheckingAccess(false)
+        return
+      }
+
+      try {
+        const response = await fetch(`/api/courses/access?course_id=${params.id}`, {
+          credentials: 'include'
+        })
+        const data = await response.json()
+        setHasAccess(data.hasAccess || false)
+      } catch (error) {
+        console.error('Error checking course access:', error)
+        setHasAccess(false)
+      } finally {
+        setIsCheckingAccess(false)
+      }
+    }
+
+    checkAccess()
+  }, [user?.id, telegramUser?.id, params.id])
 
   return (
     <main className="min-h-screen pt-24 pb-16">
@@ -2087,9 +2122,11 @@ export default function CoursePage({ params }: { params: { id: string } }) {
         onClose={() => setIsPaymentModalOpen(false)}
         courseTitle={courseData.title}
         coursePrice={courseData.price}
+        courseId={params.id}
         onPaymentSuccess={() => {
-          // Здесь можно добавить логику после успешной оплаты
-          console.log('Payment successful')
+          // После успешной оплаты открываем доступ
+          setHasAccess(true)
+          console.log('Payment successful - access granted!')
         }}
       />
     </main>

@@ -7,6 +7,7 @@ import { X, Lock, CheckCircle2, Shield, LogIn } from 'lucide-react'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { useTelegram } from '@/components/providers/TelegramProvider'
 import { Button } from './Button'
+import { TonPaymentButton } from './TonPaymentButton'
 import { formatPrice } from '@/lib/utils'
 
 interface PaymentModalProps {
@@ -150,7 +151,7 @@ export function PaymentModal({
         body: JSON.stringify({
           courseId: courseId || 'unknown',
           paymentMethod: selectedMethod,
-          amount: coursePrice, // Цена в рублях
+          amount: coursePrice * 100, // Конвертируем рубли в копейки для API
           userId: userId,
           returnUrl: `${window.location.origin}/payment/success?course=${courseId}`
         })
@@ -293,6 +294,31 @@ export function PaymentModal({
                   ))}
                 </div>
               </div>
+
+              {/* TON Payment for Telegram */}
+              {isTelegramApp && (
+                <div className="pt-4 border-t border-white/10">
+                  <h3 className="font-semibold text-white text-sm mb-3 flex items-center gap-2">
+                    <span className="text-lg">💎</span>
+                    Оплата криптовалютой (TON)
+                  </h3>
+                  <TonPaymentButton
+                    amountRub={coursePrice}
+                    courseId={courseId || 'unknown'}
+                    courseName={courseTitle}
+                    userId={user?.id || telegramUser?.id?.toString()}
+                    onSuccess={() => {
+                      if (onPaymentSuccess) {
+                        onPaymentSuccess()
+                      }
+                      onClose()
+                    }}
+                    onError={(error) => {
+                      setError(error)
+                    }}
+                  />
+                </div>
+              )}
 
               {/* Security Info */}
               <div className="flex items-start gap-3 p-3 rounded-lg bg-accent-neon/10 border border-accent-neon/20">
