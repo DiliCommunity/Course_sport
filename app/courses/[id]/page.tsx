@@ -2170,8 +2170,8 @@ export default function CoursePage({ params }: { params: { id: string } }) {
                 whileHover={{ scale: 1.05, y: -5 }}
               >
                 <div className="text-3xl font-black text-rose-400 drop-shadow-[0_0_10px_rgba(244,63,94,0.5)]">20%</div>
-                <div className="text-sm text-white/60">Модуль 4</div>
-              </div>
+                <div className="text-sm text-white/80 font-medium">Модуль 4</div>
+              </motion.div>
             </div>
             <div className="text-center mt-4 text-white/40">
               + ещё 25% (модули 5-6) в полной версии
