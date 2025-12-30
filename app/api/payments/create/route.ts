@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { getCourseUUID } from '@/lib/constants'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,7 +24,16 @@ interface YooKassaPayment {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { courseId, paymentMethod, amount, userId, returnUrl, type } = body
+    const { courseId: rawCourseId, paymentMethod, amount, userId, returnUrl, type } = body
+    
+    // Конвертируем старые ID ('1', '2') в UUID для БД
+    const courseId = rawCourseId ? getCourseUUID(rawCourseId) : null
+    
+    console.log('=== PAYMENT CREATE ===')
+    console.log('Raw courseId:', rawCourseId)
+    console.log('UUID courseId:', courseId)
+    console.log('userId:', userId)
+    console.log('amount:', amount)
 
     // Проверяем обязательные параметры
     if (type === 'balance_topup') {

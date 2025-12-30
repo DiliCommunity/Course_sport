@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { getCourseUUID } from '@/lib/constants'
 
 export const dynamic = 'force-dynamic'
 
@@ -78,14 +79,17 @@ export async function POST(request: NextRequest) {
 
 async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['object']) {
   const { metadata } = payment
-  const courseId = metadata?.course_id
+  // Конвертируем старые ID в UUID
+  const rawCourseId = metadata?.course_id
+  const courseId = rawCourseId ? getCourseUUID(rawCourseId) : null
   const userId = metadata?.user_id
   const paymentType = metadata?.type || 'course_purchase'
 
   console.log('=== handlePaymentSuccess ===')
   console.log('Payment ID:', payment.id)
   console.log('Metadata:', JSON.stringify(metadata))
-  console.log('Course ID:', courseId, 'Type:', typeof courseId)
+  console.log('Raw Course ID:', rawCourseId)
+  console.log('UUID Course ID:', courseId)
   console.log('User ID:', userId)
   console.log('Payment Type:', paymentType)
 
