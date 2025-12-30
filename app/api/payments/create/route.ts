@@ -72,10 +72,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Генерируем уникальный idempotency key
+    // Генерируем уникальный idempotency key (макс 64 символа для ЮKassa)
+    // Используем короткий формат: первые 8 символов UUID + timestamp
+    const shortCourseId = courseId ? courseId.substring(0, 8) : 'none'
+    const shortUserId = userId ? userId.substring(0, 8) : 'guest'
+    const timestamp = Date.now().toString(36) // Короткий timestamp в base36
+    
     const idempotencyKey = type === 'balance_topup' 
-      ? `balance-${userId || 'guest'}-${Date.now()}`
-      : `${courseId}-${userId || 'guest'}-${Date.now()}`
+      ? `bal-${shortUserId}-${timestamp}`
+      : `pay-${shortCourseId}-${shortUserId}-${timestamp}`
+    
+    console.log('Idempotency key:', idempotencyKey, 'length:', idempotencyKey.length)
 
     // Определяем тип платежа для ЮКасса
     const getPaymentMethodData = (method: string) => {
