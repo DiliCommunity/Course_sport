@@ -5,14 +5,15 @@ import Link from 'next/link'
 import { ArrowRight, Flame } from 'lucide-react'
 import { CourseCard } from '@/components/ui/CourseCard'
 import { Button } from '@/components/ui/Button'
+import { COURSE_IDS } from '@/lib/constants'
 
 // Демо данные для курсов (15% бесплатно, полный доступ 19₽ - ТЕСТ)
 const featuredCourses = [
   {
-    id: '1',
+    id: COURSE_IDS.KETO,
     title: 'Кето-диета: полное руководство для начинающих',
     shortDescription: 'Изучи основы кето-диеты, научись правильно рассчитывать макросы и составлять меню. Начни свой путь к здоровью!',
-    imageUrl: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800',
+    imageUrl: '/img/keto_course.png',
     price: 19,
     originalPrice: null,
     duration: 1200,
@@ -24,10 +25,10 @@ const featuredCourses = [
     category: 'Здоровье',
   },
   {
-    id: '2',
+    id: COURSE_IDS.INTERVAL,
     title: 'Интервальное голодание 16/8',
     shortDescription: 'Освой метод интервального голодания 16/8. Узнай, как правильно голодать и получать максимальную пользу для здоровья.',
-    imageUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800',
+    imageUrl: '/img/interval_course.png',
     price: 19,
     originalPrice: null,
     duration: 960,

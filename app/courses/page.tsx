@@ -4,12 +4,13 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { CourseCard } from '@/components/ui/CourseCard'
 import { ChefHat, Download, Star, ArrowRight, Gift, Zap, BookOpen } from 'lucide-react'
+import { COURSE_IDS } from '@/lib/constants'
 
 // Все курсы: 15% бесплатно, полный доступ за 19₽ (ТЕСТОВАЯ ЦЕНА!)
 // Только 2 курса как в HTML версии
 const allCourses = [
   {
-    id: '1',
+    id: COURSE_IDS.KETO, // UUID для Supabase
     title: 'Кето Диета: Наука Жиросжигания. От Мифов к Результатам',
     shortDescription: 'Изучи основы кето-диеты, научись правильно рассчитывать макросы и составлять меню. Начни свой путь к здоровью и стройности!',
     imageUrl: '/img/keto_course.png',
@@ -24,7 +25,7 @@ const allCourses = [
     category: 'Здоровье',
   },
   {
-    id: '2',
+    id: COURSE_IDS.INTERVAL, // UUID для Supabase
     title: 'Интервальное Голодание: Ваш Режим Дня для Здоровья и Энергии. Ешьте Что Хотите (В Свое Время)',
     shortDescription: 'Освой метод интервального голодания 16/8. Узнай, как правильно голодать и получать максимальную пользу для здоровья и похудения.',
     imageUrl: '/img/interval_course.png',

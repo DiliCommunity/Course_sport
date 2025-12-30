@@ -16,6 +16,7 @@ import {
 import { Button } from '@/components/ui/Button'
 import { PaymentModal } from '@/components/ui/PaymentModal'
 import { formatPrice, formatDuration } from '@/lib/utils'
+import { COURSE_IDS, getCourseUUID } from '@/lib/constants'
 
 // Типы для уроков
 type LessonWithChecklist = {
@@ -57,9 +58,9 @@ function hasBonus(lesson: Lesson): lesson is LessonWithBonus {
   return 'bonus' in lesson && lesson.bonus !== undefined
 }
 
-// Данные для курса Кето-диета (id: '1')
+// Данные для курса Кето-диета
 const ketoCourse = {
-  id: '1',
+  id: COURSE_IDS.KETO,
   title: 'Кето Диета: Наука Жиросжигания. От Мифов к Результатам',
   description: `Вы устали от диет, которые требуют бесконечной силы воли, оставляют чувство голода и дают временный результат? Что если существует способ перестроить ваше тело так, чтобы оно начало работать как машина по сжиганию жира — и делало это на автопилоте?
 
@@ -119,9 +120,9 @@ const ketoCourse = {
   ],
 }
 
-// Данные для курса Интервальное голодание (id: '2')
+// Данные для курса Интервальное голодание
 const intervalCourse = {
-  id: '2',
+  id: COURSE_IDS.INTERVAL,
   title: 'Интервальное Голодание: Ваш Режим Дня для Здоровья и Энергии. Ешьте Что Хотите (В Свое Время)',
   description: `А что если главный секрет здоровья, стройности и энергии лежит не в том, ЧТО есть, а в том, КОГДА есть? Представьте, что вы можете улучшить самочувствие, снизить вес и очистить организм, не отказывая себе в любимых продуктах и не подсчитывая каждую калорию.
 
@@ -1211,38 +1212,48 @@ const intervalPaidModule3: {
   ],
 }
 
-// Функция для получения данных курса по ID
+// Проверка - это курс Кето?
+function isKetoCourse(id: string): boolean {
+  return id === '1' || id === COURSE_IDS.KETO
+}
+
+// Проверка - это курс Интервальное голодание?
+function isIntervalCourse(id: string): boolean {
+  return id === '2' || id === COURSE_IDS.INTERVAL
+}
+
+// Функция для получения данных курса по ID (поддерживает и старые ID и UUID)
 function getCourseData(id: string) {
-  if (id === '1') return ketoCourse
-  if (id === '2') return intervalCourse
+  if (isKetoCourse(id)) return ketoCourse
+  if (isIntervalCourse(id)) return intervalCourse
   return ketoCourse // По умолчанию возвращаем кето курс
 }
 
 // Функция для получения данных бесплатного модуля по ID курса
 function getFreeModuleData(id: string) {
-  if (id === '1') return ketoFreeModule
-  if (id === '2') return intervalFreeModule
+  if (isKetoCourse(id)) return ketoFreeModule
+  if (isIntervalCourse(id)) return intervalFreeModule
   return ketoFreeModule
 }
 
 // Функция для получения данных платного модуля по ID курса
 function getPaidModuleData(id: string) {
-  if (id === '1') return ketoPaidModule
-  if (id === '2') return intervalPaidModule
+  if (isKetoCourse(id)) return ketoPaidModule
+  if (isIntervalCourse(id)) return intervalPaidModule
   return ketoPaidModule
 }
 
 // Функция для получения данных платного модуля 2 по ID курса
 function getPaidModule2Data(id: string) {
-  if (id === '1') return ketoPaidModule2
-  if (id === '2') return intervalPaidModule2
+  if (isKetoCourse(id)) return ketoPaidModule2
+  if (isIntervalCourse(id)) return intervalPaidModule2
   return ketoPaidModule2
 }
 
 // Функция для получения данных платного модуля 3 по ID курса
 function getPaidModule3Data(id: string) {
-  if (id === '1') return ketoPaidModule3
-  if (id === '2') return intervalPaidModule3
+  if (isKetoCourse(id)) return ketoPaidModule3
+  if (isIntervalCourse(id)) return intervalPaidModule3
   return ketoPaidModule3
 }
 
