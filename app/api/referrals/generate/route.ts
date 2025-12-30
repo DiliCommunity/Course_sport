@@ -18,6 +18,27 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Проверяем, купил ли пользователь хотя бы один курс
+    const { data: enrollments, error: enrollmentError } = await supabase
+      .from('enrollments')
+      .select('id')
+      .eq('user_id', user.id)
+      .limit(1)
+
+    console.log('[Referral Generate] Checking enrollments:', { 
+      userId: user.id, 
+      enrollments: enrollments?.length || 0,
+      error: enrollmentError 
+    })
+
+    if (!enrollments || enrollments.length === 0) {
+      return NextResponse.json({
+        success: false,
+        error: 'NO_PURCHASE',
+        message: 'Реферальная ссылка будет доступна после покупки первого курса',
+      }, { status: 403 })
+    }
+
     // Проверяем, есть ли уже реферальный код
     const { data: existingCode } = await supabase
       .from('user_referral_codes')

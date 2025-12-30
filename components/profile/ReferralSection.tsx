@@ -7,6 +7,7 @@ import { ReferralModal } from './ReferralModal'
 
 interface ReferralSectionProps {
   referralCode: string
+  hasPurchasedCourse?: boolean
   stats: {
     total_referred: number
     total_earned: number
@@ -15,12 +16,52 @@ interface ReferralSectionProps {
   }
 }
 
-export function ReferralSection({ referralCode = '', stats = { total_referred: 0, total_earned: 0, active_referrals: 0, completed_referrals: 0 } }: ReferralSectionProps) {
+export function ReferralSection({ 
+  referralCode = '', 
+  hasPurchasedCourse = false,
+  stats = { total_referred: 0, total_earned: 0, active_referrals: 0, completed_referrals: 0 } 
+}: ReferralSectionProps) {
   const [copied, setCopied] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const referralUrl = typeof window !== 'undefined' 
-    ? `${window.location.origin}/register?ref=${referralCode}`
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [currentCode, setCurrentCode] = useState(referralCode)
+  const [error, setError] = useState<string | null>(null)
+
+  const referralUrl = typeof window !== 'undefined' && currentCode
+    ? `${window.location.origin}/register?ref=${currentCode}`
     : ''
+
+  // Генерируем код если его нет но есть покупка
+  useEffect(() => {
+    if (!currentCode && hasPurchasedCourse && !isGenerating) {
+      generateReferralCode()
+    }
+  }, [hasPurchasedCourse, currentCode])
+
+  const generateReferralCode = async () => {
+    if (isGenerating) return
+    setIsGenerating(true)
+    setError(null)
+    
+    try {
+      const response = await fetch('/api/referrals/generate', {
+        method: 'POST',
+        credentials: 'include',
+      })
+      
+      const data = await response.json()
+      
+      if (data.success && data.referral_code) {
+        setCurrentCode(data.referral_code)
+      } else if (data.error === 'NO_PURCHASE') {
+        setError(data.message)
+      }
+    } catch (err) {
+      console.error('Failed to generate referral code:', err)
+    } finally {
+      setIsGenerating(false)
+    }
+  }
 
   const copyToClipboard = async () => {
     try {
@@ -55,29 +96,48 @@ export function ReferralSection({ referralCode = '', stats = { total_referred: 0
         {/* Referral Link */}
         <div className="mb-6">
           <label className="block text-sm text-white/70 mb-2">Ваша реферальная ссылка</label>
-          <div className="flex items-center gap-2">
-            <div className="flex-1 flex items-center gap-2 px-4 py-3 rounded-xl bg-white/5 border border-white/10">
-              <Link2 className="w-5 h-5 text-accent-teal flex-shrink-0" />
-              <input
-                type="text"
-                value={referralUrl}
-                readOnly
-                className="flex-1 bg-transparent text-white text-sm outline-none"
-              />
+          
+          {!hasPurchasedCourse ? (
+            // Нет покупок - показываем сообщение
+            <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
+              <p className="text-amber-400 text-sm flex items-center gap-2">
+                <span className="text-lg">🔒</span>
+                Реферальная ссылка будет доступна после покупки первого курса
+              </p>
             </div>
-            <motion.button
-              onClick={copyToClipboard}
-              className="px-4 py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 text-dark-900 font-bold shadow-[0_0_15px_rgba(52,211,153,0.4)] hover:shadow-[0_0_25px_rgba(52,211,153,0.6)] transition-all"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              {copied ? (
-                <Check className="w-5 h-5" />
-              ) : (
-                <Copy className="w-5 h-5" />
-              )}
-            </motion.button>
-          </div>
+          ) : isGenerating ? (
+            // Генерируем код
+            <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-white/5 border border-white/10">
+              <div className="w-5 h-5 border-2 border-accent-teal border-t-transparent rounded-full animate-spin" />
+              <span className="text-white/60 text-sm">Генерация ссылки...</span>
+            </div>
+          ) : (
+            // Показываем ссылку
+            <div className="flex items-center gap-2">
+              <div className="flex-1 flex items-center gap-2 px-4 py-3 rounded-xl bg-white/5 border border-white/10">
+                <Link2 className="w-5 h-5 text-accent-teal flex-shrink-0" />
+                <input
+                  type="text"
+                  value={referralUrl}
+                  readOnly
+                  className="flex-1 bg-transparent text-white text-sm outline-none"
+                />
+              </div>
+              <motion.button
+                onClick={copyToClipboard}
+                disabled={!currentCode}
+                className="px-4 py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 text-dark-900 font-bold shadow-[0_0_15px_rgba(52,211,153,0.4)] hover:shadow-[0_0_25px_rgba(52,211,153,0.6)] transition-all disabled:opacity-50"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                {copied ? (
+                  <Check className="w-5 h-5" />
+                ) : (
+                  <Copy className="w-5 h-5" />
+                )}
+              </motion.button>
+            </div>
+          )}
         </div>
 
         {/* Stats Grid */}
@@ -137,7 +197,8 @@ export function ReferralSection({ referralCode = '', stats = { total_referred: 0
     <ReferralModal
       isOpen={isModalOpen}
       onClose={() => setIsModalOpen(false)}
-      referralCode={referralCode}
+      referralCode={currentCode}
+      hasPurchasedCourse={hasPurchasedCourse}
       stats={stats}
     />
     </>

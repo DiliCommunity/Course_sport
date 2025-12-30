@@ -9,6 +9,7 @@ interface ReferralModalProps {
   isOpen: boolean
   onClose: () => void
   referralCode: string
+  hasPurchasedCourse?: boolean
   stats: {
     total_referred: number
     total_earned: number
@@ -17,9 +18,15 @@ interface ReferralModalProps {
   }
 }
 
-export function ReferralModal({ isOpen, onClose, referralCode = '', stats = { total_referred: 0, total_earned: 0, active_referrals: 0, completed_referrals: 0 } }: ReferralModalProps) {
+export function ReferralModal({ 
+  isOpen, 
+  onClose, 
+  referralCode = '', 
+  hasPurchasedCourse = false,
+  stats = { total_referred: 0, total_earned: 0, active_referrals: 0, completed_referrals: 0 } 
+}: ReferralModalProps) {
   const [copied, setCopied] = useState(false)
-  const referralUrl = typeof window !== 'undefined' 
+  const referralUrl = typeof window !== 'undefined' && referralCode
     ? `${window.location.origin}/register?ref=${referralCode}`
     : ''
 
@@ -137,47 +144,64 @@ export function ReferralModal({ isOpen, onClose, referralCode = '', stats = { to
               {/* Referral Link */}
               <div>
                 <label className="block text-sm text-white/70 mb-2 font-medium">Ваша реферальная ссылка</label>
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 flex items-center gap-2 px-4 py-3 rounded-xl bg-white/5 border border-white/10">
-                    <Link2 className="w-5 h-5 text-accent-teal flex-shrink-0" />
-                    <input
-                      type="text"
-                      value={referralUrl}
-                      readOnly
-                      className="flex-1 bg-transparent text-white text-sm outline-none"
-                    />
+                
+                {!hasPurchasedCourse ? (
+                  // Нет покупок - показываем сообщение
+                  <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
+                    <p className="text-amber-400 text-sm flex items-center gap-2">
+                      <span className="text-lg">🔒</span>
+                      Реферальная ссылка будет доступна после покупки первого курса
+                    </p>
+                    <p className="text-white/50 text-xs mt-2">
+                      Купите любой курс, чтобы начать зарабатывать на рефералах!
+                    </p>
                   </div>
-                  <motion.button
-                    onClick={copyToClipboard}
-                    className="px-4 py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 text-dark-900 font-bold shadow-[0_0_15px_rgba(52,211,153,0.4)] hover:shadow-[0_0_25px_rgba(52,211,153,0.6)] transition-all"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    {copied ? (
-                      <Check className="w-5 h-5" />
-                    ) : (
-                      <Copy className="w-5 h-5" />
+                ) : (
+                  <>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 flex items-center gap-2 px-4 py-3 rounded-xl bg-white/5 border border-white/10">
+                        <Link2 className="w-5 h-5 text-accent-teal flex-shrink-0" />
+                        <input
+                          type="text"
+                          value={referralUrl}
+                          readOnly
+                          className="flex-1 bg-transparent text-white text-sm outline-none"
+                        />
+                      </div>
+                      <motion.button
+                        onClick={copyToClipboard}
+                        disabled={!referralCode}
+                        className="px-4 py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 text-dark-900 font-bold shadow-[0_0_15px_rgba(52,211,153,0.4)] hover:shadow-[0_0_25px_rgba(52,211,153,0.6)] transition-all disabled:opacity-50"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        {copied ? (
+                          <Check className="w-5 h-5" />
+                        ) : (
+                          <Copy className="w-5 h-5" />
+                        )}
+                      </motion.button>
+                      {typeof navigator !== 'undefined' && 'share' in navigator && (
+                        <motion.button
+                          onClick={shareLink}
+                          className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          <Share2 className="w-5 h-5" />
+                        </motion.button>
+                      )}
+                    </div>
+                    {copied && (
+                      <motion.p
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mt-2 text-sm text-accent-mint"
+                      >
+                        Ссылка скопирована!
+                      </motion.p>
                     )}
-                  </motion.button>
-                  {typeof navigator !== 'undefined' && 'share' in navigator && (
-                    <motion.button
-                      onClick={shareLink}
-                      className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <Share2 className="w-5 h-5" />
-                    </motion.button>
-                  )}
-                </div>
-                {copied && (
-                  <motion.p
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mt-2 text-sm text-accent-mint"
-                  >
-                    Ссылка скопирована!
-                  </motion.p>
+                  </>
                 )}
               </div>
 

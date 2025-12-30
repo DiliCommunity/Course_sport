@@ -97,6 +97,16 @@ export async function GET(request: NextRequest) {
       }
     }))
 
+    // Проверяем есть ли купленные курсы (для реферальной ссылки)
+    const hasPurchasedCourse = formattedEnrollments.length > 0
+
+    console.log('[Profile API] Data loaded:', {
+      enrollments: formattedEnrollments.length,
+      hasReferralCode: !!referralCode,
+      referralCodeValue: referralCode?.referral_code,
+      hasPurchasedCourse
+    })
+
     return NextResponse.json({
       user: {
         id: user.id,
@@ -118,7 +128,9 @@ export async function GET(request: NextRequest) {
         total_earned: balance?.total_earned || 0,
         total_withdrawn: balance?.total_withdrawn || 0,
       },
-      referralCode: referralCode?.code || '',
+      // ИСПРАВЛЕНО: было referralCode?.code, должно быть referral_code
+      referralCode: referralCode?.referral_code || '',
+      hasPurchasedCourse: hasPurchasedCourse,
       referrals: referrals || [],
       referralStats: {
         total_referred: totalReferrals,

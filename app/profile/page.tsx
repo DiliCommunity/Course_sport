@@ -47,6 +47,7 @@ interface ProfileData {
     }
   }>
   referralCode: string
+  hasPurchasedCourse: boolean
   referralStats: {
     total_referred: number
     total_earned: number
@@ -457,6 +458,7 @@ export default function ProfilePage() {
           >
             <ReferralSection
               referralCode={profileData.referralCode || ''}
+              hasPurchasedCourse={profileData.hasPurchasedCourse || false}
               stats={profileData.referralStats || { total_referred: 0, total_earned: 0, active_referrals: 0, completed_referrals: 0 }}
             />
           </motion.div>

@@ -82,12 +82,20 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
   const userId = metadata?.user_id
   const paymentType = metadata?.type || 'course_purchase'
 
+  console.log('=== handlePaymentSuccess ===')
+  console.log('Payment ID:', payment.id)
+  console.log('Metadata:', JSON.stringify(metadata))
+  console.log('Course ID:', courseId, 'Type:', typeof courseId)
+  console.log('User ID:', userId)
+  console.log('Payment Type:', paymentType)
+
   if (!userId || userId === 'guest') {
-    console.log('Нет данных пользователя:', { userId })
+    console.log('❌ Нет данных пользователя:', { userId })
     return
   }
 
   const amountInKopecks = Math.round(parseFloat(payment.amount.value) * 100)
+  console.log('Amount in kopecks:', amountInKopecks)
 
   // Обновляем статус платежа
   const updateData: any = {
@@ -169,22 +177,96 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
       return
     }
 
-    // Создаем запись о зачислении на курс
-    const { error: enrollmentError } = await supabase
-      .from('enrollments')
-      .upsert({
-        user_id: userId,
-        course_id: courseId,
-        progress: 0,
-        created_at: new Date().toISOString()
-      }, {
-        onConflict: 'user_id,course_id'
-      })
+    console.log('=== Creating enrollment ===')
+    console.log('User ID:', userId)
+    console.log('Course ID:', courseId)
 
-    if (enrollmentError) {
-      console.error('Ошибка создания записи на курс:', enrollmentError)
+    // Сначала проверяем существует ли уже enrollment
+    const { data: existingEnrollment, error: checkError } = await supabase
+      .from('enrollments')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('course_id', courseId)
+      .single()
+
+    console.log('Existing enrollment check:', { existingEnrollment, checkError: checkError?.message })
+
+    if (existingEnrollment) {
+      console.log('✅ Enrollment уже существует:', existingEnrollment.id)
     } else {
-      console.log(`Пользователь ${userId} записан на курс ${courseId}`)
+      // Создаем новую запись
+      const { data: newEnrollment, error: enrollmentError } = await supabase
+        .from('enrollments')
+        .insert({
+          user_id: userId,
+          course_id: courseId,
+          progress: 0,
+          created_at: new Date().toISOString()
+        })
+        .select()
+        .single()
+
+      if (enrollmentError) {
+        console.error('❌ Ошибка создания записи на курс:', enrollmentError)
+        
+        // Попробуем upsert как fallback
+        const { error: upsertError } = await supabase
+          .from('enrollments')
+          .upsert({
+            user_id: userId,
+            course_id: courseId,
+            progress: 0,
+            created_at: new Date().toISOString()
+          }, {
+            onConflict: 'user_id,course_id',
+            ignoreDuplicates: true
+          })
+        
+        if (upsertError) {
+          console.error('❌ Upsert тоже не сработал:', upsertError)
+        } else {
+          console.log('✅ Upsert успешен')
+        }
+      } else {
+        console.log(`✅ Пользователь ${userId} записан на курс ${courseId}`, newEnrollment)
+      }
+    }
+
+    // Генерируем реферальный код после первой покупки если его нет
+    const { data: existingRefCode } = await supabase
+      .from('user_referral_codes')
+      .select('id')
+      .eq('user_id', userId)
+      .single()
+
+    if (!existingRefCode) {
+      // Генерируем код
+      const generateCode = () => {
+        const prefix = 'REF-'
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+        let code = prefix
+        for (let i = 0; i < 6; i++) {
+          code += chars.charAt(Math.floor(Math.random() * chars.length))
+        }
+        return code
+      }
+
+      const newRefCode = generateCode()
+      const { error: refError } = await supabase
+        .from('user_referral_codes')
+        .insert({
+          user_id: userId,
+          referral_code: newRefCode,
+          is_active: true,
+          total_uses: 0,
+          total_earned: 0
+        })
+
+      if (refError) {
+        console.error('Ошибка создания реф кода:', refError)
+      } else {
+        console.log(`✅ Создан реферальный код ${newRefCode} для пользователя ${userId}`)
+      }
     }
 
     // Создаем транзакцию
@@ -196,6 +278,89 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
       reference_id: courseId,
       reference_type: 'course_purchase'
     })
+
+    // === Начисление реферальной комиссии ===
+    // Проверяем есть ли у покупателя реферер
+    const { data: referralRecord } = await supabase
+      .from('referrals')
+      .select('id, referrer_id, commission_percent')
+      .eq('referred_id', userId)
+      .eq('status', 'active')
+      .single()
+
+    if (referralRecord) {
+      const commissionPercent = referralRecord.commission_percent || 30
+      const commissionAmount = Math.round(amountInKopecks * commissionPercent / 100)
+      
+      console.log(`=== Реферальная комиссия ===`)
+      console.log(`Реферер: ${referralRecord.referrer_id}`)
+      console.log(`Процент: ${commissionPercent}%`)
+      console.log(`Сумма покупки: ${amountInKopecks/100}₽`)
+      console.log(`Комиссия: ${commissionAmount/100}₽`)
+
+      // Начисляем комиссию рефереру
+      const { data: referrerBalance } = await supabase
+        .from('user_balance')
+        .select('balance, total_earned')
+        .eq('user_id', referralRecord.referrer_id)
+        .single()
+
+      if (referrerBalance) {
+        await supabase
+          .from('user_balance')
+          .update({
+            balance: (referrerBalance.balance || 0) + commissionAmount,
+            total_earned: (referrerBalance.total_earned || 0) + commissionAmount
+          })
+          .eq('user_id', referralRecord.referrer_id)
+      } else {
+        await supabase
+          .from('user_balance')
+          .insert({
+            user_id: referralRecord.referrer_id,
+            balance: commissionAmount,
+            total_earned: commissionAmount,
+            total_withdrawn: 0
+          })
+      }
+
+      // Транзакция для реферера
+      await supabase.from('transactions').insert({
+        user_id: referralRecord.referrer_id,
+        type: 'referral_commission',
+        amount: commissionAmount,
+        description: `Реферальная комиссия ${commissionPercent}% с покупки курса`,
+        reference_id: courseId,
+        reference_type: 'referral_commission',
+        referral_id: referralRecord.id
+      })
+
+      // Обновляем статистику реферала
+      await supabase
+        .from('referrals')
+        .update({
+          total_earned_from_purchases: supabase.raw(`COALESCE(total_earned_from_purchases, 0) + ${commissionAmount}`)
+        })
+        .eq('id', referralRecord.id)
+
+      // Обновляем статистику реферального кода
+      const { data: codeRecord } = await supabase
+        .from('user_referral_codes')
+        .select('total_earned')
+        .eq('user_id', referralRecord.referrer_id)
+        .single()
+
+      if (codeRecord) {
+        await supabase
+          .from('user_referral_codes')
+          .update({
+            total_earned: (codeRecord.total_earned || 0) + commissionAmount
+          })
+          .eq('user_id', referralRecord.referrer_id)
+      }
+
+      console.log(`✅ Комиссия ${commissionAmount/100}₽ начислена рефереру ${referralRecord.referrer_id}`)
+    }
   }
 }
 
