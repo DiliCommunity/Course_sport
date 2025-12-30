@@ -48,6 +48,12 @@ export async function POST(request: NextRequest) {
     const shopId = process.env.YOOKASSA_SHOP_ID
     const secretKey = process.env.YOOKASSA_SECRET_KEY
 
+    // Дебаг: проверяем что именно получили
+    console.log('=== DEBUG YOOKASSA ===')
+    console.log('shopId:', shopId ? `${shopId.substring(0, 3)}...` : 'ОТСУТСТВУЕТ')
+    console.log('secretKey:', secretKey ? `${secretKey.substring(0, 10)}...` : 'ОТСУТСТВУЕТ')
+    console.log('All env keys:', Object.keys(process.env).filter(k => k.includes('YOOKASSA')))
+
     if (!shopId || !secretKey) {
       console.error('ЮКасса не настроена: отсутствуют YOOKASSA_SHOP_ID или YOOKASSA_SECRET_KEY')
       return NextResponse.json(

@@ -113,31 +113,101 @@ export async function POST(request: NextRequest) {
           .single()
 
         if (referralOwner && referralOwner.user_id !== userId) {
-          // Создаем запись о реферале
-          await supabase
+          const REFERRAL_BONUS = 10000 // 100 рублей для нового пользователя
+          const REFERRER_BONUS = 5000  // 50 рублей для того кто пригласил
+          const COMMISSION_PERCENT = 30.00 // 30% с покупок реферала
+
+          // Создаем запись о реферале с 30% комиссией
+          const { data: newReferral } = await supabase
             .from('referrals')
             .insert({
               referrer_id: referralOwner.user_id,
               referred_id: userId,
               referral_code: referralCode,
               status: 'active',
-              referred_bonus: 10000, // 100 рублей
-              commission_percent: 10.00
+              referred_bonus: REFERRAL_BONUS,
+              referrer_earned: REFERRER_BONUS,
+              commission_percent: COMMISSION_PERCENT
             })
+            .select()
+            .single()
 
-          // Обновляем статистику кода
-          const { data: codeData } = await supabase
+          // Получаем текущую статистику кода
+          const { data: currentCode } = await supabase
             .from('user_referral_codes')
-            .select('total_uses')
+            .select('total_uses, total_earned')
             .eq('referral_code', referralCode)
             .single()
 
-          if (codeData) {
+          // Обновляем статистику кода
+          await supabase
+            .from('user_referral_codes')
+            .update({ 
+              total_uses: (currentCode?.total_uses || 0) + 1,
+              total_earned: (currentCode?.total_earned || 0) + REFERRER_BONUS
+            })
+            .eq('referral_code', referralCode)
+
+          // Создаем баланс для нового пользователя с бонусом
+          await supabase
+            .from('user_balance')
+            .upsert({
+              user_id: userId,
+              balance: REFERRAL_BONUS,
+              total_earned: REFERRAL_BONUS,
+              total_withdrawn: 0
+            })
+
+          // Транзакция для нового пользователя
+          await supabase
+            .from('transactions')
+            .insert({
+              user_id: userId,
+              type: 'referral_bonus',
+              amount: REFERRAL_BONUS,
+              description: 'Бонус 100₽ за регистрацию по реферальной ссылке',
+              reference_type: 'referral_registration'
+            })
+
+          // Начисляем бонус рефереру
+          const { data: referrerBalance } = await supabase
+            .from('user_balance')
+            .select('balance, total_earned')
+            .eq('user_id', referralOwner.user_id)
+            .single()
+
+          if (referrerBalance) {
             await supabase
-              .from('user_referral_codes')
-              .update({ total_uses: (codeData.total_uses || 0) + 1 })
-              .eq('referral_code', referralCode)
+              .from('user_balance')
+              .update({
+                balance: (referrerBalance.balance || 0) + REFERRER_BONUS,
+                total_earned: (referrerBalance.total_earned || 0) + REFERRER_BONUS
+              })
+              .eq('user_id', referralOwner.user_id)
+          } else {
+            await supabase
+              .from('user_balance')
+              .insert({
+                user_id: referralOwner.user_id,
+                balance: REFERRER_BONUS,
+                total_earned: REFERRER_BONUS,
+                total_withdrawn: 0
+              })
           }
+
+          // Транзакция для реферера
+          await supabase
+            .from('transactions')
+            .insert({
+              user_id: referralOwner.user_id,
+              type: 'referral_bonus',
+              amount: REFERRER_BONUS,
+              description: 'Бонус 50₽ за приглашение друга',
+              reference_type: 'referral_registration',
+              referral_id: newReferral?.id
+            })
+
+          console.log(`Referral processed: ${referralCode}, new user gets ${REFERRAL_BONUS/100}₽, referrer gets ${REFERRER_BONUS/100}₽, commission ${COMMISSION_PERCENT}%`)
         }
       } catch (refError) {
         console.error('Referral processing error:', refError)

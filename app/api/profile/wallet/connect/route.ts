@@ -4,6 +4,42 @@ import { getUserFromSession } from '@/lib/session-utils'
 
 export const dynamic = 'force-dynamic'
 
+// GET - получить текущий подключенный кошелек
+export async function GET() {
+  try {
+    const supabase = await createClient()
+    const user = await getUserFromSession(supabase)
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    // Получаем данные кошелька пользователя
+    const { data: userData, error } = await supabase
+      .from('users')
+      .select('telegram_wallet_address, telegram_wallet_connected, telegram_wallet_connected_at')
+      .eq('id', user.id)
+      .single()
+
+    if (error) {
+      return NextResponse.json({ wallet_address: null })
+    }
+
+    return NextResponse.json({
+      wallet_address: userData?.telegram_wallet_address || null,
+      connected: userData?.telegram_wallet_connected || false,
+      connected_at: userData?.telegram_wallet_connected_at || null
+    })
+  } catch (error: any) {
+    console.error('Get wallet error:', error)
+    return NextResponse.json({ wallet_address: null })
+  }
+}
+
+// POST - подключить кошелек
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()

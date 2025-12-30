@@ -102,7 +102,7 @@ export function ReferralSection({ referralCode = '', stats = { total_referred: 0
           </div>
         </div>
 
-        {/* Заработать Button */}
+        {/* Заработать Button - с золотой анимацией перелива */}
         <motion.button
           onClick={(e) => {
             e.preventDefault()
@@ -110,11 +110,27 @@ export function ReferralSection({ referralCode = '', stats = { total_referred: 0
             setIsModalOpen(true)
           }}
           type="button"
-          className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-400 to-orange-400 text-dark-900 font-bold shadow-[0_0_20px_rgba(251,191,36,0.4)] hover:shadow-[0_0_30px_rgba(251,191,36,0.6)] transition-all"
+          className="relative w-full py-4 rounded-xl font-bold text-lg overflow-hidden group"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
-          💎 Заработать
+          {/* Animated gold gradient background */}
+          <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 via-amber-300 via-yellow-500 via-orange-400 to-yellow-400 bg-[length:200%_100%] animate-shimmer" />
+          
+          {/* Glow effect */}
+          <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/0 via-white/30 to-yellow-400/0 bg-[length:200%_100%] animate-shimmer opacity-50" />
+          
+          {/* Inner shadow for depth */}
+          <div className="absolute inset-[2px] rounded-[10px] bg-gradient-to-b from-yellow-300/20 to-transparent" />
+          
+          {/* Button content */}
+          <span className="relative z-10 flex items-center justify-center gap-2 text-dark-900 drop-shadow-sm">
+            <span className="text-xl">💎</span>
+            <span>Заработать</span>
+          </span>
+          
+          {/* Outer glow */}
+          <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 to-amber-500 rounded-xl blur-lg opacity-40 group-hover:opacity-60 transition-opacity -z-10" />
         </motion.button>
       </div>
     </motion.div>

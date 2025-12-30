@@ -8,7 +8,8 @@ import { Footer } from '@/components/layout/Footer'
 import { TelegramProvider } from '@/components/providers/TelegramProvider'
 import { AuthProvider } from '@/components/providers/AuthProvider'
 import { NewYearTheme } from '@/components/ui/NewYearTheme'
-import React from 'react'
+import { ReferralTracker } from '@/components/providers/ReferralTracker'
+import React, { Suspense } from 'react'
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin', 'latin-ext'],
@@ -60,6 +61,10 @@ export default function RootLayout({
         <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" />
         <TelegramProvider>
           <AuthProvider>
+            {/* Отслеживание реферальных ссылок */}
+            <Suspense fallback={null}>
+              <ReferralTracker />
+            </Suspense>
             {/* 🎄 Новогодняя тема - автоматически активируется с 20 декабря по 15 января */}
             <NewYearTheme />
             <div className="flex flex-col min-h-screen relative z-10">

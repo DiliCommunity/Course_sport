@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Wallet, TrendingUp, TrendingDown, CreditCard } from 'lucide-react'
+import { X, Wallet, TrendingUp, TrendingDown, CreditCard, ExternalLink, Check, Copy, Loader2 } from 'lucide-react'
 import { useAuth } from '@/components/providers/AuthProvider'
+import { useTelegram } from '@/components/providers/TelegramProvider'
 
 interface WalletModalProps {
   isOpen: boolean
@@ -45,7 +46,35 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
   const [amount, setAmount] = useState('')
   const [selectedMethod, setSelectedMethod] = useState('card')
   const [isProcessing, setIsProcessing] = useState(false)
+  const [activeTab, setActiveTab] = useState<'topup' | 'ton'>('topup')
+  const [tonWalletAddress, setTonWalletAddress] = useState<string | null>(null)
+  const [isConnectingTon, setIsConnectingTon] = useState(false)
+  const [copied, setCopied] = useState(false)
   const { user } = useAuth()
+  const { isTelegramApp, webApp } = useTelegram()
+
+  // Загружаем подключенный TON кошелек
+  useEffect(() => {
+    if (user?.id && isOpen) {
+      fetchTonWallet()
+    }
+  }, [user?.id, isOpen])
+
+  const fetchTonWallet = async () => {
+    try {
+      const response = await fetch('/api/profile/wallet/connect', {
+        credentials: 'include'
+      })
+      if (response.ok) {
+        const data = await response.json()
+        if (data.wallet_address) {
+          setTonWalletAddress(data.wallet_address)
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching TON wallet:', err)
+    }
+  }
 
   // Блокируем скролл body когда модалка открыта
   useEffect(() => {
@@ -73,7 +102,6 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
 
     setIsProcessing(true)
     try {
-      // Создаем платеж для пополнения баланса
       const response = await fetch('/api/payments/create', {
         method: 'POST',
         headers: {
@@ -81,7 +109,7 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
         },
         credentials: 'include',
         body: JSON.stringify({
-          amount: Math.round(amountNum * 100), // В копейках
+          amount: Math.round(amountNum * 100),
           paymentMethod: selectedMethod,
           type: 'balance_topup',
           userId: user.id,
@@ -96,7 +124,6 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
       }
 
       if (data.confirmationUrl || data.confirmation_url) {
-        // Перенаправляем на страницу оплаты ЮКасса
         window.location.href = data.confirmationUrl || data.confirmation_url
       } else {
         alert('Платеж создан успешно!')
@@ -108,6 +135,85 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
       alert(err.message || 'Ошибка при создании платежа')
     } finally {
       setIsProcessing(false)
+    }
+  }
+
+  const handleConnectTonWallet = async () => {
+    setIsConnectingTon(true)
+    
+    try {
+      // Открываем диалог подключения TON кошелька
+      if (isTelegramApp && webApp) {
+        // В Telegram показываем инструкцию
+        webApp.showPopup({
+          title: 'Подключение TON кошелька',
+          message: 'Для подключения кошелька:\n\n1. Откройте Tonkeeper или TON Space\n2. Скопируйте адрес вашего кошелька\n3. Вставьте его в поле ниже',
+          buttons: [
+            { id: 'ok', type: 'ok', text: 'Понятно' }
+          ]
+        })
+      }
+
+      // Показываем поле для ввода адреса
+      const address = prompt('Введите адрес вашего TON кошелька:')
+      
+      if (address && address.trim()) {
+        // Валидация адреса TON (базовая)
+        if (!address.match(/^(EQ|UQ)[a-zA-Z0-9_-]{46}$/)) {
+          alert('Неверный формат адреса TON кошелька')
+          return
+        }
+
+        // Сохраняем адрес
+        const response = await fetch('/api/profile/wallet/connect', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ wallet_address: address.trim() })
+        })
+
+        if (response.ok) {
+          setTonWalletAddress(address.trim())
+          webApp?.HapticFeedback?.notificationOccurred('success')
+          alert('TON кошелек успешно подключен!')
+        } else {
+          throw new Error('Не удалось сохранить адрес')
+        }
+      }
+    } catch (err: any) {
+      console.error('TON connect error:', err)
+      alert(err.message || 'Ошибка подключения кошелька')
+    } finally {
+      setIsConnectingTon(false)
+    }
+  }
+
+  const handleDisconnectTonWallet = async () => {
+    if (!confirm('Отключить TON кошелек?')) return
+
+    try {
+      const response = await fetch('/api/profile/wallet/disconnect', {
+        method: 'POST',
+        credentials: 'include'
+      })
+
+      if (response.ok) {
+        setTonWalletAddress(null)
+        alert('TON кошелек отключен')
+      }
+    } catch (err) {
+      console.error('Error disconnecting wallet:', err)
+    }
+  }
+
+  const copyTonAddress = async () => {
+    if (!tonWalletAddress) return
+    try {
+      await navigator.clipboard.writeText(tonWalletAddress)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      console.error('Copy error:', err)
     }
   }
 
@@ -159,6 +265,30 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
               </button>
             </div>
 
+            {/* Tabs */}
+            <div className="flex border-b border-white/10">
+              <button
+                onClick={() => setActiveTab('topup')}
+                className={`flex-1 py-3 text-sm font-semibold transition-colors ${
+                  activeTab === 'topup'
+                    ? 'text-accent-teal border-b-2 border-accent-teal'
+                    : 'text-white/60 hover:text-white'
+                }`}
+              >
+                💳 Пополнение
+              </button>
+              <button
+                onClick={() => setActiveTab('ton')}
+                className={`flex-1 py-3 text-sm font-semibold transition-colors ${
+                  activeTab === 'ton'
+                    ? 'text-blue-400 border-b-2 border-blue-400'
+                    : 'text-white/60 hover:text-white'
+                }`}
+              >
+                💎 TON Кошелек
+              </button>
+            </div>
+
             {/* Content - scrollable */}
             <div className="p-6 space-y-6 overflow-y-auto flex-1">
               {/* Balance Info */}
@@ -191,81 +321,188 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
                 </div>
               </div>
 
-              {/* Top Up Section */}
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-4">Пополнить баланс</h3>
-                
-                {/* Amount Input */}
-                <div className="mb-4">
-                  <label className="block text-sm text-white/70 mb-2">Сумма пополнения</label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                      placeholder="1000"
-                      min="100"
-                      step="100"
-                      className="w-full px-4 py-3 pl-12 rounded-xl bg-white/5 border border-white/10 text-white text-lg font-semibold focus:outline-none focus:border-accent-teal transition-colors"
-                    />
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/60">₽</span>
-                  </div>
-                  <p className="mt-2 text-xs text-white/50">Минимальная сумма: 100₽</p>
-                </div>
+              {activeTab === 'topup' ? (
+                <>
+                  {/* Top Up Section */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-white mb-4">Пополнить баланс</h3>
+                    
+                    {/* Amount Input */}
+                    <div className="mb-4">
+                      <label className="block text-sm text-white/70 mb-2">Сумма пополнения</label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          value={amount}
+                          onChange={(e) => setAmount(e.target.value)}
+                          placeholder="1000"
+                          min="100"
+                          step="100"
+                          className="w-full px-4 py-3 pl-12 rounded-xl bg-white/5 border border-white/10 text-white text-lg font-semibold focus:outline-none focus:border-accent-teal transition-colors"
+                        />
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/60">₽</span>
+                      </div>
+                      <p className="mt-2 text-xs text-white/50">Минимальная сумма: 100₽</p>
+                    </div>
 
-                {/* Payment Methods */}
-                <div className="mb-4">
-                  <label className="block text-sm text-white/70 mb-3">Способ оплаты</label>
-                  <div className="grid grid-cols-2 gap-3">
-                    {paymentMethods.map((method) => (
-                      <button
-                        key={method.id}
-                        onClick={() => setSelectedMethod(method.id)}
-                        className={`p-4 rounded-xl border transition-all ${
-                          selectedMethod === method.id
-                            ? 'bg-accent-teal/20 border-accent-teal text-white'
-                            : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className="text-2xl">{method.icon}</span>
-                          <div className="text-left">
-                            <p className="font-semibold text-sm">{method.name}</p>
-                            <p className="text-xs opacity-70">{method.description}</p>
+                    {/* Payment Methods */}
+                    <div className="mb-4">
+                      <label className="block text-sm text-white/70 mb-3">Способ оплаты</label>
+                      <div className="grid grid-cols-2 gap-3">
+                        {paymentMethods.map((method) => (
+                          <button
+                            key={method.id}
+                            onClick={() => setSelectedMethod(method.id)}
+                            className={`p-4 rounded-xl border transition-all ${
+                              selectedMethod === method.id
+                                ? 'bg-accent-teal/20 border-accent-teal text-white'
+                                : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <span className="text-2xl">{method.icon}</span>
+                              <div className="text-left">
+                                <p className="font-semibold text-sm">{method.name}</p>
+                                <p className="text-xs opacity-70">{method.description}</p>
+                              </div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Top Up Button */}
+                    <button
+                      onClick={handleTopUp}
+                      disabled={!amount || parseFloat(amount) < 100 || isProcessing}
+                      className="w-full py-4 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 text-dark-900 font-bold text-lg shadow-[0_0_20px_rgba(52,211,153,0.4)] hover:shadow-[0_0_30px_rgba(52,211,153,0.6)] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {isProcessing ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          Обработка...
+                        </>
+                      ) : (
+                        <>
+                          <CreditCard className="w-5 h-5" />
+                          Пополнить баланс
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Info */}
+                  <div className="p-4 rounded-xl bg-accent-teal/10 border border-accent-teal/20">
+                    <p className="text-sm text-white/80">
+                      <strong className="text-accent-teal">💡 Важно:</strong> Средства на балансе можно использовать для покупки курсов или вывести на карту. 
+                      Вывод средств доступен при балансе от 500₽.
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* TON Wallet Section */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center">
+                        <span className="text-xl">💎</span>
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-white">TON Кошелек</h3>
+                        <p className="text-xs text-white/60">Для оплаты криптовалютой в Telegram</p>
+                      </div>
+                    </div>
+
+                    {tonWalletAddress ? (
+                      <>
+                        {/* Connected Wallet */}
+                        <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/30">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs text-blue-400 font-semibold">✓ Кошелек подключен</span>
+                            <button
+                              onClick={handleDisconnectTonWallet}
+                              className="text-xs text-red-400 hover:text-red-300"
+                            >
+                              Отключить
+                            </button>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <code className="flex-1 text-sm text-white font-mono bg-white/5 px-3 py-2 rounded-lg truncate">
+                              {tonWalletAddress}
+                            </code>
+                            <button
+                              onClick={copyTonAddress}
+                              className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
+                            >
+                              {copied ? (
+                                <Check className="w-4 h-4 text-green-400" />
+                              ) : (
+                                <Copy className="w-4 h-4 text-white/60" />
+                              )}
+                            </button>
                           </div>
                         </div>
-                      </button>
-                    ))}
+
+                        {/* TON Balance (placeholder) */}
+                        <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                          <p className="text-xs text-white/60 mb-1">Баланс TON</p>
+                          <p className="text-2xl font-bold text-white">— TON</p>
+                          <p className="text-xs text-white/40 mt-1">Проверьте баланс в вашем кошельке</p>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        {/* Connect Wallet */}
+                        <div className="p-6 rounded-xl bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20 text-center">
+                          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center">
+                            <span className="text-3xl">💎</span>
+                          </div>
+                          <h4 className="text-lg font-bold text-white mb-2">Подключите TON кошелек</h4>
+                          <p className="text-sm text-white/60 mb-4">
+                            Оплачивайте курсы криптовалютой TON прямо в Telegram
+                          </p>
+                          
+                          <motion.button
+                            onClick={handleConnectTonWallet}
+                            disabled={isConnectingTon}
+                            className="w-full py-4 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold text-lg shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 transition-all disabled:opacity-50"
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                          >
+                            {isConnectingTon ? (
+                              <>
+                                <Loader2 className="w-5 h-5 animate-spin inline mr-2" />
+                                Подключение...
+                              </>
+                            ) : (
+                              '🔗 Подключить кошелек'
+                            )}
+                          </motion.button>
+                        </div>
+
+                        {/* Supported Wallets */}
+                        <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                          <p className="text-xs text-white/60 mb-3">Поддерживаемые кошельки:</p>
+                          <div className="flex flex-wrap gap-2">
+                            {['Tonkeeper', 'TON Space', 'MyTonWallet', 'OpenMask'].map((wallet) => (
+                              <span key={wallet} className="px-3 py-1 rounded-full bg-white/10 text-xs text-white/80">
+                                {wallet}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {/* Info */}
+                    <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
+                      <p className="text-sm text-white/80">
+                        <strong className="text-blue-400">💡 Зачем TON кошелек?</strong> Вы сможете оплачивать курсы криптовалютой TON внутри Telegram с минимальной комиссией.
+                      </p>
+                    </div>
                   </div>
-                </div>
-
-                {/* Top Up Button */}
-                <button
-                  onClick={handleTopUp}
-                  disabled={!amount || parseFloat(amount) < 100 || isProcessing}
-                  className="w-full py-4 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 text-dark-900 font-bold text-lg shadow-[0_0_20px_rgba(52,211,153,0.4)] hover:shadow-[0_0_30px_rgba(52,211,153,0.6)] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {isProcessing ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-dark-900 border-t-transparent rounded-full animate-spin" />
-                      Обработка...
-                    </>
-                  ) : (
-                    <>
-                      <CreditCard className="w-5 h-5" />
-                      Пополнить баланс
-                    </>
-                  )}
-                </button>
-              </div>
-
-              {/* Info */}
-              <div className="p-4 rounded-xl bg-accent-teal/10 border border-accent-teal/20">
-                <p className="text-sm text-white/80">
-                  <strong className="text-accent-teal">💡 Важно:</strong> Средства на балансе можно использовать для покупки курсов или вывести на карту. 
-                  Вывод средств доступен при балансе от 500₽.
-                </p>
-              </div>
+                </>
+              )}
             </div>
           </div>
         </motion.div>
@@ -275,4 +512,3 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
     document.body
   )
 }
-

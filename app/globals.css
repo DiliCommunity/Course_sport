@@ -580,5 +580,33 @@
       box-shadow: 0 0 25px rgba(0, 255, 136, 0.7), 0 0 50px rgba(0, 212, 255, 0.5);
     }
   }
+
+  /* Gold shimmer animation for "Заработать" button */
+  @keyframes shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+
+  .animate-shimmer {
+    animation: shimmer 3s ease-in-out infinite;
+  }
+
+  /* Golden glow pulse */
+  @keyframes golden-pulse {
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(251, 191, 36, 0.4), 0 0 40px rgba(245, 158, 11, 0.2);
+    }
+    50% {
+      box-shadow: 0 0 30px rgba(251, 191, 36, 0.6), 0 0 60px rgba(245, 158, 11, 0.4);
+    }
+  }
+
+  .animate-golden-pulse {
+    animation: golden-pulse 2s ease-in-out infinite;
+  }
 }
 
