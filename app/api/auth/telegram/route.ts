@@ -131,6 +131,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Устанавливаем cookie с токеном сессии
+    // БЕЗ maxAge - session cookie, удалится при закрытии браузера/приложения
     const cookieStore = await cookies()
     
     // Для Telegram WebApp (cross-site iframe) нужен sameSite: 'none' и secure: true
@@ -139,7 +140,7 @@ export async function POST(request: NextRequest) {
       secure: true, // Обязательно для sameSite: 'none'
       sameSite: 'none', // Необходимо для cross-site (Telegram WebApp)
       path: '/',
-      maxAge: 60 * 60 * 24 * 30, // 30 дней в секундах
+      // maxAge НЕ указываем - это session cookie
     })
 
     // Также сохраняем telegram_id для быстрой проверки на клиенте
@@ -148,7 +149,7 @@ export async function POST(request: NextRequest) {
       secure: true, // Обязательно для sameSite: 'none'
       sameSite: 'none', // Необходимо для cross-site
       path: '/',
-      maxAge: 60 * 60 * 24 * 30, // 30 дней в секундах
+      // maxAge НЕ указываем - это session cookie
     })
 
     return NextResponse.json({

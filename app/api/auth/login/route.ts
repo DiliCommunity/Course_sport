@@ -127,13 +127,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Устанавливаем cookie с токеном сессии
+    // БЕЗ expires - session cookie, удалится при закрытии браузера
     const cookieStore = await cookies()
     cookieStore.set('session_token', sessionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
-      expires: expiresAt,
+      // expires НЕ указываем - это session cookie
     })
 
     return NextResponse.json({

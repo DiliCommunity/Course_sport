@@ -514,6 +514,7 @@ export default function ProfilePage() {
         isOpen={isReferralModalOpen}
         onClose={() => setIsReferralModalOpen(false)}
         referralCode={profileData.referralCode || ''}
+        hasPurchasedCourse={profileData.hasPurchasedCourse || false}
         stats={profileData.referralStats || { total_referred: 0, total_earned: 0, active_referrals: 0, completed_referrals: 0 }}
       />
     </main>

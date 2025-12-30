@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import { getCourseUUID } from '@/lib/constants'
 
 export const dynamic = 'force-dynamic'
+
+// ВАЖНО: Webhook от ЮКассы приходит без cookies пользователя!
+// Поэтому используем createAdminClient (service_role) для обхода RLS
 
 // Типы событий ЮКасса
 interface YooKassaEvent {
@@ -43,7 +46,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid webhook data' }, { status: 400 })
     }
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
+    
+    if (!supabase) {
+      console.error('❌ SUPABASE_SERVICE_ROLE_KEY не настроен!')
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
+    }
 
     // Обрабатываем разные события
     switch (event) {

@@ -149,7 +149,7 @@ export function Header() {
                         Мой профиль
                       </Link>
                       <Link
-                        href="/courses"
+                        href="/profile/courses"
                         className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-emerald-400/10 transition-colors text-sm text-white/80 hover:text-emerald-400"
                         onClick={() => setIsUserMenuOpen(false)}
                       >
@@ -252,7 +252,7 @@ export function Header() {
                         Мой профиль
                       </Link>
                       <Link
-                        href="/courses"
+                        href="/profile/courses"
                         className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-400/10 transition-colors text-white/70 hover:text-emerald-400 border border-transparent hover:border-emerald-400/20"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
