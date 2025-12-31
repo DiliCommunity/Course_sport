@@ -33,14 +33,28 @@ export async function GET(request: NextRequest) {
       .single()
 
     // Получаем записи на курсы
-    const { data: enrollments } = await supabase
+    const { data: enrollments, error: enrollmentsError } = await supabase
       .from('enrollments')
-      .select(`
-        *,
-        course:courses(*)
-      `)
+      .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
+    
+    console.log('[Profile API] Enrollments:', enrollments?.length, 'Error:', enrollmentsError)
+    
+    // Получаем курсы отдельно (чтобы обойти проблемы с RLS на JOIN)
+    const courseIds = Array.from(new Set((enrollments || []).map(e => e.course_id).filter(Boolean)))
+    let coursesMap: Record<string, any> = {}
+    
+    if (courseIds.length > 0) {
+      const { data: coursesData } = await supabase
+        .from('courses')
+        .select('id, title, image_url, price, duration_minutes, rating, students_count')
+        .in('id', courseIds)
+      
+      if (coursesData) {
+        coursesMap = Object.fromEntries(coursesData.map(c => [c.id, c]))
+      }
+    }
 
     // Получаем реферальный код пользователя
     const { data: referralCode } = await supabase
@@ -79,17 +93,17 @@ export async function GET(request: NextRequest) {
       .limit(50)
     
     // Получаем названия курсов для транзакций
-    const courseIds = Array.from(new Set((transactions || []).filter(t => t.reference_id).map(t => t.reference_id)))
-    let coursesMap: Record<string, string> = {}
+    const transactionCourseIds = Array.from(new Set((transactions || []).filter(t => t.reference_id).map(t => t.reference_id)))
+    let transactionCoursesMap: Record<string, string> = {}
     
-    if (courseIds.length > 0) {
+    if (transactionCourseIds.length > 0) {
       const { data: coursesData } = await supabase
         .from('courses')
         .select('id, title')
-        .in('id', courseIds)
+        .in('id', transactionCourseIds)
       
       if (coursesData) {
-        coursesMap = Object.fromEntries(coursesData.map(c => [c.id, c.title]))
+        transactionCoursesMap = Object.fromEntries(coursesData.map(c => [c.id, c.title]))
       }
     }
 
@@ -97,20 +111,24 @@ export async function GET(request: NextRequest) {
     const isAdmin = user.is_admin === true || user.username === 'admini_mini'
 
     // Форматируем enrollments для фронтенда
-    const formattedEnrollments = (enrollments || []).map(e => ({
-      id: e.id,
-      progress: e.progress || 0,
-      completed_at: e.completed_at,
-      courses: e.course || {
-        id: '',
-        title: '',
-        image_url: '',
+    const formattedEnrollments = (enrollments || []).map(e => {
+      const course = coursesMap[e.course_id] || {
+        id: e.course_id || '',
+        title: 'Курс',
+        image_url: '/img/keto_course.png',
         price: 0,
         duration_minutes: 0,
         rating: 0,
         students_count: 0,
       }
-    }))
+      
+      return {
+        id: e.id,
+        progress: e.progress || 0,
+        completed_at: e.completed_at,
+        courses: course
+      }
+    })
 
     // Проверяем есть ли ЛЮБАЯ транзакция (для реферальной ссылки)
     // Реферальная ссылка доступна после первой оплаты
@@ -158,7 +176,7 @@ export async function GET(request: NextRequest) {
       enrollments: formattedEnrollments,
       transactions: (transactions || []).map(t => {
         // Формируем читаемое описание с названием курса
-        const courseName = t.reference_id ? coursesMap[t.reference_id] : null
+        const courseName = t.reference_id ? transactionCoursesMap[t.reference_id] : null
         let description = t.description || ''
         
         // Если есть название курса и это покупка - показываем название

@@ -244,14 +244,31 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
       }
     }
 
-    // Генерируем реферальный код после первой покупки если его нет
+    // Создаем транзакцию ПЕРЕД проверкой реферального кода
+    await supabase.from('transactions').insert({
+      user_id: userId,
+      type: 'spent',
+      amount: amountInKopecks,
+      description: `Оплата курса: ${payment.description}`,
+      reference_id: courseId,
+      reference_type: 'course_purchase'
+    })
+
+    // Генерируем реферальный код после ЛЮБОЙ первой транзакции если его нет
+    // Проверяем есть ли уже транзакции (не только enrollments!)
+    const { count: transactionsCount } = await supabase
+      .from('transactions')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+
     const { data: existingRefCode } = await supabase
       .from('user_referral_codes')
       .select('id')
       .eq('user_id', userId)
       .single()
 
-    if (!existingRefCode) {
+    // Создаём реферальный код если есть транзакции но нет кода
+    if ((transactionsCount || 0) > 0 && !existingRefCode) {
       // Генерируем код
       const generateCode = () => {
         const prefix = 'REF-'
@@ -277,19 +294,9 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
       if (refError) {
         console.error('Ошибка создания реф кода:', refError)
       } else {
-        console.log(`✅ Создан реферальный код ${newRefCode} для пользователя ${userId}`)
+        console.log(`✅ Создан реферальный код ${newRefCode} для пользователя ${userId} после транзакции`)
       }
     }
-
-    // Создаем транзакцию
-    await supabase.from('transactions').insert({
-      user_id: userId,
-      type: 'spent',
-      amount: amountInKopecks,
-      description: `Оплата курса: ${payment.description}`,
-      reference_id: courseId,
-      reference_type: 'course_purchase'
-    })
 
     // === Начисление реферальной комиссии ===
     // Проверяем есть ли у покупателя реферер

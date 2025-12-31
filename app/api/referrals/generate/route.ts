@@ -18,24 +18,23 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Проверяем, купил ли пользователь хотя бы один курс
-    const { data: enrollments, error: enrollmentError } = await supabase
-      .from('enrollments')
-      .select('id')
+    // Проверяем, есть ли ЛЮБАЯ транзакция (не только покупка курса!)
+    const { count: transactionsCount, error: transactionsError } = await supabase
+      .from('transactions')
+      .select('id', { count: 'exact', head: true })
       .eq('user_id', user.id)
-      .limit(1)
 
-    console.log('[Referral Generate] Checking enrollments:', { 
+    console.log('[Referral Generate] Checking transactions:', { 
       userId: user.id, 
-      enrollments: enrollments?.length || 0,
-      error: enrollmentError 
+      transactionsCount: transactionsCount || 0,
+      error: transactionsError 
     })
 
-    if (!enrollments || enrollments.length === 0) {
+    if ((transactionsCount || 0) === 0) {
       return NextResponse.json({
         success: false,
-        error: 'NO_PURCHASE',
-        message: 'Реферальная ссылка будет доступна после покупки первого курса',
+        error: 'NO_TRANSACTION',
+        message: 'Реферальная ссылка будет доступна после первой оплаты',
       }, { status: 403 })
     }
 

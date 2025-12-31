@@ -55,6 +55,18 @@ export async function GET(request: NextRequest) {
       })
     }
 
+    // Проверяем, есть ли полный доступ к курсу (is_full_access = true в payments)
+    const { data: fullAccessPayment } = await supabase
+      .from('payments')
+      .select('is_full_access')
+      .eq('user_id', user.id)
+      .eq('course_id', courseId)
+      .eq('status', 'completed')
+      .eq('is_full_access', true)
+      .single()
+
+    const hasFullAccess = !!fullAccessPayment
+
     // Если проверяем доступ к конкретному модулю
     if (moduleNumber) {
       const moduleNum = parseInt(moduleNumber)
@@ -64,6 +76,16 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({
           hasAccess: true,
           reason: 'free_module',
+          hasFullAccess,
+        })
+      }
+
+      // Если есть полный доступ - все модули доступны
+      if (hasFullAccess) {
+        return NextResponse.json({
+          hasAccess: true,
+          reason: 'full_access',
+          hasFullAccess: true,
         })
       }
 
@@ -154,6 +176,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       hasAccess: true,
       reason: 'enrolled',
+      hasFullAccess,
     })
   } catch (error: any) {
     console.error('Access check error:', error)

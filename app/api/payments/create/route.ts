@@ -148,6 +148,24 @@ export async function POST(request: NextRequest) {
     // Сохраняем платеж в БД
     if (userId) {
       const supabase = await createClient()
+      
+      // Определяем полный доступ: если это покупка курса (не модуля) и цена = полной цене курса
+      let isFullAccess = false
+      if (courseId && type === 'course_purchase') {
+        // Получаем цену курса из БД
+        const { data: courseData } = await supabase
+          .from('courses')
+          .select('price')
+          .eq('id', courseId)
+          .single()
+        
+        // Если цена совпадает с полной ценой курса - это полный доступ
+        // Или если в metadata явно указано is_full_access
+        const metadata = body.metadata || {}
+        isFullAccess = metadata.is_full_access === true || 
+                      (courseData ? amount >= courseData.price : false)
+      }
+      
       await supabase.from('payments').insert({
         user_id: userId,
         ...(courseId && { course_id: courseId }),
@@ -155,10 +173,12 @@ export async function POST(request: NextRequest) {
         currency: 'RUB',
         payment_method: paymentMethod || 'card',
         status: 'pending',
+        is_full_access: isFullAccess,
         metadata: {
           yookassa_payment_id: payment.id,
           confirmation_url: payment.confirmation.confirmation_url,
-          type: type || 'course_purchase'
+          type: type || 'course_purchase',
+          ...(body.metadata || {})
         }
       })
     }
