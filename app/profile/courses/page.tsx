@@ -7,7 +7,7 @@ import { useAuth } from '@/components/providers/AuthProvider'
 import { ArrowLeft, BookOpen, Play, Clock, CheckCircle2, ArrowRight, Lock, Loader2 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { KETO_COURSE_UUID, INTERVAL_COURSE_UUID } from '@/lib/constants'
+import { COURSE_IDS } from '@/lib/constants'
 
 interface Course {
   id: string
@@ -31,7 +31,7 @@ interface Enrollment {
 // Все доступные курсы
 const ALL_COURSES: Course[] = [
   {
-    id: KETO_COURSE_UUID,
+    id: COURSE_IDS.KETO,
     title: 'Кето Диета: Наука Жиросжигания',
     short_description: 'Изучи основы кето-диеты, научись правильно рассчитывать макросы и составлять меню!',
     image_url: '/img/keto_course.png',
@@ -42,7 +42,7 @@ const ALL_COURSES: Course[] = [
     lessons_count: 48
   },
   {
-    id: INTERVAL_COURSE_UUID,
+    id: COURSE_IDS.INTERVAL,
     title: 'Интервальное Голодание: Здоровье и Энергия',
     short_description: 'Освой метод интервального голодания 16/8 для здоровья и похудения!',
     image_url: '/img/interval_course.png',
