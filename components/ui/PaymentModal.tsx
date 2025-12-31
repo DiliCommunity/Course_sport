@@ -16,6 +16,7 @@ interface PaymentModalProps {
   courseTitle: string
   coursePrice: number
   courseId?: string
+  isFullAccess?: boolean // true = покупка полного доступа (осталось 30%), false = первый раз
   onPaymentSuccess?: () => void
 }
 
@@ -100,6 +101,7 @@ export function PaymentModal({
   courseTitle,
   coursePrice,
   courseId,
+  isFullAccess = false,
   onPaymentSuccess,
 }: PaymentModalProps) {
   const router = useRouter()
@@ -109,8 +111,8 @@ export function PaymentModal({
   const { user } = useAuth()
   const { user: telegramUser, isTelegramApp } = useTelegram()
   
-  // Проверка авторизации
-  const isAuthenticated = user || (isTelegramApp && telegramUser)
+  // Проверка авторизации - ТОЛЬКО по наличию сессии (user), не по данным Telegram
+  const isAuthenticated = !!user
 
   // Редирект на страницу входа если не авторизован
   useEffect(() => {
@@ -131,7 +133,7 @@ export function PaymentModal({
     setIsLoading(true)
     setError(null)
 
-    const userId = user?.id || telegramUser?.id?.toString()
+    const userId = user?.id
     
     if (!userId) {
       setError('Необходимо авторизоваться для оплаты')
@@ -140,7 +142,6 @@ export function PaymentModal({
     }
 
     try {
-      const userId = user?.id || telegramUser?.id?.toString()
       
       const response = await fetch('/api/payments/create', {
         method: 'POST',
@@ -153,7 +154,10 @@ export function PaymentModal({
           paymentMethod: selectedMethod,
           amount: coursePrice * 100, // Конвертируем рубли в копейки для API
           userId: userId,
-          returnUrl: `${window.location.origin}/payment/success?course=${courseId}`
+          returnUrl: `${window.location.origin}/payment/success?course=${courseId}`,
+          metadata: {
+            is_full_access: isFullAccess
+          }
         })
       })
 
@@ -306,7 +310,7 @@ export function PaymentModal({
                     amountRub={coursePrice}
                     courseId={courseId || 'unknown'}
                     courseName={courseTitle}
-                    userId={user?.id || telegramUser?.id?.toString()}
+                    userId={user?.id || ''}
                     onSuccess={() => {
                       if (onPaymentSuccess) {
                         onPaymentSuccess()

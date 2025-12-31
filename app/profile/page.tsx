@@ -78,22 +78,22 @@ export default function ProfilePage() {
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false)
 
-  const isAuthenticated = authUser || (isTelegramApp && telegramUser)
-  const currentUserId = authUser?.id || telegramUser?.id
+  // Проверяем авторизацию ТОЛЬКО по наличию сессии (authUser), не по данным Telegram
+  const isAuthenticated = !!authUser
+  const currentUserId = authUser?.id
 
   useEffect(() => {
     if (authLoading) return
 
-    // Не редиректим сразу, если это Telegram WebApp - даём время на авторизацию
-    // Проверяем авторизацию через fetchProfileData - если 401, тогда редиректим
-    if (!isAuthenticated && !isTelegramApp) {
+    // Если не авторизован - редиректим на страницу входа
+    if (!isAuthenticated) {
       router.push('/login')
       return
     }
 
-    // Пытаемся загрузить профиль - если не получится, покажем ошибку
+    // Пытаемся загрузить профиль
     fetchProfileData()
-  }, [authLoading, isAuthenticated, currentUserId, isTelegramApp])
+  }, [authLoading, isAuthenticated, currentUserId])
 
   const fetchProfileData = async () => {
     try {
@@ -104,13 +104,8 @@ export default function ProfilePage() {
       
       if (!response.ok) {
         if (response.status === 401) {
-          // Пользователь не авторизован
-          // В Telegram WebApp не редиректим сразу - может быть авторизация в процессе
-          if (!isTelegramApp) {
-            router.push('/login')
-          } else {
-            setError('Необходимо авторизоваться через Telegram')
-          }
+          // Пользователь не авторизован - редиректим на страницу входа
+          router.push('/login')
           return
         }
         const errorData = await response.json().catch(() => ({}))

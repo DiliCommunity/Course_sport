@@ -23,9 +23,10 @@ export function Header() {
   const { user, signOut } = useAuth()
   const { user: telegramUser, isTelegramApp } = useTelegram()
   
-  // Проверяем авторизацию через Telegram или сессию
-  const isAuthenticated = user || (isTelegramApp && telegramUser)
-  const displayName = user?.email?.split('@')[0] || telegramUser?.first_name || 'Профиль'
+  // Проверяем авторизацию ТОЛЬКО по наличию сессии (user), не по данным Telegram
+  // Пользователь должен явно войти через кнопку, даже если Telegram передает данные
+  const isAuthenticated = !!user
+  const displayName = user?.email?.split('@')[0] || user?.name || user?.username || 'Профиль'
 
   useEffect(() => {
     const handleScroll = () => {
@@ -208,7 +209,8 @@ export function Header() {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex flex-col h-full">
-                {!isTelegramApp && (
+                {/* Навигационные ссылки - показываем всегда, если пользователь не авторизован, или если не в Telegram */}
+                {(!isTelegramApp || !isAuthenticated) && (
                   <div className="px-6 py-8 space-y-2">
                     {navLinks.map((link, index) => (
                       <motion.div

@@ -23,8 +23,8 @@ export function getCourseUUID(id: string): string {
 
 // Цены курсов (в копейках)
 export const COURSE_PRICES = {
-  [COURSE_IDS.KETO]: 1900, // 19₽ тестовая цена
-  [COURSE_IDS.INTERVAL]: 1900,
+  [COURSE_IDS.KETO]: 1000, // 10₽ тестовая цена
+  [COURSE_IDS.INTERVAL]: 1000, // 10₽ тестовая цена
 } as const
 
 // Оригинальные цены (в копейках)
