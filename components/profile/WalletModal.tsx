@@ -46,7 +46,12 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
   const [amount, setAmount] = useState('')
   const [selectedMethod, setSelectedMethod] = useState('card')
   const [isProcessing, setIsProcessing] = useState(false)
-  const [activeTab, setActiveTab] = useState<'topup' | 'ton'>('topup')
+  const [activeTab, setActiveTab] = useState<'topup' | 'withdraw' | 'ton'>('topup')
+  const [withdrawAmount, setWithdrawAmount] = useState('')
+  const [withdrawMethod, setWithdrawMethod] = useState<'card' | 'sbp' | 'yoomoney' | 'phone'>('card')
+  const [cardNumber, setCardNumber] = useState('')
+  const [phoneNumber, setPhoneNumber] = useState('')
+  const [isWithdrawing, setIsWithdrawing] = useState(false)
   const [tonWalletAddress, setTonWalletAddress] = useState<string | null>(null)
   const [isConnectingTon, setIsConnectingTon] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -206,6 +211,66 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
     }
   }
 
+  const handleWithdraw = async () => {
+    const amountNum = parseFloat(withdrawAmount)
+    if (!amountNum || amountNum < 500) {
+      alert('Минимальная сумма вывода: 500₽')
+      return
+    }
+
+    if (amountNum > balance / 100) {
+      alert('Недостаточно средств на балансе')
+      return
+    }
+
+    if (!user?.id) {
+      alert('Необходимо авторизоваться')
+      return
+    }
+
+    if (withdrawMethod === 'card' && !cardNumber) {
+      alert('Укажите номер карты')
+      return
+    }
+
+    if (withdrawMethod === 'phone' && !phoneNumber) {
+      alert('Укажите номер телефона')
+      return
+    }
+
+    setIsWithdrawing(true)
+    try {
+      const response = await fetch('/api/withdraw/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          amount: amountNum,
+          withdrawal_method: withdrawMethod,
+          card_number: withdrawMethod === 'card' ? cardNumber : null,
+          phone: withdrawMethod === 'phone' ? phoneNumber : null,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Ошибка создания заявки на вывод')
+      }
+
+      alert('Заявка на вывод создана! Средства будут переведены в течение 1-3 рабочих дней.')
+      onClose()
+      window.location.reload()
+    } catch (err: any) {
+      console.error('Withdraw error:', err)
+      alert(err.message || 'Ошибка при создании заявки на вывод')
+    } finally {
+      setIsWithdrawing(false)
+    }
+  }
+
   const copyTonAddress = async () => {
     if (!tonWalletAddress) return
     try {
@@ -276,6 +341,16 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
                 }`}
               >
                 💳 Пополнение
+              </button>
+              <button
+                onClick={() => setActiveTab('withdraw')}
+                className={`flex-1 py-3 text-sm font-semibold transition-colors ${
+                  activeTab === 'withdraw'
+                    ? 'text-yellow-400 border-b-2 border-yellow-400'
+                    : 'text-white/60 hover:text-white'
+                }`}
+              >
+                💰 Вывод
               </button>
               <button
                 onClick={() => setActiveTab('ton')}
@@ -396,6 +471,179 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
                     <p className="text-sm text-white/80">
                       <strong className="text-accent-teal">💡 Важно:</strong> Средства на балансе можно использовать для покупки курсов или вывести на карту. 
                       Вывод средств доступен при балансе от 500₽.
+                    </p>
+                  </div>
+                </>
+              ) : activeTab === 'withdraw' ? (
+                <>
+                  {/* Withdraw Section */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-white mb-4">Вывести средства</h3>
+                    
+                    {/* Amount Input */}
+                    <div className="mb-4">
+                      <label className="block text-sm text-white/70 mb-2">Сумма вывода</label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          value={withdrawAmount}
+                          onChange={(e) => setWithdrawAmount(e.target.value)}
+                          placeholder="500"
+                          min="500"
+                          step="100"
+                          max={balance / 100}
+                          className="w-full px-4 py-3 pl-12 rounded-xl bg-white/5 border border-white/10 text-white text-lg font-semibold focus:outline-none focus:border-yellow-400 transition-colors"
+                        />
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/60">₽</span>
+                      </div>
+                      <p className="mt-2 text-xs text-white/50">
+                        Минимальная сумма: 500₽ | Доступно: {balance.toLocaleString('ru-RU')} ₽
+                      </p>
+                    </div>
+
+                    {/* Withdrawal Methods */}
+                    <div className="mb-4">
+                      <label className="block text-sm text-white/70 mb-3">Способ вывода</label>
+                      <div className="grid grid-cols-2 gap-3">
+                        <button
+                          onClick={() => setWithdrawMethod('card')}
+                          className={`p-4 rounded-xl border transition-all ${
+                            withdrawMethod === 'card'
+                              ? 'bg-yellow-400/20 border-yellow-400 text-white'
+                              : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="text-2xl">💳</span>
+                            <div className="text-left">
+                              <p className="font-semibold text-sm">На карту</p>
+                              <p className="text-xs opacity-70">Visa, Mastercard, МИР</p>
+                            </div>
+                          </div>
+                        </button>
+                        <button
+                          onClick={() => setWithdrawMethod('sbp')}
+                          className={`p-4 rounded-xl border transition-all ${
+                            withdrawMethod === 'sbp'
+                              ? 'bg-yellow-400/20 border-yellow-400 text-white'
+                              : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="text-2xl">📱</span>
+                            <div className="text-left">
+                              <p className="font-semibold text-sm">СБП</p>
+                              <p className="text-xs opacity-70">Быстрый перевод</p>
+                            </div>
+                          </div>
+                        </button>
+                        <button
+                          onClick={() => setWithdrawMethod('yoomoney')}
+                          className={`p-4 rounded-xl border transition-all ${
+                            withdrawMethod === 'yoomoney'
+                              ? 'bg-yellow-400/20 border-yellow-400 text-white'
+                              : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="text-2xl">💜</span>
+                            <div className="text-left">
+                              <p className="font-semibold text-sm">ЮMoney</p>
+                              <p className="text-xs opacity-70">Электронный кошелек</p>
+                            </div>
+                          </div>
+                        </button>
+                        <button
+                          onClick={() => setWithdrawMethod('phone')}
+                          className={`p-4 rounded-xl border transition-all ${
+                            withdrawMethod === 'phone'
+                              ? 'bg-yellow-400/20 border-yellow-400 text-white'
+                              : 'bg-white/5 border-white/10 text-white/70 hover:bg-white/10'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="text-2xl">📞</span>
+                            <div className="text-left">
+                              <p className="font-semibold text-sm">На телефон</p>
+                              <p className="text-xs opacity-70">Мобильный баланс</p>
+                            </div>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Card Number Input */}
+                    {withdrawMethod === 'card' && (
+                      <div className="mb-4">
+                        <label className="block text-sm text-white/70 mb-2">Номер карты</label>
+                        <input
+                          type="text"
+                          value={cardNumber}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, '')
+                            if (value.length <= 16) {
+                              setCardNumber(value)
+                            }
+                          }}
+                          placeholder="0000 0000 0000 0000"
+                          maxLength={16}
+                          className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-lg font-semibold focus:outline-none focus:border-yellow-400 transition-colors"
+                        />
+                      </div>
+                    )}
+
+                    {/* Phone Number Input */}
+                    {withdrawMethod === 'phone' && (
+                      <div className="mb-4">
+                        <label className="block text-sm text-white/70 mb-2">Номер телефона</label>
+                        <input
+                          type="tel"
+                          value={phoneNumber}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, '')
+                            if (value.length <= 11) {
+                              setPhoneNumber(value)
+                            }
+                          }}
+                          placeholder="+7 900 123 45 67"
+                          maxLength={11}
+                          className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-lg font-semibold focus:outline-none focus:border-yellow-400 transition-colors"
+                        />
+                      </div>
+                    )}
+
+                    {/* Withdraw Button */}
+                    <button
+                      onClick={handleWithdraw}
+                      disabled={
+                        !withdrawAmount || 
+                        parseFloat(withdrawAmount) < 500 || 
+                        parseFloat(withdrawAmount) > balance / 100 ||
+                        isWithdrawing ||
+                        (withdrawMethod === 'card' && !cardNumber) ||
+                        (withdrawMethod === 'phone' && !phoneNumber)
+                      }
+                      className="w-full py-4 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-400 text-dark-900 font-bold text-lg shadow-[0_0_20px_rgba(250,204,21,0.4)] hover:shadow-[0_0_30px_rgba(250,204,21,0.6)] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {isWithdrawing ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          Обработка...
+                        </>
+                      ) : (
+                        <>
+                          <TrendingDown className="w-5 h-5" />
+                          Вывести средства
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Info */}
+                  <div className="p-4 rounded-xl bg-yellow-400/10 border border-yellow-400/20">
+                    <p className="text-sm text-white/80">
+                      <strong className="text-yellow-400">💡 Важно:</strong> Средства будут переведены в течение 1-3 рабочих дней. 
+                      Комиссия за вывод зависит от выбранного способа (обычно 1-3%).
                     </p>
                   </div>
                 </>
