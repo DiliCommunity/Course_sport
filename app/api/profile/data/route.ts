@@ -77,6 +77,21 @@ export async function GET(request: NextRequest) {
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(50)
+    
+    // Получаем названия курсов для транзакций
+    const courseIds = Array.from(new Set((transactions || []).filter(t => t.reference_id).map(t => t.reference_id)))
+    let coursesMap: Record<string, string> = {}
+    
+    if (courseIds.length > 0) {
+      const { data: coursesData } = await supabase
+        .from('courses')
+        .select('id, title')
+        .in('id', courseIds)
+      
+      if (coursesData) {
+        coursesMap = Object.fromEntries(coursesData.map(c => [c.id, c.title]))
+      }
+    }
 
     // Проверяем, является ли пользователь админом
     const isAdmin = user.is_admin === true || user.username === 'admini_mini'
@@ -97,14 +112,16 @@ export async function GET(request: NextRequest) {
       }
     }))
 
-    // Проверяем есть ли купленные курсы (для реферальной ссылки)
-    const hasPurchasedCourse = formattedEnrollments.length > 0
+    // Проверяем есть ли ЛЮБАЯ транзакция (для реферальной ссылки)
+    // Реферальная ссылка доступна после первой оплаты
+    const hasAnyTransaction = (transactions?.length || 0) > 0
 
     console.log('[Profile API] Data loaded:', {
       enrollments: formattedEnrollments.length,
+      transactions: transactions?.length || 0,
       hasReferralCode: !!referralCode,
       referralCodeValue: referralCode?.referral_code,
-      hasPurchasedCourse
+      hasAnyTransaction
     })
 
     return NextResponse.json({
@@ -130,7 +147,7 @@ export async function GET(request: NextRequest) {
       },
       // ИСПРАВЛЕНО: было referralCode?.code, должно быть referral_code
       referralCode: referralCode?.referral_code || '',
-      hasPurchasedCourse: hasPurchasedCourse,
+      hasPurchasedCourse: hasAnyTransaction, // Реферальная ссылка после ЛЮБОЙ транзакции
       referrals: referrals || [],
       referralStats: {
         total_referred: totalReferrals,
@@ -139,13 +156,25 @@ export async function GET(request: NextRequest) {
         completed_referrals: referrals?.filter(r => r.status === 'completed').length || 0,
       },
       enrollments: formattedEnrollments,
-      transactions: (transactions || []).map(t => ({
-        id: t.id,
-        created_at: t.created_at,
-        type: t.type || 'earned',
-        amount: t.amount || 0,
-        description: t.description || '',
-      })),
+      transactions: (transactions || []).map(t => {
+        // Формируем читаемое описание с названием курса
+        const courseName = t.reference_id ? coursesMap[t.reference_id] : null
+        let description = t.description || ''
+        
+        // Если есть название курса и это покупка - показываем название
+        if (courseName && t.reference_type === 'course_purchase') {
+          description = `Оплата курса: ${courseName}`
+        }
+        
+        return {
+          id: t.id,
+          created_at: t.created_at,
+          type: t.type || 'spent',
+          amount: t.amount || 0,
+          description,
+          courseName,
+        }
+      }),
     })
   } catch (error: any) {
     console.error('Profile data error:', error)

@@ -62,7 +62,7 @@ export function TransactionsHistory({ transactions = [] }: TransactionsHistoryPr
             <div className="text-right">
               <p className={`text-sm font-bold ${config.color}`}>
                 {transaction.type === 'earned' || transaction.type === 'refund' ? '+' : '-'}
-                {(transaction.amount || 0).toLocaleString('ru-RU')} ₽
+                {((transaction.amount || 0) / 100).toLocaleString('ru-RU')} ₽
               </p>
             </div>
           </motion.div>

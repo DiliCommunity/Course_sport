@@ -2146,7 +2146,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
                       <Award className="w-8 h-8 text-accent-electric" />
                       <div>
                         <div className="font-semibold text-white">Гарантия возврата</div>
-                        <div className="text-sm text-white/60">14 дней на возврат денег</div>
+                        <div className="text-sm text-white/60">7 дней на возврат денег</div>
                       </div>
                     </div>
                   </div>
