@@ -358,7 +358,7 @@ export default function ProfilePage() {
               </div>
               <div>
                 <p className="text-lg font-bold text-white">Кошелёк</p>
-                <p className="text-sm text-white/60">{(profileData.balance?.balance || 0).toLocaleString('ru-RU')} ₽</p>
+                <p className="text-sm text-white/60">{((profileData.balance?.balance || 0) / 100).toLocaleString('ru-RU')} ₽</p>
               </div>
             </div>
           </motion.button>
@@ -376,7 +376,7 @@ export default function ProfilePage() {
               </div>
               <div>
                 <p className="text-lg font-bold text-white">Заработать</p>
-                <p className="text-sm text-white/60">+{(profileData.referralStats?.total_earned || 0).toLocaleString('ru-RU')} ₽</p>
+                <p className="text-sm text-white/60">+{((profileData.referralStats?.total_earned || 0) / 100).toLocaleString('ru-RU')} ₽</p>
               </div>
             </div>
           </motion.button>
@@ -425,7 +425,7 @@ export default function ProfilePage() {
           >
             <p className="text-sm text-white/60 mb-1">Заработано</p>
             <p className="text-3xl font-display font-bold text-accent-gold">
-              {(profileData.referralStats?.total_earned || 0).toLocaleString('ru-RU')} ₽
+              {((profileData.referralStats?.total_earned || 0) / 100).toLocaleString('ru-RU')} ₽
             </p>
           </motion.div>
         </div>

@@ -93,21 +93,16 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
   const courseId = rawCourseId ? getCourseUUID(rawCourseId) : null
   
   // Проверяем, не обрабатывали ли мы уже этот платеж (idempotency)
-  // Ищем платежи с таким же yookassa_payment_id в metadata
-  const { data: allPayments } = await supabase
+  // Ищем платежи с таким же yookassa_payment_id в metadata (независимо от course_id)
+  const { data: existingPayments } = await supabase
     .from('payments')
-    .select('id, status, metadata')
+    .select('id, status')
     .eq('user_id', userId)
-    .eq('course_id', courseId || '')
+    .eq('status', 'completed')
+    .filter('metadata->>yookassa_payment_id', 'eq', paymentId)
   
-  // Проверяем в metadata каждого платежа
-  const existingCompletedPayment = allPayments?.find((p: any) => {
-    const metadataObj = typeof p.metadata === 'string' ? JSON.parse(p.metadata) : p.metadata
-    return metadataObj?.yookassa_payment_id === paymentId && p.status === 'completed'
-  })
-  
-  if (existingCompletedPayment) {
-    console.log('⚠️ Платеж уже был обработан ранее, пропускаем:', paymentId)
+  if (existingPayments && existingPayments.length > 0) {
+    console.log('⚠️ Платеж уже был обработан ранее, пропускаем:', paymentId, existingPayments[0].id)
     return
   }
   // courseId и userId уже получены выше
@@ -369,33 +364,7 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
       console.log(`Сумма покупки: ${amountInKopecks/100}₽`)
       console.log(`Комиссия: ${commissionAmount/100}₽`)
 
-      // Начисляем комиссию рефереру
-      const { data: referrerBalance } = await supabase
-        .from('user_balance')
-        .select('balance, total_earned')
-        .eq('user_id', referralRecord.referrer_id)
-        .single()
-
-      if (referrerBalance) {
-        await supabase
-          .from('user_balance')
-          .update({
-            balance: (referrerBalance.balance || 0) + commissionAmount,
-            total_earned: (referrerBalance.total_earned || 0) + commissionAmount
-          })
-          .eq('user_id', referralRecord.referrer_id)
-      } else {
-        await supabase
-          .from('user_balance')
-          .insert({
-            user_id: referralRecord.referrer_id,
-            balance: commissionAmount,
-            total_earned: commissionAmount,
-            total_withdrawn: 0
-          })
-      }
-
-      // Транзакция для реферера (проверка на дубликат)
+      // Транзакция для реферера (проверка на дубликат ПЕРЕД начислением баланса)
       const { data: existingRefTransaction } = await supabase
         .from('transactions')
         .select('id')
@@ -407,6 +376,31 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
         .single()
       
       if (!existingRefTransaction) {
+        // Начисляем комиссию рефереру только если транзакции еще нет
+        const { data: referrerBalance } = await supabase
+          .from('user_balance')
+          .select('balance, total_earned')
+          .eq('user_id', referralRecord.referrer_id)
+          .single()
+
+        if (referrerBalance) {
+          await supabase
+            .from('user_balance')
+            .update({
+              balance: (referrerBalance.balance || 0) + commissionAmount,
+              total_earned: (referrerBalance.total_earned || 0) + commissionAmount
+            })
+            .eq('user_id', referralRecord.referrer_id)
+        } else {
+          await supabase
+            .from('user_balance')
+            .insert({
+              user_id: referralRecord.referrer_id,
+              balance: commissionAmount,
+              total_earned: commissionAmount,
+              total_withdrawn: 0
+            })
+        }
         await supabase.from('transactions').insert({
           user_id: referralRecord.referrer_id,
           type: 'referral_commission',
@@ -417,35 +411,35 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
           referral_id: referralRecord.id
         })
         console.log('✅ Реферальная транзакция создана для реферера:', referralRecord.referrer_id)
-      } else {
-        console.log('⚠️ Реферальная транзакция уже существует, пропускаем:', existingRefTransaction.id)
-      }
 
-      // Обновляем статистику реферала
-      await supabase
-        .from('referrals')
-        .update({
-          total_earned_from_purchases: supabase.raw(`COALESCE(total_earned_from_purchases, 0) + ${commissionAmount}`)
-        })
-        .eq('id', referralRecord.id)
-
-      // Обновляем статистику реферального кода
-      const { data: codeRecord } = await supabase
-        .from('user_referral_codes')
-        .select('total_earned')
-        .eq('user_id', referralRecord.referrer_id)
-        .single()
-
-      if (codeRecord) {
+        // Обновляем статистику реферала (только если транзакция была создана)
         await supabase
-          .from('user_referral_codes')
+          .from('referrals')
           .update({
-            total_earned: (codeRecord.total_earned || 0) + commissionAmount
+            total_earned_from_purchases: supabase.raw(`COALESCE(total_earned_from_purchases, 0) + ${commissionAmount}`)
           })
-          .eq('user_id', referralRecord.referrer_id)
-      }
+          .eq('id', referralRecord.id)
 
-      console.log(`✅ Комиссия ${commissionAmount/100}₽ начислена рефереру ${referralRecord.referrer_id}`)
+        // Обновляем статистику реферального кода (только если транзакция была создана)
+        const { data: codeRecord } = await supabase
+          .from('user_referral_codes')
+          .select('total_earned')
+          .eq('user_id', referralRecord.referrer_id)
+          .single()
+
+        if (codeRecord) {
+          await supabase
+            .from('user_referral_codes')
+            .update({
+              total_earned: (codeRecord.total_earned || 0) + commissionAmount
+            })
+            .eq('user_id', referralRecord.referrer_id)
+        }
+
+        console.log(`✅ Комиссия ${commissionAmount/100}₽ начислена рефереру ${referralRecord.referrer_id}`)
+      } else {
+        console.log('⚠️ Реферальная транзакция уже существует, пропускаем начисление:', existingRefTransaction.id)
+      }
     }
   }
 }

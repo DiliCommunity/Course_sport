@@ -38,7 +38,7 @@ export function BalanceCard({ balance = 0, totalEarned = 0, totalWithdrawn = 0 }
             <div>
               <p className="text-sm text-white/60">Баланс</p>
               <p className="text-2xl font-display font-bold text-white">
-                {balance.toLocaleString('ru-RU')} ₽
+                {(balance / 100).toLocaleString('ru-RU')} ₽
               </p>
             </div>
           </div>
@@ -50,7 +50,7 @@ export function BalanceCard({ balance = 0, totalEarned = 0, totalWithdrawn = 0 }
             <div>
               <p className="text-xs text-white/50">Заработано</p>
               <p className="text-lg font-bold text-accent-mint">
-                +{totalEarned.toLocaleString('ru-RU')} ₽
+                +{(totalEarned / 100).toLocaleString('ru-RU')} ₽
               </p>
             </div>
           </div>
@@ -59,7 +59,7 @@ export function BalanceCard({ balance = 0, totalEarned = 0, totalWithdrawn = 0 }
             <div>
               <p className="text-xs text-white/50">Выведено</p>
               <p className="text-lg font-bold text-white/70">
-                {totalWithdrawn.toLocaleString('ru-RU')} ₽
+                {(totalWithdrawn / 100).toLocaleString('ru-RU')} ₽
               </p>
             </div>
           </div>

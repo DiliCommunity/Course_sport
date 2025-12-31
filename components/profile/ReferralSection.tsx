@@ -157,7 +157,7 @@ export function ReferralSection({
               <p className="text-xs text-white/60">Заработано</p>
             </div>
             <p className="text-2xl font-display font-bold text-accent-mint">
-              {stats.total_earned.toLocaleString('ru-RU')} ₽
+              {(stats.total_earned / 100).toLocaleString('ru-RU')} ₽
             </p>
           </div>
         </div>

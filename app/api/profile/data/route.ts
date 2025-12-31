@@ -73,16 +73,11 @@ export async function GET(request: NextRequest) {
       .eq('referrer_id', user.id)
       .order('created_at', { ascending: false })
 
-    // Получаем статистику по рефералам
-    const { data: referralStats } = await supabase
-      .from('referrals')
-      .select('referrer_earned, total_earned_from_purchases, status')
-      .eq('referrer_id', user.id)
-
     // Вычисляем статистику
     const totalReferrals = referrals?.length || 0
     const activeReferrals = referrals?.filter(r => r.status === 'active').length || 0
-    const totalEarned = referralStats?.reduce((sum, r) => sum + (r.referrer_earned || 0) + (r.total_earned_from_purchases || 0), 0) || 0
+    // Используем total_earned из balance - там уже все комиссии правильно начислены (без дублирования)
+    const totalEarned = balance?.total_earned || 0
 
     // Получаем транзакции
     const { data: transactions } = await supabase
