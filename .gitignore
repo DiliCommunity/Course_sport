@@ -40,3 +40,6 @@ next-env.d.ts
 !README.md
 *.sql
 supabase/
+
+# Documentation files (keep in git)
+# !docs/*.md
