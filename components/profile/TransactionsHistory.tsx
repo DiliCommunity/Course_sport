@@ -34,7 +34,46 @@ export function TransactionsHistory({ transactions = [] }: TransactionsHistoryPr
   return (
     <div className="space-y-3">
       {transactions.map((transaction, index) => {
-        const config = typeConfig[transaction.type]
+        const transactionType = transaction.type as keyof typeof typeConfig
+        const config = typeConfig[transactionType] || typeConfig.spent // Fallback на spent если тип неизвестен
+        
+        if (!config || !config.icon) {
+          console.warn('Invalid transaction type or config:', transaction.type, transaction)
+          // Используем дефолтные значения
+          const defaultConfig = typeConfig.spent
+          const Icon = defaultConfig.icon
+          const date = new Date(transaction.created_at).toLocaleDateString('ru-RU', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+          })
+
+          return (
+            <motion.div
+              key={transaction.id}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.05 }}
+              className="flex items-center gap-4 p-4 rounded-xl glass border border-white/10 hover:border-white/20 transition-all"
+            >
+              <div className={`w-10 h-10 rounded-xl ${defaultConfig.bg} flex items-center justify-center flex-shrink-0`}>
+                <Icon className={`w-5 h-5 ${defaultConfig.color}`} />
+              </div>
+              
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-white">{transaction.description}</p>
+                <p className="text-xs text-white/50">{date}</p>
+              </div>
+
+              <div className="text-right">
+                <p className={`text-sm font-bold ${defaultConfig.color}`}>
+                  -{((transaction.amount || 0) / 100).toLocaleString('ru-RU')} ₽
+                </p>
+              </div>
+            </motion.div>
+          )
+        }
+        
         const Icon = config.icon
         const date = new Date(transaction.created_at).toLocaleDateString('ru-RU', {
           day: 'numeric',

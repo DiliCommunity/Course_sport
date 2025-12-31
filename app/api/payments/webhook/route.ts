@@ -175,13 +175,29 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
     }
 
     // Создаем транзакцию для пополнения
-    await supabase.from('transactions').insert({
-      user_id: userId,
-      type: 'earned',
-      amount: amountInKopecks,
-      description: `Пополнение баланса: ${payment.description}`,
-      reference_type: 'balance_topup'
-    })
+    // Проверяем, не создана ли уже транзакция (защита от дублирования)
+    const { data: existingBalanceTransaction } = await supabase
+      .from('transactions')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('reference_type', 'balance_topup')
+      .eq('amount', amountInKopecks)
+      .eq('type', 'earned')
+      .gte('created_at', new Date(Date.now() - 60000).toISOString()) // За последнюю минуту
+      .single()
+    
+    if (!existingBalanceTransaction) {
+      await supabase.from('transactions').insert({
+        user_id: userId,
+        type: 'earned',
+        amount: amountInKopecks,
+        description: `Пополнение баланса: ${payment.description}`,
+        reference_type: 'balance_topup'
+      })
+      console.log('✅ Транзакция пополнения создана')
+    } else {
+      console.log('⚠️ Транзакция пополнения уже существует, пропускаем создание:', existingBalanceTransaction.id)
+    }
   } else {
     // Покупка курса
     if (!courseId) {
@@ -245,14 +261,30 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
     }
 
     // Создаем транзакцию ПЕРЕД проверкой реферального кода
-    await supabase.from('transactions').insert({
-      user_id: userId,
-      type: 'spent',
-      amount: amountInKopecks,
-      description: `Оплата курса: ${payment.description}`,
-      reference_id: courseId,
-      reference_type: 'course_purchase'
-    })
+    // Проверяем, не создана ли уже транзакция для этого платежа (защита от дублирования)
+    const { data: existingTransaction } = await supabase
+      .from('transactions')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('reference_id', courseId)
+      .eq('reference_type', 'course_purchase')
+      .eq('amount', amountInKopecks)
+      .eq('type', 'spent')
+      .single()
+    
+    if (!existingTransaction) {
+      await supabase.from('transactions').insert({
+        user_id: userId,
+        type: 'spent',
+        amount: amountInKopecks,
+        description: `Оплата курса: ${payment.description}`,
+        reference_id: courseId,
+        reference_type: 'course_purchase'
+      })
+      console.log('✅ Транзакция создана для курса:', courseId)
+    } else {
+      console.log('⚠️ Транзакция уже существует, пропускаем создание:', existingTransaction.id)
+    }
 
     // Генерируем реферальный код после ЛЮБОЙ первой транзакции если его нет
     // Проверяем есть ли уже транзакции (не только enrollments!)
