@@ -86,11 +86,31 @@ export async function POST(request: NextRequest) {
 }
 
 async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['object']) {
+  const paymentId = payment.id
   const { metadata } = payment
-  // Конвертируем старые ID в UUID
+  const userId = metadata?.user_id
   const rawCourseId = metadata?.course_id
   const courseId = rawCourseId ? getCourseUUID(rawCourseId) : null
-  const userId = metadata?.user_id
+  
+  // Проверяем, не обрабатывали ли мы уже этот платеж (idempotency)
+  // Ищем платежи с таким же yookassa_payment_id в metadata
+  const { data: allPayments } = await supabase
+    .from('payments')
+    .select('id, status, metadata')
+    .eq('user_id', userId)
+    .eq('course_id', courseId || '')
+  
+  // Проверяем в metadata каждого платежа
+  const existingCompletedPayment = allPayments?.find((p: any) => {
+    const metadataObj = typeof p.metadata === 'string' ? JSON.parse(p.metadata) : p.metadata
+    return metadataObj?.yookassa_payment_id === paymentId && p.status === 'completed'
+  })
+  
+  if (existingCompletedPayment) {
+    console.log('⚠️ Платеж уже был обработан ранее, пропускаем:', paymentId)
+    return
+  }
+  // courseId и userId уже получены выше
   const paymentType = metadata?.type || 'course_purchase'
 
   console.log('=== handlePaymentSuccess ===')
@@ -375,16 +395,31 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
           })
       }
 
-      // Транзакция для реферера
-      await supabase.from('transactions').insert({
-        user_id: referralRecord.referrer_id,
-        type: 'referral_commission',
-        amount: commissionAmount,
-        description: `Реферальная комиссия ${commissionPercent}% с покупки курса`,
-        reference_id: courseId,
-        reference_type: 'referral_commission',
-        referral_id: referralRecord.id
-      })
+      // Транзакция для реферера (проверка на дубликат)
+      const { data: existingRefTransaction } = await supabase
+        .from('transactions')
+        .select('id')
+        .eq('user_id', referralRecord.referrer_id)
+        .eq('reference_id', courseId)
+        .eq('reference_type', 'referral_commission')
+        .eq('amount', commissionAmount)
+        .eq('type', 'referral_commission')
+        .single()
+      
+      if (!existingRefTransaction) {
+        await supabase.from('transactions').insert({
+          user_id: referralRecord.referrer_id,
+          type: 'referral_commission',
+          amount: commissionAmount,
+          description: `Реферальная комиссия ${commissionPercent}% с покупки курса`,
+          reference_id: courseId,
+          reference_type: 'referral_commission',
+          referral_id: referralRecord.id
+        })
+        console.log('✅ Реферальная транзакция создана для реферера:', referralRecord.referrer_id)
+      } else {
+        console.log('⚠️ Реферальная транзакция уже существует, пропускаем:', existingRefTransaction.id)
+      }
 
       // Обновляем статистику реферала
       await supabase

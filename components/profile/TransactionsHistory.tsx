@@ -6,7 +6,7 @@ import { ArrowUpRight, ArrowDownLeft, ShoppingCart, Gift, TrendingUp } from 'luc
 interface Transaction {
   id: string
   created_at: string
-  type: 'earned' | 'withdrawn' | 'spent' | 'refund'
+  type: 'earned' | 'withdrawn' | 'spent' | 'refund' | 'referral_commission' | 'referral_bonus'
   amount: number
   description: string
 }
@@ -20,6 +20,8 @@ const typeConfig = {
   withdrawn: { icon: ArrowDownLeft, color: 'text-white/60', bg: 'bg-white/5', label: 'Выведено' },
   spent: { icon: ShoppingCart, color: 'text-white/60', bg: 'bg-white/5', label: 'Потрачено' },
   refund: { icon: ArrowUpRight, color: 'text-accent-teal', bg: 'bg-accent-teal/10', label: 'Возврат' },
+  referral_commission: { icon: Gift, color: 'text-accent-mint', bg: 'bg-accent-mint/10', label: 'Реферальная комиссия' },
+  referral_bonus: { icon: Gift, color: 'text-accent-mint', bg: 'bg-accent-mint/10', label: 'Реферальный бонус' },
 }
 
 export function TransactionsHistory({ transactions = [] }: TransactionsHistoryProps) {
@@ -100,7 +102,7 @@ export function TransactionsHistory({ transactions = [] }: TransactionsHistoryPr
 
             <div className="text-right">
               <p className={`text-sm font-bold ${config.color}`}>
-                {transaction.type === 'earned' || transaction.type === 'refund' ? '+' : '-'}
+                {transaction.type === 'earned' || transaction.type === 'refund' || transaction.type === 'referral_commission' || transaction.type === 'referral_bonus' ? '+' : '-'}
                 {((transaction.amount || 0) / 100).toLocaleString('ru-RU')} ₽
               </p>
             </div>

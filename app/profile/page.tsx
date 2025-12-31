@@ -57,7 +57,7 @@ interface ProfileData {
   transactions: Array<{
     id: string
     created_at: string
-    type: 'earned' | 'withdrawn' | 'spent' | 'refund'
+    type: 'earned' | 'withdrawn' | 'spent' | 'refund' | 'referral_commission' | 'referral_bonus'
     amount: number
     description: string
   }>
