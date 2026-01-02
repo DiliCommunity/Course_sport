@@ -166,21 +166,56 @@ export async function POST(request: NextRequest) {
                       (courseData ? amount >= courseData.price : false)
       }
       
-      await supabase.from('payments').insert({
-        user_id: userId,
-        ...(courseId && { course_id: courseId }),
-        amount: amount,
-        currency: 'RUB',
-        payment_method: paymentMethod || 'card',
-        status: 'pending',
-        is_full_access: isFullAccess,
-        metadata: {
-          yookassa_payment_id: payment.id,
-          confirmation_url: payment.confirmation.confirmation_url,
-          type: type || 'course_purchase',
-          ...(body.metadata || {})
-        }
+      console.log('💾 Сохраняем платеж в БД...', {
+        userId,
+        courseId,
+        amount,
+        yookassaPaymentId: payment.id
       })
+      
+      const { data: insertedPayment, error: insertError } = await supabase
+        .from('payments')
+        .insert({
+          user_id: userId,
+          ...(courseId && { course_id: courseId }),
+          amount: amount,
+          currency: 'RUB',
+          payment_method: paymentMethod || 'card',
+          status: 'pending',
+          is_full_access: isFullAccess,
+          metadata: {
+            yookassa_payment_id: payment.id,
+            confirmation_url: payment.confirmation.confirmation_url,
+            type: type || 'course_purchase',
+            ...(body.metadata || {})
+          }
+        })
+        .select()
+        .single()
+      
+      if (insertError) {
+        console.error('❌ ОШИБКА сохранения платежа в БД:', insertError)
+        console.error('Детали ошибки:', JSON.stringify(insertError, null, 2))
+        console.error('Код ошибки:', insertError.code)
+        console.error('Сообщение:', insertError.message)
+        console.error('Детали:', insertError.details)
+        console.error('Подсказка:', insertError.hint)
+        
+        // Не прерываем процесс, так как платеж уже создан в YooKassa
+        // Webhook все равно придет и создаст запись
+      } else {
+        console.log('✅ Платеж успешно сохранен в БД:', insertedPayment.id)
+        console.log('📋 Данные сохраненного платежа:', {
+          id: insertedPayment.id,
+          user_id: insertedPayment.user_id,
+          course_id: insertedPayment.course_id,
+          amount: insertedPayment.amount,
+          status: insertedPayment.status,
+          metadata: insertedPayment.metadata
+        })
+      }
+    } else {
+      console.warn('⚠️ userId отсутствует, платеж не сохранен в БД (ожидаем webhook)')
     }
 
     return NextResponse.json({
