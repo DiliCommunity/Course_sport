@@ -178,6 +178,12 @@ export async function POST(request: NextRequest) {
           yookassaPaymentId: payment.id
         })
         
+        // Маппим методы оплаты на допустимые значения для БД
+        // В БД может быть ограниченный список, поэтому используем 'card' как fallback
+        const dbPaymentMethod = ['card', 'sbp', 'sber_pay', 'tinkoff_pay', 'yoomoney'].includes(paymentMethod || 'card') 
+          ? paymentMethod 
+          : 'card'
+        
         const { data: insertedPayment, error: insertError } = await supabase
         .from('payments')
         .insert({
@@ -185,13 +191,14 @@ export async function POST(request: NextRequest) {
           ...(courseId && { course_id: courseId }),
           amount: amount,
           currency: 'RUB',
-          payment_method: paymentMethod || 'card',
+          payment_method: dbPaymentMethod || 'card',
           status: 'pending',
           is_full_access: isFullAccess,
           metadata: {
             yookassa_payment_id: payment.id,
             confirmation_url: payment.confirmation.confirmation_url,
             type: type || 'course_purchase',
+            original_payment_method: paymentMethod, // Сохраняем оригинальный метод в metadata
             ...(body.metadata || {})
           }
         })

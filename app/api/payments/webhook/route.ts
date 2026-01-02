@@ -375,6 +375,13 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
     // Если платеж все равно не найден - создаем его (на случай если он не был создан при создании платежа)
     if (!foundPayment) {
       console.log('⚠️ Платеж не найден в БД, создаем новый запись о платеже')
+      
+      // Маппим методы оплаты на допустимые значения для БД
+      const rawPaymentMethod = metadata?.payment_method || payment.payment_method?.type || 'card'
+      const dbPaymentMethod = ['card', 'sbp', 'sber_pay', 'tinkoff_pay', 'yoomoney'].includes(rawPaymentMethod) 
+        ? rawPaymentMethod 
+        : 'card'
+      
       const { data: newPayment, error: createPaymentError } = await supabase
         .from('payments')
         .insert({
@@ -382,7 +389,7 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
           ...(courseId && { course_id: courseId }),
           amount: amountInKopecks,
           currency: 'RUB',
-          payment_method: metadata?.payment_method || 'card',
+          payment_method: dbPaymentMethod,
           status: 'completed',
           is_full_access: false,
           completed_at: new Date().toISOString(),
@@ -390,6 +397,7 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
             yookassa_payment_id: paymentId,
             type: paymentType,
             paid: payment.paid,
+            original_payment_method: rawPaymentMethod, // Сохраняем оригинальный метод
             created_from_webhook: true
           }
         })
