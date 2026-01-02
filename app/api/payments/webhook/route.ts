@@ -377,10 +377,15 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
       console.log('⚠️ Платеж не найден в БД, создаем новый запись о платеже')
       
       // Маппим методы оплаты на допустимые значения для БД
+      // ВАЖНО: Если метод 'sbp', используем 'card' как fallback, но сохраняем в metadata
       const rawPaymentMethod = metadata?.payment_method || payment.payment_method?.type || 'card'
+      // Используем 'card' для БД если метод не в списке разрешенных
       const dbPaymentMethod = ['card', 'sbp', 'sber_pay', 'tinkoff_pay', 'yoomoney'].includes(rawPaymentMethod) 
         ? rawPaymentMethod 
         : 'card'
+      
+      // Если метод sbp, но constraint не позволяет - используем card, но сохраняем в metadata
+      const finalPaymentMethod = rawPaymentMethod === 'sbp' ? 'card' : dbPaymentMethod
       
       const { data: newPayment, error: createPaymentError } = await supabase
         .from('payments')
@@ -389,7 +394,7 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
           ...(courseId && { course_id: courseId }),
           amount: amountInKopecks,
           currency: 'RUB',
-          payment_method: dbPaymentMethod,
+          payment_method: finalPaymentMethod, // Используем card для sbp если constraint не позволяет
           status: 'completed',
           is_full_access: false,
           completed_at: new Date().toISOString(),
@@ -397,7 +402,7 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
             yookassa_payment_id: paymentId,
             type: paymentType,
             paid: payment.paid,
-            original_payment_method: rawPaymentMethod, // Сохраняем оригинальный метод
+            original_payment_method: rawPaymentMethod, // Сохраняем оригинальный метод (sbp)
             created_from_webhook: true
           }
         })

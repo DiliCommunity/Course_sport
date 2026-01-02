@@ -544,6 +544,362 @@ const ketoPaidModule3: {
   ],
 }
 
+// Данные платного модуля 4 (12.5%) для Кето курса — Кето в реальной жизни
+const ketoPaidModule4: {
+  moduleTitle: string
+  lessons: Lesson[]
+  imageUrl: string
+} = {
+  moduleTitle: 'Модуль 5: Кето в реальной жизни и социальных ситуациях (12.5% курса)',
+  imageUrl: '/img/recipes/keto-restaurant.jpg',
+  lessons: [
+    {
+      id: '13',
+      title: 'Кето в ресторанах и кафе: что заказывать',
+      type: 'video' as const,
+      duration: 30,
+      content: `**Главный страх:** "Я не смогу есть в ресторанах на Кето!"
+**Реальность:** В 99% заведений можно найти кето-дружелюбные блюда.
+
+**🍽️ ЧТО ЗАКАЗЫВАТЬ В РЕСТОРАНАХ:**
+
+**Итальянские рестораны:**
+- Салаты (Цезарь, Капрезе) — без сухариков
+- Мясные блюда (стейк, курица гриль)
+- Морепродукты (креветки, лосось)
+- Попросите овощи вместо пасты/риса
+- Избегайте: паста, пицца, ризотто
+
+**Азиатские рестораны:**
+- Сашими, терияки (без риса)
+- Овощные блюда вок
+- Мясные шашлычки
+- Попросите без соусов с сахаром
+- Избегайте: рис, лапша, сладкие соусы
+
+**Фастфуд:**
+- Бургер без булки (в листе салата)
+- Куриные крылышки (без панировки)
+- Салаты
+- Избегайте: картофель фри, наггетсы, сладкие напитки
+
+**КАК ОБЩАТЬСЯ С ОФИЦИАНТОМ:**
+- "Можно без гарнира, только мясо/рыба и овощи?"
+- "Есть ли блюда без пасты/риса?"
+- "Можно ли заменить гарнир на овощи?"
+- Не стесняйтесь! Это ваше здоровье.`,
+      checklist: [
+        'Изучите меню заранее (часто есть онлайн)',
+        'Выберите 2-3 подходящих блюда',
+        'Потренируйтесь заказывать без стеснения',
+        'Сохраните список кето-дружелюбных блюд в телефоне',
+      ],
+      bonus: {
+        title: 'Чек-лист для ресторанов',
+        type: 'pdf' as const,
+        description: 'Готовые фразы и списки блюд для разных типов ресторанов',
+      },
+    },
+    {
+      id: '14',
+      title: 'Кето в путешествиях: как оставаться в кетозе',
+      type: 'infographic' as const,
+      duration: 35,
+      content: `**Путешествие — не повод срываться!** С правильной подготовкой вы останетесь в кетозе.
+
+**✈️ ПЕРЕЛЕТЫ:**
+
+**В самолете:**
+- Закажите специальное питание (низкоуглеводное, если есть)
+- Или возьмите с собой: орехи, сыр, вяленое мясо
+- Пейте воду, избегайте соков и газировки
+- Кофе/чай — можно
+
+**В аэропорту:**
+- Салаты в кафе
+- Яйца, бекон (если есть завтрак)
+- Кофе с жирными сливками
+- Избегайте: булочки, сэндвичи, сладости
+
+**🏨 В ОТЕЛЕ:**
+
+**Завтрак:**
+- Яйца, бекон, колбаса
+- Сыр, авокадо
+- Овощи
+- Избегайте: хлопья, тосты, фрукты, соки
+
+**Обед/Ужин:**
+- Мясные/рыбные блюда
+- Салаты
+- Овощи на гриле
+
+**🛒 ПОКУПКИ В ПУТЕШЕСТВИИ:**
+
+**Что купить в магазине:**
+- Яйца, сыр, колбаса
+- Орехи, семечки
+- Авокадо, оливки
+- Консервы (тунец, сардины)
+- Овощи (огурцы, помидоры, перец)
+
+**ЭКСТРЕННЫЙ НАБОР:**
+- Орехи (миндаль, грецкие)
+- Вяленое мясо
+- Сыр
+- Оливки
+- Кокосовое масло (маленькая баночка)`,
+      bonus: {
+        title: 'Кето-набор для путешествий',
+        type: 'guide' as const,
+        description: 'Полный список продуктов и стратегии для разных стран',
+      },
+    },
+    {
+      id: '15',
+      title: 'Праздники и застолья: как не сорваться',
+      type: 'text' as const,
+      duration: 25,
+      content: `**Праздники — самое сложное время.** Но можно пережить их без срыва!
+
+**🎉 СТРАТЕГИИ ДЛЯ ПРАЗДНИКОВ:**
+
+**1. Ешьте ДО застолья:**
+- Плотный кето-обед за 2-3 часа до
+- Так вы придете сытым и не будете хватать всё подряд
+
+**2. Выбирайте кето-дружелюбное:**
+- Мясные нарезки, сыры
+- Овощные салаты (без картофеля)
+- Рыба, морепродукты
+- Оливки, орехи
+
+**3. Избегайте очевидного:**
+- Хлеб, выпечка
+- Картофель, макароны
+- Сладости, десерты
+- Алкоголь (кроме сухого вина в умеренных количествах)
+
+**4. Пейте воду:**
+- Между тостами — вода
+- Это займет руки и рот
+
+**5. Планируйте "чит-день" (опционально):**
+- Если знаете, что не удержитесь — запланируйте
+- Один день не убьет прогресс
+- На следующий день — строгое Кето
+
+**🍷 АЛКОГОЛЬ НА КЕТО:**
+
+**Можно (в умеренных количествах):**
+- Сухое вино (красное/белое) — 1-2 бокала
+- Крепкий алкоголь (водка, виски, джин) — без сладких миксеров
+- Шампанское брют
+
+**Избегайте:**
+- Пиво (много углеводов)
+- Сладкие коктейли
+- Ликеры
+
+**Важно:** Алкоголь замедляет жиросжигание и может вывести из кетоза.`,
+      checklist: [
+        'Планируйте праздники заранее',
+        'Ешьте перед застольем',
+        'Выберите 2-3 кето-блюда и придерживайтесь их',
+        'Пейте много воды',
+        'Не корите себя за один срыв',
+      ],
+    },
+  ],
+}
+
+// Данные платного модуля 5 (12.5%) для Кето курса — Продвинутое Кето
+const ketoPaidModule5: {
+  moduleTitle: string
+  lessons: Lesson[]
+  imageUrl: string
+} = {
+  moduleTitle: 'Модуль 6: Продвинутое Кето и долгосрочный успех (12.5% курса)',
+  imageUrl: '/img/recipes/keto-advanced.jpg',
+  lessons: [
+    {
+      id: '16',
+      title: 'Целевое и Циклическое Кето: когда и зачем',
+      type: 'video' as const,
+      duration: 40,
+      content: `**После 2-3 месяцев строгого Кето** можно экспериментировать с продвинутыми протоколами.
+
+**🎯 ЦЕЛЕВОЕ КЕТО (TKD) — Targeted Ketogenic Diet:**
+
+**Суть:** Добавляете 20-50г быстрых углеводов за 30 минут до тренировки.
+
+**Кому подходит:**
+- Интенсивные тренировки (HIIT, кроссфит)
+- Тяжелые силовые (становая, присед)
+- Если чувствуете упадок сил на тренировках
+
+**Что есть:**
+- Глюкоза/декстроза — 20-30г (лучший вариант)
+- Мед — 1-2 ст. ложки
+- Финики — 2-3 шт
+- НЕ фрукты (фруктоза идет в печень)
+
+**Важно:** Эти углеводы сгорают на тренировке, кетоз восстанавливается за 1-2 часа.
+
+**🔄 ЦИКЛИЧЕСКОЕ КЕТО (CKD) — Cyclical Ketogenic Diet:**
+
+**Суть:** 5-6 дней строгого Кето + 1-2 дня углеводной загрузки.
+
+**Схема:**
+- Пн-Пт: строгое Кето (менее 30г углеводов)
+- Сб-Вс: 400-600г углеводов (рис, картофель, овсянка)
+- НЕ мусорная еда! Чистые углеводы + белок + минимум жиров
+
+**Кому подходит:**
+- Бодибилдеры, пауэрлифтеры
+- Профессиональные спортсмены
+- Те, кто тренируется 5+ раз в неделю тяжело
+- Если психологически тяжело без углеводов
+
+**Преимущества:**
+- Пополнение мышечного гликогена
+- Психологическая разгрузка
+- Лучшее восстановление
+
+**⚠️ ВАЖНО:**
+- Не начинайте с TKD/CKD в первые 2-3 месяца
+- Сначала адаптируйтесь к строгому Кето
+- Эти протоколы — для продвинутых`,
+      bonus: {
+        title: 'Калькулятор углеводов для TKD/CKD',
+        type: 'calculator' as const,
+        description: 'Рассчитайте точное количество углеводов для вашего типа тренировок',
+      },
+    },
+    {
+      id: '17',
+      title: 'Работа с анализами: что отслеживать',
+      type: 'infographic' as const,
+      duration: 30,
+      content: `**Кето — это не только вес!** Важно отслеживать здоровье.
+
+**📊 ОБЯЗАТЕЛЬНЫЕ АНАЛИЗЫ (раз в 3-6 месяцев):**
+
+**1. Липидный профиль:**
+- Холестерин общий
+- ЛПВП (хороший) — должен расти
+- ЛПНП (плохой) — может временно повыситься, потом нормализуется
+- Триглицериды — должны снижаться
+
+**2. Глюкоза и инсулин:**
+- Глюкоза натощак — должна быть 4-5.5 ммоль/л
+- Инсулин натощак — должен снижаться
+- Гликированный гемоглобин (HbA1c) — должен быть <5.7%
+
+**3. Кетоны в крови:**
+- Оптимально: 1.5-3.0 ммоль/л
+- Измеряйте утром натощак
+- Глюкометр для кетонов (точнее, чем полоски)
+
+**4. Функции почек:**
+- Креатинин — должен быть в норме
+- Мочевина — может быть немного повышена (нормально)
+- Если есть проблемы — больше воды и меньше белка
+
+**5. Функции печени:**
+- АЛТ, АСТ — должны быть в норме
+- Если повышены — проверьте добавки, алкоголь
+
+**⚠️ ЧТО ДОЛЖНО НАСТОРОЖИТЬ:**
+- Резкое повышение холестерина (может быть временным)
+- Проблемы с почками (редко, но возможно)
+- Сильная усталость, головокружение (электролиты!)
+
+**✅ ПОЗИТИВНЫЕ ИЗМЕНЕНИЯ:**
+- Снижение триглицеридов
+- Повышение ЛПВП
+- Снижение глюкозы и инсулина
+- Улучшение энергии и настроения`,
+      checklist: [
+        'Сдайте анализы ДО начала Кето (базовая линия)',
+        'Повторите через 3 месяца',
+        'Ведите дневник самочувствия',
+        'Консультируйтесь с врачом при изменениях',
+      ],
+    },
+    {
+      id: '18',
+      title: 'Кето как образ жизни: долгосрочная перспектива',
+      type: 'text' as const,
+      duration: 35,
+      content: `**Кето — не диета на месяц.** Это инструмент управления здоровьем на всю жизнь.
+
+**📈 ЭТАПЫ КЕТО-ПУТИ:**
+
+**Месяц 1-2: Адаптация**
+- Вход в кетоз
+- Кето-грипп (если есть)
+- Первые результаты
+- Поиск своих продуктов
+
+**Месяц 3-6: Стабилизация**
+- Полная адаптация
+- Кетоз становится нормой
+- Видимые результаты
+- Понимание своего тела
+
+**Месяц 6-12: Оптимизация**
+- Эксперименты с протоколами (TKD/CKD)
+- Понимание что работает для вас
+- Социальная интеграция
+- Долгосрочные привычки
+
+**После года: Образ жизни**
+- Кето — часть идентичности
+- Гибкость в выборе
+- Понимание когда можно расслабиться
+- Устойчивые результаты
+
+**🎯 КЛЮЧИ К ДОЛГОСРОЧНОМУ УСПЕХУ:**
+
+**1. Гибкость:**
+- Не бойтесь нарушить один раз
+- Важна общая картина, не каждый день
+- 80/20 правило: 80% строго, 20% гибко
+
+**2. Образование:**
+- Читайте исследования
+- Слушайте свое тело
+- Не следуйте слепо советам
+
+**3. Сообщество:**
+- Найдите единомышленников
+- Делитесь опытом
+- Поддерживайте других
+
+**4. Отслеживание:**
+- Фото прогресса
+- Анализы
+- Дневник самочувствия
+- Измерения (не только вес!)
+
+**5. Адаптация:**
+- Что работает для других — может не работать для вас
+- Экспериментируйте
+- Находите свой баланс
+
+**ПОМНИТЕ:** Лучший режим питания — тот, которого вы придерживаетесь. Кето — это инструмент, а не религия. Используйте его мудро!`,
+      checklist: [
+        'Определите свои долгосрочные цели',
+        'Создайте план на год',
+        'Найдите кето-сообщество',
+        'Ведите дневник прогресса',
+        'Будьте гибкими, но последовательными',
+      ],
+    },
+  ],
+}
+
 // Данные бесплатного модуля для Кето курса
 const ketoFreeModule: {
   moduleTitle: string
@@ -2093,6 +2449,15 @@ function getIntervalPaidModule5() {
   return intervalPaidModule5
 }
 
+// Функции для получения модулей 4 и 5 для Кето
+function getKetoPaidModule4() {
+  return ketoPaidModule4
+}
+
+function getKetoPaidModule5() {
+  return ketoPaidModule5
+}
+
 // Проверка - это курс Кето?
 function isKetoCourse(id: string): boolean {
   return id === '1' || id === COURSE_IDS.KETO
@@ -2151,8 +2516,16 @@ export default function CoursePage({ params }: { params: { id: string } }) {
   const paidModuleData = getPaidModuleData(params.id)
   const paidModule2Data = getPaidModule2Data(params.id)
   const paidModule3Data = getPaidModule3Data(params.id)
-  const paidModule4Data = isIntervalCourse(params.id) ? getIntervalPaidModule4() : null
-  const paidModule5Data = isIntervalCourse(params.id) ? getIntervalPaidModule5() : null
+  const paidModule4Data = isIntervalCourse(params.id) 
+    ? getIntervalPaidModule4() 
+    : isKetoCourse(params.id) 
+    ? getKetoPaidModule4() 
+    : null
+  const paidModule5Data = isIntervalCourse(params.id) 
+    ? getIntervalPaidModule5() 
+    : isKetoCourse(params.id) 
+    ? getKetoPaidModule5() 
+    : null
   
   const discount = courseData.originalPrice 
     ? Math.round((1 - courseData.price / courseData.originalPrice) * 100) 
@@ -2774,6 +3147,22 @@ export default function CoursePage({ params }: { params: { id: string } }) {
             </motion.div>
           ) : (
             <div className="space-y-6 max-w-4xl mx-auto">
+              {paidModule2Data.imageUrl && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  className="mb-8"
+                >
+                  <Image
+                    src={paidModule2Data.imageUrl}
+                    alt={paidModule2Data.moduleTitle}
+                    width={1200}
+                    height={600}
+                    className="rounded-2xl w-full h-auto object-cover"
+                  />
+                </motion.div>
+              )}
               {paidModule2Data.lessons.map((lesson, index) => (
                 <motion.div
                   key={lesson.id}
@@ -2893,6 +3282,22 @@ export default function CoursePage({ params }: { params: { id: string } }) {
             </motion.div>
           ) : (
             <div className="space-y-6 max-w-4xl mx-auto">
+              {paidModule3Data.imageUrl && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  className="mb-8"
+                >
+                  <Image
+                    src={paidModule3Data.imageUrl}
+                    alt={paidModule3Data.moduleTitle}
+                    width={1200}
+                    height={600}
+                    className="rounded-2xl w-full h-auto object-cover"
+                  />
+                </motion.div>
+              )}
               {paidModule3Data.lessons.map((lesson, index) => (
                 <motion.div
                   key={lesson.id}
@@ -2972,63 +3377,383 @@ export default function CoursePage({ params }: { params: { id: string } }) {
               ))}
               
               {/* Success message after all modules */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                className="text-center p-8 rounded-2xl bg-gradient-to-r from-accent-neon/10 via-accent-electric/10 to-accent-gold/10 border border-accent-neon/20"
-              >
-                <div className="text-5xl mb-4">🎉</div>
-                <h3 className="text-xl font-bold text-accent-neon mb-2">Вы получили доступ к 60% курса!</h3>
-                <p className="text-white/60">Бесплатный модуль (15%) + 3 платных модуля (45%) = 60% контента</p>
-                <p className="text-white/40 text-sm mt-2">Остальные 40% доступны в полной версии курса</p>
-              </motion.div>
+              {!hasFullAccess && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  className="text-center p-8 rounded-2xl bg-gradient-to-r from-accent-neon/10 via-accent-electric/10 to-accent-gold/10 border border-accent-neon/20"
+                >
+                  <div className="text-5xl mb-4">🎉</div>
+                  <h3 className="text-xl font-bold text-accent-neon mb-2">Вы получили доступ к 60% курса!</h3>
+                  <p className="text-white/60">Бесплатный модуль (15%) + 3 платных модуля (45%) = 60% контента</p>
+                  <p className="text-white/40 text-sm mt-2">Остальные 40% доступны в полной версии курса</p>
+                </motion.div>
+              )}
             </div>
           )}
         </div>
       </section>
 
-      {/* Remaining Modules Preview - 40% */}
-      <section className="relative py-20">
-        <div className="absolute inset-0 bg-gradient-to-b from-dark-900 via-dark-800 to-dark-900" />
-        <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
-            <span className="badge badge-gold mb-4">⭐ Премиум контент</span>
-            <h3 className="font-display font-bold text-3xl text-white mb-4">
-              Оставшиеся модули курса (40%):
-            </h3>
-            <p className="text-white/60 text-lg max-w-2xl mx-auto">
-              Ещё 2 модуля с продвинутыми материалами доступны в полной версии
-            </p>
-          </motion.div>
+      {/* Paid Module 4 Section - 12.5% (только для полного доступа) */}
+      {paidModule4Data && (
+        <section id="paid-module-4" className="relative py-20">
+          <div className="absolute inset-0 bg-gradient-to-b from-dark-800 via-dark-900 to-dark-800" />
+          <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-12"
+            >
+              <span className="badge badge-gold mb-4">⭐ Премиум модуль</span>
+              <h2 className="font-display font-bold text-3xl sm:text-4xl text-white mb-4">
+                {paidModule4Data.moduleTitle}
+              </h2>
+              <p className="text-white/60 text-lg max-w-2xl mx-auto">
+                Продвинутые техники и реальная жизнь
+              </p>
+            </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto mb-12">
-            {freeModuleData.paidModules.slice(2, 4).map((module, index) => (
+            {!hasFullAccess ? (
               <motion.div
-                key={index}
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                className="max-w-2xl mx-auto text-center glass rounded-2xl p-12 border-2 border-accent-gold/30"
+              >
+                <div className="text-6xl mb-6">🔒</div>
+                <h3 className="text-2xl font-bold text-white mb-4">Премиум модуль</h3>
+                <p className="text-white/60 mb-8">
+                  Ещё 12.5% курса доступны в полной версии
+                </p>
+                <Button size="lg" onClick={() => {
+                  setIsFullAccessPrice(true)
+                  setIsPaymentModalOpen(true)
+                }}>
+                  Получить полный доступ — {formatPrice(fullAccessPrice)}
+                </Button>
+              </motion.div>
+            ) : (
+              <div className="space-y-6 max-w-4xl mx-auto">
+                {paidModule4Data.imageUrl && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                    className="mb-8"
+                  >
+                    <Image
+                      src={paidModule4Data.imageUrl}
+                      alt={paidModule4Data.moduleTitle}
+                      width={1200}
+                      height={600}
+                      className="rounded-2xl w-full h-auto object-cover"
+                    />
+                  </motion.div>
+                )}
+                {paidModule4Data.lessons.map((lesson, index) => (
+                  <motion.div
+                    key={lesson.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: index * 0.1 }}
+                    className="glass rounded-2xl p-6 md:p-8 border-2 border-accent-gold/30"
+                  >
+                    <div className="flex items-start gap-4 mb-4">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-gold to-accent-electric flex items-center justify-center flex-shrink-0">
+                        <span className="text-2xl">⭐</span>
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="text-xl font-bold text-white">{lesson.title}</h3>
+                          <span className="badge badge-gold text-xs">ПРЕМИУМ</span>
+                        </div>
+                        {lesson.duration && (
+                          <span className="text-white/60 text-sm flex items-center gap-1">
+                            <Clock className="w-4 h-4" />
+                            {formatDuration(lesson.duration)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="prose prose-invert max-w-none">
+                      {lesson.content.split('\n\n').map((paragraph, pIndex) => {
+                        const parts: (string | JSX.Element)[] = []
+                        let lastIndex = 0
+                        const boldRegex = /\*\*(.*?)\*\*/g
+                        let match
+                        
+                        while ((match = boldRegex.exec(paragraph)) !== null) {
+                          if (match.index > lastIndex) {
+                            parts.push(paragraph.slice(lastIndex, match.index))
+                          }
+                          parts.push(<strong key={`bold-m4-${pIndex}-${match.index}`}>{match[1]}</strong>)
+                          lastIndex = match.index + match[0].length
+                        }
+                        if (lastIndex < paragraph.length) {
+                          parts.push(paragraph.slice(lastIndex))
+                        }
+                        
+                        return (
+                          <p key={pIndex} className="text-white/70 leading-relaxed mb-4 whitespace-pre-line">
+                            {parts.length > 0 ? parts : paragraph}
+                          </p>
+                        )
+                      })}
+                    </div>
+                    {hasChecklist(lesson) && (
+                      <div className="mt-4 p-4 rounded-xl bg-accent-gold/10 border border-accent-gold/20">
+                        <h4 className="text-white font-semibold mb-2">Ваш план действий:</h4>
+                        <ul className="space-y-2">
+                          {lesson.checklist.map((item, itemIndex) => (
+                            <li key={itemIndex} className="flex items-start gap-2 text-white/80">
+                              <CheckCircle2 className="w-5 h-5 text-accent-gold flex-shrink-0 mt-0.5" />
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {hasBonus(lesson) && (
+                      <div className="mt-4 p-4 rounded-xl bg-accent-gold/10 border border-accent-gold/20">
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">📋</span>
+                          <div>
+                            <div className="font-semibold text-white">Бонус: {lesson.bonus.title}</div>
+                            <div className="text-sm text-white/60">{lesson.bonus.description}</div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Paid Module 5 Section - 12.5% (только для полного доступа) */}
+      {paidModule5Data && (
+        <section id="paid-module-5" className="relative py-20">
+          <div className="absolute inset-0 bg-gradient-to-b from-dark-900 via-dark-800 to-dark-900" />
+          <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-12"
+            >
+              <span className="badge badge-neon mb-4">🏆 Финальный модуль</span>
+              <h2 className="font-display font-bold text-3xl sm:text-4xl text-white mb-4">
+                {paidModule5Data.moduleTitle}
+              </h2>
+              <p className="text-white/60 text-lg max-w-2xl mx-auto">
+                Долгосрочный успех и трансформация
+              </p>
+            </motion.div>
+
+            {!hasFullAccess ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                className="max-w-2xl mx-auto text-center glass rounded-2xl p-12 border-2 border-accent-neon/30"
+              >
+                <div className="text-6xl mb-6">🔒</div>
+                <h3 className="text-2xl font-bold text-white mb-4">Финальный модуль</h3>
+                <p className="text-white/60 mb-8">
+                  Последние 12.5% курса доступны в полной версии
+                </p>
+                <Button size="lg" onClick={() => {
+                  setIsFullAccessPrice(true)
+                  setIsPaymentModalOpen(true)
+                }}>
+                  Получить полный доступ — {formatPrice(fullAccessPrice)}
+                </Button>
+              </motion.div>
+            ) : (
+              <div className="space-y-6 max-w-4xl mx-auto">
+                {paidModule5Data.imageUrl && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                    className="mb-8"
+                  >
+                    <Image
+                      src={paidModule5Data.imageUrl}
+                      alt={paidModule5Data.moduleTitle}
+                      width={1200}
+                      height={600}
+                      className="rounded-2xl w-full h-auto object-cover"
+                    />
+                  </motion.div>
+                )}
+                {paidModule5Data.lessons.map((lesson, index) => (
+                  <motion.div
+                    key={lesson.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: index * 0.1 }}
+                    className="glass rounded-2xl p-6 md:p-8 border-2 border-accent-neon/30"
+                  >
+                    <div className="flex items-start gap-4 mb-4">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-neon to-accent-electric flex items-center justify-center flex-shrink-0">
+                        <span className="text-2xl">🏆</span>
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="text-xl font-bold text-white">{lesson.title}</h3>
+                          <span className="badge badge-neon text-xs">ФИНАЛ</span>
+                        </div>
+                        {lesson.duration && (
+                          <span className="text-white/60 text-sm flex items-center gap-1">
+                            <Clock className="w-4 h-4" />
+                            {formatDuration(lesson.duration)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="prose prose-invert max-w-none">
+                      {lesson.content.split('\n\n').map((paragraph, pIndex) => {
+                        const parts: (string | JSX.Element)[] = []
+                        let lastIndex = 0
+                        const boldRegex = /\*\*(.*?)\*\*/g
+                        let match
+                        
+                        while ((match = boldRegex.exec(paragraph)) !== null) {
+                          if (match.index > lastIndex) {
+                            parts.push(paragraph.slice(lastIndex, match.index))
+                          }
+                          parts.push(<strong key={`bold-m5-${pIndex}-${match.index}`}>{match[1]}</strong>)
+                          lastIndex = match.index + match[0].length
+                        }
+                        if (lastIndex < paragraph.length) {
+                          parts.push(paragraph.slice(lastIndex))
+                        }
+                        
+                        return (
+                          <p key={pIndex} className="text-white/70 leading-relaxed mb-4 whitespace-pre-line">
+                            {parts.length > 0 ? parts : paragraph}
+                          </p>
+                        )
+                      })}
+                    </div>
+                    {hasChecklist(lesson) && (
+                      <div className="mt-4 p-4 rounded-xl bg-accent-neon/10 border border-accent-neon/20">
+                        <h4 className="text-white font-semibold mb-2">Ваш план действий:</h4>
+                        <ul className="space-y-2">
+                          {lesson.checklist.map((item, itemIndex) => (
+                            <li key={itemIndex} className="flex items-start gap-2 text-white/80">
+                              <CheckCircle2 className="w-5 h-5 text-accent-neon flex-shrink-0 mt-0.5" />
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {hasBonus(lesson) && (
+                      <div className="mt-4 p-4 rounded-xl bg-accent-neon/10 border border-accent-neon/20">
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">📋</span>
+                          <div>
+                            <div className="font-semibold text-white">Бонус: {lesson.bonus.title}</div>
+                            <div className="text-sm text-white/60">{lesson.bonus.description}</div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </motion.div>
+                ))}
+                
+                {/* Final success message */}
+                {hasFullAccess && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    className="text-center p-8 rounded-2xl bg-gradient-to-r from-accent-neon/20 via-accent-electric/20 to-accent-gold/20 border-2 border-accent-neon/40"
+                  >
+                    <div className="text-6xl mb-4">🎊</div>
+                    <h3 className="text-2xl font-bold text-accent-neon mb-2">Поздравляем! Вы прошли весь курс!</h3>
+                    <p className="text-white/80 text-lg">Вы получили доступ к 100% контента курса</p>
+                    <p className="text-white/60 text-sm mt-2">Применяйте знания на практике и достигайте результатов!</p>
+                  </motion.div>
+                )}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Remaining Modules Preview - 25% (только если нет полного доступа) */}
+      {!hasFullAccess && paidModule4Data && paidModule5Data && (
+        <section className="relative py-20">
+          <div className="absolute inset-0 bg-gradient-to-b from-dark-900 via-dark-800 to-dark-900" />
+          <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-12"
+            >
+              <span className="badge badge-gold mb-4">⭐ Премиум контент</span>
+              <h3 className="font-display font-bold text-3xl text-white mb-4">
+                Оставшиеся модули курса (25%):
+              </h3>
+              <p className="text-white/60 text-lg max-w-2xl mx-auto">
+                Ещё 2 модуля с продвинутыми материалами доступны в полной версии
+              </p>
+            </motion.div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto mb-12">
+              <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
+                transition={{ delay: 0.1 }}
                 className="glass rounded-xl p-6 hover:border-accent-gold/50 transition-colors border border-white/10"
               >
                 <div className="flex items-start gap-4">
                   <div className="w-10 h-10 rounded-lg bg-accent-gold/20 flex items-center justify-center flex-shrink-0 text-accent-gold font-bold">
-                    {index + 5}
+                    5
                   </div>
                   <div>
-                    <h4 className="text-lg font-semibold text-white mb-2">{module.title}</h4>
-                    <p className="text-white/60 text-sm">{module.description}</p>
+                    <h4 className="text-lg font-semibold text-white mb-2">
+                      {paidModule4Data.moduleTitle.replace(/\(.*?\)/, '').trim()}
+                    </h4>
+                    <p className="text-white/60 text-sm">
+                      {paidModule4Data.lessons[0]?.title || 'Продвинутые техники и реальная жизнь'}
+                    </p>
                   </div>
                 </div>
               </motion.div>
-            ))}
-          </div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2 }}
+                className="glass rounded-xl p-6 hover:border-accent-gold/50 transition-colors border border-white/10"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-accent-gold/20 flex items-center justify-center flex-shrink-0 text-accent-gold font-bold">
+                    6
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-semibold text-white mb-2">
+                      {paidModule5Data.moduleTitle.replace(/\(.*?\)/, '').trim()}
+                    </h4>
+                    <p className="text-white/60 text-sm">
+                      {paidModule5Data.lessons[0]?.title || 'Долгосрочный успех и трансформация'}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
 
           {/* Course Summary */}
           <motion.div
@@ -3069,7 +3794,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
               </motion.div>
             </div>
             <div className="text-center mt-4 text-white/40">
-              + ещё 25% (модули 5-6) в полной версии
+              + ещё 25% (модули 5-6) в полной версии за {formatPrice(fullAccessPrice)}
             </div>
           </motion.div>
 
@@ -3112,6 +3837,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
           </motion.div>
         </div>
       </section>
+      )}
 
       {/* Payment Modal */}
       <PaymentModal

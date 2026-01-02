@@ -179,9 +179,11 @@ export async function POST(request: NextRequest) {
         })
         
         // Маппим методы оплаты на допустимые значения для БД
-        // В БД может быть ограниченный список, поэтому используем 'card' как fallback
-        const dbPaymentMethod = ['card', 'sbp', 'sber_pay', 'tinkoff_pay', 'yoomoney'].includes(paymentMethod || 'card') 
-          ? paymentMethod 
+        // ВАЖНО: Если метод 'sbp', используем 'card' как fallback из-за constraint
+        const rawPaymentMethod = paymentMethod || 'card'
+        // Используем 'card' для БД если метод не в списке разрешенных или если это sbp
+        const dbPaymentMethod = ['card', 'sbp', 'sber_pay', 'tinkoff_pay', 'yoomoney'].includes(rawPaymentMethod) 
+          ? (rawPaymentMethod === 'sbp' ? 'card' : rawPaymentMethod) // sbp -> card для БД
           : 'card'
         
         const { data: insertedPayment, error: insertError } = await supabase
@@ -191,14 +193,14 @@ export async function POST(request: NextRequest) {
           ...(courseId && { course_id: courseId }),
           amount: amount,
           currency: 'RUB',
-          payment_method: dbPaymentMethod || 'card',
+          payment_method: dbPaymentMethod, // Используем card для sbp
           status: 'pending',
           is_full_access: isFullAccess,
           metadata: {
             yookassa_payment_id: payment.id,
             confirmation_url: payment.confirmation.confirmation_url,
             type: type || 'course_purchase',
-            original_payment_method: paymentMethod, // Сохраняем оригинальный метод в metadata
+            original_payment_method: rawPaymentMethod, // Сохраняем оригинальный метод (sbp) в metadata
             ...(body.metadata || {})
           }
         })
