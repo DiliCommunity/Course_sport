@@ -31,12 +31,19 @@ export function ReferralSection({
     ? `${window.location.origin}/register?ref=${currentCode}`
     : ''
 
+  // Обновляем код когда он приходит из пропсов
+  useEffect(() => {
+    if (referralCode && referralCode !== currentCode) {
+      setCurrentCode(referralCode)
+    }
+  }, [referralCode])
+
   // Генерируем код если его нет но есть покупка
   useEffect(() => {
-    if (!currentCode && hasPurchasedCourse && !isGenerating) {
+    if (!currentCode && hasPurchasedCourse && !isGenerating && !referralCode) {
       generateReferralCode()
     }
-  }, [hasPurchasedCourse, currentCode])
+  }, [hasPurchasedCourse, currentCode, referralCode, isGenerating])
 
   const generateReferralCode = async () => {
     if (isGenerating) return
@@ -102,7 +109,7 @@ export function ReferralSection({
             <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
               <p className="text-amber-400 text-sm flex items-center gap-2">
                 <span className="text-lg">🔒</span>
-                Реферальная ссылка будет доступна после покупки первого курса
+                {error || 'Реферальная ссылка будет доступна после покупки первого курса'}
               </p>
             </div>
           ) : isGenerating ? (

@@ -57,11 +57,67 @@ export async function GET(request: NextRequest) {
     }
 
     // Получаем реферальный код пользователя
-    const { data: referralCode } = await supabase
+    let { data: referralCode } = await supabase
       .from('user_referral_codes')
       .select('*')
       .eq('user_id', user.id)
       .single()
+    
+    // Если кода нет, но есть enrollments (купленные курсы) - создаем код автоматически
+    if (!referralCode && enrollments && enrollments.length > 0) {
+      console.log('[Profile API] Нет реферального кода, но есть enrollments - создаем автоматически')
+      
+      const generateCode = () => {
+        const prefix = 'REF-'
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+        let code = prefix
+        for (let i = 0; i < 6; i++) {
+          code += chars.charAt(Math.floor(Math.random() * chars.length))
+        }
+        return code
+      }
+
+      let newRefCode = generateCode()
+      let isUnique = false
+      let attempts = 0
+
+      // Генерируем уникальный код
+      while (!isUnique && attempts < 10) {
+        const { data: check } = await supabase
+          .from('user_referral_codes')
+          .select('id')
+          .eq('referral_code', newRefCode)
+          .single()
+
+        if (!check) {
+          isUnique = true
+        } else {
+          newRefCode = generateCode()
+          attempts++
+        }
+      }
+
+      if (isUnique) {
+        const { data: createdCode, error: insertError } = await supabase
+          .from('user_referral_codes')
+          .insert({
+            user_id: user.id,
+            referral_code: newRefCode,
+            is_active: true,
+            total_uses: 0,
+            total_earned: 0
+          })
+          .select()
+          .single()
+
+        if (!insertError && createdCode) {
+          referralCode = createdCode
+          console.log(`✅ Автоматически создан реферальный код ${newRefCode} для пользователя ${user.id}`)
+        } else {
+          console.error('Ошибка создания реферального кода:', insertError)
+        }
+      }
+    }
 
     // Получаем рефералов (кого пригласил пользователь)
     const { data: referrals } = await supabase
@@ -125,16 +181,20 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // Проверяем есть ли ЛЮБАЯ транзакция (для реферальной ссылки)
-    // Реферальная ссылка доступна после первой оплаты
+    // Проверяем есть ли ЛЮБАЯ транзакция ИЛИ купленные курсы (для реферальной ссылки)
+    // Реферальная ссылка доступна после первой оплаты или если есть купленные курсы
     const hasAnyTransaction = (transactions?.length || 0) > 0
+    const hasEnrollments = (enrollments?.length || 0) > 0
+    const hasPurchasedCourse = hasAnyTransaction || hasEnrollments
 
     console.log('[Profile API] Data loaded:', {
       enrollments: formattedEnrollments.length,
       transactions: transactions?.length || 0,
       hasReferralCode: !!referralCode,
       referralCodeValue: referralCode?.referral_code,
-      hasAnyTransaction
+      hasAnyTransaction,
+      hasEnrollments,
+      hasPurchasedCourse
     })
 
     return NextResponse.json({
@@ -160,7 +220,7 @@ export async function GET(request: NextRequest) {
       },
       // ИСПРАВЛЕНО: было referralCode?.code, должно быть referral_code
       referralCode: referralCode?.referral_code || '',
-      hasPurchasedCourse: hasAnyTransaction, // Реферальная ссылка после ЛЮБОЙ транзакции
+      hasPurchasedCourse: hasPurchasedCourse, // Реферальная ссылка после ЛЮБОЙ транзакции или покупки курса
       referrals: referrals || [],
       referralStats: {
         total_referred: totalReferrals,

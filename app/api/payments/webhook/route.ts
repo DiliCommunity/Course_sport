@@ -92,6 +92,10 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
   const rawCourseId = metadata?.course_id
   const courseId = rawCourseId ? getCourseUUID(rawCourseId) : null
   
+  // Вычисляем основные значения заранее
+  const amountInKopecks = Math.round(parseFloat(payment.amount.value) * 100)
+  const paymentType = metadata?.type || 'course_purchase'
+  
   // КРИТИЧЕСКАЯ ПРОВЕРКА: не обрабатывали ли мы уже этот платеж (idempotency)
   // Ищем платежи с таким же yookassa_payment_id в metadata (любой статус, чтобы поймать все случаи)
   const { data: existingPayments } = await supabase
@@ -100,18 +104,15 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
     .eq('user_id', userId)
     .filter('metadata->>yookassa_payment_id', 'eq', paymentId)
   
-  // Если платеж уже существует и обработан - проверяем транзакции и выходим
+  // Если платеж уже существует и обработан - проверяем только наличие транзакций
+  // НЕ выходим полностью, чтобы убедиться что все создано (enrollments, транзакции)
   if (existingPayments && existingPayments.length > 0) {
     const existingPayment = existingPayments[0]
     
     if (existingPayment.status === 'completed') {
-      console.log('⚠️ Платеж уже был обработан ранее (completed), проверяем транзакции:', paymentId, existingPayment.id)
+      console.log('⚠️ Платеж уже был обработан ранее (completed), проверяем наличие транзакций:', paymentId, existingPayment.id)
       
-      // Дополнительная проверка: ищем транзакции связанные с этим платежом
-      const amountInKopecks = Math.round(parseFloat(payment.amount.value) * 100)
-      const paymentType = metadata?.type || 'course_purchase'
-      
-      // Для balance_topup ищем транзакцию пополнения
+      // Проверяем наличие транзакций
       if (paymentType === 'balance_topup') {
         const { count: balanceTxCount } = await supabase
           .from('transactions')
@@ -120,14 +121,16 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
           .eq('amount', amountInKopecks)
           .eq('type', 'earned')
           .eq('reference_type', 'balance_topup')
-          .gte('created_at', existingPayment.completed_at ? new Date(new Date(existingPayment.completed_at).getTime() - 60000).toISOString() : new Date(Date.now() - 3600000).toISOString())
+          .gte('created_at', existingPayment.completed_at ? new Date(new Date(existingPayment.completed_at).getTime() - 60000).toISOString() : new Date(Date.now() - 86400000).toISOString())
       
         if (balanceTxCount && balanceTxCount > 0) {
           console.log('✅ Транзакция пополнения уже существует для этого платежа, пропускаем полностью')
           return
+        } else {
+          console.log('⚠️ Платеж completed но транзакции нет - будем создавать')
         }
       } else if (courseId) {
-        // Для покупки курса ищем транзакцию покупки
+        // Проверяем наличие транзакции и enrollment
         const { count: purchaseTxCount } = await supabase
           .from('transactions')
           .select('id', { count: 'exact', head: true })
@@ -136,38 +139,39 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
           .eq('reference_type', 'course_purchase')
           .eq('amount', amountInKopecks)
           .eq('type', 'spent')
-          .gte('created_at', existingPayment.completed_at ? new Date(new Date(existingPayment.completed_at).getTime() - 60000).toISOString() : new Date(Date.now() - 3600000).toISOString())
+          .gte('created_at', existingPayment.completed_at ? new Date(new Date(existingPayment.completed_at).getTime() - 60000).toISOString() : new Date(Date.now() - 86400000).toISOString())
         
-        if (purchaseTxCount && purchaseTxCount > 0) {
-          console.log('✅ Транзакция покупки уже существует для этого платежа, пропускаем полностью')
+        const { count: enrollmentCount } = await supabase
+          .from('enrollments')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', userId)
+          .eq('course_id', courseId)
+        
+        if (purchaseTxCount && purchaseTxCount > 0 && enrollmentCount && enrollmentCount > 0) {
+          console.log('✅ Транзакция и enrollment уже существуют для этого платежа, пропускаем полностью')
           return
+        } else {
+          console.log('⚠️ Платеж completed но транзакция или enrollment отсутствуют - будем создавать', { purchaseTxCount, enrollmentCount })
         }
       }
+      // Продолжаем обработку чтобы создать недостающие транзакции/enrollments
+    } else {
+      // Если статус pending, но мы уже начали обработку - проверяем есть ли транзакции
+      const { data: existingTransactions } = await supabase
+        .from('transactions')
+        .select('id, type, amount, reference_type')
+        .eq('user_id', userId)
+        .eq('amount', amountInKopecks)
+        .gte('created_at', new Date(Date.now() - 3600000).toISOString()) // За последний час
+        .limit(10)
       
-      // Если платеж completed но транзакций нет - это странно, но пропускаем чтобы не создавать дубликаты
-      console.log('⚠️ Платеж completed но транзакций не найдено, пропускаем для безопасности')
-      return
-    }
-    
-    // Если статус pending, но мы уже начали обработку - это может быть повторный webhook
-    // Проверяем есть ли транзакции для этого платежа по сумме и времени
-    const amountInKopecks = Math.round(parseFloat(payment.amount.value) * 100)
-    const { data: existingTransactions } = await supabase
-      .from('transactions')
-      .select('id, type, amount, reference_type')
-      .eq('user_id', userId)
-      .eq('amount', amountInKopecks)
-      .gte('created_at', new Date(Date.now() - 3600000).toISOString()) // За последний час
-      .limit(10)
-    
-    // Если найдены транзакции с такой же суммой за последний час - это дублирование
-    if (existingTransactions && existingTransactions.length > 0) {
-      console.log('⚠️ Обнаружены транзакции с такой же суммой за последний час, пропускаем обработку:', existingTransactions)
-      return // ВАЖНО: выходим полностью, не продолжаем обработку
+      // Если найдены транзакции с такой же суммой за последний час - это дублирование
+      if (existingTransactions && existingTransactions.length > 0) {
+        console.log('⚠️ Обнаружены транзакции с такой же суммой за последний час для pending платежа, пропускаем:', existingTransactions)
+        return
+      }
     }
   }
-
-  const paymentType = metadata?.type || 'course_purchase'
 
   console.log('=== handlePaymentSuccess ===')
   console.log('Payment ID:', payment.id)
@@ -182,7 +186,6 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
     return
   }
 
-  const amountInKopecks = Math.round(parseFloat(payment.amount.value) * 100)
   console.log('Amount in kopecks:', amountInKopecks)
 
   // Обновляем статус платежа - находим конкретный платеж по yookassa_payment_id
@@ -218,16 +221,27 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
     .maybeSingle()
 
   if (paymentToUpdate) {
-    // Обновляем найденный платеж
+    // Обновляем найденный платеж (даже если уже completed - обновим metadata)
     if (paymentToUpdate.status === 'completed') {
-      console.log('⚠️ Платеж уже имеет статус completed, пропускаем обновление:', paymentId)
-      return
+      console.log('⚠️ Платеж уже имеет статус completed, обновляем metadata и продолжаем:', paymentId)
+      // Обновляем только metadata, не меняя статус
+      await supabase
+        .from('payments')
+        .update({
+          metadata: {
+            ...existingMetadata,
+            yookassa_payment_id: payment.id,
+            paid: payment.paid
+          }
+        })
+        .eq('id', paymentToUpdate.id)
+    } else {
+      await supabase
+        .from('payments')
+        .update(updateData)
+        .eq('id', paymentToUpdate.id)
+      console.log('✅ Платеж обновлен:', paymentToUpdate.id)
     }
-    await supabase
-      .from('payments')
-      .update(updateData)
-      .eq('id', paymentToUpdate.id)
-    console.log('✅ Платеж обновлен:', paymentToUpdate.id)
   } else {
     // Если платеж не найден по yookassa_payment_id, ищем по другим критериям (fallback)
     console.log('⚠️ Платеж не найден по yookassa_payment_id, используем fallback поиск')
@@ -366,17 +380,26 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
         console.log('⚠️ Для этого платежа (yookassa_payment_id=' + paymentId + ') уже создана транзакция, пропускаем')
         return
       }
-    }
+      }
       
-      await supabase.from('transactions').insert({
-        user_id: userId,
-        type: 'earned',
-        amount: amountInKopecks,
-        description: `Пополнение баланса: ${payment.description}`,
-        reference_type: 'balance_topup',
-        reference_id: paymentRecord?.id || null // Сохраняем ID платежа для связи
-      })
-      console.log('✅ Транзакция пополнения создана')
+      const { data: newTransaction, error: transactionInsertError } = await supabase
+        .from('transactions')
+        .insert({
+          user_id: userId,
+          type: 'earned',
+          amount: amountInKopecks,
+          description: `Пополнение баланса: ${payment.description}`,
+          reference_type: 'balance_topup',
+          reference_id: paymentRecord?.id || null // Сохраняем ID платежа для связи
+        })
+        .select()
+        .single()
+      
+      if (transactionInsertError) {
+        console.error('❌ Ошибка создания транзакции пополнения:', transactionInsertError)
+      } else {
+        console.log('✅ Транзакция пополнения создана:', 'ID:', newTransaction.id, 'Сумма:', amountInKopecks)
+      }
     } else {
       console.log('⚠️ Транзакция пополнения уже существует, пропускаем создание:', existingBalanceTransaction.id)
       // Проверяем, не нужно ли откатить начисление баланса (если оно было сделано до проверки транзакции)
@@ -485,9 +508,8 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
       .eq('status', 'completed')
       .maybeSingle()
     
-    // Создаем транзакцию ПЕРЕД проверкой реферального кода
-    // Проверяем, не создана ли уже транзакция для этого платежа (защита от дублирования)
-    // Используем более строгую проверку - по платежу через payment_id
+    // Создаем транзакцию - проверка на дублирование уже выполнена выше в начале функции
+    // Проверяем только для этого конкретного платежа и курса
     const { data: existingTransaction } = await supabase
       .from('transactions')
       .select('id')
@@ -496,64 +518,31 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
       .eq('reference_type', 'course_purchase')
       .eq('amount', amountInKopecks)
       .eq('type', 'spent')
-      .gte('created_at', new Date(Date.now() - 3600000).toISOString()) // За последний час
+      .gte('created_at', new Date(Date.now() - 86400000).toISOString()) // За последние 24 часа
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle()
     
     if (!existingTransaction) {
-      // ФИНАЛЬНАЯ ПРОВЕРКА: проверяем что для этого конкретного платежа (по yookassa_payment_id) еще нет транзакции
-      const { data: paymentRecordForCheck } = await supabase
-        .from('payments')
-        .select('id, completed_at')
-        .eq('user_id', userId)
-        .filter('metadata->>yookassa_payment_id', 'eq', paymentId)
-        .eq('status', 'completed')
-        .maybeSingle()
       
-      if (paymentRecordForCheck) {
-        // Если платеж уже completed, проверяем есть ли транзакция покупки созданная после его завершения
-        const { count: txCountForPayment } = await supabase
-          .from('transactions')
-          .select('id', { count: 'exact', head: true })
-          .eq('user_id', userId)
-          .eq('reference_id', courseId)
-          .eq('reference_type', 'course_purchase')
-          .eq('amount', amountInKopecks)
-          .eq('type', 'spent')
-          .gte('created_at', paymentRecordForCheck.completed_at ? new Date(new Date(paymentRecordForCheck.completed_at).getTime() - 60000).toISOString() : new Date(Date.now() - 3600000).toISOString())
-        
-        if (txCountForPayment && txCountForPayment > 0) {
-          console.log('⚠️ Для этого платежа (yookassa_payment_id=' + paymentId + ') уже создана транзакция покупки, пропускаем')
-          return
-        }
-      }
-      
-      // Дополнительная проверка: ищем другие транзакции с такой же суммой за последний час
-      const { count: similarTransactionsCount } = await supabase
+      const { data: newTransaction, error: transactionInsertError } = await supabase
         .from('transactions')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_id', userId)
-        .eq('amount', amountInKopecks)
-        .eq('type', 'spent')
-        .eq('reference_type', 'course_purchase')
-        .eq('reference_id', courseId)
-        .gte('created_at', new Date(Date.now() - 3600000).toISOString())
+        .insert({
+          user_id: userId,
+          type: 'spent',
+          amount: amountInKopecks,
+          description: `Оплата курса: ${payment.description}`,
+          reference_id: courseId,
+          reference_type: 'course_purchase'
+        })
+        .select()
+        .single()
       
-      if (similarTransactionsCount && similarTransactionsCount > 0) {
-        console.log('⚠️ Обнаружены транзакции покупки этого курса с такой же суммой, пропускаем')
-        return
+      if (transactionInsertError) {
+        console.error('❌ Ошибка создания транзакции:', transactionInsertError)
+      } else {
+        console.log('✅ Транзакция создана для курса:', courseId, 'ID:', newTransaction.id, 'Сумма:', amountInKopecks)
       }
-      
-      await supabase.from('transactions').insert({
-        user_id: userId,
-        type: 'spent',
-        amount: amountInKopecks,
-        description: `Оплата курса: ${payment.description}`,
-        reference_id: courseId,
-        reference_type: 'course_purchase'
-      })
-      console.log('✅ Транзакция создана для курса:', courseId)
     } else {
       console.log('⚠️ Транзакция уже существует, пропускаем создание:', existingTransaction.id)
       // НЕ возвращаемся, так как реферальная комиссия может быть не начислена
