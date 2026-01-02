@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { getCourseUUID } from '@/lib/constants'
 
 export const dynamic = 'force-dynamic'
@@ -146,34 +146,39 @@ export async function POST(request: NextRequest) {
     const payment: YooKassaPayment = await response.json()
 
     // Сохраняем платеж в БД
+    // Используем createAdminClient чтобы гарантировать сохранение (обход RLS)
     if (userId) {
-      const supabase = await createClient()
+      const supabase = createAdminClient()
       
-      // Определяем полный доступ: если это покупка курса (не модуля) и цена = полной цене курса
-      let isFullAccess = false
-      if (courseId && type === 'course_purchase') {
-        // Получаем цену курса из БД
-        const { data: courseData } = await supabase
-          .from('courses')
-          .select('price')
-          .eq('id', courseId)
-          .single()
+      if (!supabase) {
+        console.error('❌ Не удалось создать admin client для сохранения платежа')
+        // Продолжаем - webhook создаст платеж
+      } else {
+        // Определяем полный доступ: если это покупка курса (не модуля) и цена = полной цене курса
+        let isFullAccess = false
+        if (courseId && type === 'course_purchase') {
+          // Получаем цену курса из БД
+          const { data: courseData } = await supabase
+            .from('courses')
+            .select('price')
+            .eq('id', courseId)
+            .single()
         
-        // Если цена совпадает с полной ценой курса - это полный доступ
-        // Или если в metadata явно указано is_full_access
-        const metadata = body.metadata || {}
-        isFullAccess = metadata.is_full_access === true || 
-                      (courseData ? amount >= courseData.price : false)
-      }
-      
-      console.log('💾 Сохраняем платеж в БД...', {
-        userId,
-        courseId,
-        amount,
-        yookassaPaymentId: payment.id
-      })
-      
-      const { data: insertedPayment, error: insertError } = await supabase
+          // Если цена совпадает с полной ценой курса - это полный доступ
+          // Или если в metadata явно указано is_full_access
+          const metadata = body.metadata || {}
+          isFullAccess = metadata.is_full_access === true || 
+                        (courseData ? amount >= courseData.price : false)
+        }
+        
+        console.log('💾 Сохраняем платеж в БД...', {
+          userId,
+          courseId,
+          amount,
+          yookassaPaymentId: payment.id
+        })
+        
+        const { data: insertedPayment, error: insertError } = await supabase
         .from('payments')
         .insert({
           user_id: userId,
@@ -204,15 +209,16 @@ export async function POST(request: NextRequest) {
         // Не прерываем процесс, так как платеж уже создан в YooKassa
         // Webhook все равно придет и создаст запись
       } else {
-        console.log('✅ Платеж успешно сохранен в БД:', insertedPayment.id)
-        console.log('📋 Данные сохраненного платежа:', {
-          id: insertedPayment.id,
-          user_id: insertedPayment.user_id,
-          course_id: insertedPayment.course_id,
-          amount: insertedPayment.amount,
-          status: insertedPayment.status,
-          metadata: insertedPayment.metadata
-        })
+          console.log('✅ Платеж успешно сохранен в БД:', insertedPayment.id)
+          console.log('📋 Данные сохраненного платежа:', {
+            id: insertedPayment.id,
+            user_id: insertedPayment.user_id,
+            course_id: insertedPayment.course_id,
+            amount: insertedPayment.amount,
+            status: insertedPayment.status,
+            metadata: insertedPayment.metadata
+          })
+        }
       }
     } else {
       console.warn('⚠️ userId отсутствует, платеж не сохранен в БД (ожидаем webhook)')
