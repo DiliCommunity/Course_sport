@@ -37,6 +37,9 @@ export default function LoginPage() {
     setError(null)
 
     try {
+      // Получаем реферальный код из sessionStorage (если есть)
+      const referralCode = typeof window !== 'undefined' ? sessionStorage.getItem('pending_referral') : null
+      
       const response = await fetch('/api/auth/telegram', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -47,8 +50,14 @@ export default function LoginPage() {
           last_name: telegramUser.last_name,
           username: telegramUser.username,
           photo_url: telegramUser.photo_url,
+          referralCode: referralCode || null,
         }),
       })
+      
+      // Если реферальный код был использован - удаляем его
+      if (referralCode && response.ok) {
+        sessionStorage.removeItem('pending_referral')
+      }
 
       const data = await response.json()
 

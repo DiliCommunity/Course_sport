@@ -66,6 +66,69 @@ export async function POST(request: NextRequest) {
         .eq('id', userId)
         
       console.log('Telegram user logged in:', userId)
+      
+      // Обрабатываем реферальный код если он есть (для существующих пользователей)
+      // Получаем реферальный код из body (может быть передан с клиента)
+      const referralCode = body.referralCode || body.referral_code
+      
+      if (referralCode) {
+        try {
+          // Проверяем, не привязан ли уже реферер у этого пользователя
+          const { data: existingReferral } = await supabase
+            .from('referrals')
+            .select('id, referrer_id')
+            .eq('referred_id', userId)
+            .single()
+          
+          // Если реферера еще нет и код валидный - создаем связь
+          if (!existingReferral) {
+            const { data: referralOwner } = await supabase
+              .from('user_referral_codes')
+              .select('user_id')
+              .eq('referral_code', referralCode)
+              .eq('is_active', true)
+              .single()
+
+            if (referralOwner && referralOwner.user_id !== userId) {
+              const COMMISSION_PERCENT = 30.00
+
+              // Создаем запись о реферале с 30% комиссией
+              await supabase
+                .from('referrals')
+                .insert({
+                  referrer_id: referralOwner.user_id,
+                  referred_id: userId,
+                  referral_code: referralCode,
+                  status: 'active',
+                  referred_bonus: 0,
+                  referrer_earned: 0,
+                  commission_percent: COMMISSION_PERCENT
+                })
+
+              // Обновляем статистику использования кода
+              const { data: currentCode } = await supabase
+                .from('user_referral_codes')
+                .select('total_uses')
+                .eq('referral_code', referralCode)
+                .single()
+
+              await supabase
+                .from('user_referral_codes')
+                .update({ 
+                  total_uses: (currentCode?.total_uses || 0) + 1
+                })
+                .eq('referral_code', referralCode)
+
+              console.log(`✅ Реферальная связь создана для существующего пользователя: ${referralCode}, комиссия ${COMMISSION_PERCENT}%`)
+            }
+          } else {
+            console.log('⚠️ У пользователя уже есть реферер, пропускаем обработку кода:', referralCode)
+          }
+        } catch (refError) {
+          console.error('Referral processing error (existing user):', refError)
+          // Не блокируем авторизацию если реферальный код не найден
+        }
+      }
     } else {
       // Создаём нового пользователя
       isNewUser = true
@@ -98,6 +161,57 @@ export async function POST(request: NextRequest) {
       }
 
       console.log('New Telegram user created:', userId)
+      
+      // Обрабатываем реферальный код для нового пользователя
+      const referralCode = body.referralCode || body.referral_code
+      
+      if (referralCode) {
+        try {
+          // Находим владельца реферального кода
+          const { data: referralOwner } = await supabase
+            .from('user_referral_codes')
+            .select('user_id')
+            .eq('referral_code', referralCode)
+            .eq('is_active', true)
+            .single()
+
+          if (referralOwner && referralOwner.user_id !== userId) {
+            const COMMISSION_PERCENT = 30.00
+
+            // Создаем запись о реферале с 30% комиссией
+            await supabase
+              .from('referrals')
+              .insert({
+                referrer_id: referralOwner.user_id,
+                referred_id: userId,
+                referral_code: referralCode,
+                status: 'active',
+                referred_bonus: 0,
+                referrer_earned: 0,
+                commission_percent: COMMISSION_PERCENT
+              })
+
+            // Обновляем статистику использования кода
+            const { data: currentCode } = await supabase
+              .from('user_referral_codes')
+              .select('total_uses')
+              .eq('referral_code', referralCode)
+              .single()
+
+            await supabase
+              .from('user_referral_codes')
+              .update({ 
+                total_uses: (currentCode?.total_uses || 0) + 1
+              })
+              .eq('referral_code', referralCode)
+
+            console.log(`✅ Реферальная связь создана для нового пользователя: ${referralCode}, комиссия ${COMMISSION_PERCENT}%`)
+          }
+        } catch (refError) {
+          console.error('Referral processing error (new user):', refError)
+          // Не блокируем регистрацию если реферальный код не найден
+        }
+      }
     }
 
     // Создаём сессию

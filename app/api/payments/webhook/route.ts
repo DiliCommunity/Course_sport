@@ -559,10 +559,15 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
       // НЕ возвращаемся, так как реферальная комиссия может быть не начислена
     }
 
-    // Генерируем реферальный код после ЛЮБОЙ первой транзакции если его нет
-    // Проверяем есть ли уже транзакции (не только enrollments!)
+    // Генерируем реферальный код после ЛЮБОЙ первой транзакции или покупки курса если его нет
+    // Проверяем есть ли транзакции ИЛИ enrollments (купленные курсы)
     const { count: transactionsCount } = await supabase
       .from('transactions')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+
+    const { count: enrollmentsCount } = await supabase
+      .from('enrollments')
       .select('id', { count: 'exact', head: true })
       .eq('user_id', userId)
 
@@ -572,8 +577,9 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
       .eq('user_id', userId)
       .single()
 
-    // Создаём реферальный код если есть транзакции но нет кода
-    if ((transactionsCount || 0) > 0 && !existingRefCode) {
+    // Создаём реферальный код если есть транзакции ИЛИ enrollments, но нет кода
+    const hasEligibility = (transactionsCount || 0) > 0 || (enrollmentsCount || 0) > 0
+    if (hasEligibility && !existingRefCode) {
       // Генерируем код
       const generateCode = () => {
         const prefix = 'REF-'

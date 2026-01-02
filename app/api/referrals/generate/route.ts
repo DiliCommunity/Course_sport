@@ -18,22 +18,31 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Проверяем, есть ли ЛЮБАЯ транзакция (не только покупка курса!)
+    // Проверяем, есть ли транзакции ИЛИ купленные курсы (enrollments)
+    // Это важно после очистки транзакций - пользователи с курсами тоже должны иметь реферальный код
     const { count: transactionsCount, error: transactionsError } = await supabase
       .from('transactions')
       .select('id', { count: 'exact', head: true })
       .eq('user_id', user.id)
 
-    console.log('[Referral Generate] Checking transactions:', { 
+    const { count: enrollmentsCount, error: enrollmentsError } = await supabase
+      .from('enrollments')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+
+    console.log('[Referral Generate] Checking eligibility:', { 
       userId: user.id, 
       transactionsCount: transactionsCount || 0,
-      error: transactionsError 
+      enrollmentsCount: enrollmentsCount || 0,
+      transactionsError,
+      enrollmentsError
     })
 
-    if ((transactionsCount || 0) === 0) {
+    // Реферальный код доступен если есть транзакции ИЛИ купленные курсы
+    if ((transactionsCount || 0) === 0 && (enrollmentsCount || 0) === 0) {
       return NextResponse.json({
         success: false,
-        error: 'NO_TRANSACTION',
+        error: 'NO_ELIGIBILITY',
         message: 'Реферальная ссылка будет доступна после первой оплаты',
       }, { status: 403 })
     }

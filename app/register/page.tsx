@@ -42,6 +42,10 @@ export default function RegisterPage() {
     setError(null)
 
     try {
+      // Получаем реферальный код из URL или sessionStorage
+      const urlParams = new URLSearchParams(window.location.search)
+      const referralCode = urlParams.get('ref') || sessionStorage.getItem('pending_referral')
+      
       const response = await fetch('/api/auth/telegram', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -52,6 +56,7 @@ export default function RegisterPage() {
           last_name: telegramUser.last_name,
           username: telegramUser.username,
           photo_url: telegramUser.photo_url,
+          referralCode: referralCode || null,
         }),
       })
 
@@ -59,6 +64,11 @@ export default function RegisterPage() {
 
       if (!response.ok) {
         throw new Error(data.error || 'Ошибка регистрации через Telegram')
+      }
+
+      // Удаляем использованный реферальный код
+      if (referralCode) {
+        sessionStorage.removeItem('pending_referral')
       }
 
       setSuccess(true)

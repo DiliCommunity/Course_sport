@@ -84,6 +84,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     if (!telegramUser) return false
 
     try {
+      // Получаем реферальный код из sessionStorage (если есть)
+      const referralCode = typeof window !== 'undefined' ? sessionStorage.getItem('pending_referral') : null
+      
       const response = await fetch('/api/auth/telegram', {
         method: 'POST',
         headers: {
@@ -96,8 +99,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
           last_name: telegramUser.last_name,
           username: telegramUser.username,
           photo_url: telegramUser.photo_url,
+          referralCode: referralCode || null,
         }),
       })
+      
+      // Если реферальный код был использован - удаляем его
+      if (referralCode && response.ok) {
+        sessionStorage.removeItem('pending_referral')
+      }
 
       if (!response.ok) {
         console.error('Telegram auth failed:', await response.text())

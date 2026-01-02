@@ -86,6 +86,9 @@
     // Автоматическая авторизация через Telegram
     async function autoAuthWithTelegram(telegramUser, tg) {
         try {
+            // Получаем реферальный код из sessionStorage (если есть)
+            const referralCode = sessionStorage.getItem('pending_referral');
+            
             const response = await fetch('/api/auth/telegram', {
                 method: 'POST',
                 headers: {
@@ -98,9 +101,15 @@
                     username: telegramUser.username,
                     photo_url: telegramUser.photo_url,
                     phone_number: telegramUser.phone_number,
+                    referralCode: referralCode || null,
                 }),
                 credentials: 'include',
             });
+            
+            // Если реферальный код был использован - удаляем его
+            if (referralCode && response.ok) {
+                sessionStorage.removeItem('pending_referral');
+            }
 
             const data = await response.json();
 
