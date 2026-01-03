@@ -143,8 +143,6 @@ export async function POST(request: NextRequest) {
             } else {
               console.log(`⚠️ У пользователя уже есть реферер: ${existingReferral.referrer_id}`)
             }
-          } else {
-            console.log('⚠️ У пользователя уже есть реферер, пропускаем обработку кода:', referralCode)
           }
         } catch (refError) {
           console.error('Referral processing error (existing user):', refError)
