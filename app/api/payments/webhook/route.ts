@@ -189,8 +189,9 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
     }
   }
 
-  // Создаем enrollment для курса
-  if (courseId) {
+  // Создаем enrollment для курса (только для course_purchase, не для final_modules)
+  // Для final_modules enrollment уже должен существовать
+  if (courseId && paymentType !== 'final_modules') {
     const { data: existingEnrollment } = await supabase
       .from('enrollments')
       .select('id')
@@ -219,6 +220,11 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
     } else {
       console.log('✅ Enrollment уже существует')
     }
+  }
+  
+  // Для final_modules - только логируем (доступ проверяется через payments)
+  if (paymentType === 'final_modules') {
+    console.log('✅ Оплата финальных модулей успешна, доступ предоставлен')
   }
 
   // Создаем транзакцию

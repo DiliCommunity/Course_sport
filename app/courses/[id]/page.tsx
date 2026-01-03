@@ -3412,9 +3412,9 @@ export default function CoursePage({ params }: { params: { id: string } }) {
         </div>
       </section>
 
-      {/* Paid Module 4 Section - 12.5% (только для полного доступа) */}
-      {paidModule4Data && (
-        <section id="paid-module-4" className="relative py-20">
+      {/* Final Modules Section - 25% (объединенные модули 5-6) */}
+      {paidModule4Data && paidModule5Data && (
+        <section id="final-modules" className="relative py-20">
           <div className="absolute inset-0 bg-gradient-to-b from-dark-800 via-dark-900 to-dark-800" />
           <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
@@ -3423,12 +3423,12 @@ export default function CoursePage({ params }: { params: { id: string } }) {
               viewport={{ once: true }}
               className="text-center mb-12"
             >
-              <span className="badge badge-gold mb-4">⭐ Премиум модуль</span>
+              <span className="badge badge-gold mb-4">🏆 Финальные модули</span>
               <h2 className="font-display font-bold text-3xl sm:text-4xl text-white mb-4">
-                {paidModule4Data.moduleTitle}
+                Модули 5-6: Завершение курса (25%)
               </h2>
               <p className="text-white/60 text-lg max-w-2xl mx-auto">
-                Продвинутые техники и реальная жизнь
+                Продвинутые техники и полная трансформация — доступны после прохождения 70% модулей 2-4
               </p>
             </motion.div>
 
@@ -3440,268 +3440,34 @@ export default function CoursePage({ params }: { params: { id: string } }) {
                 className="max-w-2xl mx-auto text-center glass rounded-2xl p-12 border-2 border-accent-gold/30"
               >
                 <div className="text-6xl mb-6">🔒</div>
-                <h3 className="text-2xl font-bold text-white mb-4">Премиум модуль</h3>
-                <p className="text-white/60 mb-8">
-                  Ещё 12.5% курса доступны в полной версии
+                <h3 className="text-2xl font-bold text-white mb-4">Финальные модули</h3>
+                <p className="text-white/60 mb-6">
+                  Последние 25% курса (модули 5-6) доступны после прохождения 70% модулей 2-4
                 </p>
-                <Button size="lg" onClick={() => {
-                  setIsFullAccessPrice(true)
-                  setIsPaymentModalOpen(true)
-                }}>
-                  Получить полный доступ — {formatPrice(fullAccessPrice)}
-                </Button>
+                <Link href={`/courses/${params.id}/final`}>
+                  <Button size="lg" className="w-full">
+                    Перейти к финальным модулям
+                  </Button>
+                </Link>
               </motion.div>
             ) : (
-              <div className="space-y-6 max-w-4xl mx-auto">
-                {paidModule4Data.imageUrl && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                    className="mb-8"
-                  >
-                    <Image
-                      src={paidModule4Data.imageUrl}
-                      alt={paidModule4Data.moduleTitle}
-                      width={1200}
-                      height={600}
-                      className="rounded-2xl w-full h-auto object-cover"
-                    />
-                  </motion.div>
-                )}
-                {paidModule4Data.lessons.map((lesson, index) => (
-                  <motion.div
-                    key={lesson.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: index * 0.1 }}
-                    className="glass rounded-2xl p-6 md:p-8 border-2 border-accent-gold/30"
-                  >
-                    <div className="flex items-start gap-4 mb-4">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-gold to-accent-electric flex items-center justify-center flex-shrink-0">
-                        <span className="text-2xl">⭐</span>
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <h3 className="text-xl font-bold text-white">{lesson.title}</h3>
-                          <span className="badge badge-gold text-xs">ПРЕМИУМ</span>
-                        </div>
-                        {lesson.duration && (
-                          <span className="text-white/60 text-sm flex items-center gap-1">
-                            <Clock className="w-4 h-4" />
-                            {formatDuration(lesson.duration)}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="prose prose-invert max-w-none">
-                      {lesson.content.split('\n\n').map((paragraph, pIndex) => {
-                        const parts: (string | JSX.Element)[] = []
-                        let lastIndex = 0
-                        const boldRegex = /\*\*(.*?)\*\*/g
-                        let match
-                        
-                        while ((match = boldRegex.exec(paragraph)) !== null) {
-                          if (match.index > lastIndex) {
-                            parts.push(paragraph.slice(lastIndex, match.index))
-                          }
-                          parts.push(<strong key={`bold-m4-${pIndex}-${match.index}`}>{match[1]}</strong>)
-                          lastIndex = match.index + match[0].length
-                        }
-                        if (lastIndex < paragraph.length) {
-                          parts.push(paragraph.slice(lastIndex))
-                        }
-                        
-                        return (
-                          <p key={pIndex} className="text-white/70 leading-relaxed mb-4 whitespace-pre-line">
-                            {parts.length > 0 ? parts : paragraph}
-                          </p>
-                        )
-                      })}
-                    </div>
-                    {hasChecklist(lesson) && (
-                      <div className="mt-4 p-4 rounded-xl bg-accent-gold/10 border border-accent-gold/20">
-                        <h4 className="text-white font-semibold mb-2">Ваш план действий:</h4>
-                        <ul className="space-y-2">
-                          {lesson.checklist.map((item, itemIndex) => (
-                            <li key={itemIndex} className="flex items-start gap-2 text-white/80">
-                              <CheckCircle2 className="w-5 h-5 text-accent-gold flex-shrink-0 mt-0.5" />
-                              <span>{item}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    {hasBonus(lesson) && (
-                      <div className="mt-4 p-4 rounded-xl bg-accent-gold/10 border border-accent-gold/20">
-                        <div className="flex items-center gap-3">
-                          <span className="text-2xl">📋</span>
-                          <div>
-                            <div className="font-semibold text-white">Бонус: {lesson.bonus.title}</div>
-                            <div className="text-sm text-white/60">{lesson.bonus.description}</div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </motion.div>
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
-      )}
-
-      {/* Paid Module 5 Section - 12.5% (только для полного доступа) */}
-      {paidModule5Data && (
-        <section id="paid-module-5" className="relative py-20">
-          <div className="absolute inset-0 bg-gradient-to-b from-dark-900 via-dark-800 to-dark-900" />
-          <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-12"
-            >
-              <span className="badge badge-neon mb-4">🏆 Финальный модуль</span>
-              <h2 className="font-display font-bold text-3xl sm:text-4xl text-white mb-4">
-                {paidModule5Data.moduleTitle}
-              </h2>
-              <p className="text-white/60 text-lg max-w-2xl mx-auto">
-                Долгосрочный успех и трансформация
-              </p>
-            </motion.div>
-
-            {!hasFullAccess ? (
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
-                className="max-w-2xl mx-auto text-center glass rounded-2xl p-12 border-2 border-accent-neon/30"
+                className="max-w-2xl mx-auto text-center glass rounded-2xl p-12 border-2 border-accent-gold/30"
               >
-                <div className="text-6xl mb-6">🔒</div>
-                <h3 className="text-2xl font-bold text-white mb-4">Финальный модуль</h3>
-                <p className="text-white/60 mb-8">
-                  Последние 12.5% курса доступны в полной версии
+                <div className="text-5xl mb-6">✅</div>
+                <h3 className="text-2xl font-bold text-white mb-4">Доступ открыт!</h3>
+                <p className="text-white/60 mb-6">
+                  У вас есть доступ к финальным модулям (5-6)
                 </p>
-                <Button size="lg" onClick={() => {
-                  setIsFullAccessPrice(true)
-                  setIsPaymentModalOpen(true)
-                }}>
-                  Получить полный доступ — {formatPrice(fullAccessPrice)}
-                </Button>
+                <Link href={`/courses/${params.id}/final`}>
+                  <Button size="lg" className="w-full">
+                    Перейти к финальным модулям
+                  </Button>
+                </Link>
               </motion.div>
-            ) : (
-              <div className="space-y-6 max-w-4xl mx-auto">
-                {paidModule5Data.imageUrl && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                    className="mb-8"
-                  >
-                    <Image
-                      src={paidModule5Data.imageUrl}
-                      alt={paidModule5Data.moduleTitle}
-                      width={1200}
-                      height={600}
-                      className="rounded-2xl w-full h-auto object-cover"
-                    />
-                  </motion.div>
-                )}
-                {paidModule5Data.lessons.map((lesson, index) => (
-                  <motion.div
-                    key={lesson.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: index * 0.1 }}
-                    className="glass rounded-2xl p-6 md:p-8 border-2 border-accent-neon/30"
-                  >
-                    <div className="flex items-start gap-4 mb-4">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-neon to-accent-electric flex items-center justify-center flex-shrink-0">
-                        <span className="text-2xl">🏆</span>
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <h3 className="text-xl font-bold text-white">{lesson.title}</h3>
-                          <span className="badge badge-neon text-xs">ФИНАЛ</span>
-                        </div>
-                        {lesson.duration && (
-                          <span className="text-white/60 text-sm flex items-center gap-1">
-                            <Clock className="w-4 h-4" />
-                            {formatDuration(lesson.duration)}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="prose prose-invert max-w-none">
-                      {lesson.content.split('\n\n').map((paragraph, pIndex) => {
-                        const parts: (string | JSX.Element)[] = []
-                        let lastIndex = 0
-                        const boldRegex = /\*\*(.*?)\*\*/g
-                        let match
-                        
-                        while ((match = boldRegex.exec(paragraph)) !== null) {
-                          if (match.index > lastIndex) {
-                            parts.push(paragraph.slice(lastIndex, match.index))
-                          }
-                          parts.push(<strong key={`bold-m5-${pIndex}-${match.index}`}>{match[1]}</strong>)
-                          lastIndex = match.index + match[0].length
-                        }
-                        if (lastIndex < paragraph.length) {
-                          parts.push(paragraph.slice(lastIndex))
-                        }
-                        
-                        return (
-                          <p key={pIndex} className="text-white/70 leading-relaxed mb-4 whitespace-pre-line">
-                            {parts.length > 0 ? parts : paragraph}
-                          </p>
-                        )
-                      })}
-                    </div>
-                    {hasChecklist(lesson) && (
-                      <div className="mt-4 p-4 rounded-xl bg-accent-neon/10 border border-accent-neon/20">
-                        <h4 className="text-white font-semibold mb-2">Ваш план действий:</h4>
-                        <ul className="space-y-2">
-                          {lesson.checklist.map((item, itemIndex) => (
-                            <li key={itemIndex} className="flex items-start gap-2 text-white/80">
-                              <CheckCircle2 className="w-5 h-5 text-accent-neon flex-shrink-0 mt-0.5" />
-                              <span>{item}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    {hasBonus(lesson) && (
-                      <div className="mt-4 p-4 rounded-xl bg-accent-neon/10 border border-accent-neon/20">
-                        <div className="flex items-center gap-3">
-                          <span className="text-2xl">📋</span>
-                          <div>
-                            <div className="font-semibold text-white">Бонус: {lesson.bonus.title}</div>
-                            <div className="text-sm text-white/60">{lesson.bonus.description}</div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </motion.div>
-                ))}
-                
-                {/* Final success message */}
-                {hasFullAccess && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    className="text-center p-8 rounded-2xl bg-gradient-to-r from-accent-neon/20 via-accent-electric/20 to-accent-gold/20 border-2 border-accent-neon/40"
-                  >
-                    <div className="text-6xl mb-4">🎊</div>
-                    <h3 className="text-2xl font-bold text-accent-neon mb-2">Поздравляем! Вы прошли весь курс!</h3>
-                    <p className="text-white/80 text-lg">Вы получили доступ к 100% контента курса</p>
-                    <p className="text-white/60 text-sm mt-2">Применяйте знания на практике и достигайте результатов!</p>
-                  </motion.div>
-                )}
-              </div>
             )}
           </div>
         </section>
