@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { useAuth } from '@/components/providers/AuthProvider'
@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { Button } from '@/components/ui/Button'
 import { getCourseUUID } from '@/lib/constants'
 
 interface Lesson {
@@ -47,6 +48,7 @@ export default function LearnCoursePage({ params }: { params: { id: string } }) 
   const [hasAccess, setHasAccess] = useState(false)
   const [progress, setProgress] = useState<ProgressData>({ completedLessons: [], overallProgress: 0 })
   const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null)
+  const hasScrolledRef = useRef(false)
 
   useEffect(() => {
     if (!user) {
@@ -74,11 +76,11 @@ export default function LearnCoursePage({ params }: { params: { id: string } }) 
       
       setHasAccess(true)
       
-      // Загружаем уроки
-      await loadLessons()
-      
-      // Загружаем прогресс
-      await loadProgress()
+      // Загружаем уроки и прогресс параллельно
+      await Promise.all([
+        loadLessons(),
+        loadProgress()
+      ])
       
     } catch (error) {
       console.error('Error loading course:', error)
@@ -98,13 +100,22 @@ export default function LearnCoursePage({ params }: { params: { id: string } }) 
       }
       
       const data = await response.json()
-      setLessons(data.lessons || [])
+      const allLessons = data.lessons || []
+      
+      // Фильтруем: показываем только модули 2-4 (не модуль 1 и не модули 5-6)
+      const modules24Lessons = allLessons.filter((lesson: Lesson) => {
+        const moduleNum = lesson.module_number || 1
+        // Показываем только модули 2, 3, 4
+        return moduleNum >= 2 && moduleNum <= 4
+      })
+      
+      setLessons(modules24Lessons)
       
       // Группируем по модулям
       const modulesMap = new Map<number, Module>()
       
-      data.lessons?.forEach((lesson: Lesson) => {
-        const moduleNum = lesson.module_number || 1
+      modules24Lessons.forEach((lesson: Lesson) => {
+        const moduleNum = lesson.module_number || 2
         if (!modulesMap.has(moduleNum)) {
           modulesMap.set(moduleNum, {
             id: moduleNum,
@@ -115,7 +126,9 @@ export default function LearnCoursePage({ params }: { params: { id: string } }) 
         modulesMap.get(moduleNum)!.lessons.push(lesson)
       })
       
-      setModules(Array.from(modulesMap.values()))
+      // Сортируем модули по номеру
+      const sortedModules = Array.from(modulesMap.values()).sort((a, b) => a.id - b.id)
+      setModules(sortedModules)
       
     } catch (error) {
       console.error('Error loading lessons:', error)
@@ -137,6 +150,51 @@ export default function LearnCoursePage({ params }: { params: { id: string } }) 
     }
   }
 
+  // Находим следующий незавершенный урок для автоматической прокрутки
+  useEffect(() => {
+    // Прокручиваем только один раз при первой загрузке
+    if (hasScrolledRef.current || modules.length === 0 || !progress.completedLessons || lessons.length === 0) {
+      return
+    }
+    
+    // Ищем первый незавершенный урок в модулях 2-4
+    let nextLesson: Lesson | null = null
+    
+    for (const module of modules) {
+      for (const lesson of module.lessons) {
+        if (!progress.completedLessons.includes(lesson.id)) {
+          nextLesson = lesson
+          break
+        }
+      }
+      if (nextLesson) break
+    }
+    
+    // Если все уроки завершены, показываем последний
+    if (!nextLesson && modules.length > 0) {
+      const lastModule = modules[modules.length - 1]
+      if (lastModule.lessons.length > 0) {
+        nextLesson = lastModule.lessons[lastModule.lessons.length - 1]
+      }
+    }
+    
+    // Прокручиваем к следующему уроку после небольшой задержки
+    if (nextLesson && !hasScrolledRef.current) {
+      hasScrolledRef.current = true
+      setTimeout(() => {
+        const element = document.getElementById(`lesson-${nextLesson!.id}`)
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          // Добавляем эффект подсветки
+          element.classList.add('ring-2', 'ring-accent-teal', 'ring-opacity-50', 'shadow-lg', 'shadow-accent-teal/30')
+          setTimeout(() => {
+            element.classList.remove('ring-2', 'ring-accent-teal', 'ring-opacity-50', 'shadow-lg', 'shadow-accent-teal/30')
+          }, 3000)
+        }
+      }, 500)
+    }
+  }, [modules, progress.completedLessons, lessons])
+
   const markLessonComplete = async (lessonId: string) => {
     try {
       const response = await fetch(`/api/courses/${params.id}/lessons/${lessonId}/complete`, {
@@ -145,12 +203,8 @@ export default function LearnCoursePage({ params }: { params: { id: string } }) 
       })
       
       if (response.ok) {
-        // Обновляем локальный прогресс
-        setProgress(prev => ({
-          ...prev,
-          completedLessons: [...prev.completedLessons, lessonId],
-          overallProgress: prev.overallProgress + 1
-        }))
+        // Перезагружаем прогресс из API для точности
+        await loadProgress()
       }
     } catch (error) {
       console.error('Error marking lesson complete:', error)
@@ -205,16 +259,16 @@ export default function LearnCoursePage({ params }: { params: { id: string } }) 
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="font-display font-bold text-3xl text-white mb-2">
-                Прохождение курса
+                Модули 2-4: Основная программа
               </h1>
               <div className="flex items-center gap-4 text-white/60">
                 <div className="flex items-center gap-2">
                   <BookOpen className="w-4 h-4" />
-                  <span>{lessons.length} уроков</span>
+                  <span>{lessons.length || 0} уроков</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-accent-mint" />
-                  <span>{progress.completedLessons.length} завершено</span>
+                  <span>{progress.completedLessons?.filter(id => lessons.some(l => l.id === id)).length || 0} завершено</span>
                 </div>
               </div>
             </div>
@@ -222,18 +276,71 @@ export default function LearnCoursePage({ params }: { params: { id: string } }) 
             {/* Progress Bar */}
             <div className="text-right">
               <div className="text-2xl font-bold text-white mb-1">
-                {Math.round((progress.completedLessons.length / lessons.length) * 100) || 0}%
+                {(() => {
+                  const completedInModules24 = progress.completedLessons?.filter(id => 
+                    lessons.some(l => l.id === id)
+                  ).length || 0
+                  return lessons.length > 0 
+                    ? Math.round((completedInModules24 / lessons.length) * 100)
+                    : 0
+                })()}%
               </div>
               <div className="w-48 h-3 bg-white/10 rounded-full overflow-hidden">
                 <motion.div
                   className="h-full bg-gradient-to-r from-accent-teal to-accent-mint"
                   initial={{ width: 0 }}
-                  animate={{ width: `${(progress.completedLessons.length / lessons.length) * 100 || 0}%` }}
+                  animate={{ 
+                    width: `${(() => {
+                      const completedInModules24 = progress.completedLessons?.filter(id => 
+                        lessons.some(l => l.id === id)
+                      ).length || 0
+                      return lessons.length > 0 
+                        ? (completedInModules24 / lessons.length) * 100
+                        : 0
+                    })()}%` 
+                  }}
                   transition={{ duration: 0.5 }}
                 />
               </div>
             </div>
           </div>
+          
+          {/* CTA для финальных модулей если прогресс >= 70% */}
+          {(() => {
+            const completedInModules24 = progress.completedLessons?.filter(id => 
+              lessons.some(l => l.id === id)
+            ).length || 0
+            const progressPercent = lessons.length > 0 
+              ? Math.round((completedInModules24 / lessons.length) * 100)
+              : 0
+            
+            if (progressPercent >= 70) {
+              return (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-6 p-6 rounded-2xl bg-gradient-to-r from-accent-gold/20 to-accent-electric/20 border-2 border-accent-gold/40"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-xl font-bold text-white mb-1">
+                        🎉 Поздравляем! Вы прошли {progressPercent}% модулей 2-4
+                      </h3>
+                      <p className="text-white/70">
+                        Теперь вы можете получить доступ к финальным модулям 5-6
+                      </p>
+                    </div>
+                    <Link href={`/courses/${params.id}/final`}>
+                      <Button size="lg" className="ml-4">
+                        Перейти к финальным модулям
+                      </Button>
+                    </Link>
+                  </div>
+                </motion.div>
+              )
+            }
+            return null
+          })()}
         </motion.div>
 
         {/* Modules */}
@@ -252,12 +359,13 @@ export default function LearnCoursePage({ params }: { params: { id: string } }) 
               
               <div className="space-y-3">
                 {module.lessons.map((lesson, lessonIndex) => {
-                  const isCompleted = progress.completedLessons.includes(lesson.id)
+                  const isCompleted = progress.completedLessons?.includes(lesson.id) || false
                   const isLocked = !lesson.is_free && !hasAccess
                   
                   return (
                     <motion.div
                       key={lesson.id}
+                      id={`lesson-${lesson.id}`}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: (moduleIndex * 0.1) + (lessonIndex * 0.05) }}
@@ -266,6 +374,8 @@ export default function LearnCoursePage({ params }: { params: { id: string } }) 
                           ? 'bg-accent-mint/10 border-accent-mint/30'
                           : isLocked
                           ? 'bg-white/5 border-white/10 opacity-60'
+                          : !progress.completedLessons?.includes(lesson.id) && lessonIndex === 0 && moduleIndex === 0
+                          ? 'bg-accent-teal/10 border-accent-teal/40 ring-2 ring-accent-teal/30'
                           : 'bg-white/5 border-white/10 hover:border-accent-teal/30 hover:bg-white/10'
                       }`}
                       onClick={() => !isLocked && setCurrentLesson(lesson)}
@@ -324,7 +434,7 @@ export default function LearnCoursePage({ params }: { params: { id: string } }) 
       {currentLesson && (
         <LessonModal
           lesson={currentLesson}
-          isCompleted={progress.completedLessons.includes(currentLesson.id)}
+          isCompleted={progress.completedLessons?.includes(currentLesson.id) || false}
           onClose={() => setCurrentLesson(null)}
           onComplete={() => markLessonComplete(currentLesson.id)}
         />
