@@ -71,8 +71,34 @@ export async function GET(request: NextRequest) {
       .select('*')
       .eq('user_id', user.id)
       .maybeSingle()
+
+    // Получаем рефералов (кого пригласил пользователь) - используем admin client для обхода RLS
+    const { data: referrals } = await adminSupabase
+      .from('referrals')
+      .select(`
+        *,
+        referred:users!referrals_referred_id_fkey(id, name, email, phone, telegram_username, created_at)
+      `)
+      .eq('referrer_id', user.id)
+      .order('created_at', { ascending: false })
+
+    // Вычисляем статистику
+    const totalReferrals = referrals?.length || 0
+    const activeReferrals = referrals?.filter(r => r.status === 'active').length || 0
+    // Используем total_earned из balance - там уже все комиссии правильно начислены (без дублирования)
+    const totalEarned = balance?.total_earned || 0
+
+    // Получаем транзакции (используем admin client для обхода RLS)
+    const { data: transactions } = await adminSupabase
+      .from('transactions')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(50)
     
-    // Если кода нет, но есть enrollments ИЛИ транзакции (купленные курсы) - создаем код автоматически
+    console.log('[Profile API] Transactions found:', transactions?.length || 0)
+    
+    // Если реферального кода нет, но есть enrollments ИЛИ транзакции (купленные курсы) - создаем код автоматически
     if (!referralCode && (enrollments && enrollments.length > 0 || transactions && transactions.length > 0)) {
       console.log('[Profile API] Нет реферального кода, но есть enrollments/transactions - создаем автоматически')
       
@@ -127,32 +153,6 @@ export async function GET(request: NextRequest) {
         }
       }
     }
-
-    // Получаем рефералов (кого пригласил пользователь) - используем admin client для обхода RLS
-    const { data: referrals } = await adminSupabase
-      .from('referrals')
-      .select(`
-        *,
-        referred:users!referrals_referred_id_fkey(id, name, email, phone, telegram_username, created_at)
-      `)
-      .eq('referrer_id', user.id)
-      .order('created_at', { ascending: false })
-
-    // Вычисляем статистику
-    const totalReferrals = referrals?.length || 0
-    const activeReferrals = referrals?.filter(r => r.status === 'active').length || 0
-    // Используем total_earned из balance - там уже все комиссии правильно начислены (без дублирования)
-    const totalEarned = balance?.total_earned || 0
-
-    // Получаем транзакции (используем admin client для обхода RLS)
-    const { data: transactions } = await adminSupabase
-      .from('transactions')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(50)
-    
-    console.log('[Profile API] Transactions found:', transactions?.length || 0)
     
     // Получаем названия курсов для транзакций
     const transactionCourseIds = Array.from(new Set((transactions || []).filter(t => t.reference_id).map(t => t.reference_id)))
