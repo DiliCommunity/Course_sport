@@ -9,6 +9,15 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient()
     const adminSupabase = createAdminClient() // Для обхода RLS
+    
+    if (!adminSupabase) {
+      console.error('Admin client not available')
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      )
+    }
+    
     const { searchParams } = new URL(request.url)
     const courseId = searchParams.get('course_id')
     const moduleNumber = searchParams.get('module_number')
