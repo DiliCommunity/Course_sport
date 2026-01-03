@@ -91,7 +91,8 @@ export default function LearnCoursePage({ params }: { params: { id: string } }) 
 
   const loadLessons = async () => {
     try {
-      const response = await fetch(`/api/courses/${params.id}/lessons`, {
+      // Используем статический endpoint (модули 2-4 всегда статические)
+      const response = await fetch(`/api/courses/${params.id}/lessons-modules24-static`, {
         credentials: 'include'
       })
       
@@ -100,21 +101,62 @@ export default function LearnCoursePage({ params }: { params: { id: string } }) 
       }
       
       const data = await response.json()
-      const allLessons = data.lessons || []
       
-      // Фильтруем: показываем только модули 2-4 (не модуль 1 и не модули 5-6)
-      const modules24Lessons = allLessons.filter((lesson: Lesson) => {
-        const moduleNum = lesson.module_number || 1
-        // Показываем только модули 2, 3, 4
-        return moduleNum >= 2 && moduleNum <= 4
+      console.log('Loaded modules 2-4 data:', {
+        modulesCount: data.modules?.length,
+        lessonsCount: data.lessons?.length
       })
       
-      setLessons(modules24Lessons)
+      // Если API вернул готовые модули (предпочтительно)
+      if (data.modules && data.modules.length > 0) {
+        const allLessons: Lesson[] = []
+        data.modules.forEach((module: any) => {
+          module.lessons.forEach((l: any) => {
+            allLessons.push({
+              id: l.id,
+              title: l.title,
+              order_index: l.order_index || 0,
+              is_free: l.is_free || false,
+              type: (l.type as 'video' | 'text' | 'infographic') || 'text',
+              duration_minutes: l.duration_minutes,
+              content: l.content || '',
+              module_number: l.module_number || module.id
+            })
+          })
+        })
+        
+        setLessons(allLessons)
+        setModules(data.modules.map((m: any) => ({
+          id: m.id,
+          title: m.title,
+          lessons: m.lessons.map((l: any) => ({
+            id: l.id,
+            title: l.title,
+            order_index: l.order_index || 0,
+            is_free: l.is_free || false,
+            type: (l.type as 'video' | 'text' | 'infographic') || 'text',
+            duration_minutes: l.duration_minutes,
+            content: l.content || '',
+            module_number: l.module_number || m.id
+          }))
+        })))
+        return
+      }
+      
+      // Fallback: если модули не вернулись, используем lessons и группируем
+      const allLessons = data.lessons || []
+      
+      if (allLessons.length === 0) {
+        console.warn('No lessons found - showing empty state')
+        setLessons([])
+        setModules([])
+        return
+      }
       
       // Группируем по модулям
       const modulesMap = new Map<number, Module>()
       
-      modules24Lessons.forEach((lesson: Lesson) => {
+      allLessons.forEach((lesson: any) => {
         const moduleNum = lesson.module_number || 2
         if (!modulesMap.has(moduleNum)) {
           modulesMap.set(moduleNum, {
@@ -123,15 +165,26 @@ export default function LearnCoursePage({ params }: { params: { id: string } }) 
             lessons: []
           })
         }
-        modulesMap.get(moduleNum)!.lessons.push(lesson)
+        modulesMap.get(moduleNum)!.lessons.push({
+          id: lesson.id,
+          title: lesson.title,
+          order_index: lesson.order_index || 0,
+          is_free: lesson.is_free || false,
+          type: (lesson.type as 'video' | 'text' | 'infographic') || 'text',
+          duration_minutes: lesson.duration_minutes,
+          content: lesson.content || lesson.description || '',
+          module_number: moduleNum
+        })
       })
       
-      // Сортируем модули по номеру
+      setLessons(allLessons)
       const sortedModules = Array.from(modulesMap.values()).sort((a, b) => a.id - b.id)
       setModules(sortedModules)
       
     } catch (error) {
       console.error('Error loading lessons:', error)
+      setLessons([])
+      setModules([])
     }
   }
 
@@ -478,11 +531,42 @@ function LessonModal({
             {lesson.title}
           </h1>
           
+          {lesson.duration_minutes && (
+            <div className="flex items-center gap-2 text-white/60 mb-6">
+              <Clock className="w-5 h-5" />
+              <span>{lesson.duration_minutes} минут</span>
+            </div>
+          )}
+          
           <div className="prose prose-invert max-w-none text-white/80 mb-8">
             {lesson.content ? (
-              <div dangerouslySetInnerHTML={{ __html: lesson.content }} />
+              <div className="whitespace-pre-line">
+                {lesson.content.split('\n\n').map((paragraph: string, pIndex: number) => {
+                  const parts: (string | JSX.Element)[] = []
+                  let lastIndex = 0
+                  const boldRegex = /\*\*(.*?)\*\*/g
+                  let match
+                  
+                  while ((match = boldRegex.exec(paragraph)) !== null) {
+                    if (match.index > lastIndex) {
+                      parts.push(paragraph.slice(lastIndex, match.index))
+                    }
+                    parts.push(<strong key={`bold-${pIndex}-${match.index}`} className="text-white font-semibold">{match[1]}</strong>)
+                    lastIndex = match.index + match[0].length
+                  }
+                  if (lastIndex < paragraph.length) {
+                    parts.push(paragraph.slice(lastIndex))
+                  }
+                  
+                  return (
+                    <p key={pIndex} className="mb-4 leading-relaxed">
+                      {parts.length > 0 ? parts : paragraph}
+                    </p>
+                  )
+                })}
+              </div>
             ) : (
-              <p>Контент урока загружается...</p>
+              <p className="text-white/60">Контент урока загружается...</p>
             )}
           </div>
           

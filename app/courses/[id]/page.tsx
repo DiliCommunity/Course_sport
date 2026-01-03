@@ -2537,6 +2537,8 @@ export default function CoursePage({ params }: { params: { id: string } }) {
   // Состояние для отслеживания полного доступа
   const [hasFullAccess, setHasFullAccess] = useState(false)
   const [isFullAccessPrice, setIsFullAccessPrice] = useState(false)
+  const [hasFinalModulesAccess, setHasFinalModulesAccess] = useState(false)
+  const [finalAccessData, setFinalAccessData] = useState<any>(null)
 
   // Проверка доступа к курсу
   useEffect(() => {
@@ -2549,6 +2551,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
       }
 
       try {
+        // Проверяем доступ к модулям 2-4
         const response = await fetch(`/api/courses/access?course_id=${params.id}`, {
           credentials: 'include'
         })
@@ -2557,11 +2560,22 @@ export default function CoursePage({ params }: { params: { id: string } }) {
         setHasFullAccess(data.hasFullAccess || false)
         // Если есть доступ но нет полного - следующая покупка = полный доступ
         setIsFullAccessPrice(data.hasAccess && !data.hasFullAccess)
+        
+        // Проверяем доступ к финальным модулям
+        const finalResponse = await fetch(`/api/courses/${params.id}/final-access`, {
+          credentials: 'include'
+        })
+        if (finalResponse.ok) {
+          const finalData = await finalResponse.json()
+          setHasFinalModulesAccess(finalData.hasAccess || false)
+          setFinalAccessData(finalData)
+        }
       } catch (error) {
         console.error('Error checking course access:', error)
         setHasAccess(false)
         setHasFullAccess(false)
         setIsFullAccessPrice(false)
+        setHasFinalModulesAccess(false)
       } finally {
         setIsCheckingAccess(false)
       }
@@ -3146,118 +3160,75 @@ export default function CoursePage({ params }: { params: { id: string } }) {
             </p>
           </motion.div>
 
-          {!hasAccess ? (
+          {/* Превью модуля 2 с кнопкой оплаты или переходом к обучению */}
+          {paidModule2Data && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
-              className="max-w-2xl mx-auto text-center glass rounded-2xl p-12 border-2 border-accent-electric/30"
+              className="max-w-4xl mx-auto"
             >
-              <div className="text-6xl mb-6">🔒</div>
-              <h3 className="text-2xl font-bold text-white mb-4">Продвинутый модуль</h3>
-              <p className="text-white/60 mb-8">
-                Ещё 20% курса с практическими материалами
-              </p>
-              <Button size="lg" onClick={() => setIsPaymentModalOpen(true)}>
-                Получить доступ — {formatPrice(courseData.price)}
-              </Button>
-            </motion.div>
-          ) : (
-            <div className="space-y-6 max-w-4xl mx-auto">
               {paidModule2Data.imageUrl && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  className="mb-8"
-                >
+                <div className="mb-6 rounded-2xl overflow-hidden">
                   <Image
                     src={paidModule2Data.imageUrl}
                     alt={paidModule2Data.moduleTitle}
                     width={1200}
                     height={600}
-                    className="rounded-2xl w-full h-auto object-cover"
+                    className="w-full h-auto object-cover"
                   />
-                </motion.div>
+                </div>
               )}
-              {paidModule2Data.lessons.map((lesson, index) => (
-                <motion.div
-                  key={lesson.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  className="glass rounded-2xl p-6 md:p-8 border-2 border-accent-electric/30"
-                >
-                  <div className="flex items-start gap-4 mb-4">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-electric to-accent-neon flex items-center justify-center flex-shrink-0">
-                      <span className="text-2xl">🚀</span>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h3 className="text-xl font-bold text-white">{lesson.title}</h3>
-                        <span className="badge badge-electric text-xs">ПРОДВИНУТЫЙ</span>
-                      </div>
-                      {lesson.duration && (
-                        <span className="text-white/60 text-sm flex items-center gap-1">
-                          <Clock className="w-4 h-4" />
-                          {formatDuration(lesson.duration)}
-                        </span>
-                      )}
-                    </div>
+              
+              <div className="glass rounded-2xl p-8 border-2 border-accent-electric/30">
+                <div className="text-center mb-8">
+                  <h3 className="text-2xl font-bold text-white mb-4">
+                    {paidModule2Data.moduleTitle}
+                  </h3>
+                  <p className="text-white/60 mb-6">
+                    {paidModule2Data.lessons.length} уроков с практическими материалами, рецептами и планами питания
+                  </p>
+                  <div className="flex flex-wrap gap-2 justify-center mb-6">
+                    {paidModule2Data.lessons.slice(0, 3).map((lesson) => (
+                      <span key={lesson.id} className="px-3 py-1 rounded-lg bg-white/5 text-white/70 text-sm">
+                        {lesson.title}
+                      </span>
+                    ))}
+                    {paidModule2Data.lessons.length > 3 && (
+                      <span className="px-3 py-1 rounded-lg bg-white/5 text-white/70 text-sm">
+                        + ещё {paidModule2Data.lessons.length - 3} уроков
+                      </span>
+                    )}
                   </div>
-                  <div className="prose prose-invert max-w-none">
-                    {lesson.content.split('\n\n').map((paragraph, pIndex) => {
-                      const parts: (string | JSX.Element)[] = []
-                      let lastIndex = 0
-                      const boldRegex = /\*\*(.*?)\*\*/g
-                      let match
-                      
-                      while ((match = boldRegex.exec(paragraph)) !== null) {
-                        if (match.index > lastIndex) {
-                          parts.push(paragraph.slice(lastIndex, match.index))
-                        }
-                        parts.push(<strong key={`bold-m2-${pIndex}-${match.index}`}>{match[1]}</strong>)
-                        lastIndex = match.index + match[0].length
-                      }
-                      if (lastIndex < paragraph.length) {
-                        parts.push(paragraph.slice(lastIndex))
-                      }
-                      
-                      return (
-                        <p key={pIndex} className="text-white/70 leading-relaxed mb-4 whitespace-pre-line">
-                          {parts.length > 0 ? parts : paragraph}
-                        </p>
-                      )
-                    })}
+                </div>
+                
+                {!hasAccess ? (
+                  <div className="text-center">
+                    <Button 
+                      size="lg" 
+                      onClick={() => setIsPaymentModalOpen(true)}
+                      className="w-full sm:w-auto"
+                    >
+                      Купить модули 2-4 — {formatPrice(courseData.price)}
+                    </Button>
                   </div>
-                  {hasChecklist(lesson) && (
-                    <div className="mt-4 p-4 rounded-xl bg-accent-electric/10 border border-accent-electric/20">
-                      <h4 className="text-white font-semibold mb-2">Ваш план действий:</h4>
-                      <ul className="space-y-2">
-                        {lesson.checklist.map((item, itemIndex) => (
-                          <li key={itemIndex} className="flex items-start gap-2 text-white/80">
-                            <CheckCircle2 className="w-5 h-5 text-accent-electric flex-shrink-0 mt-0.5" />
-                            <span>{item}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  {hasBonus(lesson) && (
-                    <div className="mt-4 p-4 rounded-xl bg-accent-electric/10 border border-accent-electric/20">
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">📋</span>
-                        <div>
-                          <div className="font-semibold text-white">Бонус: {lesson.bonus.title}</div>
-                          <div className="text-sm text-white/60">{lesson.bonus.description}</div>
-                        </div>
+                ) : (
+                  <div className="text-center">
+                    <div className="mb-4 p-4 rounded-xl bg-accent-mint/10 border border-accent-mint/20 mb-6">
+                      <div className="flex items-center justify-center gap-2 text-accent-mint">
+                        <CheckCircle2 className="w-5 h-5" />
+                        <span className="font-semibold">Доступ открыт</span>
                       </div>
                     </div>
-                  )}
-                </motion.div>
-              ))}
-            </div>
+                    <Link href={`/courses/${params.id}/learn`}>
+                      <Button size="lg" className="w-full sm:w-auto">
+                        Начать обучение по модулям 2-4
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </motion.div>
           )}
         </div>
       </section>
@@ -3281,133 +3252,75 @@ export default function CoursePage({ params }: { params: { id: string } }) {
             </p>
           </motion.div>
 
-          {!hasAccess ? (
+          {/* Превью модуля 3 - часть модулей 2-4, контент на /learn */}
+          {paidModule3Data && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
-              className="max-w-2xl mx-auto text-center glass rounded-2xl p-12 border-2 border-accent-flame/30"
+              className="max-w-4xl mx-auto"
             >
-              <div className="text-6xl mb-6">🔒</div>
-              <h3 className="text-2xl font-bold text-white mb-4">Мастер-класс модуль</h3>
-              <p className="text-white/60 mb-8">
-                Финальные 20% курса с продвинутыми техниками
-              </p>
-              <Button size="lg" onClick={() => setIsPaymentModalOpen(true)}>
-                Получить полный доступ — {formatPrice(fullAccessPrice)}
-              </Button>
-            </motion.div>
-          ) : (
-            <div className="space-y-6 max-w-4xl mx-auto">
               {paidModule3Data.imageUrl && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  className="mb-8"
-                >
+                <div className="mb-6 rounded-2xl overflow-hidden">
                   <Image
                     src={paidModule3Data.imageUrl}
                     alt={paidModule3Data.moduleTitle}
                     width={1200}
                     height={600}
-                    className="rounded-2xl w-full h-auto object-cover"
+                    className="w-full h-auto object-cover"
                   />
-                </motion.div>
+                </div>
               )}
-              {paidModule3Data.lessons.map((lesson, index) => (
-                <motion.div
-                  key={lesson.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  className="glass rounded-2xl p-6 md:p-8 border-2 border-accent-flame/30"
-                >
-                  <div className="flex items-start gap-4 mb-4">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-flame to-accent-gold flex items-center justify-center flex-shrink-0">
-                      <span className="text-2xl">🔥</span>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h3 className="text-xl font-bold text-white">{lesson.title}</h3>
-                        <span className="badge badge-flame text-xs">МАСТЕР</span>
-                      </div>
-                      {lesson.duration && (
-                        <span className="text-white/60 text-sm flex items-center gap-1">
-                          <Clock className="w-4 h-4" />
-                          {formatDuration(lesson.duration)}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="prose prose-invert max-w-none">
-                    {lesson.content.split('\n\n').map((paragraph, pIndex) => {
-                      const parts: (string | JSX.Element)[] = []
-                      let lastIndex = 0
-                      const boldRegex = /\*\*(.*?)\*\*/g
-                      let match
-                      
-                      while ((match = boldRegex.exec(paragraph)) !== null) {
-                        if (match.index > lastIndex) {
-                          parts.push(paragraph.slice(lastIndex, match.index))
-                        }
-                        parts.push(<strong key={`bold-m3-${pIndex}-${match.index}`}>{match[1]}</strong>)
-                        lastIndex = match.index + match[0].length
-                      }
-                      if (lastIndex < paragraph.length) {
-                        parts.push(paragraph.slice(lastIndex))
-                      }
-                      
-                      return (
-                        <p key={pIndex} className="text-white/70 leading-relaxed mb-4 whitespace-pre-line">
-                          {parts.length > 0 ? parts : paragraph}
-                        </p>
-                      )
-                    })}
-                  </div>
-                  {hasChecklist(lesson) && (
-                    <div className="mt-4 p-4 rounded-xl bg-accent-flame/10 border border-accent-flame/20">
-                      <h4 className="text-white font-semibold mb-2">Ваш план действий:</h4>
-                      <ul className="space-y-2">
-                        {lesson.checklist.map((item, itemIndex) => (
-                          <li key={itemIndex} className="flex items-start gap-2 text-white/80">
-                            <CheckCircle2 className="w-5 h-5 text-accent-flame flex-shrink-0 mt-0.5" />
-                            <span>{item}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  {hasBonus(lesson) && (
-                    <div className="mt-4 p-4 rounded-xl bg-accent-flame/10 border border-accent-flame/20">
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">📋</span>
-                        <div>
-                          <div className="font-semibold text-white">Бонус: {lesson.bonus.title}</div>
-                          <div className="text-sm text-white/60">{lesson.bonus.description}</div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </motion.div>
-              ))}
               
-              {/* Success message after all modules */}
-              {!hasFullAccess && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  className="text-center p-8 rounded-2xl bg-gradient-to-r from-accent-neon/10 via-accent-electric/10 to-accent-gold/10 border border-accent-neon/20"
-                >
-                  <div className="text-5xl mb-4">🎉</div>
-                  <h3 className="text-xl font-bold text-accent-neon mb-2">Вы получили доступ к 60% курса!</h3>
-                  <p className="text-white/60">Бесплатный модуль (15%) + 3 платных модуля (45%) = 60% контента</p>
-                  <p className="text-white/40 text-sm mt-2">Остальные 40% доступны в полной версии курса</p>
-                </motion.div>
-              )}
-            </div>
+              <div className="glass rounded-2xl p-8 border-2 border-accent-flame/30">
+                <div className="text-center mb-8">
+                  <h3 className="text-2xl font-bold text-white mb-4">
+                    {paidModule3Data.moduleTitle}
+                  </h3>
+                  <p className="text-white/60 mb-6">
+                    {paidModule3Data.lessons.length} уроков с продвинутыми стратегиями и техниками
+                  </p>
+                  <div className="flex flex-wrap gap-2 justify-center mb-6">
+                    {paidModule3Data.lessons.slice(0, 3).map((lesson) => (
+                      <span key={lesson.id} className="px-3 py-1 rounded-lg bg-white/5 text-white/70 text-sm">
+                        {lesson.title}
+                      </span>
+                    ))}
+                    {paidModule3Data.lessons.length > 3 && (
+                      <span className="px-3 py-1 rounded-lg bg-white/5 text-white/70 text-sm">
+                        + ещё {paidModule3Data.lessons.length - 3} уроков
+                      </span>
+                    )}
+                  </div>
+                </div>
+                
+                {!hasAccess ? (
+                  <div className="text-center">
+                    <Button 
+                      size="lg" 
+                      onClick={() => setIsPaymentModalOpen(true)}
+                      className="w-full sm:w-auto"
+                    >
+                      Купить модули 2-4 — {formatPrice(courseData.price)}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="text-center">
+                    <div className="mb-4 p-4 rounded-xl bg-accent-mint/10 border border-accent-mint/20 mb-6">
+                      <div className="flex items-center justify-center gap-2 text-accent-mint">
+                        <CheckCircle2 className="w-5 h-5" />
+                        <span className="font-semibold">Входит в купленные модули 2-4</span>
+                      </div>
+                    </div>
+                    <Link href={`/courses/${params.id}/learn`}>
+                      <Button size="lg" className="w-full sm:w-auto">
+                        Начать обучение по модулям 2-4
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </motion.div>
           )}
         </div>
       </section>
@@ -3432,43 +3345,121 @@ export default function CoursePage({ params }: { params: { id: string } }) {
               </p>
             </motion.div>
 
-            {!hasFullAccess ? (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                className="max-w-2xl mx-auto text-center glass rounded-2xl p-12 border-2 border-accent-gold/30"
-              >
-                <div className="text-6xl mb-6">🔒</div>
-                <h3 className="text-2xl font-bold text-white mb-4">Финальные модули</h3>
-                <p className="text-white/60 mb-6">
-                  Последние 25% курса (модули 5-6) доступны после прохождения 70% модулей 2-4
-                </p>
-                <Link href={`/courses/${params.id}/final`}>
-                  <Button size="lg" className="w-full">
-                    Перейти к финальным модулям
-                  </Button>
-                </Link>
-              </motion.div>
-            ) : (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                className="max-w-2xl mx-auto text-center glass rounded-2xl p-12 border-2 border-accent-gold/30"
-              >
-                <div className="text-5xl mb-6">✅</div>
-                <h3 className="text-2xl font-bold text-white mb-4">Доступ открыт!</h3>
-                <p className="text-white/60 mb-6">
-                  У вас есть доступ к финальным модулям (5-6)
-                </p>
-                <Link href={`/courses/${params.id}/final`}>
-                  <Button size="lg" className="w-full">
-                    Перейти к финальным модулям
-                  </Button>
-                </Link>
-              </motion.div>
-            )}
+            {/* Превью финальных модулей с информацией и кнопкой */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              className="max-w-4xl mx-auto"
+            >
+              <div className="glass rounded-2xl p-8 border-2 border-accent-gold/30">
+                <div className="text-center mb-8">
+                  <h3 className="text-2xl font-bold text-white mb-4">
+                    Модули 5-6: Завершение курса (25%)
+                  </h3>
+                  <p className="text-white/60 mb-6">
+                    Продвинутые техники, реальная жизнь и полная трансформация
+                  </p>
+                  
+                  {paidModule4Data && paidModule5Data && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                      <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                        <div className="text-lg font-semibold text-white mb-2">
+                          {paidModule4Data.moduleTitle.replace(/\(.*?\)/, '').trim()}
+                        </div>
+                        <div className="text-sm text-white/60">
+                          {paidModule4Data.lessons.length} уроков
+                        </div>
+                      </div>
+                      <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                        <div className="text-lg font-semibold text-white mb-2">
+                          {paidModule5Data.moduleTitle.replace(/\(.*?\)/, '').trim()}
+                        </div>
+                        <div className="text-sm text-white/60">
+                          {paidModule5Data.lessons.length} уроков
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {finalAccessData?.reason === 'insufficient_progress' && (
+                    <div className="mb-6 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20">
+                      <p className="text-white/80 mb-2">
+                        Прогресс модулей 2-4: <span className="font-bold text-amber-400">{finalAccessData.progress?.percent || 0}%</span>
+                      </p>
+                      <p className="text-white/60 text-sm">
+                        Для доступа нужно пройти 70% модулей 2-4
+                      </p>
+                    </div>
+                  )}
+                </div>
+                
+                {!hasFinalModulesAccess ? (
+                  <div className="text-center space-y-4">
+                    {finalAccessData?.reason === 'progress_requirement_met' || (finalAccessData?.progress?.percent || 0) >= 70 ? (
+                      <>
+                        <div className="p-4 rounded-xl bg-accent-mint/10 border border-accent-mint/20 mb-4">
+                          <p className="text-white/80">
+                            ✅ Вы прошли {finalAccessData?.progress?.percent || 0}% модулей 2-4
+                          </p>
+                          <p className="text-white/60 text-sm mt-1">
+                            Можете купить финальные модули
+                          </p>
+                        </div>
+                        <Link href={`/courses/${params.id}/final`}>
+                          <Button size="lg" className="w-full sm:w-auto">
+                            Купить финальные модули — {formatPrice((finalAccessData?.finalPrice || 300) / 100)}
+                          </Button>
+                        </Link>
+                      </>
+                    ) : (
+                      <>
+                        <div className="p-4 rounded-xl bg-white/5 border border-white/10 mb-4">
+                          <div className="text-6xl mb-4">🔒</div>
+                          <p className="text-white/80 mb-2">
+                            Для доступа нужно пройти 70% модулей 2-4
+                          </p>
+                          {finalAccessData?.progress && (
+                            <p className="text-white/60 text-sm">
+                              Ваш прогресс: {finalAccessData.progress.percent}%
+                            </p>
+                          )}
+                        </div>
+                        {hasAccess ? (
+                          <Link href={`/courses/${params.id}/learn`}>
+                            <Button size="lg" variant="secondary" className="w-full sm:w-auto">
+                              Продолжить обучение по модулям 2-4
+                            </Button>
+                          </Link>
+                        ) : (
+                          <Button 
+                            size="lg" 
+                            onClick={() => setIsPaymentModalOpen(true)}
+                            className="w-full sm:w-auto"
+                          >
+                            Сначала купить модули 2-4
+                          </Button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center">
+                    <div className="mb-4 p-4 rounded-xl bg-accent-mint/10 border border-accent-mint/20 mb-6">
+                      <div className="flex items-center justify-center gap-2 text-accent-mint">
+                        <CheckCircle2 className="w-5 h-5" />
+                        <span className="font-semibold">Доступ к финальным модулям открыт</span>
+                      </div>
+                    </div>
+                    <Link href={`/courses/${params.id}/final`}>
+                      <Button size="lg" className="w-full sm:w-auto">
+                        Перейти к финальным модулям
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </motion.div>
           </div>
         </section>
       )}
@@ -3630,13 +3621,30 @@ export default function CoursePage({ params }: { params: { id: string } }) {
         coursePrice={isFullAccessPrice ? fullAccessPrice : courseData.price}
         courseId={params.id}
         isFullAccess={isFullAccessPrice}
-        onPaymentSuccess={() => {
-          // После успешной оплаты открываем доступ
-          setHasAccess(true)
-          if (isFullAccessPrice) {
-            setHasFullAccess(true)
+        onPaymentSuccess={async () => {
+          // После успешной оплаты обновляем доступ
+          try {
+            // Проверяем доступ к модулям 2-4
+            const response = await fetch(`/api/courses/access?course_id=${params.id}`, {
+              credentials: 'include'
+            })
+            const data = await response.json()
+            setHasAccess(data.hasAccess || false)
+            setHasFullAccess(data.hasFullAccess || false)
+            setIsFullAccessPrice(data.hasAccess && !data.hasFullAccess)
+            
+            // Проверяем доступ к финальным модулям
+            const finalResponse = await fetch(`/api/courses/${params.id}/final-access`, {
+              credentials: 'include'
+            })
+            if (finalResponse.ok) {
+              const finalData = await finalResponse.json()
+              setHasFinalModulesAccess(finalData.hasAccess || false)
+              setFinalAccessData(finalData)
+            }
+          } catch (error) {
+            console.error('Error refreshing access:', error)
           }
-          console.log('Payment successful - access granted!')
         }}
       />
     </main>
