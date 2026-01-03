@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { getUserFromSession } from '@/lib/session-utils'
 
 export const dynamic = 'force-dynamic'
@@ -8,6 +8,7 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient()
+    const adminSupabase = createAdminClient() // Для обхода RLS
     const { searchParams } = new URL(request.url)
     const courseId = searchParams.get('course_id')
     const moduleNumber = searchParams.get('module_number')
@@ -39,13 +40,13 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Проверяем, записан ли пользователь на курс
-    const { data: enrollment } = await supabase
+    // Проверяем, записан ли пользователь на курс (используем admin client для обхода RLS)
+    const { data: enrollment } = await adminSupabase
       .from('enrollments')
       .select('*')
       .eq('user_id', user.id)
       .eq('course_id', courseId)
-      .single()
+      .maybeSingle()
 
     if (!enrollment) {
       return NextResponse.json({
@@ -56,14 +57,15 @@ export async function GET(request: NextRequest) {
     }
 
     // Проверяем, есть ли полный доступ к курсу (is_full_access = true в payments)
-    const { data: fullAccessPayment } = await supabase
+    // Используем admin client для обхода RLS
+    const { data: fullAccessPayment } = await adminSupabase
       .from('payments')
       .select('is_full_access')
       .eq('user_id', user.id)
       .eq('course_id', courseId)
       .eq('status', 'completed')
       .eq('is_full_access', true)
-      .single()
+      .maybeSingle()
 
     const hasFullAccess = !!fullAccessPayment
 

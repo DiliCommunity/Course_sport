@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { getUserFromSession } from '@/lib/session-utils'
 
 export const dynamic = 'force-dynamic'
@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
   try {
     console.log('[Profile API] Getting profile data...')
     const supabase = await createClient()
+    const adminSupabase = createAdminClient() // Используем admin client для обхода RLS
 
     // Получаем пользователя из сессии
     const user = await getUserFromSession(supabase)
@@ -25,15 +26,15 @@ export async function GET(request: NextRequest) {
 
     console.log('[Profile API] User found:', user.id, user.username)
 
-    // Получаем баланс
-    const { data: balance } = await supabase
+    // Получаем баланс (используем admin client для обхода RLS)
+    const { data: balance } = await adminSupabase
       .from('user_balance')
       .select('*')
       .eq('user_id', user.id)
       .single()
 
-    // Получаем записи на курсы
-    const { data: enrollments, error: enrollmentsError } = await supabase
+    // Получаем записи на курсы (используем admin client для обхода RLS)
+    const { data: enrollments, error: enrollmentsError } = await adminSupabase
       .from('enrollments')
       .select('*')
       .eq('user_id', user.id)
@@ -56,16 +57,16 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Получаем реферальный код пользователя
-    let { data: referralCode } = await supabase
+    // Получаем реферальный код пользователя (используем admin client для обхода RLS)
+    let { data: referralCode } = await adminSupabase
       .from('user_referral_codes')
       .select('*')
       .eq('user_id', user.id)
-      .single()
+      .maybeSingle()
     
-    // Если кода нет, но есть enrollments (купленные курсы) - создаем код автоматически
-    if (!referralCode && enrollments && enrollments.length > 0) {
-      console.log('[Profile API] Нет реферального кода, но есть enrollments - создаем автоматически')
+    // Если кода нет, но есть enrollments ИЛИ транзакции (купленные курсы) - создаем код автоматически
+    if (!referralCode && (enrollments && enrollments.length > 0 || transactions && transactions.length > 0)) {
+      console.log('[Profile API] Нет реферального кода, но есть enrollments/transactions - создаем автоматически')
       
       const generateCode = () => {
         const prefix = 'REF-'
@@ -83,11 +84,11 @@ export async function GET(request: NextRequest) {
 
       // Генерируем уникальный код
       while (!isUnique && attempts < 10) {
-        const { data: check } = await supabase
+        const { data: check } = await adminSupabase
           .from('user_referral_codes')
           .select('id')
           .eq('referral_code', newRefCode)
-          .single()
+          .maybeSingle()
 
         if (!check) {
           isUnique = true
@@ -98,7 +99,7 @@ export async function GET(request: NextRequest) {
       }
 
       if (isUnique) {
-        const { data: createdCode, error: insertError } = await supabase
+        const { data: createdCode, error: insertError } = await adminSupabase
           .from('user_referral_codes')
           .insert({
             user_id: user.id,
@@ -119,8 +120,8 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Получаем рефералов (кого пригласил пользователь)
-    const { data: referrals } = await supabase
+    // Получаем рефералов (кого пригласил пользователь) - используем admin client для обхода RLS
+    const { data: referrals } = await adminSupabase
       .from('referrals')
       .select(`
         *,
@@ -135,13 +136,15 @@ export async function GET(request: NextRequest) {
     // Используем total_earned из balance - там уже все комиссии правильно начислены (без дублирования)
     const totalEarned = balance?.total_earned || 0
 
-    // Получаем транзакции
-    const { data: transactions } = await supabase
+    // Получаем транзакции (используем admin client для обхода RLS)
+    const { data: transactions } = await adminSupabase
       .from('transactions')
       .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(50)
+    
+    console.log('[Profile API] Transactions found:', transactions?.length || 0)
     
     // Получаем названия курсов для транзакций
     const transactionCourseIds = Array.from(new Set((transactions || []).filter(t => t.reference_id).map(t => t.reference_id)))
