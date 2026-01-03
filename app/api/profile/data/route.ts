@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
       .maybeSingle()
 
     // Получаем рефералов (кого пригласил пользователь) - используем admin client для обхода RLS
-    const { data: referrals } = await adminSupabase
+    const { data: referrals, error: referralsError } = await adminSupabase
       .from('referrals')
       .select(`
         *,
@@ -81,6 +81,12 @@ export async function GET(request: NextRequest) {
       `)
       .eq('referrer_id', user.id)
       .order('created_at', { ascending: false })
+    
+    console.log('[Profile API] Referrals loaded:', {
+      count: referrals?.length || 0,
+      error: referralsError,
+      referrer_id: user.id
+    })
 
     // Вычисляем статистику
     const totalReferrals = referrals?.length || 0

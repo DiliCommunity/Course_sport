@@ -2820,19 +2820,36 @@ export default function CoursePage({ params }: { params: { id: string } }) {
 
                   {/* CTA Buttons */}
                   <div className="space-y-3">
-                    <motion.div
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
-                    >
-                      <Button 
-                        className="w-full !py-5 !text-xl !font-bold !bg-gradient-to-r !from-emerald-500 !to-teal-500 hover:!from-emerald-400 hover:!to-teal-400 !shadow-lg !shadow-emerald-500/30" 
-                        size="lg"
-                        onClick={() => setIsPaymentModalOpen(true)}
+                    {hasAccess ? (
+                      <motion.div
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
                       >
-                        <span className="mr-2">🚀</span>
-                        Начать обучение
-                      </Button>
-                    </motion.div>
+                        <Link href={`/courses/${params.id}/learn`}>
+                          <Button 
+                            className="w-full !py-5 !text-xl !font-bold !bg-gradient-to-r !from-emerald-500 !to-teal-500 hover:!from-emerald-400 hover:!to-teal-400 !shadow-lg !shadow-emerald-500/30" 
+                            size="lg"
+                          >
+                            <span className="mr-2">🚀</span>
+                            Начать обучение
+                          </Button>
+                        </Link>
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                      >
+                        <Button 
+                          className="w-full !py-5 !text-xl !font-bold !bg-gradient-to-r !from-emerald-500 !to-teal-500 hover:!from-emerald-400 hover:!to-teal-400 !shadow-lg !shadow-emerald-500/30" 
+                          size="lg"
+                          onClick={() => setIsPaymentModalOpen(true)}
+                        >
+                          <span className="mr-2">🚀</span>
+                          Начать обучение
+                        </Button>
+                      </motion.div>
+                    )}
                     <Button 
                       variant="secondary" 
                       className="w-full" 

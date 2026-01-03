@@ -172,7 +172,7 @@ export default function MyCoursesPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 + index * 0.1 }}
                 >
-                  <Link href={`/courses/${enrollment.courses?.id}`}>
+                  <Link href={`/courses/${enrollment.courses?.id}/learn`}>
                     <div className="group relative overflow-hidden rounded-2xl glass border border-accent-teal/30 hover:border-accent-teal/60 transition-all">
                       {/* Image */}
                       <div className="relative h-40 overflow-hidden">
