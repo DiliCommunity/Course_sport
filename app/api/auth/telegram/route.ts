@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import crypto from 'crypto'
 import { cookies } from 'next/headers'
 
@@ -73,53 +73,75 @@ export async function POST(request: NextRequest) {
       
       if (referralCode) {
         try {
-          // Проверяем, не привязан ли уже реферер у этого пользователя
-          const { data: existingReferral } = await supabase
-            .from('referrals')
-            .select('id, referrer_id')
-            .eq('referred_id', userId)
-            .single()
+          const adminSupabase = createAdminClient()
           
-          // Если реферера еще нет и код валидный - создаем связь
-          if (!existingReferral) {
-            const { data: referralOwner } = await supabase
-              .from('user_referral_codes')
-              .select('user_id')
-              .eq('referral_code', referralCode)
-              .eq('is_active', true)
-              .single()
-
-            if (referralOwner && referralOwner.user_id !== userId) {
-              const COMMISSION_PERCENT = 30.00
-
-              // Создаем запись о реферале с 30% комиссией
-              await supabase
-                .from('referrals')
-                .insert({
-                  referrer_id: referralOwner.user_id,
-                  referred_id: userId,
-                  referral_code: referralCode,
-                  status: 'active',
-                  referred_bonus: 0,
-                  referrer_earned: 0,
-                  commission_percent: COMMISSION_PERCENT
-                })
-
-              // Обновляем статистику использования кода
-              const { data: currentCode } = await supabase
+          if (!adminSupabase) {
+            console.error('Admin client not available for referral processing')
+          } else {
+            // Проверяем, не привязан ли уже реферер у этого пользователя
+            const { data: existingReferral } = await adminSupabase
+              .from('referrals')
+              .select('id, referrer_id')
+              .eq('referred_id', userId)
+              .maybeSingle()
+            
+            // Если реферера еще нет и код валидный - создаем связь
+            if (!existingReferral) {
+              const { data: referralOwner } = await adminSupabase
                 .from('user_referral_codes')
-                .select('total_uses')
+                .select('user_id')
                 .eq('referral_code', referralCode)
-                .single()
+                .eq('is_active', true)
+                .maybeSingle()
 
-              await supabase
-                .from('user_referral_codes')
-                .update({ 
-                  total_uses: (currentCode?.total_uses || 0) + 1
-                })
-                .eq('referral_code', referralCode)
+              if (referralOwner && referralOwner.user_id !== userId) {
+                const COMMISSION_PERCENT = 30.00
 
-              console.log(`✅ Реферальная связь создана для существующего пользователя: ${referralCode}, комиссия ${COMMISSION_PERCENT}%`)
+                // Создаем запись о реферале с 30% комиссией (используем admin client)
+                const { data: newReferral, error: referralInsertError } = await adminSupabase
+                  .from('referrals')
+                  .insert({
+                    referrer_id: referralOwner.user_id,
+                    referred_id: userId,
+                    referral_code: referralCode,
+                    status: 'active',
+                    referred_bonus: 0,
+                    referrer_earned: 0,
+                    commission_percent: COMMISSION_PERCENT
+                  })
+                  .select()
+                  .single()
+
+                if (referralInsertError) {
+                  console.error('❌ Ошибка создания записи в referrals (существующий пользователь):', referralInsertError)
+                } else {
+                  console.log(`✅ Реферальная связь создана для существующего пользователя: ${referralCode}, комиссия ${COMMISSION_PERCENT}%`)
+                }
+
+                // Обновляем статистику использования кода (используем admin client)
+                const { data: currentCode } = await adminSupabase
+                  .from('user_referral_codes')
+                  .select('total_uses')
+                  .eq('referral_code', referralCode)
+                  .maybeSingle()
+
+                if (currentCode) {
+                  const { error: updateError } = await adminSupabase
+                    .from('user_referral_codes')
+                    .update({ 
+                      total_uses: (currentCode.total_uses || 0) + 1
+                    })
+                    .eq('referral_code', referralCode)
+
+                  if (updateError) {
+                    console.error('❌ Ошибка обновления total_uses:', updateError)
+                  }
+                }
+              } else {
+                console.log(`⚠️ Реферальный код не найден или пользователь пытается использовать свой код: ${referralCode}`)
+              }
+            } else {
+              console.log(`⚠️ У пользователя уже есть реферер: ${existingReferral.referrer_id}`)
             }
           } else {
             console.log('⚠️ У пользователя уже есть реферер, пропускаем обработку кода:', referralCode)
@@ -162,53 +184,73 @@ export async function POST(request: NextRequest) {
 
       console.log('New Telegram user created:', userId)
       
-      // Обрабатываем реферальный код для нового пользователя
+      // Обрабатываем реферальный код для нового пользователя (используем admin client для обхода RLS)
       const referralCode = body.referralCode || body.referral_code
       
       if (referralCode) {
         try {
-          // Находим владельца реферального кода
-          const { data: referralOwner } = await supabase
-            .from('user_referral_codes')
-            .select('user_id')
-            .eq('referral_code', referralCode)
-            .eq('is_active', true)
-            .single()
-
-          if (referralOwner && referralOwner.user_id !== userId) {
-            const COMMISSION_PERCENT = 30.00
-
-            // Создаем запись о реферале с 30% комиссией
-            await supabase
-              .from('referrals')
-              .insert({
-                referrer_id: referralOwner.user_id,
-                referred_id: userId,
-                referral_code: referralCode,
-                status: 'active',
-                referred_bonus: 0,
-                referrer_earned: 0,
-                commission_percent: COMMISSION_PERCENT
-              })
-
-            // Обновляем статистику использования кода
-            const { data: currentCode } = await supabase
+          const adminSupabase = createAdminClient()
+          
+          if (!adminSupabase) {
+            console.error('Admin client not available for referral processing')
+          } else {
+            // Находим владельца реферального кода
+            const { data: referralOwner } = await adminSupabase
               .from('user_referral_codes')
-              .select('total_uses')
+              .select('user_id')
               .eq('referral_code', referralCode)
-              .single()
+              .eq('is_active', true)
+              .maybeSingle()
 
-            await supabase
-              .from('user_referral_codes')
-              .update({ 
-                total_uses: (currentCode?.total_uses || 0) + 1
-              })
-              .eq('referral_code', referralCode)
+            if (referralOwner && referralOwner.user_id !== userId) {
+              const COMMISSION_PERCENT = 30.00
 
-            console.log(`✅ Реферальная связь создана для нового пользователя: ${referralCode}, комиссия ${COMMISSION_PERCENT}%`)
+              // Создаем запись о реферале с 30% комиссией (используем admin client)
+              const { data: newReferral, error: referralInsertError } = await adminSupabase
+                .from('referrals')
+                .insert({
+                  referrer_id: referralOwner.user_id,
+                  referred_id: userId,
+                  referral_code: referralCode,
+                  status: 'active',
+                  referred_bonus: 0,
+                  referrer_earned: 0,
+                  commission_percent: COMMISSION_PERCENT
+                })
+                .select()
+                .single()
+
+              if (referralInsertError) {
+                console.error('❌ Ошибка создания записи в referrals (новый пользователь):', referralInsertError)
+              } else {
+                console.log(`✅ Реферальная связь создана для нового пользователя: ${referralCode}, комиссия ${COMMISSION_PERCENT}%`)
+              }
+
+              // Обновляем статистику использования кода (используем admin client)
+              const { data: currentCode } = await adminSupabase
+                .from('user_referral_codes')
+                .select('total_uses')
+                .eq('referral_code', referralCode)
+                .maybeSingle()
+
+              if (currentCode) {
+                const { error: updateError } = await adminSupabase
+                  .from('user_referral_codes')
+                  .update({ 
+                    total_uses: (currentCode.total_uses || 0) + 1
+                  })
+                  .eq('referral_code', referralCode)
+
+                if (updateError) {
+                  console.error('❌ Ошибка обновления total_uses:', updateError)
+                }
+              }
+            } else {
+              console.log(`⚠️ Реферальный код не найден или пользователь пытается использовать свой код: ${referralCode}`)
+            }
           }
         } catch (refError) {
-          console.error('Referral processing error (new user):', refError)
+          console.error('❌ Referral processing error (new user):', refError)
           // Не блокируем регистрацию если реферальный код не найден
         }
       }

@@ -289,6 +289,128 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
     }
   }
 
+  // КРИТИЧНО: Начисляем комиссию рефереру если это покупка курса
+  if (courseId && paymentType === 'course_purchase') {
+    // Ищем реферера (кто пригласил этого пользователя)
+    const { data: referralInfo } = await supabase
+      .from('referrals')
+      .select('referrer_id, commission_percent, id')
+      .eq('referred_id', userId)
+      .eq('status', 'active')
+      .maybeSingle()
+
+    if (referralInfo && referralInfo.referrer_id) {
+      const referrerId = referralInfo.referrer_id
+      const commissionPercent = referralInfo.commission_percent || 30.0
+      const commissionAmount = Math.round(amountInKopecks * commissionPercent / 100)
+
+      console.log(`💰 Начисляем комиссию рефереру: ${referrerId}, сумма: ${commissionAmount} копеек (${commissionPercent}%)`)
+
+      // Создаем транзакцию комиссии для реферера
+      const { error: commissionTxError } = await supabase
+        .from('transactions')
+        .insert({
+          user_id: referrerId,
+          type: 'earned',
+          amount: commissionAmount,
+          description: `Реферальная комиссия: ${commissionPercent}% с покупки курса`,
+          reference_type: 'referral_commission',
+          reference_id: courseId
+        })
+
+      if (commissionTxError) {
+        console.error('❌ Ошибка создания транзакции комиссии:', commissionTxError)
+      } else {
+        console.log('✅ Транзакция комиссии создана для реферера')
+      }
+
+      // Обновляем referrer_earned в таблице referrals
+      const { data: currentReferral } = await supabase
+        .from('referrals')
+        .select('referrer_earned')
+        .eq('id', referralInfo.id)
+        .maybeSingle()
+
+      const newReferrerEarned = (currentReferral?.referrer_earned || 0) + commissionAmount
+
+      const { error: updateReferralError } = await supabase
+        .from('referrals')
+        .update({
+          referrer_earned: newReferrerEarned
+        })
+        .eq('id', referralInfo.id)
+
+      if (updateReferralError) {
+        console.error('❌ Ошибка обновления referrer_earned:', updateReferralError)
+      } else {
+        console.log('✅ referrer_earned обновлен')
+      }
+
+      // Обновляем баланс реферера
+      const { data: referrerBalance } = await supabase
+        .from('user_balance')
+        .select('balance, total_earned')
+        .eq('user_id', referrerId)
+        .maybeSingle()
+
+      if (referrerBalance) {
+        const { error: updateBalanceError } = await supabase
+          .from('user_balance')
+          .update({
+            balance: (referrerBalance.balance || 0) + commissionAmount,
+            total_earned: (referrerBalance.total_earned || 0) + commissionAmount
+          })
+          .eq('user_id', referrerId)
+
+        if (updateBalanceError) {
+          console.error('❌ Ошибка обновления баланса реферера:', updateBalanceError)
+        } else {
+          console.log('✅ Баланс реферера обновлен')
+        }
+      } else {
+        // Создаем баланс если его нет
+        const { error: createBalanceError } = await supabase
+          .from('user_balance')
+          .insert({
+            user_id: referrerId,
+            balance: commissionAmount,
+            total_earned: commissionAmount,
+            total_withdrawn: 0
+          })
+
+        if (createBalanceError) {
+          console.error('❌ Ошибка создания баланса реферера:', createBalanceError)
+        } else {
+          console.log('✅ Баланс реферера создан')
+        }
+      }
+
+      // Обновляем total_earned в user_referral_codes реферера
+      const { data: referrerCode } = await supabase
+        .from('user_referral_codes')
+        .select('total_earned')
+        .eq('user_id', referrerId)
+        .maybeSingle()
+
+      if (referrerCode) {
+        const { error: updateCodeError } = await supabase
+          .from('user_referral_codes')
+          .update({
+            total_earned: (referrerCode.total_earned || 0) + commissionAmount
+          })
+          .eq('user_id', referrerId)
+
+        if (updateCodeError) {
+          console.error('❌ Ошибка обновления total_earned в user_referral_codes:', updateCodeError)
+        } else {
+          console.log('✅ total_earned в user_referral_codes обновлен')
+        }
+      }
+    } else {
+      console.log('ℹ️ Реферер не найден - комиссия не начисляется')
+    }
+  }
+
   // КРИТИЧНО: Создаем реферальный код автоматически если его нет (после покупки курса)
   if (courseId) {
     const { data: existingRefCode } = await supabase
@@ -352,7 +474,7 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
     }
   }
 
-  console.log('✅✅✅ ПЛАТЕЖ ОБРАБОТАН УСПЕШНО - ENROLLMENT, ТРАНЗАКЦИЯ И РЕФЕРАЛЬНЫЙ КОД СОЗДАНЫ')
+  console.log('✅✅✅ ПЛАТЕЖ ОБРАБОТАН УСПЕШНО - ENROLLMENT, ТРАНЗАКЦИЯ, КОМИССИЯ И РЕФЕРАЛЬНЫЙ КОД СОЗДАНЫ')
 }
 
 async function handlePaymentCanceled(supabase: any, payment: YooKassaEvent['object']) {
