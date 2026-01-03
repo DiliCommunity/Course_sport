@@ -10,6 +10,14 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient()
     const adminSupabase = createAdminClient() // Используем admin client для обхода RLS
 
+    if (!adminSupabase) {
+      console.error('[Profile API] Admin client not available')
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      )
+    }
+
     // Получаем пользователя из сессии
     const user = await getUserFromSession(supabase)
 
