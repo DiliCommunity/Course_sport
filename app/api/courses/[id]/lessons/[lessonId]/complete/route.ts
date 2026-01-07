@@ -70,8 +70,7 @@ export async function POST(
           user_id: user.id,
           course_id: courseId,
           lesson_id: lessonId,
-          completed: true,
-          completed_at: new Date().toISOString()
+          completed: true
         })
 
       if (progressError) {
@@ -86,8 +85,7 @@ export async function POST(
       const { error: updateError } = await adminSupabase
         .from('lesson_progress')
         .update({
-          completed: true,
-          completed_at: new Date().toISOString()
+          completed: true
         })
         .eq('id', existingProgress.id)
 
