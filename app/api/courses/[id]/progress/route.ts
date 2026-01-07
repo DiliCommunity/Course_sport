@@ -31,12 +31,36 @@ export async function GET(
     const courseId = params.id
 
     // Получаем завершенные уроки
-    const { data: completedProgress } = await adminSupabase
+    // Проверяем, есть ли статические уроки (по префиксу lesson_id)
+    const isKeto = courseId === '1' || courseId === '00000000-0000-0000-0000-000000000001'
+    const isInterval = courseId === '2' || courseId === '00000000-0000-0000-0000-000000000002'
+    
+    let completedProgressQuery = adminSupabase
       .from('lesson_progress')
       .select('lesson_id')
       .eq('user_id', user.id)
-      .eq('course_id', courseId)
       .eq('completed', true)
+    
+    // Фильтруем по префиксу для статических уроков или по lesson_id из таблицы lessons
+    if (isKeto || isInterval) {
+      const prefix = isKeto ? 'keto-m' : 'if-m'
+      completedProgressQuery = completedProgressQuery.like('lesson_id', `${prefix}%`)
+    } else {
+      // Для обычных курсов получаем lesson_id из таблицы lessons
+      const { data: courseLessons } = await adminSupabase
+        .from('lessons')
+        .select('id')
+        .eq('course_id', courseId)
+      
+      if (courseLessons && courseLessons.length > 0) {
+        const lessonIds = courseLessons.map(l => l.id)
+        completedProgressQuery = completedProgressQuery.in('lesson_id', lessonIds)
+      } else {
+        completedProgressQuery = completedProgressQuery.eq('lesson_id', '') // Пустой результат
+      }
+    }
+    
+    const { data: completedProgress } = await completedProgressQuery
 
     // Получаем enrollment для общего прогресса
     const { data: enrollment } = await adminSupabase

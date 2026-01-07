@@ -191,12 +191,37 @@ export async function GET(request: NextRequest) {
       }
       
       // Получаем актуальный прогресс из lesson_progress
-      const { data: completedLessons } = await adminSupabase
+      // Для статических уроков фильтруем по префиксу, для обычных - через таблицу lessons
+      const courseId = e.course_id
+      const isKeto = courseId === '00000000-0000-0000-0000-000000000001' || courseId === '1'
+      const isInterval = courseId === '00000000-0000-0000-0000-000000000002' || courseId === '2'
+      
+      let completedLessonsQuery = adminSupabase
         .from('lesson_progress')
         .select('lesson_id')
         .eq('user_id', user.id)
-        .eq('course_id', e.course_id)
         .eq('completed', true)
+      
+      if (isKeto || isInterval) {
+        // Для статических уроков фильтруем по префиксу
+        const prefix = isKeto ? 'keto-m' : 'if-m'
+        completedLessonsQuery = completedLessonsQuery.like('lesson_id', `${prefix}%`)
+      } else {
+        // Для обычных уроков получаем lesson_id из таблицы lessons
+        const { data: courseLessons } = await adminSupabase
+          .from('lessons')
+          .select('id')
+          .eq('course_id', courseId)
+        
+        if (courseLessons && courseLessons.length > 0) {
+          const lessonIds = courseLessons.map(l => l.id)
+          completedLessonsQuery = completedLessonsQuery.in('lesson_id', lessonIds)
+        } else {
+          completedLessonsQuery = completedLessonsQuery.eq('lesson_id', '') // Пустой результат
+        }
+      }
+      
+      const { data: completedLessons } = await completedLessonsQuery
       
       // Получаем общее количество уроков
       const { count: totalLessons } = await adminSupabase

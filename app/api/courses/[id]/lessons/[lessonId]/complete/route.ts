@@ -59,7 +59,6 @@ export async function POST(
       .select('id')
       .eq('user_id', user.id)
       .eq('lesson_id', lessonId)
-      .eq('course_id', courseId)
       .maybeSingle()
 
     if (!existingProgress) {
@@ -68,7 +67,6 @@ export async function POST(
         .from('lesson_progress')
         .insert({
           user_id: user.id,
-          course_id: courseId,
           lesson_id: lessonId,
           completed: true
         })
@@ -99,12 +97,35 @@ export async function POST(
     }
 
     // Обновляем общий прогресс в enrollment
-    const { data: completedLessons } = await adminSupabase
+    // Для статических уроков фильтруем по префиксу lesson_id
+    let completedLessonsQuery = adminSupabase
       .from('lesson_progress')
       .select('lesson_id', { count: 'exact', head: false })
       .eq('user_id', user.id)
-      .eq('course_id', courseId)
       .eq('completed', true)
+    
+    if (isStaticLesson) {
+      // Для статических уроков фильтруем по префиксу
+      const prefix = courseId === COURSE_IDS.KETO || courseId === '1' || courseId === '00000000-0000-0000-0000-000000000001' 
+        ? 'keto-m' 
+        : 'if-m'
+      completedLessonsQuery = completedLessonsQuery.like('lesson_id', `${prefix}%`)
+    } else {
+      // Для обычных уроков нужно получить lesson_id из таблицы lessons
+      const { data: courseLessons } = await adminSupabase
+        .from('lessons')
+        .select('id')
+        .eq('course_id', courseId)
+      
+      if (courseLessons && courseLessons.length > 0) {
+        const lessonIds = courseLessons.map(l => l.id)
+        completedLessonsQuery = completedLessonsQuery.in('lesson_id', lessonIds)
+      } else {
+        completedLessonsQuery = completedLessonsQuery.eq('lesson_id', '') // Пустой результат
+      }
+    }
+    
+    const { data: completedLessons } = await completedLessonsQuery
 
     // Подсчитываем общее количество уроков
     let totalLessons: number | null = null
