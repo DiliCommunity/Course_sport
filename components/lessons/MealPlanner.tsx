@@ -164,8 +164,9 @@ export function MealPlanner() {
         // Завтрак
         doc.setFontSize(11)
         doc.setTextColor(0, 0, 0)
-        doc.text(`Завтрак: ${day.breakfast.name}`, margin + 5, yPos)
-        yPos += 6
+        const breakfastText = doc.splitTextToSize(`Завтрак: ${day.breakfast.name}`, 180 - margin - 5)
+        doc.text(breakfastText, margin + 5, yPos)
+        yPos += breakfastText.length * 5 + 2
         doc.setFontSize(9)
         doc.setTextColor(100, 100, 100)
         doc.text(`${day.breakfast.calories} ккал | ${day.breakfast.fats}г Ж | ${day.breakfast.proteins}г Б | ${day.breakfast.carbs}г У | ${day.breakfast.prepTime} мин`, margin + 10, yPos)
@@ -174,8 +175,9 @@ export function MealPlanner() {
         // Обед
         doc.setFontSize(11)
         doc.setTextColor(0, 0, 0)
-        doc.text(`Обед: ${day.lunch.name}`, margin + 5, yPos)
-        yPos += 6
+        const lunchText = doc.splitTextToSize(`Обед: ${day.lunch.name}`, 180 - margin - 5)
+        doc.text(lunchText, margin + 5, yPos)
+        yPos += lunchText.length * 5 + 2
         doc.setFontSize(9)
         doc.setTextColor(100, 100, 100)
         doc.text(`${day.lunch.calories} ккал | ${day.lunch.fats}г Ж | ${day.lunch.proteins}г Б | ${day.lunch.carbs}г У | ${day.lunch.prepTime} мин`, margin + 10, yPos)
@@ -184,8 +186,9 @@ export function MealPlanner() {
         // Ужин
         doc.setFontSize(11)
         doc.setTextColor(0, 0, 0)
-        doc.text(`Ужин: ${day.dinner.name}`, margin + 5, yPos)
-        yPos += 6
+        const dinnerText = doc.splitTextToSize(`Ужин: ${day.dinner.name}`, 180 - margin - 5)
+        doc.text(dinnerText, margin + 5, yPos)
+        yPos += dinnerText.length * 5 + 2
         doc.setFontSize(9)
         doc.setTextColor(100, 100, 100)
         doc.text(`${day.dinner.calories} ккал | ${day.dinner.fats}г Ж | ${day.dinner.proteins}г Б | ${day.dinner.carbs}г У | ${day.dinner.prepTime} мин`, margin + 10, yPos)
@@ -195,8 +198,9 @@ export function MealPlanner() {
         if (day.snack) {
           doc.setFontSize(11)
           doc.setTextColor(0, 0, 0)
-          doc.text(`Перекус: ${day.snack.name}`, margin + 5, yPos)
-          yPos += 6
+          const snackText = doc.splitTextToSize(`Перекус: ${day.snack.name}`, 180 - margin - 5)
+          doc.text(snackText, margin + 5, yPos)
+          yPos += snackText.length * 5 + 2
           doc.setFontSize(9)
           doc.setTextColor(100, 100, 100)
           doc.text(`${day.snack.calories} ккал | ${day.snack.fats}г Ж | ${day.snack.proteins}г Б | ${day.snack.carbs}г У | ${day.snack.prepTime} мин`, margin + 10, yPos)
@@ -207,7 +211,9 @@ export function MealPlanner() {
         doc.setFontSize(10)
         doc.setTextColor(16, 185, 129)
         doc.setFont('helvetica', 'bold')
-        doc.text(`Итого: ${totals.calories} ккал | ${totals.fats}г жиров | ${totals.proteins}г белков | ${totals.carbs}г углеводов`, margin + 5, yPos)
+        const totalText = doc.splitTextToSize(`Итого: ${totals.calories} ккал | ${totals.fats}г жиров | ${totals.proteins}г белков | ${totals.carbs}г углеводов`, 180 - margin - 5)
+        doc.text(totalText, margin + 5, yPos)
+        yPos += totalText.length * 5 + 2
         yPos += 10
         
         // Разделитель между днями
@@ -285,7 +291,7 @@ export function MealPlanner() {
                   {day.day}
                 </h4>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                   <MealCard meal={day.breakfast} label="Завтрак" />
                   <MealCard meal={day.lunch} label="Обед" />
                   <MealCard meal={day.dinner} label="Ужин" />
@@ -293,13 +299,13 @@ export function MealPlanner() {
                 </div>
 
                 <div className="mt-3 pt-3 border-t border-white/10">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-white/60">Всего за день:</span>
-                    <div className="flex items-center gap-4">
-                      <span className="text-white font-medium">{totals.calories} ккал</span>
-                      <span className="text-yellow-400">{totals.fats}г жиров</span>
-                      <span className="text-blue-400">{totals.proteins}г белков</span>
-                      <span className="text-green-400">{totals.carbs}г углеводов</span>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm">
+                    <span className="text-white/60 font-medium">Всего за день:</span>
+                    <div className="flex items-center flex-wrap gap-3 sm:gap-4">
+                      <span className="text-white font-semibold whitespace-nowrap">{totals.calories} ккал</span>
+                      <span className="text-yellow-400 whitespace-nowrap">{totals.fats}г жиров</span>
+                      <span className="text-blue-400 whitespace-nowrap">{totals.proteins}г белков</span>
+                      <span className="text-green-400 whitespace-nowrap">{totals.carbs}г углеводов</span>
                     </div>
                   </div>
                 </div>
@@ -352,21 +358,21 @@ export function MealPlanner() {
 function MealCard({ meal, label }: { meal: Meal; label: string }) {
   return (
     <div className="p-3 rounded-lg bg-white/5 border border-white/5">
-      <div className="flex items-start justify-between mb-2">
-        <div className="flex-1">
+      <div className="flex items-start justify-between mb-2 gap-2">
+        <div className="flex-1 min-w-0">
           <div className="text-xs text-white/60 mb-1">{label}</div>
-          <div className="text-white font-medium text-sm">{meal.name}</div>
+          <div className="text-white font-medium text-sm break-words leading-tight">{meal.name}</div>
         </div>
-        <div className="flex items-center gap-1 text-white/40 text-xs">
+        <div className="flex items-center gap-1 text-white/40 text-xs flex-shrink-0">
           <Clock className="w-3 h-3" />
-          {meal.prepTime}мин
+          <span className="whitespace-nowrap">{meal.prepTime}мин</span>
         </div>
       </div>
-      <div className="flex items-center gap-3 text-xs">
-        <span className="text-white/60">{meal.calories} ккал</span>
-        <span className="text-yellow-400">{meal.fats}г Ж</span>
-        <span className="text-blue-400">{meal.proteins}г Б</span>
-        <span className="text-green-400">{meal.carbs}г У</span>
+      <div className="flex items-center flex-wrap gap-2 text-xs">
+        <span className="text-white/60 whitespace-nowrap">{meal.calories} ккал</span>
+        <span className="text-yellow-400 whitespace-nowrap">{meal.fats}г Ж</span>
+        <span className="text-blue-400 whitespace-nowrap">{meal.proteins}г Б</span>
+        <span className="text-green-400 whitespace-nowrap">{meal.carbs}г У</span>
       </div>
     </div>
   )
