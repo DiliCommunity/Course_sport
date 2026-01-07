@@ -80,6 +80,12 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
       setHasAccess(data.hasAccess || false)
       setAccessData(data)
       
+      // Если нет доступа и прогресс < 70%, перенаправляем на модули 2-4
+      if (!data.hasAccess && data.reason === 'insufficient_progress') {
+        router.push(`/courses/${params.id}/learn`)
+        return
+      }
+      
     } catch (error) {
       console.error('Error checking final access:', error)
     } finally {
@@ -234,7 +240,7 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
                         </div>
                       </div>
                       
-                      {(accessData.progress?.percent || 0) >= 70 || accessData.reason === 'progress_requirement_met' ? (
+                      {accessData.canPurchase ? (
                         <Button 
                           size="lg"
                           onClick={() => setIsPaymentModalOpen(true)}

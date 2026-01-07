@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic'
 // Для Кето курса
 const ketoPaidModule4 = {
   moduleTitle: 'Модуль 5: Кето в реальной жизни и социальных ситуациях (12.5% курса)',
-  imageUrl: '/img/recipes/keto-restaurant.jpg',
+  imageUrl: '/img/keto_full.jpg',
   lessons: [
     {
       id: '13',
@@ -111,7 +111,7 @@ const ketoPaidModule4 = {
 
 const ketoPaidModule5 = {
   moduleTitle: 'Модуль 6: Продвинутое Кето и долгосрочный успех (12.5% курса)',
-  imageUrl: '/img/recipes/keto-advanced.jpg',
+  imageUrl: '/img/keto_full2.jpg',
   lessons: [
     {
       id: '16',
@@ -148,7 +148,7 @@ const ketoPaidModule5 = {
 // Для Интервального голодания
 const intervalPaidModule4 = {
   moduleTitle: 'Модуль 5: 🚀 Биохакинг и Суперспособности IF (12.5% курса)',
-  imageUrl: '/img/interval_course.png',
+  imageUrl: '/img/if_full.jpg',
   lessons: [
     {
       id: '13',
@@ -179,7 +179,7 @@ const intervalPaidModule4 = {
 
 const intervalPaidModule5 = {
   moduleTitle: 'Модуль 6: 🦋 Полная Трансформация — Ваша Новая Жизнь Начинается! (12.5% курса)',
-  imageUrl: '/img/interval_course.png',
+  imageUrl: '/img/if_full2.jpg',
   lessons: [
     {
       id: '16',
