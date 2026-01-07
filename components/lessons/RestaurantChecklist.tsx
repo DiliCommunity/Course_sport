@@ -495,8 +495,6 @@ export function RestaurantChecklist() {
       })
 
       pdf.addImage(imgData, 'PNG', 0, 0, pageWidthMm, pageHeightMm)
-      const lang = selectedLanguage
-      const restaurantName = selectedType.nameTranslations[lang]
       const fileName = lang === 'ru' ? `Чек-лист-${restaurantName}-${new Date().toLocaleDateString('ru-RU').replace(/\//g, '-')}.pdf` :
                      `Checklist-${restaurantName}-${new Date().toLocaleDateString().replace(/\//g, '-')}.pdf`
       pdf.save(fileName)
