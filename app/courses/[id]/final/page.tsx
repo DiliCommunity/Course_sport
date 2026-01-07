@@ -148,7 +148,7 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-dark-900 via-dark-800 to-dark-900">
+    <main className="min-h-screen bg-gradient-to-b from-dark-900 via-dark-800 to-dark-900 pt-24">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl py-12">
         {/* Header */}
         <motion.div
@@ -158,7 +158,7 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
         >
           <Link
             href={`/courses/${params.id}`}
-            className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors mb-6"
+            className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors mb-6 relative z-10"
           >
             <ArrowLeft className="w-5 h-5" />
             <span>Назад к курсу</span>

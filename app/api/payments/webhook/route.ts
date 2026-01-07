@@ -295,8 +295,8 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
     }
   }
 
-  // КРИТИЧНО: Начисляем комиссию рефереру если это покупка курса
-  if (courseId && paymentType === 'course_purchase') {
+  // КРИТИЧНО: Начисляем комиссию рефереру если это покупка курса ИЛИ финальных модулей
+  if (courseId && (paymentType === 'course_purchase' || paymentType === 'final_modules')) {
     // Ищем реферера (кто пригласил этого пользователя)
     const { data: referralInfo } = await supabase
       .from('referrals')
@@ -319,7 +319,7 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
           user_id: referrerId,
           type: 'earned',
           amount: commissionAmount,
-          description: `Реферальная комиссия: ${commissionPercent}% с покупки курса`,
+          description: `Реферальная комиссия: ${commissionPercent}% с ${paymentType === 'final_modules' ? 'покупки финальных модулей' : 'покупки курса'}`,
           reference_type: 'referral_commission',
           reference_id: courseId
         })
