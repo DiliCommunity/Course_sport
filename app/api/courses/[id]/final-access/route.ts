@@ -167,7 +167,7 @@ export async function GET(
         ? 'У вас есть доступ к финальным модулям'
         : hasRequiredProgress
         ? 'Вы прошли 70% модулей 2-4, можете купить финальные модули'
-        : `Нужно пройти еще ${requiredLessons - completedModules24} уроков из модулей 2-4 (сейчас ${Math.round((completedModules24 / modules24Lessons.length) * 100)}%)`
+        : `Нужно пройти еще ${requiredLessons - completedModules24} уроков из модулей 2-4 (сейчас ${modules24Total > 0 ? Math.round((completedModules24 / modules24Total) * 100) : 0}%)`
     })
 
   } catch (error: any) {
