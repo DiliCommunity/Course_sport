@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Clock, Timer, Coffee, UtensilsCrossed, TrendingUp } from 'lucide-react'
+import { Clock, Timer, Coffee, UtensilsCrossed, TrendingUp, Download, Copy, Check } from 'lucide-react'
 
 interface IFWindow {
   start: string
@@ -22,6 +22,8 @@ export function IFCalculator() {
   const [pattern, setPattern] = useState<keyof typeof IF_PATTERNS>('16:8')
   const [wakeUpTime, setWakeUpTime] = useState('07:00')
   const [schedule, setSchedule] = useState<IFWindow[]>([])
+  const [downloading, setDownloading] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   const calculateSchedule = () => {
     const [wakeHour, wakeMinute] = wakeUpTime.split(':').map(Number)
@@ -219,6 +221,171 @@ export function IFCalculator() {
           ))}
         </ul>
       </motion.div>
+
+      {/* Кнопки действий */}
+      {schedule.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+          <button
+            onClick={() => {
+              const text = `⏰ РАСПИСАНИЕ ИНТЕРВАЛЬНОГО ГОЛОДАНИЯ
+
+Паттерн: ${pattern}
+Время пробуждения: ${wakeUpTime}
+
+📅 Расписание на день:
+${schedule.map((w, i) => 
+  `${i + 1}. ${w.type === 'eating' ? '🍽️ Окно питания' : '☕ Период голодания'}: ${w.start} - ${w.end}`
+).join('\n')}
+
+✅ Преимущества паттерна ${pattern}:
+${getBenefits().map(b => `• ${b}`).join('\n')}
+
+💡 Рекомендации:
+${getRecommendations().map(r => `• ${r}`).join('\n')}
+
+Сгенерировано: ${new Date().toLocaleDateString('ru-RU')}`
+              
+              navigator.clipboard.writeText(text)
+              setCopied(true)
+              setTimeout(() => setCopied(false), 2000)
+            }}
+            className="py-3 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+          >
+            {copied ? (
+              <>
+                <Check className="w-5 h-5 text-green-400" />
+                <span>Скопировано!</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-5 h-5" />
+                <span>Скопировать расписание</span>
+              </>
+            )}
+          </button>
+          
+          <button
+            onClick={async () => {
+              try {
+                setDownloading(true)
+                
+                const { jsPDF } = await import('jspdf')
+                const doc = new jsPDF({
+                  orientation: 'portrait',
+                  unit: 'mm',
+                  format: 'a4',
+                  compress: true
+                })
+
+                // Заголовок
+                doc.setFontSize(20)
+                doc.setTextColor(168, 85, 247) // purple
+                doc.text('Расписание интервального голодания', 105, 20, { align: 'center' })
+                
+                doc.setFontSize(10)
+                doc.setTextColor(100, 100, 100)
+                doc.text(`Сгенерировано: ${new Date().toLocaleDateString('ru-RU')}`, 105, 28, { align: 'center' })
+                
+                let yPos = 40
+                const margin = 15
+                
+                // Паттерн и время
+                doc.setFontSize(14)
+                doc.setTextColor(168, 85, 247)
+                doc.setFont('helvetica', 'bold')
+                doc.text(`Паттерн: ${pattern}`, margin, yPos)
+                yPos += 7
+                doc.setFontSize(11)
+                doc.setTextColor(0, 0, 0)
+                doc.setFont('helvetica', 'normal')
+                doc.text(IF_PATTERNS[pattern].description, margin + 5, yPos)
+                yPos += 7
+                doc.text(`Время пробуждения: ${wakeUpTime}`, margin, yPos)
+                yPos += 10
+                
+                // Расписание
+                doc.setFontSize(14)
+                doc.setTextColor(168, 85, 247)
+                doc.setFont('helvetica', 'bold')
+                doc.text('Расписание на день:', margin, yPos)
+                yPos += 8
+                
+                doc.setFontSize(11)
+                doc.setTextColor(0, 0, 0)
+                doc.setFont('helvetica', 'normal')
+                schedule.forEach((window, index) => {
+                  const typeText = window.type === 'eating' ? 'Окно питания' : 'Период голодания'
+                  doc.text(`${index + 1}. ${typeText}: ${window.start} - ${window.end}`, margin + 5, yPos)
+                  yPos += 6
+                  doc.setFontSize(9)
+                  doc.setTextColor(100, 100, 100)
+                  doc.text(window.type === 'eating' 
+                    ? 'В этот период вы можете есть'
+                    : 'Только вода, чай, кофе без сахара', margin + 10, yPos)
+                  yPos += 6
+                  doc.setFontSize(11)
+                  doc.setTextColor(0, 0, 0)
+                })
+                yPos += 5
+                
+                // Преимущества
+                doc.setFontSize(14)
+                doc.setTextColor(16, 185, 129)
+                doc.setFont('helvetica', 'bold')
+                doc.text(`Преимущества паттерна ${pattern}:`, margin, yPos)
+                yPos += 8
+                
+                doc.setFontSize(11)
+                doc.setTextColor(0, 0, 0)
+                doc.setFont('helvetica', 'normal')
+                getBenefits().forEach(benefit => {
+                  doc.text(`• ${benefit}`, margin + 5, yPos)
+                  yPos += 6
+                })
+                yPos += 5
+                
+                // Рекомендации
+                doc.setFontSize(14)
+                doc.setTextColor(100, 100, 100)
+                doc.setFont('helvetica', 'bold')
+                doc.text('Рекомендации:', margin, yPos)
+                yPos += 8
+                
+                doc.setFontSize(11)
+                doc.setTextColor(0, 0, 0)
+                doc.setFont('helvetica', 'normal')
+                getRecommendations().forEach(rec => {
+                  doc.text(`• ${rec}`, margin + 5, yPos)
+                  yPos += 6
+                })
+                
+                const fileName = `IF-расписание-${pattern}-${new Date().toLocaleDateString('ru-RU').replace(/\//g, '-')}.pdf`
+                doc.save(fileName)
+                
+                setDownloading(false)
+              } catch (error) {
+                console.error('Error generating PDF:', error)
+                setDownloading(false)
+                alert('Не удалось создать PDF файл. Попробуйте еще раз.')
+              }
+            }}
+            disabled={downloading}
+            className="py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium hover:shadow-lg hover:shadow-purple-500/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {downloading ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span>Генерация PDF...</span>
+              </>
+            ) : (
+              <>
+                <Download className="w-5 h-5" />
+                <span>Скачать PDF</span>
+              </>
+            )}
+          </button>
+        </div>
+      )}
     </motion.div>
   )
 }

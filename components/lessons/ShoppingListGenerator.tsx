@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { ShoppingCart, Plus, Trash2, Copy, Check, CheckCircle2 } from 'lucide-react'
+import { ShoppingCart, Plus, Trash2, Copy, Check, CheckCircle2, Download } from 'lucide-react'
 
 interface Ingredient {
   id: string
@@ -76,6 +76,7 @@ export function ShoppingListGenerator() {
   const [newQuantity, setNewQuantity] = useState('')
   const [newCategory, setNewCategory] = useState<Ingredient['category']>('other')
   const [copied, setCopied] = useState(false)
+  const [downloading, setDownloading] = useState(false)
 
   const toggleIngredient = (id: string) => {
     setIngredients(ingredients.map(ing => 
@@ -266,6 +267,87 @@ export function ShoppingListGenerator() {
           )}
         </button>
       </div>
+
+      {/* Кнопка скачивания PDF */}
+      <button
+        onClick={async () => {
+          try {
+            setDownloading(true)
+            
+            const { jsPDF } = await import('jspdf')
+            const doc = new jsPDF({
+              orientation: 'portrait',
+              unit: 'mm',
+              format: 'a4',
+              compress: true
+            })
+
+            // Заголовок
+            doc.setFontSize(20)
+            doc.setTextColor(59, 130, 246) // accent-electric
+            doc.text('Список покупок (Кето)', 105, 20, { align: 'center' })
+            
+            doc.setFontSize(10)
+            doc.setTextColor(100, 100, 100)
+            doc.text(`Сгенерировано: ${new Date().toLocaleDateString('ru-RU')}`, 105, 28, { align: 'center' })
+            
+            let yPos = 40
+            const margin = 15
+            
+            // Группируем по категориям
+            const categories = Object.keys(CATEGORY_LABELS) as Ingredient['category'][]
+            categories.forEach(category => {
+              const categoryIngredients = ingredients.filter(ing => ing.category === category)
+              if (categoryIngredients.length > 0) {
+                doc.setFontSize(12)
+                doc.setTextColor(59, 130, 246)
+                doc.setFont('helvetica', 'bold')
+                doc.text(CATEGORY_LABELS[category], margin, yPos)
+                yPos += 7
+                
+                doc.setFontSize(11)
+                doc.setTextColor(0, 0, 0)
+                doc.setFont('helvetica', 'normal')
+                categoryIngredients.forEach(ing => {
+                  const checkmark = ing.checked ? '☑' : '☐'
+                  doc.text(`${checkmark} ${ing.name} - ${ing.quantity}`, margin + 5, yPos)
+                  yPos += 6
+                })
+                yPos += 3
+              }
+            })
+            
+            // Статистика
+            yPos += 5
+            doc.setFontSize(10)
+            doc.setTextColor(100, 100, 100)
+            doc.text(`Выбрано: ${checkedCount} / ${ingredients.length}`, margin, yPos)
+            
+            const fileName = `Кето-список-покупок-${new Date().toLocaleDateString('ru-RU').replace(/\//g, '-')}.pdf`
+            doc.save(fileName)
+            
+            setDownloading(false)
+          } catch (error) {
+            console.error('Error generating PDF:', error)
+            setDownloading(false)
+            alert('Не удалось создать PDF файл. Попробуйте еще раз.')
+          }
+        }}
+        disabled={downloading}
+        className="w-full mt-4 py-3 rounded-xl bg-gradient-to-r from-accent-electric to-accent-teal text-dark-900 font-medium hover:shadow-lg hover:shadow-accent-electric/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {downloading ? (
+          <>
+            <div className="w-5 h-5 border-2 border-dark-900 border-t-transparent rounded-full animate-spin" />
+            <span>Генерация PDF...</span>
+          </>
+        ) : (
+          <>
+            <Download className="w-5 h-5" />
+            <span>Скачать список в PDF</span>
+          </>
+        )}
+      </button>
     </motion.div>
   )
 }

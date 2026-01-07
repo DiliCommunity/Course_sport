@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Calculator, TrendingUp, Zap, Users } from 'lucide-react'
+import { Calculator, TrendingUp, Zap, Users, Download, Copy, Check } from 'lucide-react'
 
 interface MacroResults {
   bmr: number
@@ -32,6 +32,8 @@ export function MacroCalculator() {
   const [activityLevel, setActivityLevel] = useState<keyof typeof ACTIVITY_MULTIPLIERS>('moderate')
   const [goal, setGoal] = useState<'cut' | 'maintain' | 'bulk'>('cut')
   const [results, setResults] = useState<MacroResults | null>(null)
+  const [downloading, setDownloading] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   const calculateMacros = () => {
     const ageNum = parseFloat(age)
@@ -88,6 +90,143 @@ export function MacroCalculator() {
       proteinsCal,
       carbsCal
     })
+  }
+
+  const copyResults = () => {
+    if (!results) return
+    
+    const goalText = goal === 'cut' ? 'Сброс веса' : goal === 'maintain' ? 'Поддержание' : 'Набор массы'
+    const activityText = ACTIVITY_MULTIPLIERS[activityLevel].label
+    
+    const text = `📊 РАСЧЕТ КАЛОРИЙ И МАКРОСОВ (КЕТО)
+
+👤 Параметры:
+Пол: ${gender === 'male' ? 'Мужской' : 'Женский'}
+Возраст: ${age} лет
+Вес: ${weight} кг
+Рост: ${height} см
+Уровень активности: ${activityText}
+Цель: ${goalText}
+
+📈 Результаты:
+BMR (базовый метаболизм): ${results.bmr} ккал/день
+TDEE (расход калорий): ${results.tdee} ккал/день
+Целевые калории: ${results.targetCalories} ккал/день
+
+🥑 Распределение макросов:
+Жиры: ${results.fats}г / ${results.fatsCal} ккал (70-75%)
+Белки: ${results.proteins}г / ${results.proteinsCal} ккал (20-25%)
+Углеводы: ${results.carbs}г / ${results.carbsCal} ккал (5-10%)
+
+Сгенерировано: ${new Date().toLocaleDateString('ru-RU')}`
+    
+    navigator.clipboard.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  const downloadPDF = async () => {
+    if (!results) return
+    
+    try {
+      setDownloading(true)
+      
+      const { jsPDF } = await import('jspdf')
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+        compress: true
+      })
+
+      // Заголовок
+      doc.setFontSize(20)
+      doc.setTextColor(245, 158, 11) // accent-gold
+      doc.text('Расчет калорий и макросов (Кето)', 105, 20, { align: 'center' })
+      
+      doc.setFontSize(10)
+      doc.setTextColor(100, 100, 100)
+      doc.text(`Сгенерировано: ${new Date().toLocaleDateString('ru-RU')}`, 105, 28, { align: 'center' })
+      
+      let yPos = 40
+      const margin = 15
+      
+      // Параметры
+      doc.setFontSize(14)
+      doc.setTextColor(16, 185, 129) // accent-mint
+      doc.setFont('helvetica', 'bold')
+      doc.text('Параметры:', margin, yPos)
+      yPos += 8
+      
+      doc.setFontSize(11)
+      doc.setTextColor(0, 0, 0)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`Пол: ${gender === 'male' ? 'Мужской' : 'Женский'}`, margin + 5, yPos)
+      yPos += 6
+      doc.text(`Возраст: ${age} лет`, margin + 5, yPos)
+      yPos += 6
+      doc.text(`Вес: ${weight} кг`, margin + 5, yPos)
+      yPos += 6
+      doc.text(`Рост: ${height} см`, margin + 5, yPos)
+      yPos += 6
+      doc.text(`Уровень активности: ${ACTIVITY_MULTIPLIERS[activityLevel].label}`, margin + 5, yPos)
+      yPos += 6
+      const goalText = goal === 'cut' ? 'Сброс веса' : goal === 'maintain' ? 'Поддержание' : 'Набор массы'
+      doc.text(`Цель: ${goalText}`, margin + 5, yPos)
+      yPos += 10
+      
+      // Основные показатели
+      doc.setFontSize(14)
+      doc.setTextColor(245, 158, 11)
+      doc.setFont('helvetica', 'bold')
+      doc.text('Основные показатели:', margin, yPos)
+      yPos += 8
+      
+      doc.setFontSize(11)
+      doc.setTextColor(0, 0, 0)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`BMR (базовый метаболизм): ${results.bmr} ккал/день`, margin + 5, yPos)
+      yPos += 6
+      doc.text(`TDEE (расход калорий): ${results.tdee} ккал/день`, margin + 5, yPos)
+      yPos += 6
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(16, 185, 129)
+      doc.text(`Целевые калории: ${results.targetCalories} ккал/день`, margin + 5, yPos)
+      yPos += 10
+      
+      // Макросы
+      doc.setFontSize(14)
+      doc.setTextColor(245, 158, 11)
+      doc.setFont('helvetica', 'bold')
+      doc.text('Распределение макросов (Кето):', margin, yPos)
+      yPos += 8
+      
+      doc.setFontSize(11)
+      doc.setTextColor(0, 0, 0)
+      doc.setFont('helvetica', 'normal')
+      doc.text(`Жиры: ${results.fats}г / ${results.fatsCal} ккал (70-75%)`, margin + 5, yPos)
+      yPos += 6
+      doc.text(`Белки: ${results.proteins}г / ${results.proteinsCal} ккал (20-25%)`, margin + 5, yPos)
+      yPos += 6
+      doc.text(`Углеводы: ${results.carbs}г / ${results.carbsCal} ккал (5-10%)`, margin + 5, yPos)
+      yPos += 8
+      
+      // Рекомендации
+      doc.setFontSize(12)
+      doc.setTextColor(100, 100, 100)
+      doc.setFont('helvetica', 'italic')
+      doc.text('Рекомендация: Следуйте этим показателям для достижения кетоза', margin, yPos)
+      
+      // Сохраняем PDF
+      const fileName = `Кето-макросы-${new Date().toLocaleDateString('ru-RU').replace(/\//g, '-')}.pdf`
+      doc.save(fileName)
+      
+      setDownloading(false)
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+      setDownloading(false)
+      alert('Не удалось создать PDF файл. Попробуйте еще раз.')
+    }
   }
 
   return (
@@ -320,6 +459,44 @@ export function MacroCalculator() {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Кнопки действий */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-6">
+            <button
+              onClick={copyResults}
+              className="py-3 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+            >
+              {copied ? (
+                <>
+                  <Check className="w-5 h-5 text-accent-mint" />
+                  <span>Скопировано!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-5 h-5" />
+                  <span>Скопировать результаты</span>
+                </>
+              )}
+            </button>
+            
+            <button
+              onClick={downloadPDF}
+              disabled={downloading}
+              className="py-3 rounded-xl bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900 font-medium hover:shadow-lg hover:shadow-accent-gold/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {downloading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-dark-900 border-t-transparent rounded-full animate-spin" />
+                  <span>Генерация PDF...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="w-5 h-5" />
+                  <span>Скачать PDF</span>
+                </>
+              )}
+            </button>
           </div>
         </motion.div>
       )}

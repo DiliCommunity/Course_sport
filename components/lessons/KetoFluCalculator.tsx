@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Droplet, AlertTriangle, CheckCircle2, Copy, Check } from 'lucide-react'
+import { Droplet, AlertTriangle, CheckCircle2, Copy, Check, Download } from 'lucide-react'
 
 interface Symptom {
   id: string
@@ -27,6 +27,7 @@ export function KetoFluCalculator() {
   const [water, setWater] = useState('1')
   const [salt, setSalt] = useState('0.5')
   const [copied, setCopied] = useState(false)
+  const [downloading, setDownloading] = useState(false)
 
   const toggleSymptom = (id: string) => {
     setSymptoms(symptoms.map(s => 
@@ -265,6 +266,139 @@ ${recipe.salt} ч.л. соли
           )}
         </button>
       </div>
+
+      {/* Кнопка скачивания PDF */}
+      {(severityCount.total > 0 || recommendations.length > 0) && (
+        <button
+          onClick={async () => {
+            try {
+              setDownloading(true)
+              
+              const { jsPDF } = await import('jspdf')
+              const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4',
+                compress: true
+              })
+
+              // Заголовок
+              doc.setFontSize(20)
+              doc.setTextColor(245, 158, 11) // amber
+              doc.text('Трекер кетогриппа', 105, 20, { align: 'center' })
+              
+              doc.setFontSize(10)
+              doc.setTextColor(100, 100, 100)
+              doc.text(`Сгенерировано: ${new Date().toLocaleDateString('ru-RU')}`, 105, 28, { align: 'center' })
+              
+              let yPos = 40
+              const margin = 15
+              
+              // Симптомы
+              const checkedSymptoms = symptoms.filter(s => s.checked)
+              if (checkedSymptoms.length > 0) {
+                doc.setFontSize(14)
+                doc.setTextColor(245, 158, 11)
+                doc.setFont('helvetica', 'bold')
+                doc.text('Ваши симптомы:', margin, yPos)
+                yPos += 8
+                
+                doc.setFontSize(11)
+                doc.setTextColor(0, 0, 0)
+                doc.setFont('helvetica', 'normal')
+                checkedSymptoms.forEach(symptom => {
+                  const severityText = symptom.severity === 'severe' ? 'Серьезный' : symptom.severity === 'moderate' ? 'Умеренный' : 'Легкий'
+                  doc.text(`• ${symptom.name} (${severityText})`, margin + 5, yPos)
+                  yPos += 6
+                })
+                yPos += 5
+              }
+              
+              // Статистика
+              if (severityCount.total > 0) {
+                doc.setFontSize(12)
+                doc.setTextColor(100, 100, 100)
+                doc.text(`Всего симптомов: ${severityCount.total}`, margin, yPos)
+                yPos += 6
+                if (severityCount.severe > 0) {
+                  doc.setTextColor(220, 38, 38)
+                  doc.text(`Серьезных: ${severityCount.severe}`, margin, yPos)
+                  yPos += 6
+                }
+                if (severityCount.moderate > 0) {
+                  doc.setTextColor(245, 158, 11)
+                  doc.text(`Умеренных: ${severityCount.moderate}`, margin, yPos)
+                  yPos += 6
+                }
+                yPos += 5
+              }
+              
+              // Рекомендации
+              if (recommendations.length > 0) {
+                doc.setFontSize(14)
+                doc.setTextColor(16, 185, 129)
+                doc.setFont('helvetica', 'bold')
+                doc.text('Рекомендации:', margin, yPos)
+                yPos += 8
+                
+                doc.setFontSize(11)
+                doc.setTextColor(0, 0, 0)
+                doc.setFont('helvetica', 'normal')
+                recommendations.forEach(rec => {
+                  doc.text(`• ${rec}`, margin + 5, yPos)
+                  yPos += 6
+                })
+                yPos += 5
+              }
+              
+              // Рецепт электролита
+              doc.setFontSize(14)
+              doc.setTextColor(59, 130, 246)
+              doc.setFont('helvetica', 'bold')
+              doc.text('Рецепт кето-электролита:', margin, yPos)
+              yPos += 8
+              
+              doc.setFontSize(11)
+              doc.setTextColor(0, 0, 0)
+              doc.setFont('helvetica', 'normal')
+              doc.text(`${electrolyte.water}л воды`, margin + 5, yPos)
+              yPos += 6
+              doc.text(`${electrolyte.salt} ч.л. соли (~${electrolyte.saltGrams}г)`, margin + 5, yPos)
+              yPos += 6
+              doc.text('Сок 1/2 лимона', margin + 5, yPos)
+              yPos += 6
+              doc.text('Стевия по вкусу', margin + 5, yPos)
+              yPos += 6
+              doc.setFontSize(10)
+              doc.setTextColor(100, 100, 100)
+              doc.text(`Натрий: ~${electrolyte.sodium}мг | Рекомендуется: ${electrolyte.servings} порций в день`, margin + 5, yPos)
+              
+              const fileName = `Кетогрипп-трекер-${new Date().toLocaleDateString('ru-RU').replace(/\//g, '-')}.pdf`
+              doc.save(fileName)
+              
+              setDownloading(false)
+            } catch (error) {
+              console.error('Error generating PDF:', error)
+              setDownloading(false)
+              alert('Не удалось создать PDF файл. Попробуйте еще раз.')
+            }
+          }}
+          disabled={downloading}
+          className="w-full mt-4 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-red-500 text-white font-medium hover:shadow-lg hover:shadow-amber-500/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {downloading ? (
+            <>
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <span>Генерация PDF...</span>
+            </>
+          ) : (
+            <>
+              <Download className="w-5 h-5" />
+              <span>Скачать отчет в PDF</span>
+            </>
+          )}
+        </button>
+      )}
     </motion.div>
   )
 }
