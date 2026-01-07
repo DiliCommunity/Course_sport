@@ -13,6 +13,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Button } from '@/components/ui/Button'
 import { getCourseUUID } from '@/lib/constants'
+import { MacroCalculator } from '@/components/lessons/MacroCalculator'
 
 interface Lesson {
   id: string
@@ -569,6 +570,13 @@ function LessonModal({
               <p className="text-white/60">Контент урока загружается...</p>
             )}
           </div>
+
+          {/* Интерактивный калькулятор для урока о расчете макросов */}
+          {lesson.title.toLowerCase().includes('макрос') || 
+           lesson.title.toLowerCase().includes('расчет') ||
+           lesson.content?.toLowerCase().includes('формула расчета') ? (
+            <MacroCalculator />
+          ) : null}
           
           {!isCompleted && (
             <button
