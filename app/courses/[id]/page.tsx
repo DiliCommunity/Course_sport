@@ -2545,6 +2545,11 @@ export default function CoursePage({ params }: { params: { id: string } }) {
     completedLessons: string[]
     overallProgress: number
   }>({ completedLessons: [], overallProgress: 0 })
+  
+  // Состояние для уроков
+  const [lessons, setLessons] = useState<any[]>([])
+  const [modules, setModules] = useState<any[]>([])
+  const [isLoadingLessons, setIsLoadingLessons] = useState(false)
 
   // Проверка доступа к курсу
   useEffect(() => {
@@ -2567,12 +2572,18 @@ export default function CoursePage({ params }: { params: { id: string } }) {
         // Если есть доступ но нет полного - следующая покупка = полный доступ
         setIsFullAccessPrice(data.hasAccess && !data.hasFullAccess)
         
-        // Загружаем прогресс если есть доступ
+        // Загружаем прогресс и уроки если есть доступ
         if (data.hasAccess) {
           try {
-            const progressResponse = await fetch(`/api/courses/${params.id}/progress`, {
-              credentials: 'include'
-            })
+            const [progressResponse, lessonsResponse] = await Promise.all([
+              fetch(`/api/courses/${params.id}/progress`, {
+                credentials: 'include'
+              }),
+              fetch(`/api/courses/${params.id}/lessons-modules24-static`, {
+                credentials: 'include'
+              })
+            ])
+            
             if (progressResponse.ok) {
               const progressData = await progressResponse.json()
               setProgress({
@@ -2580,8 +2591,14 @@ export default function CoursePage({ params }: { params: { id: string } }) {
                 overallProgress: progressData.overallProgress || 0
               })
             }
+            
+            if (lessonsResponse.ok) {
+              const lessonsData = await lessonsResponse.json()
+              setLessons(lessonsData.lessons || [])
+              setModules(lessonsData.modules || [])
+            }
           } catch (error) {
-            console.error('Error loading progress:', error)
+            console.error('Error loading progress/lessons:', error)
           }
         }
         
@@ -2738,29 +2755,106 @@ export default function CoursePage({ params }: { params: { id: string } }) {
                   Содержание курса
                 </h2>
                 <div className="card divide-y divide-white/5">
-                  {courseData.lessons.map((lesson, index) => (
+                  {/* Бесплатные уроки из модуля 1 */}
+                  {freeModuleData.lessons.map((lesson, index) => {
+                    const isCompleted = progress.completedLessons?.includes(lesson.id) || false
+                    return (
+                      <div
+                        key={lesson.id}
+                        className="flex items-center gap-4 p-4 hover:bg-white/5 transition-colors"
+                      >
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                          isCompleted
+                            ? 'bg-accent-mint/20 text-accent-mint'
+                            : 'bg-accent-neon/20 text-accent-neon'
+                        }`}>
+                          {isCompleted ? (
+                            <CheckCircle2 className="w-5 h-5" />
+                          ) : (
+                            <Play className="w-5 h-5" />
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-white/40 text-sm">{index + 1}.</span>
+                            <span className={`font-medium ${isCompleted ? 'text-white/60 line-through' : 'text-white'}`}>
+                              {lesson.title}
+                            </span>
+                            <span className="badge badge-neon text-xs">Бесплатно</span>
+                          </div>
+                        </div>
+                        <span className="text-white/50 text-sm">
+                          {formatDuration(lesson.duration)}
+                        </span>
+                      </div>
+                    )
+                  })}
+                  
+                  {/* Уроки из модулей 2-4 (если есть доступ) */}
+                  {hasAccess && modules.length > 0 && modules.map((module) =>
+                    module.lessons.map((lesson: any, lessonIndex: number) => {
+                      const isCompleted = progress.completedLessons?.includes(lesson.id) || false
+                      const isLocked = !lesson.is_free && !hasAccess
+                      const globalIndex = freeModuleData.lessons.length + lessonIndex
+                      
+                      return (
+                        <div
+                          key={lesson.id}
+                          className="flex items-center gap-4 p-4 hover:bg-white/5 transition-colors"
+                        >
+                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                            isCompleted
+                              ? 'bg-accent-mint/20 text-accent-mint'
+                              : isLocked
+                              ? 'bg-white/5 text-white/30'
+                              : 'bg-accent-teal/20 text-accent-teal'
+                          }`}>
+                            {isCompleted ? (
+                              <CheckCircle2 className="w-5 h-5" />
+                            ) : isLocked ? (
+                              <Lock className="w-4 h-4" />
+                            ) : (
+                              <PlayCircle className="w-5 h-5" />
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-white/40 text-sm">{globalIndex + 1}.</span>
+                              <span className={`font-medium ${
+                                isCompleted 
+                                  ? 'text-white/60 line-through' 
+                                  : isLocked 
+                                  ? 'text-white/40' 
+                                  : 'text-white'
+                              }`}>
+                                {lesson.title}
+                              </span>
+                              {lesson.is_free && (
+                                <span className="badge badge-neon text-xs">Бесплатно</span>
+                              )}
+                            </div>
+                          </div>
+                          <span className="text-white/50 text-sm">
+                            {lesson.duration_minutes ? formatDuration(lesson.duration_minutes) : '—'}
+                          </span>
+                        </div>
+                      )
+                    })
+                  )}
+                  
+                  {/* Если нет доступа, показываем заблокированные уроки */}
+                  {!hasAccess && courseData.lessons.filter(l => !l.isFree).map((lesson, index) => (
                     <div
                       key={lesson.id}
                       className="flex items-center gap-4 p-4 hover:bg-white/5 transition-colors"
                     >
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                        lesson.isFree 
-                          ? 'bg-accent-neon/20 text-accent-neon' 
-                          : 'bg-white/5 text-white/40'
-                      }`}>
-                        {lesson.isFree ? (
-                          <PlayCircle className="w-5 h-5" />
-                        ) : (
-                          <Lock className="w-4 h-4" />
-                        )}
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-white/5 text-white/40">
+                        <Lock className="w-4 h-4" />
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="text-white/40 text-sm">{index + 1}.</span>
-                          <span className="text-white font-medium">{lesson.title}</span>
-                          {lesson.isFree && (
-                            <span className="badge badge-neon text-xs">Бесплатно</span>
-                          )}
+                          <span className="text-white/40 text-sm">{freeModuleData.lessons.length + index + 1}.</span>
+                          <span className="text-white/40 font-medium">{lesson.title}</span>
                         </div>
                       </div>
                       <span className="text-white/50 text-sm">
@@ -2768,11 +2862,81 @@ export default function CoursePage({ params }: { params: { id: string } }) {
                       </span>
                     </div>
                   ))}
-                  <div className="p-4 text-center">
-                    <span className="text-white/50">
-                      + ещё {courseData.lessonsCount - courseData.lessons.length} уроков
-                    </span>
-                  </div>
+                  
+                  {/* Если есть финальные модули, показываем их */}
+                  {hasFinalModulesAccess && paidModule4Data && paidModule5Data && (
+                    <>
+                      {paidModule4Data.lessons.map((lesson: any, index: number) => {
+                        const isCompleted = progress.completedLessons?.includes(lesson.id) || false
+                        const globalIndex = freeModuleData.lessons.length + 
+                          (hasAccess ? lessons.length : 0) + index
+                        return (
+                          <div
+                            key={lesson.id}
+                            className="flex items-center gap-4 p-4 hover:bg-white/5 transition-colors"
+                          >
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                              isCompleted
+                                ? 'bg-accent-mint/20 text-accent-mint'
+                                : 'bg-accent-gold/20 text-accent-gold'
+                            }`}>
+                              {isCompleted ? (
+                                <CheckCircle2 className="w-5 h-5" />
+                              ) : (
+                                <PlayCircle className="w-5 h-5" />
+                              )}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-white/40 text-sm">{globalIndex + 1}.</span>
+                                <span className={`font-medium ${isCompleted ? 'text-white/60 line-through' : 'text-white'}`}>
+                                  {lesson.title}
+                                </span>
+                              </div>
+                            </div>
+                            <span className="text-white/50 text-sm">
+                              {lesson.duration ? formatDuration(lesson.duration) : '—'}
+                            </span>
+                          </div>
+                        )
+                      })}
+                      {paidModule5Data.lessons.map((lesson: any, index: number) => {
+                        const isCompleted = progress.completedLessons?.includes(lesson.id) || false
+                        const globalIndex = freeModuleData.lessons.length + 
+                          (hasAccess ? lessons.length : 0) + 
+                          (paidModule4Data?.lessons.length || 0) + index
+                        return (
+                          <div
+                            key={lesson.id}
+                            className="flex items-center gap-4 p-4 hover:bg-white/5 transition-colors"
+                          >
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                              isCompleted
+                                ? 'bg-accent-mint/20 text-accent-mint'
+                                : 'bg-accent-gold/20 text-accent-gold'
+                            }`}>
+                              {isCompleted ? (
+                                <CheckCircle2 className="w-5 h-5" />
+                              ) : (
+                                <PlayCircle className="w-5 h-5" />
+                              )}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-white/40 text-sm">{globalIndex + 1}.</span>
+                                <span className={`font-medium ${isCompleted ? 'text-white/60 line-through' : 'text-white'}`}>
+                                  {lesson.title}
+                                </span>
+                              </div>
+                            </div>
+                            <span className="text-white/50 text-sm">
+                              {lesson.duration ? formatDuration(lesson.duration) : '—'}
+                            </span>
+                          </div>
+                        )
+                      })}
+                    </>
+                  )}
                 </div>
               </motion.div>
             </div>
