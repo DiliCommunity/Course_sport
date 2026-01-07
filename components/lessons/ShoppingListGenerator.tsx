@@ -212,27 +212,31 @@ export function ShoppingListGenerator() {
                 {categoryIngredients.map(ing => (
                   <div
                     key={ing.id}
-                    className="flex items-center gap-3 p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-all"
+                    className="flex items-center gap-3 p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-all cursor-pointer"
+                    onClick={() => toggleIngredient(ing.id)}
                   >
-                    <button
-                      onClick={() => toggleIngredient(ing.id)}
+                    <div
                       className="flex-shrink-0"
+                      onClick={(e) => e.stopPropagation()}
                     >
                       {ing.checked ? (
                         <CheckCircle2 className="w-5 h-5 text-accent-mint" />
                       ) : (
                         <div className="w-5 h-5 rounded-full border-2 border-white/40" />
                       )}
-                    </button>
-                    <div className="flex-1">
+                    </div>
+                    <div className="flex-1" onClick={(e) => e.stopPropagation()}>
                       <div className={`text-sm ${ing.checked ? 'line-through text-white/40' : 'text-white'}`}>
                         {ing.name}
                       </div>
                       <div className="text-xs text-white/60">{ing.quantity}</div>
                     </div>
                     <button
-                      onClick={() => removeIngredient(ing.id)}
-                      className="p-1 rounded-lg hover:bg-red-500/20 text-red-400 transition-all"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        removeIngredient(ing.id)
+                      }}
+                      className="p-1 rounded-lg hover:bg-red-500/20 text-red-400 transition-all z-10"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -276,57 +280,120 @@ export function ShoppingListGenerator() {
               try {
                 setDownloading(true)
                 
-                const { jsPDF } = await import('jspdf')
-                const doc = new jsPDF({
-                  orientation: 'portrait',
-                  unit: 'mm',
-                  format: 'a4',
-                  compress: true
-                })
+                // Создаем canvas для правильного рендеринга кириллицы
+                const canvas = document.createElement('canvas')
+                const ctx = canvas.getContext('2d')
+                if (!ctx) {
+                  throw new Error('Could not get canvas context')
+                }
+
+                // Устанавливаем размеры для A4 (300 DPI для качества)
+                const dpi = 300
+                const mmToPx = dpi / 25.4
+                const pageWidthMm = 210
+                const pageHeightMm = 297
+                const pageWidthPx = pageWidthMm * mmToPx
+                const pageHeightPx = pageHeightMm * mmToPx
+                
+                canvas.width = pageWidthPx
+                canvas.height = pageHeightPx
+
+                // Белый фон
+                ctx.fillStyle = '#ffffff'
+                ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+                // Настройки текста
+                const marginPx = 15 * mmToPx
+                let yPosPx = 20 * mmToPx
 
                 // Заголовок
-                doc.setFontSize(20)
-                doc.setTextColor(59, 130, 246) // accent-electric
-                doc.text('Список покупок (Кето)', 105, 20, { align: 'center' })
-                
-                doc.setFontSize(10)
-                doc.setTextColor(100, 100, 100)
-                doc.text(`Сгенерировано: ${new Date().toLocaleDateString('ru-RU')}`, 105, 28, { align: 'center' })
-                
-                let yPos = 40
-                const margin = 15
-                
+                ctx.fillStyle = '#3b82f6'
+                ctx.font = 'bold 24px Arial, sans-serif'
+                ctx.textAlign = 'center'
+                ctx.textBaseline = 'top'
+                ctx.fillText('Список покупок (Кето)', pageWidthPx / 2, yPosPx)
+                yPosPx += 30
+
+                ctx.fillStyle = '#999999'
+                ctx.font = '12px Arial, sans-serif'
+                ctx.fillText(`Сгенерировано: ${new Date().toLocaleDateString('ru-RU')}`, pageWidthPx / 2, yPosPx)
+                yPosPx += 40
+
                 // Группируем по категориям
                 const categories = Object.keys(CATEGORY_LABELS) as Ingredient['category'][]
                 categories.forEach(category => {
                   const categoryIngredients = ingredients.filter(ing => ing.category === category)
                   if (categoryIngredients.length > 0) {
-                    doc.setFontSize(12)
-                    doc.setTextColor(59, 130, 246)
-                    doc.setFont('helvetica', 'bold')
-                    doc.text(CATEGORY_LABELS[category], margin, yPos)
-                    yPos += 7
-                    
-                    doc.setFontSize(11)
-                    doc.setTextColor(0, 0, 0)
-                    doc.setFont('helvetica', 'normal')
+                    // Проверяем, нужна ли новая страница
+                    if (yPosPx > pageHeightPx - 100) {
+                      // Добавим новую страницу позже через jsPDF
+                      yPosPx = 20 * mmToPx
+                    }
+
+                    // Заголовок категории
+                    ctx.fillStyle = '#3b82f6'
+                    ctx.font = 'bold 16px Arial, sans-serif'
+                    ctx.textAlign = 'left'
+                    const categoryTitle = CATEGORY_LABELS[category]
+                    ctx.fillText(categoryTitle, marginPx, yPosPx)
+                    yPosPx += 25
+
+                    // Линия под заголовком
+                    ctx.strokeStyle = '#3b82f6'
+                    ctx.lineWidth = 2
+                    ctx.beginPath()
+                    ctx.moveTo(marginPx, yPosPx - 5)
+                    ctx.lineTo(pageWidthPx - marginPx, yPosPx - 5)
+                    ctx.stroke()
+                    yPosPx += 10
+
+                    // Элементы категории
+                    ctx.font = '14px Arial, sans-serif'
                     categoryIngredients.forEach(ing => {
-                      const checkmark = ing.checked ? '☑' : '☐'
-                      doc.text(`${checkmark} ${ing.name} - ${ing.quantity}`, margin + 5, yPos)
-                      yPos += 6
+                      if (yPosPx > pageHeightPx - 50) {
+                        yPosPx = 20 * mmToPx
+                      }
+
+                      const checkmark = ing.checked ? '✓' : '☐'
+                      const itemText = `${checkmark} ${ing.name} - ${ing.quantity}`
+                      
+                      ctx.fillStyle = ing.checked ? '#999999' : '#000000'
+                      if (ing.checked) {
+                        ctx.strokeStyle = '#999999'
+                        ctx.strokeText(itemText, marginPx + 20, yPosPx)
+                      } else {
+                        ctx.fillText(itemText, marginPx + 20, yPosPx)
+                      }
+                      yPosPx += 25
                     })
-                    yPos += 3
+                    yPosPx += 15
                   }
                 })
-                
+
                 // Статистика
-                yPos += 5
-                doc.setFontSize(10)
-                doc.setTextColor(100, 100, 100)
-                doc.text(`Выбрано: ${checkedCount} / ${ingredients.length}`, margin, yPos)
-                
+                if (yPosPx > pageHeightPx - 80) {
+                  yPosPx = 20 * mmToPx
+                }
+                yPosPx += 20
+                ctx.fillStyle = '#3b82f6'
+                ctx.fillRect(marginPx, yPosPx, pageWidthPx - marginPx * 2, 40)
+                ctx.fillStyle = '#ffffff'
+                ctx.font = 'bold 14px Arial, sans-serif'
+                ctx.fillText(`Выбрано: ${checkedCount} / ${ingredients.length}`, marginPx + 15, yPosPx + 25)
+
+                // Конвертируем canvas в PDF
+                const { jsPDF } = await import('jspdf')
+                const imgData = canvas.toDataURL('image/png', 1.0)
+                const pdf = new jsPDF({
+                  orientation: 'portrait',
+                  unit: 'mm',
+                  format: 'a4'
+                })
+
+                pdf.addImage(imgData, 'PNG', 0, 0, pageWidthMm, pageHeightMm)
+
                 const fileName = `Кето-список-покупок-${new Date().toLocaleDateString('ru-RU').replace(/\//g, '-')}.pdf`
-                doc.save(fileName)
+                pdf.save(fileName)
                 
                 setDownloading(false)
               } catch (error) {

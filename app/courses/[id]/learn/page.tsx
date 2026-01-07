@@ -542,23 +542,24 @@ function LessonModal({
   return (
     <div className="fixed inset-0 bg-dark-900/95 z-50 overflow-y-auto">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="flex items-center justify-between mb-6">
-          <button
-            onClick={onClose}
-            className="flex items-center gap-2 text-white/60 hover:text-white transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            <span>Назад</span>
-          </button>
+        <div className="glass rounded-2xl p-8 relative">
+          {/* Кнопка назад в верхней части контента */}
+          <div className="flex items-center justify-between mb-6 pb-6 border-b border-white/10">
+            <button
+              onClick={onClose}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-medium transition-all hover:scale-105 active:scale-95 z-10"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              <span>Назад к урокам</span>
+            </button>
+            
+            {isCompleted && (
+              <span className="px-4 py-2 rounded-xl bg-accent-mint/20 text-accent-mint border border-accent-mint/30 font-medium">
+                ✓ Завершено
+              </span>
+            )}
+          </div>
           
-          {isCompleted && (
-            <span className="px-4 py-2 rounded-xl bg-accent-mint/20 text-accent-mint border border-accent-mint/30">
-              ✓ Завершено
-            </span>
-          )}
-        </div>
-        
-        <div className="glass rounded-2xl p-8">
           <h1 className="font-display font-bold text-3xl text-white mb-4">
             {lesson.title}
           </h1>
@@ -643,17 +644,28 @@ function LessonModal({
             <IFCalculator />
           ) : null}
           
-          {!isCompleted && (
+          {/* Кнопка назад внизу для удобства */}
+          <div className="mt-8 pt-6 border-t border-white/10 flex flex-col sm:flex-row gap-3">
             <button
-              onClick={() => {
-                onComplete()
-                onClose()
-              }}
-              className="w-full py-4 rounded-xl bg-gradient-to-r from-accent-teal to-accent-mint text-dark-900 font-bold text-lg hover:shadow-lg hover:shadow-accent-teal/30 transition-all"
+              onClick={onClose}
+              className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-medium transition-all hover:scale-105 active:scale-95"
             >
-              Отметить как завершенное
+              <ArrowLeft className="w-5 h-5" />
+              <span>Назад к урокам</span>
             </button>
-          )}
+            
+            {!isCompleted && (
+              <button
+                onClick={() => {
+                  onComplete()
+                  onClose()
+                }}
+                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-accent-teal to-accent-mint text-dark-900 font-bold text-lg hover:shadow-lg hover:shadow-accent-teal/30 transition-all"
+              >
+                Отметить как завершенное
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

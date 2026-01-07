@@ -202,10 +202,16 @@ export async function GET(request: NextRequest) {
         .eq('user_id', user.id)
         .eq('completed', true)
       
+      let totalLessons = 0
+      
       if (isKeto || isInterval) {
         // Для статических уроков фильтруем по префиксу
         const prefix = isKeto ? 'keto-m' : 'if-m'
         completedLessonsQuery = completedLessonsQuery.like('lesson_id', `${prefix}%`)
+        
+        // Для статических курсов используем фиксированное количество уроков в модулях 2-4
+        // Кето: 3 + 3 + 2 = 8 уроков, IF: 2 + 3 + 2 = 7 уроков
+        totalLessons = isKeto ? 8 : 7
       } else {
         // Для обычных уроков получаем lesson_id из таблицы lessons
         const { data: courseLessons } = await adminSupabase
@@ -216,21 +222,17 @@ export async function GET(request: NextRequest) {
         if (courseLessons && courseLessons.length > 0) {
           const lessonIds = courseLessons.map(l => l.id)
           completedLessonsQuery = completedLessonsQuery.in('lesson_id', lessonIds)
+          totalLessons = courseLessons.length
         } else {
           completedLessonsQuery = completedLessonsQuery.eq('lesson_id', '') // Пустой результат
+          totalLessons = 0
         }
       }
       
       const { data: completedLessons } = await completedLessonsQuery
       
-      // Получаем общее количество уроков
-      const { count: totalLessons } = await adminSupabase
-        .from('lessons')
-        .select('id', { count: 'exact', head: true })
-        .eq('course_id', e.course_id)
-      
       // Вычисляем актуальный прогресс
-      const actualProgress = totalLessons && totalLessons > 0
+      const actualProgress = totalLessons > 0
         ? Math.round(((completedLessons?.length || 0) / totalLessons) * 100)
         : 0
       

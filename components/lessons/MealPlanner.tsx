@@ -123,110 +123,116 @@ export function MealPlanner() {
     try {
       setDownloading(true)
       
-      // Динамический импорт jsPDF
-      const { jsPDF } = await import('jspdf')
-      const doc = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
-        compress: true
-      })
-
+      // Создаем временный HTML элемент для рендеринга
+      const printContent = document.createElement('div')
+      printContent.style.position = 'absolute'
+      printContent.style.left = '-9999px'
+      printContent.style.width = '210mm' // A4 width
+      printContent.style.padding = '20mm'
+      printContent.style.backgroundColor = '#ffffff'
+      printContent.style.fontFamily = 'Arial, sans-serif'
+      printContent.style.color = '#000000'
+      
       // Заголовок
-      doc.setFontSize(20)
-      doc.setTextColor(16, 185, 129) // accent-mint цвет
-      doc.text('План питания на неделю (Кето)', 105, 20, { align: 'center' })
+      const header = document.createElement('div')
+      header.style.textAlign = 'center'
+      header.style.marginBottom = '20px'
+      header.style.color = '#10b981'
+      header.innerHTML = `
+        <h1 style="font-size: 24px; margin: 0 0 10px 0; color: #10b981;">План питания на неделю (Кето)</h1>
+        <p style="font-size: 14px; color: #666;">Целевые калории: ${targetCalories} ккал/день</p>
+        <p style="font-size: 12px; color: #999;">Сгенерировано: ${new Date().toLocaleDateString('ru-RU')}</p>
+      `
+      printContent.appendChild(header)
       
-      doc.setFontSize(12)
-      doc.setTextColor(100, 100, 100)
-      doc.text(`Целевые калории: ${targetCalories} ккал/день`, 105, 28, { align: 'center' })
-      
-      let yPos = 40
-      const pageHeight = 280
-      const margin = 15
-      const lineHeight = 8
-      
+      // Создаем контент для каждого дня
       weekPlan.forEach((day, dayIndex) => {
-        // Проверяем, нужна ли новая страница
-        if (yPos > pageHeight - 50) {
-          doc.addPage()
-          yPos = 20
-        }
-        
         const totals = getTotalForDay(day)
         
-        // Название дня
-        doc.setFontSize(16)
-        doc.setTextColor(16, 185, 129)
-        doc.text(day.day, margin, yPos)
-        yPos += 10
+        const dayDiv = document.createElement('div')
+        dayDiv.style.marginBottom = '30px'
+        dayDiv.style.pageBreakInside = 'avoid'
         
-        // Завтрак
-        doc.setFontSize(11)
-        doc.setTextColor(0, 0, 0)
-        const breakfastText = doc.splitTextToSize(`Завтрак: ${day.breakfast.name}`, 180 - margin - 5)
-        doc.text(breakfastText, margin + 5, yPos)
-        yPos += breakfastText.length * 5 + 2
-        doc.setFontSize(9)
-        doc.setTextColor(100, 100, 100)
-        doc.text(`${day.breakfast.calories} ккал | ${day.breakfast.fats}г Ж | ${day.breakfast.proteins}г Б | ${day.breakfast.carbs}г У | ${day.breakfast.prepTime} мин`, margin + 10, yPos)
-        yPos += 7
+        dayDiv.innerHTML = `
+          <h2 style="font-size: 18px; color: #10b981; margin: 0 0 15px 0; border-bottom: 2px solid #10b981; padding-bottom: 5px;">${day.day}</h2>
+          
+          <div style="margin-bottom: 15px;">
+            <div style="font-weight: bold; margin-bottom: 5px; color: #333;">Завтрак:</div>
+            <div style="margin-left: 15px; margin-bottom: 5px;">${day.breakfast.name}</div>
+            <div style="margin-left: 15px; font-size: 12px; color: #666;">${day.breakfast.calories} ккал | ${day.breakfast.fats}г Ж | ${day.breakfast.proteins}г Б | ${day.breakfast.carbs}г У | ${day.breakfast.prepTime} мин</div>
+          </div>
+          
+          <div style="margin-bottom: 15px;">
+            <div style="font-weight: bold; margin-bottom: 5px; color: #333;">Обед:</div>
+            <div style="margin-left: 15px; margin-bottom: 5px;">${day.lunch.name}</div>
+            <div style="margin-left: 15px; font-size: 12px; color: #666;">${day.lunch.calories} ккал | ${day.lunch.fats}г Ж | ${day.lunch.proteins}г Б | ${day.lunch.carbs}г У | ${day.lunch.prepTime} мин</div>
+          </div>
+          
+          <div style="margin-bottom: 15px;">
+            <div style="font-weight: bold; margin-bottom: 5px; color: #333;">Ужин:</div>
+            <div style="margin-left: 15px; margin-bottom: 5px;">${day.dinner.name}</div>
+            <div style="margin-left: 15px; font-size: 12px; color: #666;">${day.dinner.calories} ккал | ${day.dinner.fats}г Ж | ${day.dinner.proteins}г Б | ${day.dinner.carbs}г У | ${day.dinner.prepTime} мин</div>
+          </div>
+          
+          ${day.snack ? `
+          <div style="margin-bottom: 15px;">
+            <div style="font-weight: bold; margin-bottom: 5px; color: #333;">Перекус:</div>
+            <div style="margin-left: 15px; margin-bottom: 5px;">${day.snack.name}</div>
+            <div style="margin-left: 15px; font-size: 12px; color: #666;">${day.snack.calories} ккал | ${day.snack.fats}г Ж | ${day.snack.proteins}г Б | ${day.snack.carbs}г У | ${day.snack.prepTime} мин</div>
+          </div>
+          ` : ''}
+          
+          <div style="margin-top: 15px; padding: 10px; background-color: #f0fdf4; border-left: 4px solid #10b981; font-weight: bold; color: #10b981;">
+            Итого: ${totals.calories} ккал | ${totals.fats}г жиров | ${totals.proteins}г белков | ${totals.carbs}г углеводов
+          </div>
+          
+          ${dayIndex < weekPlan.length - 1 ? '<hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">' : ''}
+        `
         
-        // Обед
-        doc.setFontSize(11)
-        doc.setTextColor(0, 0, 0)
-        const lunchText = doc.splitTextToSize(`Обед: ${day.lunch.name}`, 180 - margin - 5)
-        doc.text(lunchText, margin + 5, yPos)
-        yPos += lunchText.length * 5 + 2
-        doc.setFontSize(9)
-        doc.setTextColor(100, 100, 100)
-        doc.text(`${day.lunch.calories} ккал | ${day.lunch.fats}г Ж | ${day.lunch.proteins}г Б | ${day.lunch.carbs}г У | ${day.lunch.prepTime} мин`, margin + 10, yPos)
-        yPos += 7
-        
-        // Ужин
-        doc.setFontSize(11)
-        doc.setTextColor(0, 0, 0)
-        const dinnerText = doc.splitTextToSize(`Ужин: ${day.dinner.name}`, 180 - margin - 5)
-        doc.text(dinnerText, margin + 5, yPos)
-        yPos += dinnerText.length * 5 + 2
-        doc.setFontSize(9)
-        doc.setTextColor(100, 100, 100)
-        doc.text(`${day.dinner.calories} ккал | ${day.dinner.fats}г Ж | ${day.dinner.proteins}г Б | ${day.dinner.carbs}г У | ${day.dinner.prepTime} мин`, margin + 10, yPos)
-        yPos += 7
-        
-        // Перекус (если есть)
-        if (day.snack) {
-          doc.setFontSize(11)
-          doc.setTextColor(0, 0, 0)
-          const snackText = doc.splitTextToSize(`Перекус: ${day.snack.name}`, 180 - margin - 5)
-          doc.text(snackText, margin + 5, yPos)
-          yPos += snackText.length * 5 + 2
-          doc.setFontSize(9)
-          doc.setTextColor(100, 100, 100)
-          doc.text(`${day.snack.calories} ккал | ${day.snack.fats}г Ж | ${day.snack.proteins}г Б | ${day.snack.carbs}г У | ${day.snack.prepTime} мин`, margin + 10, yPos)
-          yPos += 7
-        }
-        
-        // Итого за день
-        doc.setFontSize(10)
-        doc.setTextColor(16, 185, 129)
-        doc.setFont('helvetica', 'bold')
-        const totalText = doc.splitTextToSize(`Итого: ${totals.calories} ккал | ${totals.fats}г жиров | ${totals.proteins}г белков | ${totals.carbs}г углеводов`, 180 - margin - 5)
-        doc.text(totalText, margin + 5, yPos)
-        yPos += totalText.length * 5 + 2
-        yPos += 10
-        
-        // Разделитель между днями
-        if (dayIndex < weekPlan.length - 1) {
-          doc.setDrawColor(200, 200, 200)
-          doc.line(margin, yPos, 195, yPos)
-          yPos += 5
-        }
+        printContent.appendChild(dayDiv)
       })
       
-      // Сохраняем PDF
+      document.body.appendChild(printContent)
+      
+      // Используем html2canvas для создания изображения
+      const html2canvas = (await import('html2canvas')).default
+      const canvas = await html2canvas(printContent, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      })
+      
+      // Удаляем временный элемент
+      document.body.removeChild(printContent)
+      
+      // Конвертируем canvas в изображение и добавляем в PDF
+      const { jsPDF } = await import('jspdf')
+      const imgData = canvas.toDataURL('image/png')
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      })
+      
+      const imgWidth = 210 // A4 width in mm
+      const pageHeight = 297 // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
+      let heightLeft = imgHeight
+      let position = 0
+      
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
+      heightLeft -= pageHeight
+      
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight
+        pdf.addPage()
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
+        heightLeft -= pageHeight
+      }
+      
       const fileName = `Кето-план-питания-${new Date().toLocaleDateString('ru-RU').replace(/\//g, '-')}.pdf`
-      doc.save(fileName)
+      pdf.save(fileName)
       
       setDownloading(false)
     } catch (error) {

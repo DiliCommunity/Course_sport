@@ -274,107 +274,107 @@ ${recipe.salt} ч.л. соли
             try {
               setDownloading(true)
               
+              const checkedSymptoms = symptoms.filter(s => s.checked)
+              
+              // Создаем временный HTML элемент для рендеринга
+              const printContent = document.createElement('div')
+              printContent.style.position = 'absolute'
+              printContent.style.left = '-9999px'
+              printContent.style.width = '210mm' // A4 width
+              printContent.style.padding = '20mm'
+              printContent.style.backgroundColor = '#ffffff'
+              printContent.style.fontFamily = 'Arial, sans-serif'
+              printContent.style.color = '#000000'
+              
+              let symptomsHtml = ''
+              if (checkedSymptoms.length > 0) {
+                symptomsHtml = `
+                  <div style="margin-bottom: 20px;">
+                    <h2 style="font-size: 16px; color: #f59e0b; margin: 0 0 15px 0; border-bottom: 2px solid #f59e0b; padding-bottom: 5px;">Ваши симптомы:</h2>
+                    <div style="margin-left: 15px;">
+                      ${checkedSymptoms.map(s => {
+                        const severityText = s.severity === 'severe' ? 'Серьезный' : s.severity === 'moderate' ? 'Умеренный' : 'Легкий'
+                        return `<p style="margin: 8px 0;">• ${s.name} <span style="color: #666;">(${severityText})</span></p>`
+                      }).join('')}
+                    </div>
+                  </div>
+                `
+              }
+              
+              let statsHtml = ''
+              if (severityCount.total > 0) {
+                statsHtml = `
+                  <div style="margin-bottom: 20px; padding: 15px; background-color: #fef3c7; border-left: 4px solid #f59e0b;">
+                    <p style="margin: 5px 0;"><strong>Всего симптомов:</strong> ${severityCount.total}</p>
+                    ${severityCount.severe > 0 ? `<p style="margin: 5px 0; color: #dc2626;"><strong>Серьезных:</strong> ${severityCount.severe}</p>` : ''}
+                    ${severityCount.moderate > 0 ? `<p style="margin: 5px 0; color: #f59e0b;"><strong>Умеренных:</strong> ${severityCount.moderate}</p>` : ''}
+                  </div>
+                `
+              }
+              
+              let recommendationsHtml = ''
+              if (recommendations.length > 0) {
+                recommendationsHtml = `
+                  <div style="margin-bottom: 20px;">
+                    <h2 style="font-size: 16px; color: #10b981; margin: 0 0 15px 0; border-bottom: 2px solid #10b981; padding-bottom: 5px;">Рекомендации:</h2>
+                    <div style="margin-left: 15px;">
+                      ${recommendations.map(rec => `<p style="margin: 8px 0;">• ${rec}</p>`).join('')}
+                    </div>
+                  </div>
+                `
+              }
+              
+              printContent.innerHTML = `
+                <div style="text-align: center; margin-bottom: 30px;">
+                  <h1 style="font-size: 24px; margin: 0 0 10px 0; color: #f59e0b;">Трекер кетогриппа</h1>
+                  <p style="font-size: 12px; color: #999;">Сгенерировано: ${new Date().toLocaleDateString('ru-RU')}</p>
+                </div>
+                ${symptomsHtml}
+                ${statsHtml}
+                ${recommendationsHtml}
+                <div style="margin-top: 20px;">
+                  <h2 style="font-size: 16px; color: #3b82f6; margin: 0 0 15px 0; border-bottom: 2px solid #3b82f6; padding-bottom: 5px;">Рецепт кето-электролита:</h2>
+                  <div style="margin-left: 15px;">
+                    <p style="margin: 8px 0;">${electrolyte.water}л воды</p>
+                    <p style="margin: 8px 0;">${electrolyte.salt} ч.л. соли (~${electrolyte.saltGrams}г)</p>
+                    <p style="margin: 8px 0;">Сок 1/2 лимона</p>
+                    <p style="margin: 8px 0;">Стевия по вкусу</p>
+                    <p style="margin: 15px 0 0 0; font-size: 12px; color: #666;">Натрий: ~${electrolyte.sodium}мг | Рекомендуется: ${electrolyte.servings} порций в день</p>
+                  </div>
+                </div>
+              `
+              
+              document.body.appendChild(printContent)
+              
+              // Используем html2canvas для создания изображения
+              const html2canvas = (await import('html2canvas')).default
+              const canvas = await html2canvas(printContent, {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                backgroundColor: '#ffffff'
+              })
+              
+              // Удаляем временный элемент
+              document.body.removeChild(printContent)
+              
+              // Конвертируем canvas в изображение и добавляем в PDF
               const { jsPDF } = await import('jspdf')
-              const doc = new jsPDF({
+              const imgData = canvas.toDataURL('image/png')
+              const pdf = new jsPDF({
                 orientation: 'portrait',
                 unit: 'mm',
-                format: 'a4',
-                compress: true
+                format: 'a4'
               })
-
-              // Заголовок
-              doc.setFontSize(20)
-              doc.setTextColor(245, 158, 11) // amber
-              doc.text('Трекер кетогриппа', 105, 20, { align: 'center' })
               
-              doc.setFontSize(10)
-              doc.setTextColor(100, 100, 100)
-              doc.text(`Сгенерировано: ${new Date().toLocaleDateString('ru-RU')}`, 105, 28, { align: 'center' })
+              const imgWidth = 210 // A4 width in mm
+              const pageHeight = 297 // A4 height in mm
+              const imgHeight = (canvas.height * imgWidth) / canvas.width
               
-              let yPos = 40
-              const margin = 15
-              
-              // Симптомы
-              const checkedSymptoms = symptoms.filter(s => s.checked)
-              if (checkedSymptoms.length > 0) {
-                doc.setFontSize(14)
-                doc.setTextColor(245, 158, 11)
-                doc.setFont('helvetica', 'bold')
-                doc.text('Ваши симптомы:', margin, yPos)
-                yPos += 8
-                
-                doc.setFontSize(11)
-                doc.setTextColor(0, 0, 0)
-                doc.setFont('helvetica', 'normal')
-                checkedSymptoms.forEach(symptom => {
-                  const severityText = symptom.severity === 'severe' ? 'Серьезный' : symptom.severity === 'moderate' ? 'Умеренный' : 'Легкий'
-                  doc.text(`• ${symptom.name} (${severityText})`, margin + 5, yPos)
-                  yPos += 6
-                })
-                yPos += 5
-              }
-              
-              // Статистика
-              if (severityCount.total > 0) {
-                doc.setFontSize(12)
-                doc.setTextColor(100, 100, 100)
-                doc.text(`Всего симптомов: ${severityCount.total}`, margin, yPos)
-                yPos += 6
-                if (severityCount.severe > 0) {
-                  doc.setTextColor(220, 38, 38)
-                  doc.text(`Серьезных: ${severityCount.severe}`, margin, yPos)
-                  yPos += 6
-                }
-                if (severityCount.moderate > 0) {
-                  doc.setTextColor(245, 158, 11)
-                  doc.text(`Умеренных: ${severityCount.moderate}`, margin, yPos)
-                  yPos += 6
-                }
-                yPos += 5
-              }
-              
-              // Рекомендации
-              if (recommendations.length > 0) {
-                doc.setFontSize(14)
-                doc.setTextColor(16, 185, 129)
-                doc.setFont('helvetica', 'bold')
-                doc.text('Рекомендации:', margin, yPos)
-                yPos += 8
-                
-                doc.setFontSize(11)
-                doc.setTextColor(0, 0, 0)
-                doc.setFont('helvetica', 'normal')
-                recommendations.forEach(rec => {
-                  doc.text(`• ${rec}`, margin + 5, yPos)
-                  yPos += 6
-                })
-                yPos += 5
-              }
-              
-              // Рецепт электролита
-              doc.setFontSize(14)
-              doc.setTextColor(59, 130, 246)
-              doc.setFont('helvetica', 'bold')
-              doc.text('Рецепт кето-электролита:', margin, yPos)
-              yPos += 8
-              
-              doc.setFontSize(11)
-              doc.setTextColor(0, 0, 0)
-              doc.setFont('helvetica', 'normal')
-              doc.text(`${electrolyte.water}л воды`, margin + 5, yPos)
-              yPos += 6
-              doc.text(`${electrolyte.salt} ч.л. соли (~${electrolyte.saltGrams}г)`, margin + 5, yPos)
-              yPos += 6
-              doc.text('Сок 1/2 лимона', margin + 5, yPos)
-              yPos += 6
-              doc.text('Стевия по вкусу', margin + 5, yPos)
-              yPos += 6
-              doc.setFontSize(10)
-              doc.setTextColor(100, 100, 100)
-              doc.text(`Натрий: ~${electrolyte.sodium}мг | Рекомендуется: ${electrolyte.servings} порций в день`, margin + 5, yPos)
+              pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight)
               
               const fileName = `Кетогрипп-трекер-${new Date().toLocaleDateString('ru-RU').replace(/\//g, '-')}.pdf`
-              doc.save(fileName)
+              pdf.save(fileName)
               
               setDownloading(false)
             } catch (error) {

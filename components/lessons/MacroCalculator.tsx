@@ -131,95 +131,90 @@ TDEE (расход калорий): ${results.tdee} ккал/день
     try {
       setDownloading(true)
       
+      const goalText = goal === 'cut' ? 'Сброс веса' : goal === 'maintain' ? 'Поддержание' : 'Набор массы'
+      
+      // Создаем временный HTML элемент для рендеринга
+      const printContent = document.createElement('div')
+      printContent.style.position = 'absolute'
+      printContent.style.left = '-9999px'
+      printContent.style.width = '210mm' // A4 width
+      printContent.style.padding = '20mm'
+      printContent.style.backgroundColor = '#ffffff'
+      printContent.style.fontFamily = 'Arial, sans-serif'
+      printContent.style.color = '#000000'
+      
+      printContent.innerHTML = `
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="font-size: 24px; margin: 0 0 10px 0; color: #f59e0b;">Расчет калорий и макросов (Кето)</h1>
+          <p style="font-size: 12px; color: #999;">Сгенерировано: ${new Date().toLocaleDateString('ru-RU')}</p>
+        </div>
+        
+        <div style="margin-bottom: 25px;">
+          <h2 style="font-size: 16px; color: #10b981; margin: 0 0 15px 0; border-bottom: 2px solid #10b981; padding-bottom: 5px;">Параметры:</h2>
+          <div style="margin-left: 15px;">
+            <p style="margin: 8px 0;"><strong>Пол:</strong> ${gender === 'male' ? 'Мужской' : 'Женский'}</p>
+            <p style="margin: 8px 0;"><strong>Возраст:</strong> ${age} лет</p>
+            <p style="margin: 8px 0;"><strong>Вес:</strong> ${weight} кг</p>
+            <p style="margin: 8px 0;"><strong>Рост:</strong> ${height} см</p>
+            <p style="margin: 8px 0;"><strong>Уровень активности:</strong> ${ACTIVITY_MULTIPLIERS[activityLevel].label}</p>
+            <p style="margin: 8px 0;"><strong>Цель:</strong> ${goalText}</p>
+          </div>
+        </div>
+        
+        <div style="margin-bottom: 25px;">
+          <h2 style="font-size: 16px; color: #f59e0b; margin: 0 0 15px 0; border-bottom: 2px solid #f59e0b; padding-bottom: 5px;">Основные показатели:</h2>
+          <div style="margin-left: 15px;">
+            <p style="margin: 8px 0;">BMR (базовый метаболизм): <strong>${results.bmr} ккал/день</strong></p>
+            <p style="margin: 8px 0;">TDEE (расход калорий): <strong>${results.tdee} ккал/день</strong></p>
+            <p style="margin: 8px 0; color: #10b981; font-size: 16px; font-weight: bold;">Целевые калории: ${results.targetCalories} ккал/день</p>
+          </div>
+        </div>
+        
+        <div style="margin-bottom: 25px;">
+          <h2 style="font-size: 16px; color: #f59e0b; margin: 0 0 15px 0; border-bottom: 2px solid #f59e0b; padding-bottom: 5px;">Распределение макросов (Кето):</h2>
+          <div style="margin-left: 15px;">
+            <p style="margin: 8px 0;">Жиры: <strong>${results.fats}г</strong> / ${results.fatsCal} ккал (70-75%)</p>
+            <p style="margin: 8px 0;">Белки: <strong>${results.proteins}г</strong> / ${results.proteinsCal} ккал (20-25%)</p>
+            <p style="margin: 8px 0;">Углеводы: <strong>${results.carbs}г</strong> / ${results.carbsCal} ккал (5-10%)</p>
+          </div>
+        </div>
+        
+        <div style="margin-top: 20px; padding: 15px; background-color: #fef3c7; border-left: 4px solid #f59e0b; font-style: italic; color: #666;">
+          Рекомендация: Следуйте этим показателям для достижения кетоза
+        </div>
+      `
+      
+      document.body.appendChild(printContent)
+      
+      // Используем html2canvas для создания изображения
+      const html2canvas = (await import('html2canvas')).default
+      const canvas = await html2canvas(printContent, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      })
+      
+      // Удаляем временный элемент
+      document.body.removeChild(printContent)
+      
+      // Конвертируем canvas в изображение и добавляем в PDF
       const { jsPDF } = await import('jspdf')
-      const doc = new jsPDF({
+      const imgData = canvas.toDataURL('image/png')
+      const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
-        format: 'a4',
-        compress: true
+        format: 'a4'
       })
-
-      // Заголовок
-      doc.setFontSize(20)
-      doc.setTextColor(245, 158, 11) // accent-gold
-      doc.text('Расчет калорий и макросов (Кето)', 105, 20, { align: 'center' })
       
-      doc.setFontSize(10)
-      doc.setTextColor(100, 100, 100)
-      doc.text(`Сгенерировано: ${new Date().toLocaleDateString('ru-RU')}`, 105, 28, { align: 'center' })
+      const imgWidth = 210 // A4 width in mm
+      const pageHeight = 297 // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
       
-      let yPos = 40
-      const margin = 15
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight)
       
-      // Параметры
-      doc.setFontSize(14)
-      doc.setTextColor(16, 185, 129) // accent-mint
-      doc.setFont('helvetica', 'bold')
-      doc.text('Параметры:', margin, yPos)
-      yPos += 8
-      
-      doc.setFontSize(11)
-      doc.setTextColor(0, 0, 0)
-      doc.setFont('helvetica', 'normal')
-      doc.text(`Пол: ${gender === 'male' ? 'Мужской' : 'Женский'}`, margin + 5, yPos)
-      yPos += 6
-      doc.text(`Возраст: ${age} лет`, margin + 5, yPos)
-      yPos += 6
-      doc.text(`Вес: ${weight} кг`, margin + 5, yPos)
-      yPos += 6
-      doc.text(`Рост: ${height} см`, margin + 5, yPos)
-      yPos += 6
-      doc.text(`Уровень активности: ${ACTIVITY_MULTIPLIERS[activityLevel].label}`, margin + 5, yPos)
-      yPos += 6
-      const goalText = goal === 'cut' ? 'Сброс веса' : goal === 'maintain' ? 'Поддержание' : 'Набор массы'
-      doc.text(`Цель: ${goalText}`, margin + 5, yPos)
-      yPos += 10
-      
-      // Основные показатели
-      doc.setFontSize(14)
-      doc.setTextColor(245, 158, 11)
-      doc.setFont('helvetica', 'bold')
-      doc.text('Основные показатели:', margin, yPos)
-      yPos += 8
-      
-      doc.setFontSize(11)
-      doc.setTextColor(0, 0, 0)
-      doc.setFont('helvetica', 'normal')
-      doc.text(`BMR (базовый метаболизм): ${results.bmr} ккал/день`, margin + 5, yPos)
-      yPos += 6
-      doc.text(`TDEE (расход калорий): ${results.tdee} ккал/день`, margin + 5, yPos)
-      yPos += 6
-      doc.setFont('helvetica', 'bold')
-      doc.setTextColor(16, 185, 129)
-      doc.text(`Целевые калории: ${results.targetCalories} ккал/день`, margin + 5, yPos)
-      yPos += 10
-      
-      // Макросы
-      doc.setFontSize(14)
-      doc.setTextColor(245, 158, 11)
-      doc.setFont('helvetica', 'bold')
-      doc.text('Распределение макросов (Кето):', margin, yPos)
-      yPos += 8
-      
-      doc.setFontSize(11)
-      doc.setTextColor(0, 0, 0)
-      doc.setFont('helvetica', 'normal')
-      doc.text(`Жиры: ${results.fats}г / ${results.fatsCal} ккал (70-75%)`, margin + 5, yPos)
-      yPos += 6
-      doc.text(`Белки: ${results.proteins}г / ${results.proteinsCal} ккал (20-25%)`, margin + 5, yPos)
-      yPos += 6
-      doc.text(`Углеводы: ${results.carbs}г / ${results.carbsCal} ккал (5-10%)`, margin + 5, yPos)
-      yPos += 8
-      
-      // Рекомендации
-      doc.setFontSize(12)
-      doc.setTextColor(100, 100, 100)
-      doc.setFont('helvetica', 'italic')
-      doc.text('Рекомендация: Следуйте этим показателям для достижения кетоза', margin, yPos)
-      
-      // Сохраняем PDF
       const fileName = `Кето-макросы-${new Date().toLocaleDateString('ru-RU').replace(/\//g, '-')}.pdf`
-      doc.save(fileName)
+      pdf.save(fileName)
       
       setDownloading(false)
     } catch (error) {

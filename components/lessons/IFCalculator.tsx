@@ -269,98 +269,102 @@ ${getRecommendations().map(r => `• ${r}`).join('\n')}
               try {
                 setDownloading(true)
                 
+                // Создаем временный HTML элемент для рендеринга
+                const printContent = document.createElement('div')
+                printContent.style.position = 'absolute'
+                printContent.style.left = '-9999px'
+                printContent.style.width = '210mm' // A4 width
+                printContent.style.padding = '20mm'
+                printContent.style.backgroundColor = '#ffffff'
+                printContent.style.fontFamily = 'Arial, sans-serif'
+                printContent.style.color = '#000000'
+                
+                const scheduleHtml = schedule.map((window, index) => {
+                  const typeText = window.type === 'eating' ? 'Окно питания' : 'Период голодания'
+                  const descText = window.type === 'eating' 
+                    ? 'В этот период вы можете есть'
+                    : 'Только вода, чай, кофе без сахара'
+                  return `
+                    <div style="margin-bottom: 15px; padding: 10px; background-color: ${window.type === 'eating' ? '#f0fdf4' : '#f3f4f6'}; border-left: 4px solid ${window.type === 'eating' ? '#10b981' : '#6b7280'};">
+                      <p style="margin: 5px 0; font-weight: bold;">${index + 1}. ${typeText}: ${window.start} - ${window.end}</p>
+                      <p style="margin: 5px 0; font-size: 12px; color: #666;">${descText}</p>
+                    </div>
+                  `
+                }).join('')
+                
+                printContent.innerHTML = `
+                  <div style="text-align: center; margin-bottom: 30px;">
+                    <h1 style="font-size: 24px; margin: 0 0 10px 0; color: #a855f7;">Расписание интервального голодания</h1>
+                    <p style="font-size: 12px; color: #999;">Сгенерировано: ${new Date().toLocaleDateString('ru-RU')}</p>
+                  </div>
+                  
+                  <div style="margin-bottom: 25px;">
+                    <h2 style="font-size: 16px; color: #a855f7; margin: 0 0 15px 0; border-bottom: 2px solid #a855f7; padding-bottom: 5px;">Паттерн: ${pattern}</h2>
+                    <p style="margin: 8px 0; color: #666;">${IF_PATTERNS[pattern].description}</p>
+                    <p style="margin: 8px 0;"><strong>Время пробуждения:</strong> ${wakeUpTime}</p>
+                  </div>
+                  
+                  <div style="margin-bottom: 25px;">
+                    <h2 style="font-size: 16px; color: #a855f7; margin: 0 0 15px 0; border-bottom: 2px solid #a855f7; padding-bottom: 5px;">Расписание на день:</h2>
+                    ${scheduleHtml}
+                  </div>
+                  
+                  <div style="margin-bottom: 25px;">
+                    <h2 style="font-size: 16px; color: #10b981; margin: 0 0 15px 0; border-bottom: 2px solid #10b981; padding-bottom: 5px;">Преимущества паттерна ${pattern}:</h2>
+                    <div style="margin-left: 15px;">
+                      ${getBenefits().map(b => `<p style="margin: 8px 0;">• ${b}</p>`).join('')}
+                    </div>
+                  </div>
+                  
+                  <div style="margin-top: 20px;">
+                    <h2 style="font-size: 16px; color: #666; margin: 0 0 15px 0; border-bottom: 2px solid #666; padding-bottom: 5px;">Рекомендации:</h2>
+                    <div style="margin-left: 15px;">
+                      ${getRecommendations().map(r => `<p style="margin: 8px 0;">• ${r}</p>`).join('')}
+                    </div>
+                  </div>
+                `
+                
+                document.body.appendChild(printContent)
+                
+                // Используем html2canvas для создания изображения
+                const html2canvas = (await import('html2canvas')).default
+                const canvas = await html2canvas(printContent, {
+                  scale: 2,
+                  useCORS: true,
+                  logging: false,
+                  backgroundColor: '#ffffff'
+                })
+                
+                // Удаляем временный элемент
+                document.body.removeChild(printContent)
+                
+                // Конвертируем canvas в изображение и добавляем в PDF
                 const { jsPDF } = await import('jspdf')
-                const doc = new jsPDF({
+                const imgData = canvas.toDataURL('image/png')
+                const pdf = new jsPDF({
                   orientation: 'portrait',
                   unit: 'mm',
-                  format: 'a4',
-                  compress: true
+                  format: 'a4'
                 })
-
-                // Заголовок
-                doc.setFontSize(20)
-                doc.setTextColor(168, 85, 247) // purple
-                doc.text('Расписание интервального голодания', 105, 20, { align: 'center' })
                 
-                doc.setFontSize(10)
-                doc.setTextColor(100, 100, 100)
-                doc.text(`Сгенерировано: ${new Date().toLocaleDateString('ru-RU')}`, 105, 28, { align: 'center' })
+                const imgWidth = 210 // A4 width in mm
+                const pageHeight = 297 // A4 height in mm
+                const imgHeight = (canvas.height * imgWidth) / canvas.width
+                let heightLeft = imgHeight
+                let position = 0
                 
-                let yPos = 40
-                const margin = 15
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
+                heightLeft -= pageHeight
                 
-                // Паттерн и время
-                doc.setFontSize(14)
-                doc.setTextColor(168, 85, 247)
-                doc.setFont('helvetica', 'bold')
-                doc.text(`Паттерн: ${pattern}`, margin, yPos)
-                yPos += 7
-                doc.setFontSize(11)
-                doc.setTextColor(0, 0, 0)
-                doc.setFont('helvetica', 'normal')
-                doc.text(IF_PATTERNS[pattern].description, margin + 5, yPos)
-                yPos += 7
-                doc.text(`Время пробуждения: ${wakeUpTime}`, margin, yPos)
-                yPos += 10
-                
-                // Расписание
-                doc.setFontSize(14)
-                doc.setTextColor(168, 85, 247)
-                doc.setFont('helvetica', 'bold')
-                doc.text('Расписание на день:', margin, yPos)
-                yPos += 8
-                
-                doc.setFontSize(11)
-                doc.setTextColor(0, 0, 0)
-                doc.setFont('helvetica', 'normal')
-                schedule.forEach((window, index) => {
-                  const typeText = window.type === 'eating' ? 'Окно питания' : 'Период голодания'
-                  doc.text(`${index + 1}. ${typeText}: ${window.start} - ${window.end}`, margin + 5, yPos)
-                  yPos += 6
-                  doc.setFontSize(9)
-                  doc.setTextColor(100, 100, 100)
-                  doc.text(window.type === 'eating' 
-                    ? 'В этот период вы можете есть'
-                    : 'Только вода, чай, кофе без сахара', margin + 10, yPos)
-                  yPos += 6
-                  doc.setFontSize(11)
-                  doc.setTextColor(0, 0, 0)
-                })
-                yPos += 5
-                
-                // Преимущества
-                doc.setFontSize(14)
-                doc.setTextColor(16, 185, 129)
-                doc.setFont('helvetica', 'bold')
-                doc.text(`Преимущества паттерна ${pattern}:`, margin, yPos)
-                yPos += 8
-                
-                doc.setFontSize(11)
-                doc.setTextColor(0, 0, 0)
-                doc.setFont('helvetica', 'normal')
-                getBenefits().forEach(benefit => {
-                  doc.text(`• ${benefit}`, margin + 5, yPos)
-                  yPos += 6
-                })
-                yPos += 5
-                
-                // Рекомендации
-                doc.setFontSize(14)
-                doc.setTextColor(100, 100, 100)
-                doc.setFont('helvetica', 'bold')
-                doc.text('Рекомендации:', margin, yPos)
-                yPos += 8
-                
-                doc.setFontSize(11)
-                doc.setTextColor(0, 0, 0)
-                doc.setFont('helvetica', 'normal')
-                getRecommendations().forEach(rec => {
-                  doc.text(`• ${rec}`, margin + 5, yPos)
-                  yPos += 6
-                })
+                while (heightLeft > 0) {
+                  position = heightLeft - imgHeight
+                  pdf.addPage()
+                  pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
+                  heightLeft -= pageHeight
+                }
                 
                 const fileName = `IF-расписание-${pattern}-${new Date().toLocaleDateString('ru-RU').replace(/\//g, '-')}.pdf`
-                doc.save(fileName)
+                pdf.save(fileName)
                 
                 setDownloading(false)
               } catch (error) {
