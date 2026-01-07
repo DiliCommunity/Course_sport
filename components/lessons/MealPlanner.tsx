@@ -206,7 +206,7 @@ export function MealPlanner() {
         // Итого за день
         doc.setFontSize(10)
         doc.setTextColor(16, 185, 129)
-        doc.setFont(undefined, 'bold')
+        doc.setFont('helvetica', 'bold')
         doc.text(`Итого: ${totals.calories} ккал | ${totals.fats}г жиров | ${totals.proteins}г белков | ${totals.carbs}г углеводов`, margin + 5, yPos)
         yPos += 10
         
