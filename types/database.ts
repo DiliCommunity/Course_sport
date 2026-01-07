@@ -228,6 +228,29 @@ export interface Database {
           completed_at?: string | null
         }
       }
+      lesson_progress: {
+        Row: {
+          id: string
+          created_at: string
+          user_id: string
+          lesson_id: string // TEXT - поддерживает UUID и строковые ID (keto-m2-l1, if-m3-l2)
+          completed: boolean
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          user_id: string
+          lesson_id: string
+          completed?: boolean
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          user_id?: string
+          lesson_id?: string
+          completed?: boolean
+        }
+      }
       user_balance: {
         Row: {
           id: string
@@ -337,6 +360,7 @@ export type Instructor = Database['public']['Tables']['instructors']['Row']
 export type Lesson = Database['public']['Tables']['lessons']['Row']
 export type User = Database['public']['Tables']['users']['Row']
 export type Enrollment = Database['public']['Tables']['enrollments']['Row']
+export type LessonProgress = Database['public']['Tables']['lesson_progress']['Row']
 export type UserBalance = Database['public']['Tables']['user_balance']['Row']
 export type Referral = Database['public']['Tables']['referrals']['Row']
 export type Transaction = Database['public']['Tables']['transactions']['Row']
