@@ -111,7 +111,7 @@ export function PaymentModal({
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const { user } = useAuth()
-  const { user: telegramUser, isTelegramApp } = useTelegram()
+  const { user: telegramUser, isTelegramApp, webApp } = useTelegram()
   
   // Проверка авторизации - ТОЛЬКО по наличию сессии (user), не по данным Telegram
   const isAuthenticated = !!user
@@ -171,8 +171,12 @@ export function PaymentModal({
       }
 
       if (data.confirmationUrl) {
-        // Перенаправляем на страницу оплаты ЮКасса
-        window.location.href = data.confirmationUrl
+        // Для Telegram Web App используем openLink, для браузера - window.location
+        if (isTelegramApp && webApp) {
+          webApp.openLink(data.confirmationUrl)
+        } else {
+          window.location.href = data.confirmationUrl
+        }
       } else {
         // Для демо - просто показываем успех
         if (onPaymentSuccess) {

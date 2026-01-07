@@ -91,8 +91,12 @@ function PaymentPageContent() {
       }
 
       if (data.confirmationUrl) {
-        // Перенаправляем на страницу оплаты ЮКасса
-        window.location.href = data.confirmationUrl
+        // Для Telegram Web App используем openLink, для браузера - window.location
+        if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
+          window.Telegram.WebApp.openLink(data.confirmationUrl)
+        } else {
+          window.location.href = data.confirmationUrl
+        }
       } else {
         throw new Error('Не получена ссылка на оплату')
       }

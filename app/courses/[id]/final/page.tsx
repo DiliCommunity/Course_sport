@@ -13,6 +13,8 @@ import Image from 'next/image'
 import { Button } from '@/components/ui/Button'
 import { PaymentModal } from '@/components/ui/PaymentModal'
 import { formatPrice, formatDuration } from '@/lib/utils'
+import { RestaurantChecklist } from '@/components/lessons/RestaurantChecklist'
+import { TravelKetoKit } from '@/components/lessons/TravelKetoKit'
 
 interface FinalModulesData {
   module4: {
@@ -456,14 +458,25 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
                                 )}
 
                                 {lesson.bonus && (
-                                  <div className="mt-6 p-4 rounded-xl bg-gradient-to-r from-accent-gold/10 to-accent-electric/10 border border-accent-gold/20">
-                                    <div className="flex items-center gap-3">
-                                      <span className="text-3xl">🎁</span>
-                                      <div>
-                                        <div className="font-semibold text-white">Бонус: {lesson.bonus.title}</div>
-                                        <div className="text-sm text-white/60">{lesson.bonus.description}</div>
+                                  <div className="mt-6">
+                                    {lesson.bonus.title === 'Чек-лист для ресторанов' && (
+                                      <RestaurantChecklist />
+                                    )}
+                                    {lesson.bonus.title === 'Кето-набор для путешествий' && (
+                                      <TravelKetoKit />
+                                    )}
+                                    {lesson.bonus.title !== 'Чек-лист для ресторанов' && 
+                                     lesson.bonus.title !== 'Кето-набор для путешествий' && (
+                                      <div className="p-4 rounded-xl bg-gradient-to-r from-accent-gold/10 to-accent-electric/10 border border-accent-gold/20">
+                                        <div className="flex items-center gap-3">
+                                          <span className="text-3xl">🎁</span>
+                                          <div>
+                                            <div className="font-semibold text-white">Бонус: {lesson.bonus.title}</div>
+                                            <div className="text-sm text-white/60">{lesson.bonus.description}</div>
+                                          </div>
+                                        </div>
                                       </div>
-                                    </div>
+                                    )}
                                   </div>
                                 )}
                               </div>
@@ -639,14 +652,25 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
                                 )}
 
                                 {lesson.bonus && (
-                                  <div className="mt-6 p-4 rounded-xl bg-gradient-to-r from-accent-neon/10 to-accent-electric/10 border border-accent-neon/20">
-                                    <div className="flex items-center gap-3">
-                                      <span className="text-3xl">🎁</span>
-                                      <div>
-                                        <div className="font-semibold text-white">Бонус: {lesson.bonus.title}</div>
-                                        <div className="text-sm text-white/60">{lesson.bonus.description}</div>
+                                  <div className="mt-6">
+                                    {lesson.bonus.title === 'Чек-лист для ресторанов' && (
+                                      <RestaurantChecklist />
+                                    )}
+                                    {lesson.bonus.title === 'Кето-набор для путешествий' && (
+                                      <TravelKetoKit />
+                                    )}
+                                    {lesson.bonus.title !== 'Чек-лист для ресторанов' && 
+                                     lesson.bonus.title !== 'Кето-набор для путешествий' && (
+                                      <div className="p-4 rounded-xl bg-gradient-to-r from-accent-neon/10 to-accent-electric/10 border border-accent-neon/20">
+                                        <div className="flex items-center gap-3">
+                                          <span className="text-3xl">🎁</span>
+                                          <div>
+                                            <div className="font-semibold text-white">Бонус: {lesson.bonus.title}</div>
+                                            <div className="text-sm text-white/60">{lesson.bonus.description}</div>
+                                          </div>
+                                        </div>
                                       </div>
-                                    </div>
+                                    )}
                                   </div>
                                 )}
                               </div>

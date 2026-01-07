@@ -85,24 +85,27 @@ export async function POST(request: NextRequest) {
     console.log('Idempotency key:', idempotencyKey, 'length:', idempotencyKey.length)
 
     // Определяем тип платежа для ЮКасса
-    const getPaymentMethodData = (method: string) => {
+    // Для СБП и СберПей используем payment_method_types, для остальных - payment_method_data
+    const getPaymentMethodType = (method: string): string => {
       switch (method) {
         case 'sbp':
-          return { type: 'sbp' }
+          return 'sbp'
         case 'sber_pay':
-          return { type: 'sberbank' }
+          return 'sberbank'
         case 'tinkoff_pay':
-          return { type: 'tinkoff_bank' }
+          return 'tinkoff_bank'
         case 'yoomoney':
-          return { type: 'yoo_money' }
+          return 'yoo_money'
         case 'card':
         default:
-          return { type: 'bank_card' }
+          return 'bank_card'
       }
     }
 
+    const paymentMethodType = getPaymentMethodType(paymentMethod || 'card')
+
     // Создаем платеж в ЮКасса
-    const paymentData = {
+    const paymentData: any = {
       amount: {
         value: (amount / 100).toFixed(2), // Конвертируем копейки в рубли
         currency: 'RUB'
@@ -114,14 +117,22 @@ export async function POST(request: NextRequest) {
       },
       description: type === 'balance_topup' 
         ? `Пополнение баланса на ${(amount / 100).toFixed(2)}₽`
+        : type === 'final_modules'
+        ? `Оплата финальных модулей курса #${courseId}`
         : `Оплата курса #${courseId}`,
       metadata: {
         ...(courseId && { course_id: courseId }),
         user_id: userId || 'guest',
         payment_method: paymentMethod || 'card',
         type: type || 'course_purchase'
-      },
-      payment_method_data: getPaymentMethodData(paymentMethod || 'card')
+      }
+    }
+
+    // Для СБП и СберПей указываем payment_method_types, для остальных - payment_method_data
+    if (paymentMethodType === 'sbp' || paymentMethodType === 'sberbank') {
+      paymentData.payment_method_types = [paymentMethodType]
+    } else {
+      paymentData.payment_method_data = { type: paymentMethodType }
     }
 
     const response = await fetch('https://api.yookassa.ru/v3/payments', {
