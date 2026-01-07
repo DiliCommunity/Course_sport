@@ -209,28 +209,26 @@ export function Header() {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex flex-col h-full">
-                {/* Навигационные ссылки - показываем всегда, если пользователь не авторизован, или если не в Telegram */}
-                {(!isTelegramApp || !isAuthenticated) && (
-                  <div className="px-6 py-8 space-y-2">
-                    {navLinks.map((link, index) => (
-                      <motion.div
-                        key={link.href}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.1 }}
+                {/* Навигационные ссылки - показываем всегда */}
+                <div className="px-6 py-8 space-y-2">
+                  {navLinks.map((link, index) => (
+                    <motion.div
+                      key={link.href}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                    >
+                      <Link
+                        href={link.href}
+                        className="flex items-center gap-3 px-4 py-3 rounded-xl text-lg font-medium text-white/70 hover:text-emerald-400 hover:bg-emerald-400/10 transition-all duration-200 group border border-transparent hover:border-emerald-400/20"
+                        onClick={() => setIsMobileMenuOpen(false)}
                       >
-                        <Link
-                          href={link.href}
-                          className="flex items-center gap-3 px-4 py-3 rounded-xl text-lg font-medium text-white/70 hover:text-emerald-400 hover:bg-emerald-400/10 transition-all duration-200 group border border-transparent hover:border-emerald-400/20"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                        >
-                          <span className="w-1.5 h-6 bg-emerald-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                          {link.label}
-                        </Link>
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
+                        <span className="w-1.5 h-6 bg-emerald-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                        {link.label}
+                      </Link>
+                    </motion.div>
+                  ))}
+                </div>
                 <div className="mt-auto px-6 py-6 border-t border-emerald-400/20 space-y-3">
                   {isAuthenticated ? (
                     <>

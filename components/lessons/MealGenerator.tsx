@@ -279,85 +279,80 @@ export function MealGenerator() {
 
       // Заголовок
       ctx.fillStyle = '#3b82f6'
-      ctx.font = 'bold 28px Arial, sans-serif'
+      ctx.font = 'bold 36px Arial, sans-serif'
       ctx.textAlign = 'center'
       ctx.textBaseline = 'top'
       ctx.fillText(currentMeal.name, pageWidthPx / 2, yPosPx)
-      yPosPx += 40
+      yPosPx += 50
 
       // Тип блюда
       ctx.fillStyle = '#666666'
-      ctx.font = '16px Arial, sans-serif'
+      ctx.font = '20px Arial, sans-serif'
       const mealTypeText = mealType === 'lunch' ? 'Обед' : 'Ужин'
       ctx.fillText(mealTypeText, pageWidthPx / 2, yPosPx)
-      yPosPx += 30
+      yPosPx += 35
 
       // Описание
       ctx.fillStyle = '#333333'
-      ctx.font = '14px Arial, sans-serif'
+      ctx.font = '18px Arial, sans-serif'
       ctx.textAlign = 'left'
-      const descriptionLines = currentMeal.description.match(/.{1,60}/g) || [currentMeal.description]
+      const descriptionLines = currentMeal.description.match(/.{1,55}/g) || [currentMeal.description]
       descriptionLines.forEach((line: string) => {
         ctx.fillText(line, marginPx, yPosPx)
-        yPosPx += 20
+        yPosPx += 25
       })
-      yPosPx += 15
+      yPosPx += 20
 
       // Макросы
       ctx.fillStyle = '#3b82f6'
-      ctx.font = 'bold 16px Arial, sans-serif'
+      ctx.font = 'bold 20px Arial, sans-serif'
       ctx.fillText('Пищевая ценность:', marginPx, yPosPx)
-      yPosPx += 25
-
-      ctx.fillStyle = '#000000'
-      ctx.font = '14px Arial, sans-serif'
-      ctx.fillText(`Калории: ${currentMeal.calories} ккал`, marginPx + 10, yPosPx)
-      yPosPx += 20
-      ctx.fillText(`Жиры: ${currentMeal.fats}г | Белки: ${currentMeal.proteins}г | Углеводы: ${currentMeal.carbs}г`, marginPx + 10, yPosPx)
-      yPosPx += 20
-      ctx.fillText(`Время приготовления: ${currentMeal.prepTime} мин | Сложность: ${currentMeal.difficulty}`, marginPx + 10, yPosPx)
       yPosPx += 30
 
-      // Ингредиенты
-      ctx.fillStyle = '#3b82f6'
-      ctx.font = 'bold 18px Arial, sans-serif'
-      ctx.fillText('Ингредиенты:', marginPx, yPosPx)
-      yPosPx += 25
-
       ctx.fillStyle = '#000000'
-      ctx.font = '14px Arial, sans-serif'
-      currentMeal.ingredients.forEach((ing, index) => {
-        if (yPosPx > pageHeightPx - 100) {
-          // Если не хватает места, создадим вторую страницу позже
-          return
-        }
-        const checkmark = ing.checked ? '✓' : '☐'
-        const itemText = `${checkmark} ${ing.name} - ${ing.quantity}`
-        ctx.fillStyle = ing.checked ? '#999999' : '#000000'
-        if (ing.checked) {
-          ctx.strokeStyle = '#999999'
-          ctx.strokeText(itemText, marginPx + 10, yPosPx)
-        } else {
+      ctx.font = '18px Arial, sans-serif'
+      ctx.fillText(`Калории: ${currentMeal.calories} ккал`, marginPx + 10, yPosPx)
+      yPosPx += 25
+      ctx.fillText(`Жиры: ${currentMeal.fats}г | Белки: ${currentMeal.proteins}г | Углеводы: ${currentMeal.carbs}г`, marginPx + 10, yPosPx)
+      yPosPx += 25
+      ctx.fillText(`Время приготовления: ${currentMeal.prepTime} мин | Сложность: ${currentMeal.difficulty}`, marginPx + 10, yPosPx)
+      yPosPx += 35
+
+      // Ингредиенты - только выбранные
+      const selectedIngredients = currentMeal.ingredients.filter(ing => ing.checked)
+      if (selectedIngredients.length > 0) {
+        ctx.fillStyle = '#3b82f6'
+        ctx.font = 'bold 22px Arial, sans-serif'
+        ctx.fillText('Ингредиенты:', marginPx, yPosPx)
+        yPosPx += 30
+
+        ctx.fillStyle = '#000000'
+        ctx.font = '18px Arial, sans-serif'
+        selectedIngredients.forEach((ing, index) => {
+          if (yPosPx > pageHeightPx - 100) {
+            return
+          }
+          const itemText = `✓ ${ing.name} - ${ing.quantity}`
           ctx.fillText(itemText, marginPx + 10, yPosPx)
-        }
-        yPosPx += 22
-      })
-      yPosPx += 20
+          yPosPx += 28
+        })
+        yPosPx += 20
+      }
 
       // Инструкции
       ctx.fillStyle = '#3b82f6'
-      ctx.font = 'bold 18px Arial, sans-serif'
+      ctx.font = 'bold 22px Arial, sans-serif'
       ctx.fillText('Инструкция по приготовлению:', marginPx, yPosPx)
       yPosPx += 25
 
       ctx.fillStyle = '#000000'
-      ctx.font = '14px Arial, sans-serif'
+      ctx.font = '18px Arial, sans-serif'
       currentMeal.instructions.forEach((step, index) => {
         if (yPosPx > pageHeightPx - 50) {
           return
         }
         ctx.fillText(`${index + 1}. ${step}`, marginPx + 10, yPosPx)
-        yPosPx += 25
+        yPosPx += 30
       })
 
       // Конвертируем canvas в PDF

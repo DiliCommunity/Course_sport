@@ -308,21 +308,21 @@ export function ShoppingListGenerator() {
 
                 // Заголовок
                 ctx.fillStyle = '#3b82f6'
-                ctx.font = 'bold 24px Arial, sans-serif'
+                ctx.font = 'bold 32px Arial, sans-serif'
                 ctx.textAlign = 'center'
                 ctx.textBaseline = 'top'
                 ctx.fillText('Список покупок (Кето)', pageWidthPx / 2, yPosPx)
-                yPosPx += 30
-
-                ctx.fillStyle = '#999999'
-                ctx.font = '12px Arial, sans-serif'
-                ctx.fillText(`Сгенерировано: ${new Date().toLocaleDateString('ru-RU')}`, pageWidthPx / 2, yPosPx)
                 yPosPx += 40
 
-                // Группируем по категориям
+                ctx.fillStyle = '#999999'
+                ctx.font = '16px Arial, sans-serif'
+                ctx.fillText(`Сгенерировано: ${new Date().toLocaleDateString('ru-RU')}`, pageWidthPx / 2, yPosPx)
+                yPosPx += 50
+
+                // Группируем по категориям - только выбранные ингредиенты
                 const categories = Object.keys(CATEGORY_LABELS) as Ingredient['category'][]
                 categories.forEach(category => {
-                  const categoryIngredients = ingredients.filter(ing => ing.category === category)
+                  const categoryIngredients = ingredients.filter(ing => ing.category === category && ing.checked)
                   if (categoryIngredients.length > 0) {
                     // Проверяем, нужна ли новая страница
                     if (yPosPx > pageHeightPx - 100) {
@@ -332,11 +332,11 @@ export function ShoppingListGenerator() {
 
                     // Заголовок категории
                     ctx.fillStyle = '#3b82f6'
-                    ctx.font = 'bold 16px Arial, sans-serif'
+                    ctx.font = 'bold 20px Arial, sans-serif'
                     ctx.textAlign = 'left'
                     const categoryTitle = CATEGORY_LABELS[category]
                     ctx.fillText(categoryTitle, marginPx, yPosPx)
-                    yPosPx += 25
+                    yPosPx += 30
 
                     // Линия под заголовком
                     ctx.strokeStyle = '#3b82f6'
@@ -347,24 +347,17 @@ export function ShoppingListGenerator() {
                     ctx.stroke()
                     yPosPx += 10
 
-                    // Элементы категории
-                    ctx.font = '14px Arial, sans-serif'
+                    // Элементы категории - только выбранные
+                    ctx.font = '18px Arial, sans-serif'
                     categoryIngredients.forEach(ing => {
                       if (yPosPx > pageHeightPx - 50) {
                         yPosPx = 20 * mmToPx
                       }
 
-                      const checkmark = ing.checked ? '✓' : '☐'
-                      const itemText = `${checkmark} ${ing.name} - ${ing.quantity}`
-                      
-                      ctx.fillStyle = ing.checked ? '#999999' : '#000000'
-                      if (ing.checked) {
-                        ctx.strokeStyle = '#999999'
-                        ctx.strokeText(itemText, marginPx + 20, yPosPx)
-                      } else {
-                        ctx.fillText(itemText, marginPx + 20, yPosPx)
-                      }
-                      yPosPx += 25
+                      const itemText = `✓ ${ing.name} - ${ing.quantity}`
+                      ctx.fillStyle = '#000000'
+                      ctx.fillText(itemText, marginPx + 20, yPosPx)
+                      yPosPx += 28
                     })
                     yPosPx += 15
                   }
@@ -376,10 +369,10 @@ export function ShoppingListGenerator() {
                 }
                 yPosPx += 20
                 ctx.fillStyle = '#3b82f6'
-                ctx.fillRect(marginPx, yPosPx, pageWidthPx - marginPx * 2, 40)
+                ctx.fillRect(marginPx, yPosPx, pageWidthPx - marginPx * 2, 50)
                 ctx.fillStyle = '#ffffff'
-                ctx.font = 'bold 14px Arial, sans-serif'
-                ctx.fillText(`Выбрано: ${checkedCount} / ${ingredients.length}`, marginPx + 15, yPosPx + 25)
+                ctx.font = 'bold 18px Arial, sans-serif'
+                ctx.fillText(`Выбрано: ${checkedCount} / ${ingredients.length}`, marginPx + 15, yPosPx + 30)
 
                 // Конвертируем canvas в PDF
                 const { jsPDF } = await import('jspdf')
