@@ -615,11 +615,13 @@ function LessonModal({
             <MealPlanner />
           ) : null}
 
-          {lesson.title.toLowerCase().includes('кетогрипп') || 
+          {(lesson.title.toLowerCase().includes('кетогрипп') || 
            lesson.title.toLowerCase().includes('первая неделя') ||
            lesson.title.toLowerCase().includes('пережить первую') ||
-           lesson.content?.toLowerCase().includes('кетогрипп') ||
-           lesson.content?.toLowerCase().includes('электролит') ? (
+           lesson.title.toLowerCase().includes('борьба с кетогриппом') ||
+           (lesson.content?.toLowerCase().includes('кетогрипп') && 
+            !lesson.title.toLowerCase().includes('тренировк') &&
+            !lesson.content?.toLowerCase().includes('тренировк'))) ? (
             <KetoFluCalculator />
           ) : null}
 

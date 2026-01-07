@@ -244,110 +244,114 @@ export function ShoppingListGenerator() {
         })}
       </div>
 
-      {/* Статистика и кнопка копирования */}
-      <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10">
-        <div>
-          <div className="text-white/60 text-sm">Выбрано:</div>
-          <div className="text-2xl font-bold text-accent-electric">{checkedCount} / {ingredients.length}</div>
+      {/* Статистика и кнопки действий */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10">
+          <div>
+            <div className="text-white/60 text-sm">Выбрано:</div>
+            <div className="text-2xl font-bold text-accent-electric">{checkedCount} / {ingredients.length}</div>
+          </div>
         </div>
-        <button
-          onClick={copyList}
-          className="px-6 py-3 rounded-xl bg-gradient-to-r from-accent-electric to-accent-teal text-dark-900 font-medium hover:shadow-lg transition-all flex items-center gap-2"
-        >
-          {copied ? (
-            <>
-              <Check className="w-5 h-5" />
-              <span>Скопировано!</span>
-            </>
-          ) : (
-            <>
-              <Copy className="w-5 h-5" />
-              <span>Скопировать список</span>
-            </>
-          )}
-        </button>
-      </div>
-
-      {/* Кнопка скачивания PDF */}
-      <button
-        onClick={async () => {
-          try {
-            setDownloading(true)
-            
-            const { jsPDF } = await import('jspdf')
-            const doc = new jsPDF({
-              orientation: 'portrait',
-              unit: 'mm',
-              format: 'a4',
-              compress: true
-            })
-
-            // Заголовок
-            doc.setFontSize(20)
-            doc.setTextColor(59, 130, 246) // accent-electric
-            doc.text('Список покупок (Кето)', 105, 20, { align: 'center' })
-            
-            doc.setFontSize(10)
-            doc.setTextColor(100, 100, 100)
-            doc.text(`Сгенерировано: ${new Date().toLocaleDateString('ru-RU')}`, 105, 28, { align: 'center' })
-            
-            let yPos = 40
-            const margin = 15
-            
-            // Группируем по категориям
-            const categories = Object.keys(CATEGORY_LABELS) as Ingredient['category'][]
-            categories.forEach(category => {
-              const categoryIngredients = ingredients.filter(ing => ing.category === category)
-              if (categoryIngredients.length > 0) {
-                doc.setFontSize(12)
-                doc.setTextColor(59, 130, 246)
-                doc.setFont('helvetica', 'bold')
-                doc.text(CATEGORY_LABELS[category], margin, yPos)
-                yPos += 7
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <button
+            onClick={copyList}
+            className="py-3 px-4 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all flex items-center justify-center gap-2 text-sm font-medium"
+          >
+            {copied ? (
+              <>
+                <Check className="w-4 h-4 text-accent-mint" />
+                <span>Скопировано!</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-4 h-4" />
+                <span>Скопировать</span>
+              </>
+            )}
+          </button>
+          
+          <button
+            onClick={async () => {
+              try {
+                setDownloading(true)
                 
-                doc.setFontSize(11)
-                doc.setTextColor(0, 0, 0)
-                doc.setFont('helvetica', 'normal')
-                categoryIngredients.forEach(ing => {
-                  const checkmark = ing.checked ? '☑' : '☐'
-                  doc.text(`${checkmark} ${ing.name} - ${ing.quantity}`, margin + 5, yPos)
-                  yPos += 6
+                const { jsPDF } = await import('jspdf')
+                const doc = new jsPDF({
+                  orientation: 'portrait',
+                  unit: 'mm',
+                  format: 'a4',
+                  compress: true
                 })
-                yPos += 3
+
+                // Заголовок
+                doc.setFontSize(20)
+                doc.setTextColor(59, 130, 246) // accent-electric
+                doc.text('Список покупок (Кето)', 105, 20, { align: 'center' })
+                
+                doc.setFontSize(10)
+                doc.setTextColor(100, 100, 100)
+                doc.text(`Сгенерировано: ${new Date().toLocaleDateString('ru-RU')}`, 105, 28, { align: 'center' })
+                
+                let yPos = 40
+                const margin = 15
+                
+                // Группируем по категориям
+                const categories = Object.keys(CATEGORY_LABELS) as Ingredient['category'][]
+                categories.forEach(category => {
+                  const categoryIngredients = ingredients.filter(ing => ing.category === category)
+                  if (categoryIngredients.length > 0) {
+                    doc.setFontSize(12)
+                    doc.setTextColor(59, 130, 246)
+                    doc.setFont('helvetica', 'bold')
+                    doc.text(CATEGORY_LABELS[category], margin, yPos)
+                    yPos += 7
+                    
+                    doc.setFontSize(11)
+                    doc.setTextColor(0, 0, 0)
+                    doc.setFont('helvetica', 'normal')
+                    categoryIngredients.forEach(ing => {
+                      const checkmark = ing.checked ? '☑' : '☐'
+                      doc.text(`${checkmark} ${ing.name} - ${ing.quantity}`, margin + 5, yPos)
+                      yPos += 6
+                    })
+                    yPos += 3
+                  }
+                })
+                
+                // Статистика
+                yPos += 5
+                doc.setFontSize(10)
+                doc.setTextColor(100, 100, 100)
+                doc.text(`Выбрано: ${checkedCount} / ${ingredients.length}`, margin, yPos)
+                
+                const fileName = `Кето-список-покупок-${new Date().toLocaleDateString('ru-RU').replace(/\//g, '-')}.pdf`
+                doc.save(fileName)
+                
+                setDownloading(false)
+              } catch (error) {
+                console.error('Error generating PDF:', error)
+                setDownloading(false)
+                alert('Не удалось создать PDF файл. Попробуйте еще раз.')
               }
-            })
-            
-            // Статистика
-            yPos += 5
-            doc.setFontSize(10)
-            doc.setTextColor(100, 100, 100)
-            doc.text(`Выбрано: ${checkedCount} / ${ingredients.length}`, margin, yPos)
-            
-            const fileName = `Кето-список-покупок-${new Date().toLocaleDateString('ru-RU').replace(/\//g, '-')}.pdf`
-            doc.save(fileName)
-            
-            setDownloading(false)
-          } catch (error) {
-            console.error('Error generating PDF:', error)
-            setDownloading(false)
-            alert('Не удалось создать PDF файл. Попробуйте еще раз.')
-          }
-        }}
-        disabled={downloading}
-        className="w-full mt-4 py-3 rounded-xl bg-gradient-to-r from-accent-electric to-accent-teal text-dark-900 font-medium hover:shadow-lg hover:shadow-accent-electric/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {downloading ? (
-          <>
-            <div className="w-5 h-5 border-2 border-dark-900 border-t-transparent rounded-full animate-spin" />
-            <span>Генерация PDF...</span>
-          </>
-        ) : (
-          <>
-            <Download className="w-5 h-5" />
-            <span>Скачать список в PDF</span>
-          </>
-        )}
-      </button>
+            }}
+            disabled={downloading}
+            className="py-3 px-4 rounded-xl bg-gradient-to-r from-accent-electric to-accent-teal text-dark-900 font-medium hover:shadow-lg hover:shadow-accent-electric/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+          >
+            {downloading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-dark-900 border-t-transparent rounded-full animate-spin" />
+                <span>PDF...</span>
+              </>
+            ) : (
+              <>
+                <Download className="w-4 h-4" />
+                <span>Скачать PDF</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
     </motion.div>
   )
 }

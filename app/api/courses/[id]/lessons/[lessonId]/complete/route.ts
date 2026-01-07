@@ -35,9 +35,24 @@ export async function POST(
     // Статические уроки имеют ID вида: keto-m2-l1, if-m3-l2 и т.д.
     const isStaticLesson = lessonId.startsWith('keto-m') || lessonId.startsWith('if-m')
     
-    // Для статических уроков не проверяем наличие в БД
-    // Для остальных - проверяем
-    if (!isStaticLesson) {
+    // Проверяем соответствие урока курсу
+    if (isStaticLesson) {
+      // Для статических уроков проверяем префикс
+      const isKetoCourse = courseId === COURSE_IDS.KETO || courseId === '1' || courseId === '00000000-0000-0000-0000-000000000001'
+      const isIntervalCourse = courseId === COURSE_IDS.INTERVAL || courseId === '2' || courseId === '00000000-0000-0000-0000-000000000002'
+      
+      const isKetoLesson = lessonId.startsWith('keto-m')
+      const isIntervalLesson = lessonId.startsWith('if-m')
+      
+      // Проверяем соответствие: кето урок должен быть в кето курсе, IF урок - в IF курсе
+      if ((isKetoLesson && !isKetoCourse) || (isIntervalLesson && !isIntervalCourse)) {
+        return NextResponse.json(
+          { error: 'Lesson does not belong to this course' },
+          { status: 400 }
+        )
+      }
+    } else {
+      // Для обычных уроков проверяем наличие в БД и соответствие курсу
       const { data: lesson } = await adminSupabase
         .from('lessons')
         .select('*')
@@ -47,7 +62,7 @@ export async function POST(
 
       if (!lesson) {
         return NextResponse.json(
-          { error: 'Lesson not found' },
+          { error: 'Lesson not found or does not belong to this course' },
           { status: 404 }
         )
       }
