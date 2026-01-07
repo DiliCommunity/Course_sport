@@ -17,6 +17,7 @@ import { MacroCalculator } from '@/components/lessons/MacroCalculator'
 import { MealPlanner } from '@/components/lessons/MealPlanner'
 import { KetoFluCalculator } from '@/components/lessons/KetoFluCalculator'
 import { ShoppingListGenerator } from '@/components/lessons/ShoppingListGenerator'
+import { MealGenerator } from '@/components/lessons/MealGenerator'
 import { IFCalculator } from '@/components/lessons/IFCalculator'
 
 interface Lesson {
@@ -626,12 +627,21 @@ function LessonModal({
             <KetoFluCalculator />
           ) : null}
 
-          {lesson.title.toLowerCase().includes('рецепт') || 
+          {(lesson.title.toLowerCase().includes('обед') && 
+            lesson.title.toLowerCase().includes('ужин')) ||
+           (lesson.title.toLowerCase().includes('обед') && 
+            !lesson.title.toLowerCase().includes('завтрак')) ||
+           (lesson.title.toLowerCase().includes('ужин') && 
+            !lesson.title.toLowerCase().includes('завтрак')) ? (
+            <MealGenerator />
+          ) : null}
+
+          {(lesson.title.toLowerCase().includes('рецепт') || 
            lesson.title.toLowerCase().includes('завтрак') ||
-           lesson.title.toLowerCase().includes('обед') ||
-           lesson.title.toLowerCase().includes('ужин') ||
            lesson.content?.toLowerCase().includes('список покупок') ||
-           lesson.content?.toLowerCase().includes('ингредиент') ? (
+           lesson.content?.toLowerCase().includes('ингредиент')) &&
+           !lesson.title.toLowerCase().includes('обед') &&
+           !lesson.title.toLowerCase().includes('ужин') ? (
             <ShoppingListGenerator />
           ) : null}
 
