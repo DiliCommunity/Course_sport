@@ -14,6 +14,10 @@ import Image from 'next/image'
 import { Button } from '@/components/ui/Button'
 import { getCourseUUID } from '@/lib/constants'
 import { MacroCalculator } from '@/components/lessons/MacroCalculator'
+import { MealPlanner } from '@/components/lessons/MealPlanner'
+import { KetoFluCalculator } from '@/components/lessons/KetoFluCalculator'
+import { ShoppingListGenerator } from '@/components/lessons/ShoppingListGenerator'
+import { IFCalculator } from '@/components/lessons/IFCalculator'
 
 interface Lesson {
   id: string
@@ -571,11 +575,43 @@ function LessonModal({
             )}
           </div>
 
-          {/* Интерактивный калькулятор для урока о расчете макросов */}
+          {/* Интерактивные мини-приложения для уроков */}
           {lesson.title.toLowerCase().includes('макрос') || 
            lesson.title.toLowerCase().includes('расчет') ||
            lesson.content?.toLowerCase().includes('формула расчета') ? (
             <MacroCalculator />
+          ) : null}
+
+          {lesson.title.toLowerCase().includes('план питания') || 
+           lesson.title.toLowerCase().includes('питание на') ||
+           lesson.content?.toLowerCase().includes('план питания') ? (
+            <MealPlanner />
+          ) : null}
+
+          {lesson.title.toLowerCase().includes('кетогрипп') || 
+           lesson.title.toLowerCase().includes('первая неделя') ||
+           lesson.title.toLowerCase().includes('пережить первую') ||
+           lesson.content?.toLowerCase().includes('кетогрипп') ||
+           lesson.content?.toLowerCase().includes('электролит') ? (
+            <KetoFluCalculator />
+          ) : null}
+
+          {lesson.title.toLowerCase().includes('рецепт') || 
+           lesson.title.toLowerCase().includes('завтрак') ||
+           lesson.title.toLowerCase().includes('обед') ||
+           lesson.title.toLowerCase().includes('ужин') ||
+           lesson.content?.toLowerCase().includes('список покупок') ||
+           lesson.content?.toLowerCase().includes('ингредиент') ? (
+            <ShoppingListGenerator />
+          ) : null}
+
+          {lesson.title.toLowerCase().includes('интервальное') || 
+           lesson.title.toLowerCase().includes('голодание') ||
+           lesson.title.toLowerCase().includes('if') ||
+           lesson.content?.toLowerCase().includes('интервальное голодание') ||
+           lesson.content?.toLowerCase().includes('16:8') ||
+           lesson.content?.toLowerCase().includes('18:6') ? (
+            <IFCalculator />
           ) : null}
           
           {!isCompleted && (
