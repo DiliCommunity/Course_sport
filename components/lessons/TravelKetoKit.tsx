@@ -232,33 +232,33 @@ export function TravelKetoKit() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="mt-8 p-6 rounded-2xl bg-gradient-to-br from-accent-electric/10 via-dark-800/50 to-accent-teal/10 border-2 border-accent-electric/30 shadow-[0_0_30px_rgba(59,130,246,0.2)]"
+      className="mt-8 p-4 sm:p-6 rounded-2xl bg-gradient-to-br from-accent-electric/10 via-dark-800/50 to-accent-teal/10 border-2 border-accent-electric/30 shadow-[0_0_30px_rgba(59,130,246,0.2)]"
     >
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-electric to-accent-teal flex items-center justify-center">
-          <Luggage className="w-6 h-6 text-dark-900" />
+      <div className="flex items-center gap-3 mb-4 sm:mb-6">
+        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-accent-electric to-accent-teal flex items-center justify-center shadow-lg shadow-accent-electric/30 flex-shrink-0">
+          <Luggage className="w-5 h-5 sm:w-6 sm:h-6 text-dark-900" />
         </div>
-        <div>
-          <h3 className="text-xl font-bold text-white mb-1">Кето-набор для путешествий</h3>
-          <p className="text-white/60 text-sm">Полный список продуктов и стратегии для разных стран</p>
+        <div className="min-w-0 flex-1">
+          <h3 className="text-lg sm:text-xl font-bold text-white mb-1">Кето-набор для путешествий</h3>
+          <p className="text-white/60 text-xs sm:text-sm">Полный список продуктов и стратегии для разных стран</p>
         </div>
       </div>
 
       {/* Добавление нового элемента */}
-      <div className="mb-6 p-4 rounded-xl bg-white/5 border border-white/10">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+      <div className="mb-4 sm:mb-6 p-3 sm:p-4 rounded-xl bg-white/5 border border-white/10">
+        <div className="space-y-2 sm:space-y-0 sm:grid sm:grid-cols-1 md:grid-cols-4 gap-2 sm:gap-3">
           <input
             type="text"
             value={newItem}
             onChange={(e) => setNewItem(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && addItem()}
             placeholder="Название продукта"
-            className="md:col-span-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-accent-electric/50 text-sm"
+            className="w-full md:col-span-2 px-3 sm:px-4 py-2.5 sm:py-2 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-accent-electric/50 text-sm"
           />
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value as TravelItem['category'])}
-            className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-accent-electric/50 text-sm"
+            className="w-full sm:w-auto px-3 sm:px-4 py-2.5 sm:py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-accent-electric/50 text-sm"
           >
             {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
               <option key={key} value={key} className="bg-dark-800">{label}</option>
@@ -266,42 +266,50 @@ export function TravelKetoKit() {
           </select>
           <button
             onClick={addItem}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-accent-electric to-accent-teal text-dark-900 font-medium hover:shadow-lg transition-all flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-xl bg-gradient-to-r from-accent-electric to-accent-teal text-dark-900 font-medium hover:shadow-lg transition-all flex items-center justify-center gap-2 text-sm"
           >
             <Plus className="w-4 h-4" />
-            Добавить
+            <span className="sm:hidden md:inline">Добавить</span>
+            <span className="hidden sm:inline md:hidden">+</span>
           </button>
         </div>
       </div>
 
       {/* Список продуктов по категориям */}
-      <div className="space-y-4 mb-6">
+      <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
         {Object.entries(CATEGORY_LABELS).map(([category, label]) => {
           const categoryItems = categories[category] || []
           if (categoryItems.length === 0) return null
           
           return (
-            <div
+            <motion.div
               key={category}
-              className="p-4 rounded-xl bg-white/5 border border-white/10"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-3 sm:p-4 rounded-xl bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 shadow-sm"
             >
-              <h4 className="text-white font-semibold mb-3">{label}</h4>
-              <div className="space-y-2">
+              <h4 className="text-white font-semibold mb-2 sm:mb-3 text-sm sm:text-base flex items-center gap-2">
+                <span className="text-lg sm:text-xl">{label.split(' ')[0]}</span>
+                <span>{label.split(' ').slice(1).join(' ')}</span>
+              </h4>
+              <div className="space-y-1.5 sm:space-y-2">
                 {categoryItems.map(item => (
-                  <div
+                  <motion.div
                     key={item.id}
-                    className="flex items-center gap-3 p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-all cursor-pointer"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="flex items-center gap-2 sm:gap-3 p-2 sm:p-2.5 rounded-lg bg-white/5 hover:bg-white/10 transition-all cursor-pointer active:scale-[0.98]"
                     onClick={() => toggleItem(item.id)}
                   >
                     <div className="flex-shrink-0">
                       {item.checked ? (
-                        <CheckCircle2 className="w-5 h-5 text-accent-mint" />
+                        <CheckCircle2 className="w-5 h-5 sm:w-5 sm:h-5 text-accent-mint" />
                       ) : (
                         <div className="w-5 h-5 rounded-full border-2 border-white/40" />
                       )}
                     </div>
-                    <div className="flex-1">
-                      <div className={`text-sm ${item.checked ? 'line-through text-white/40' : 'text-white'}`}>
+                    <div className="flex-1 min-w-0">
+                      <div className={`text-xs sm:text-sm break-words ${item.checked ? 'line-through text-white/40' : 'text-white'}`}>
                         {item.name}
                       </div>
                     </div>
@@ -310,29 +318,29 @@ export function TravelKetoKit() {
                         e.stopPropagation()
                         removeItem(item.id)
                       }}
-                      className="p-1 rounded-lg hover:bg-red-500/20 text-red-400 transition-all z-10"
+                      className="p-1.5 sm:p-1 rounded-lg hover:bg-red-500/20 active:bg-red-500/30 text-red-400 transition-all z-10 flex-shrink-0"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
-            </div>
+            </motion.div>
           )
         })}
       </div>
 
       {/* Советы */}
-      <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-accent-electric/10 to-accent-teal/10 border border-accent-electric/20">
-        <div className="flex items-center gap-2 mb-3">
-          <Plane className="w-5 h-5 text-accent-electric" />
-          <h4 className="text-lg font-semibold text-white">Советы для путешествий:</h4>
+      <div className="mb-4 sm:mb-6 p-3 sm:p-4 rounded-xl bg-gradient-to-r from-accent-electric/10 to-accent-teal/10 border border-accent-electric/20">
+        <div className="flex items-center gap-2 mb-2 sm:mb-3">
+          <Plane className="w-4 h-4 sm:w-5 sm:h-5 text-accent-electric flex-shrink-0" />
+          <h4 className="text-base sm:text-lg font-semibold text-white">Советы для путешествий:</h4>
         </div>
-        <ul className="space-y-2">
+        <ul className="space-y-1.5 sm:space-y-2">
           {TRAVEL_TIPS.map((tip, index) => (
-            <li key={index} className="flex items-start gap-2 text-white/80 text-sm">
-              <span className="text-accent-electric mt-1">•</span>
-              <span>{tip}</span>
+            <li key={index} className="flex items-start gap-2 text-white/80 text-xs sm:text-sm leading-relaxed">
+              <span className="text-accent-electric mt-1 flex-shrink-0">•</span>
+              <span className="break-words">{tip}</span>
             </li>
           ))}
         </ul>
@@ -340,17 +348,17 @@ export function TravelKetoKit() {
 
       {/* Статистика и кнопки */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/10">
+        <div className="flex items-center justify-between p-3 sm:p-4 rounded-xl bg-gradient-to-r from-white/5 to-white/[0.02] border border-white/10">
           <div>
-            <div className="text-white/60 text-sm">Выбрано:</div>
-            <div className="text-2xl font-bold text-accent-electric">{checkedCount} / {items.length}</div>
+            <div className="text-white/60 text-xs sm:text-sm">Выбрано:</div>
+            <div className="text-xl sm:text-2xl font-bold text-accent-electric">{checkedCount} / {items.length}</div>
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
           <button
             onClick={copyList}
-            className="py-3 px-4 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all flex items-center justify-center gap-2 text-sm font-medium"
+            className="py-3 px-4 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-sm font-medium"
           >
             {copied ? (
               <>
@@ -360,7 +368,7 @@ export function TravelKetoKit() {
             ) : (
               <>
                 <Copy className="w-4 h-4" />
-                <span>Скопировать список</span>
+                <span className="whitespace-nowrap">Скопировать список</span>
               </>
             )}
           </button>
@@ -368,7 +376,7 @@ export function TravelKetoKit() {
           <button
             onClick={downloadPDF}
             disabled={downloading}
-            className="py-3 px-4 rounded-xl bg-gradient-to-r from-accent-electric to-accent-teal text-dark-900 font-medium hover:shadow-lg hover:shadow-accent-electric/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+            className="py-3 px-4 rounded-xl bg-gradient-to-r from-accent-electric to-accent-teal text-dark-900 font-medium hover:shadow-lg hover:shadow-accent-electric/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
           >
             {downloading ? (
               <>
@@ -378,7 +386,7 @@ export function TravelKetoKit() {
             ) : (
               <>
                 <Download className="w-4 h-4" />
-                <span>Скачать PDF</span>
+                <span className="whitespace-nowrap">Скачать PDF</span>
               </>
             )}
           </button>
