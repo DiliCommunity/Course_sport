@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Suitcase, Plus, Trash2, Copy, Check, Download, CheckCircle2, Plane, ShoppingCart } from 'lucide-react'
+import { Luggage, Plus, Trash2, Copy, Check, Download, CheckCircle2, Plane, ShoppingCart } from 'lucide-react'
 
 interface TravelItem {
   id: string
@@ -236,7 +236,7 @@ export function TravelKetoKit() {
     >
       <div className="flex items-center gap-3 mb-6">
         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-electric to-accent-teal flex items-center justify-center">
-          <Suitcase className="w-6 h-6 text-dark-900" />
+          <Luggage className="w-6 h-6 text-dark-900" />
         </div>
         <div>
           <h3 className="text-xl font-bold text-white mb-1">Кето-набор для путешествий</h3>
