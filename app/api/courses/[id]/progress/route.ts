@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { getUserFromSession } from '@/lib/session-utils'
+import { COURSE_IDS } from '@/lib/constants'
 
 export const dynamic = 'force-dynamic'
 
@@ -46,13 +47,28 @@ export async function GET(
       .maybeSingle()
 
     // Получаем общее количество уроков
-    const { count: totalLessons } = await adminSupabase
-      .from('lessons')
-      .select('id', { count: 'exact', head: true })
-      .eq('course_id', courseId)
+    // Проверяем, есть ли статические уроки в прогрессе
+    const hasStaticLessons = (completedProgress || []).some(p => 
+      p.lesson_id.startsWith('keto-m') || p.lesson_id.startsWith('if-m')
+    )
+    
+    let totalLessons: number | null = null
+    
+    if (hasStaticLessons) {
+      // Для статических уроков используем фиксированное количество
+      const isKeto = courseId === COURSE_IDS.KETO || courseId === '1' || courseId === '00000000-0000-0000-0000-000000000001'
+      totalLessons = isKeto ? 8 : 7 // 8 для кето (3+3+2), 7 для IF (2+3+2)
+    } else {
+      // Для обычных уроков считаем из БД
+      const { count } = await adminSupabase
+        .from('lessons')
+        .select('id', { count: 'exact', head: true })
+        .eq('course_id', courseId)
+      totalLessons = count
+    }
 
     const completedLessons = (completedProgress || []).map(p => p.lesson_id)
-    const overallProgress = totalLessons 
+    const overallProgress = totalLessons && totalLessons > 0
       ? Math.round((completedLessons.length / totalLessons) * 100)
       : 0
 

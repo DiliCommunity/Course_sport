@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { getUserFromSession } from '@/lib/session-utils'
+import { COURSE_IDS } from '@/lib/constants'
 
 export const dynamic = 'force-dynamic'
 
@@ -30,19 +31,26 @@ export async function POST(
     const courseId = params.id
     const lessonId = params.lessonId
 
-    // Проверяем доступ к уроку
-    const { data: lesson } = await adminSupabase
-      .from('lessons')
-      .select('*')
-      .eq('id', lessonId)
-      .eq('course_id', courseId)
-      .single()
+    // Проверяем, является ли это статическим уроком (модули 2-4)
+    // Статические уроки имеют ID вида: keto-m2-l1, if-m3-l2 и т.д.
+    const isStaticLesson = lessonId.startsWith('keto-m') || lessonId.startsWith('if-m')
+    
+    // Для статических уроков не проверяем наличие в БД
+    // Для остальных - проверяем
+    if (!isStaticLesson) {
+      const { data: lesson } = await adminSupabase
+        .from('lessons')
+        .select('*')
+        .eq('id', lessonId)
+        .eq('course_id', courseId)
+        .single()
 
-    if (!lesson) {
-      return NextResponse.json(
-        { error: 'Lesson not found' },
-        { status: 404 }
-      )
+      if (!lesson) {
+        return NextResponse.json(
+          { error: 'Lesson not found' },
+          { status: 404 }
+        )
+      }
     }
 
     // Проверяем, не завершен ли уже урок
@@ -100,12 +108,24 @@ export async function POST(
       .eq('course_id', courseId)
       .eq('completed', true)
 
-    const { count: totalLessons } = await adminSupabase
-      .from('lessons')
-      .select('id', { count: 'exact', head: true })
-      .eq('course_id', courseId)
+    // Подсчитываем общее количество уроков
+    let totalLessons: number | null = null
+    
+    if (isStaticLesson) {
+      // Для статических уроков получаем количество из статического API
+      // Кето: 3 + 3 + 2 = 8 уроков, IF: 2 + 3 + 2 = 7 уроков
+      const isKeto = courseId === COURSE_IDS.KETO || courseId === '1' || courseId === '00000000-0000-0000-0000-000000000001'
+      totalLessons = isKeto ? 8 : 7 // 8 для кето (3+3+2), 7 для IF (2+3+2)
+    } else {
+      // Для обычных уроков считаем из БД
+      const { count } = await adminSupabase
+        .from('lessons')
+        .select('id', { count: 'exact', head: true })
+        .eq('course_id', courseId)
+      totalLessons = count
+    }
 
-    const newProgress = totalLessons 
+    const newProgress = totalLessons && totalLessons > 0
       ? Math.round(((completedLessons?.length || 0) / totalLessons) * 100)
       : 0
 
