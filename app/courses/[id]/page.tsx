@@ -3141,211 +3141,49 @@ export default function CoursePage({ params }: { params: { id: string } }) {
         </div>
       </section>
 
-      {/* Paid Module 2 Section - 20% */}
-      <section id="paid-module-2" className="relative py-20">
-        <div className="absolute inset-0 bg-gradient-to-b from-dark-800 via-dark-900 to-dark-800" />
-        <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
-            <span className="badge badge-electric mb-4">🚀 Продвинутый контент</span>
-            <h2 className="font-display font-bold text-3xl sm:text-4xl text-white mb-4">
-              {paidModule2Data.moduleTitle}
-            </h2>
-            <p className="text-white/60 text-lg max-w-2xl mx-auto">
-              Погружение в практику — рецепты, планы питания и продвинутые техники
-            </p>
-          </motion.div>
-
-          {/* Превью модуля 2 с кнопкой оплаты или переходом к обучению */}
-          {paidModule2Data && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              className="max-w-4xl mx-auto"
-            >
-              {paidModule2Data.imageUrl && (
-                <div className="mb-6 rounded-2xl overflow-hidden">
-                  <Image
-                    src={paidModule2Data.imageUrl}
-                    alt={paidModule2Data.moduleTitle}
-                    width={1200}
-                    height={600}
-                    className="w-full h-auto object-cover"
-                  />
-                </div>
-              )}
-              
-              <div className="glass rounded-2xl p-8 border-2 border-accent-electric/30">
-                <div className="text-center mb-8">
-                  <h3 className="text-2xl font-bold text-white mb-4">
-                    {paidModule2Data.moduleTitle}
-                  </h3>
-                  <p className="text-white/60 mb-6">
-                    {paidModule2Data.lessons.length} уроков с практическими материалами, рецептами и планами питания
-                  </p>
-                  <div className="flex flex-wrap gap-2 justify-center mb-6">
-                    {paidModule2Data.lessons.slice(0, 3).map((lesson) => (
-                      <span key={lesson.id} className="px-3 py-1 rounded-lg bg-white/5 text-white/70 text-sm">
-                        {lesson.title}
-                      </span>
-                    ))}
-                    {paidModule2Data.lessons.length > 3 && (
-                      <span className="px-3 py-1 rounded-lg bg-white/5 text-white/70 text-sm">
-                        + ещё {paidModule2Data.lessons.length - 3} уроков
-                      </span>
-                    )}
-                  </div>
-                </div>
-                
-                {!hasAccess ? (
-                  <div className="text-center">
-                    <Button 
-                      size="lg" 
-                      onClick={() => setIsPaymentModalOpen(true)}
-                      className="w-full sm:w-auto"
-                    >
-                      Купить модули 2-4 — {formatPrice(courseData.price)}
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="text-center">
-                    <div className="mb-4 p-4 rounded-xl bg-accent-mint/10 border border-accent-mint/20 mb-6">
-                      <div className="flex items-center justify-center gap-2 text-accent-mint">
-                        <CheckCircle2 className="w-5 h-5" />
-                        <span className="font-semibold">Доступ открыт</span>
-                      </div>
-                    </div>
-                    <Link href={`/courses/${params.id}/learn`}>
-                      <Button size="lg" className="w-full sm:w-auto">
-                        Начать обучение по модулям 2-4
-                      </Button>
-                    </Link>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </div>
-      </section>
-
-      {/* Paid Module 3 Section - 20% */}
-      <section id="paid-module-3" className="relative py-20">
-        <div className="absolute inset-0 bg-gradient-to-b from-dark-800 to-dark-900" />
-        <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
-            <span className="badge badge-flame mb-4">🔥 Мастер-класс</span>
-            <h2 className="font-display font-bold text-3xl sm:text-4xl text-white mb-4">
-              {paidModule3Data.moduleTitle}
-            </h2>
-            <p className="text-white/60 text-lg max-w-2xl mx-auto">
-              Продвинутые стратегии и долгосрочный успех
-            </p>
-          </motion.div>
-
-          {/* Превью модуля 3 - часть модулей 2-4, контент на /learn */}
-          {paidModule3Data && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              className="max-w-4xl mx-auto"
-            >
-              {paidModule3Data.imageUrl && (
-                <div className="mb-6 rounded-2xl overflow-hidden">
-                  <Image
-                    src={paidModule3Data.imageUrl}
-                    alt={paidModule3Data.moduleTitle}
-                    width={1200}
-                    height={600}
-                    className="w-full h-auto object-cover"
-                  />
-                </div>
-              )}
-              
-              <div className="glass rounded-2xl p-8 border-2 border-accent-flame/30">
-                <div className="text-center mb-8">
-                  <h3 className="text-2xl font-bold text-white mb-4">
-                    {paidModule3Data.moduleTitle}
-                  </h3>
-                  <p className="text-white/60 mb-6">
-                    {paidModule3Data.lessons.length} уроков с продвинутыми стратегиями и техниками
-                  </p>
-                  <div className="flex flex-wrap gap-2 justify-center mb-6">
-                    {paidModule3Data.lessons.slice(0, 3).map((lesson) => (
-                      <span key={lesson.id} className="px-3 py-1 rounded-lg bg-white/5 text-white/70 text-sm">
-                        {lesson.title}
-                      </span>
-                    ))}
-                    {paidModule3Data.lessons.length > 3 && (
-                      <span className="px-3 py-1 rounded-lg bg-white/5 text-white/70 text-sm">
-                        + ещё {paidModule3Data.lessons.length - 3} уроков
-                      </span>
-                    )}
-                  </div>
-                </div>
-                
-                {!hasAccess ? (
-                  <div className="text-center">
-                    <Button 
-                      size="lg" 
-                      onClick={() => setIsPaymentModalOpen(true)}
-                      className="w-full sm:w-auto"
-                    >
-                      Купить модули 2-4 — {formatPrice(courseData.price)}
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="text-center">
-                    <div className="mb-4 p-4 rounded-xl bg-accent-mint/10 border border-accent-mint/20 mb-6">
-                      <div className="flex items-center justify-center gap-2 text-accent-mint">
-                        <CheckCircle2 className="w-5 h-5" />
-                        <span className="font-semibold">Входит в купленные модули 2-4</span>
-                      </div>
-                    </div>
-                    <Link href={`/courses/${params.id}/learn`}>
-                      <Button size="lg" className="w-full sm:w-auto">
-                        Начать обучение по модулям 2-4
-                      </Button>
-                    </Link>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </div>
-      </section>
-
-      {/* Final Modules Section - 25% (объединенные модули 5-6) */}
-      {paidModule4Data && paidModule5Data && (
-        <section id="final-modules" className="relative py-20">
+      {/* Modules 2-4 Container - только если курс куплен */}
+      {hasAccess && (
+        <section id="modules-24" className="relative py-20">
           <div className="absolute inset-0 bg-gradient-to-b from-dark-800 via-dark-900 to-dark-800" />
           <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
-              className="text-center mb-12"
+              className="max-w-4xl mx-auto"
             >
-              <span className="badge badge-gold mb-4">🏆 Финальные модули</span>
-              <h2 className="font-display font-bold text-3xl sm:text-4xl text-white mb-4">
-                Модули 5-6: Завершение курса (25%)
-              </h2>
-              <p className="text-white/60 text-lg max-w-2xl mx-auto">
-                Продвинутые техники и полная трансформация — доступны после прохождения 70% модулей 2-4
-              </p>
+              <div className="glass rounded-2xl p-8 border-2 border-accent-electric/30">
+                <div className="text-center mb-8">
+                  <span className="badge badge-electric mb-4">🚀 Основная программа</span>
+                  <h3 className="text-2xl font-bold text-white mb-4">
+                    Модули 2-4: Основная программа (60% курса)
+                  </h3>
+                  <p className="text-white/60 mb-6">
+                    Практические материалы, рецепты, планы питания и продвинутые техники
+                  </p>
+                  <div className="p-4 rounded-xl bg-accent-mint/10 border border-accent-mint/20 mb-6">
+                    <div className="flex items-center justify-center gap-2 text-accent-mint">
+                      <CheckCircle2 className="w-5 h-5" />
+                      <span className="font-semibold">Доступ открыт</span>
+                    </div>
+                  </div>
+                  <Link href={`/courses/${params.id}/learn`}>
+                    <Button size="lg" className="w-full sm:w-auto">
+                      Начать обучение по модулям 2-4
+                    </Button>
+                  </Link>
+                </div>
+              </div>
             </motion.div>
+          </div>
+        </section>
+      )}
 
-            {/* Превью финальных модулей с информацией и кнопкой */}
+      {/* Modules 5-6 Container */}
+      {paidModule4Data && paidModule5Data && (
+        <section id="modules-56" className="relative py-20">
+          <div className="absolute inset-0 bg-gradient-to-b from-dark-800 via-dark-900 to-dark-800" />
+          <div className="relative container mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
@@ -3354,8 +3192,9 @@ export default function CoursePage({ params }: { params: { id: string } }) {
             >
               <div className="glass rounded-2xl p-8 border-2 border-accent-gold/30">
                 <div className="text-center mb-8">
+                  <span className="badge badge-gold mb-4">🏆 Финальные модули</span>
                   <h3 className="text-2xl font-bold text-white mb-4">
-                    Модули 5-6: Завершение курса (25%)
+                    Модули 5-6: Завершение курса (25% курса)
                   </h3>
                   <p className="text-white/60 mb-6">
                     Продвинутые техники, реальная жизнь и полная трансформация
@@ -3463,6 +3302,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
           </div>
         </section>
       )}
+
 
       {/* Remaining Modules Preview - 25% (только если нет полного доступа) */}
       {!hasFullAccess && paidModule4Data && paidModule5Data && (

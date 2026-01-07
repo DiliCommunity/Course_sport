@@ -178,8 +178,8 @@ export async function GET(request: NextRequest) {
     // Проверяем, является ли пользователь админом
     const isAdmin = user.is_admin === true || user.username === 'admini_mini'
 
-    // Форматируем enrollments для фронтенда
-    const formattedEnrollments = (enrollments || []).map(e => {
+    // Пересчитываем прогресс для каждого enrollment на основе lesson_progress
+    const formattedEnrollments = await Promise.all((enrollments || []).map(async (e) => {
       const course = coursesMap[e.course_id] || {
         id: e.course_id || '',
         title: 'Курс',
@@ -190,13 +190,43 @@ export async function GET(request: NextRequest) {
         students_count: 0,
       }
       
+      // Получаем актуальный прогресс из lesson_progress
+      const { data: completedLessons } = await adminSupabase
+        .from('lesson_progress')
+        .select('lesson_id')
+        .eq('user_id', user.id)
+        .eq('course_id', e.course_id)
+        .eq('completed', true)
+      
+      // Получаем общее количество уроков
+      const { count: totalLessons } = await adminSupabase
+        .from('lessons')
+        .select('id', { count: 'exact', head: true })
+        .eq('course_id', e.course_id)
+      
+      // Вычисляем актуальный прогресс
+      const actualProgress = totalLessons && totalLessons > 0
+        ? Math.round(((completedLessons?.length || 0) / totalLessons) * 100)
+        : 0
+      
+      // Обновляем прогресс в enrollment если он отличается
+      if (actualProgress !== (e.progress || 0)) {
+        await adminSupabase
+          .from('enrollments')
+          .update({
+            progress: actualProgress,
+            ...(actualProgress === 100 && !e.completed_at ? { completed_at: new Date().toISOString() } : {})
+          })
+          .eq('id', e.id)
+      }
+      
       return {
         id: e.id,
-        progress: e.progress || 0,
-        completed_at: e.completed_at,
+        progress: actualProgress,
+        completed_at: actualProgress === 100 ? (e.completed_at || new Date().toISOString()) : e.completed_at,
         courses: course
       }
-    })
+    }))
 
     // Проверяем есть ли ЛЮБАЯ транзакция ИЛИ купленные курсы (для реферальной ссылки)
     // Реферальная ссылка доступна после первой оплаты или если есть купленные курсы
