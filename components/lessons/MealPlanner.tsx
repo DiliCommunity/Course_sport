@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Calendar, UtensilsCrossed, Clock, ShoppingCart, Copy, Check } from 'lucide-react'
+import { Calendar, UtensilsCrossed, Clock, ShoppingCart, Copy, Check, Download } from 'lucide-react'
 
 interface Meal {
   name: string
@@ -56,6 +56,7 @@ export function MealPlanner() {
   const [weekPlan, setWeekPlan] = useState<DayPlan[]>([])
   const [targetCalories, setTargetCalories] = useState('2000')
   const [copied, setCopied] = useState(false)
+  const [downloading, setDownloading] = useState(false)
 
   const generateWeekPlan = () => {
     const days = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье']
@@ -114,6 +115,119 @@ export function MealPlanner() {
     navigator.clipboard.writeText(list)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  const downloadPDF = async () => {
+    if (weekPlan.length === 0) return
+    
+    try {
+      setDownloading(true)
+      
+      // Динамический импорт jsPDF
+      const { jsPDF } = await import('jspdf')
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+        compress: true
+      })
+
+      // Заголовок
+      doc.setFontSize(20)
+      doc.setTextColor(16, 185, 129) // accent-mint цвет
+      doc.text('План питания на неделю (Кето)', 105, 20, { align: 'center' })
+      
+      doc.setFontSize(12)
+      doc.setTextColor(100, 100, 100)
+      doc.text(`Целевые калории: ${targetCalories} ккал/день`, 105, 28, { align: 'center' })
+      
+      let yPos = 40
+      const pageHeight = 280
+      const margin = 15
+      const lineHeight = 8
+      
+      weekPlan.forEach((day, dayIndex) => {
+        // Проверяем, нужна ли новая страница
+        if (yPos > pageHeight - 50) {
+          doc.addPage()
+          yPos = 20
+        }
+        
+        const totals = getTotalForDay(day)
+        
+        // Название дня
+        doc.setFontSize(16)
+        doc.setTextColor(16, 185, 129)
+        doc.text(day.day, margin, yPos)
+        yPos += 10
+        
+        // Завтрак
+        doc.setFontSize(11)
+        doc.setTextColor(0, 0, 0)
+        doc.text(`Завтрак: ${day.breakfast.name}`, margin + 5, yPos)
+        yPos += 6
+        doc.setFontSize(9)
+        doc.setTextColor(100, 100, 100)
+        doc.text(`${day.breakfast.calories} ккал | ${day.breakfast.fats}г Ж | ${day.breakfast.proteins}г Б | ${day.breakfast.carbs}г У | ${day.breakfast.prepTime} мин`, margin + 10, yPos)
+        yPos += 7
+        
+        // Обед
+        doc.setFontSize(11)
+        doc.setTextColor(0, 0, 0)
+        doc.text(`Обед: ${day.lunch.name}`, margin + 5, yPos)
+        yPos += 6
+        doc.setFontSize(9)
+        doc.setTextColor(100, 100, 100)
+        doc.text(`${day.lunch.calories} ккал | ${day.lunch.fats}г Ж | ${day.lunch.proteins}г Б | ${day.lunch.carbs}г У | ${day.lunch.prepTime} мин`, margin + 10, yPos)
+        yPos += 7
+        
+        // Ужин
+        doc.setFontSize(11)
+        doc.setTextColor(0, 0, 0)
+        doc.text(`Ужин: ${day.dinner.name}`, margin + 5, yPos)
+        yPos += 6
+        doc.setFontSize(9)
+        doc.setTextColor(100, 100, 100)
+        doc.text(`${day.dinner.calories} ккал | ${day.dinner.fats}г Ж | ${day.dinner.proteins}г Б | ${day.dinner.carbs}г У | ${day.dinner.prepTime} мин`, margin + 10, yPos)
+        yPos += 7
+        
+        // Перекус (если есть)
+        if (day.snack) {
+          doc.setFontSize(11)
+          doc.setTextColor(0, 0, 0)
+          doc.text(`Перекус: ${day.snack.name}`, margin + 5, yPos)
+          yPos += 6
+          doc.setFontSize(9)
+          doc.setTextColor(100, 100, 100)
+          doc.text(`${day.snack.calories} ккал | ${day.snack.fats}г Ж | ${day.snack.proteins}г Б | ${day.snack.carbs}г У | ${day.snack.prepTime} мин`, margin + 10, yPos)
+          yPos += 7
+        }
+        
+        // Итого за день
+        doc.setFontSize(10)
+        doc.setTextColor(16, 185, 129)
+        doc.setFont(undefined, 'bold')
+        doc.text(`Итого: ${totals.calories} ккал | ${totals.fats}г жиров | ${totals.proteins}г белков | ${totals.carbs}г углеводов`, margin + 5, yPos)
+        yPos += 10
+        
+        // Разделитель между днями
+        if (dayIndex < weekPlan.length - 1) {
+          doc.setDrawColor(200, 200, 200)
+          doc.line(margin, yPos, 195, yPos)
+          yPos += 5
+        }
+      })
+      
+      // Сохраняем PDF
+      const fileName = `Кето-план-питания-${new Date().toLocaleDateString('ru-RU').replace(/\//g, '-')}.pdf`
+      doc.save(fileName)
+      
+      setDownloading(false)
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+      setDownloading(false)
+      alert('Не удалось создать PDF файл. Попробуйте еще раз.')
+    }
   }
 
   return (
@@ -193,22 +307,42 @@ export function MealPlanner() {
             )
           })}
 
-          <button
-            onClick={copyShoppingList}
-            className="w-full py-3 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all flex items-center justify-center gap-2"
-          >
-            {copied ? (
-              <>
-                <Check className="w-5 h-5 text-accent-mint" />
-                <span>Список скопирован!</span>
-              </>
-            ) : (
-              <>
-                <ShoppingCart className="w-5 h-5" />
-                <span>Скопировать список блюд</span>
-              </>
-            )}
-          </button>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <button
+              onClick={copyShoppingList}
+              className="py-3 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+            >
+              {copied ? (
+                <>
+                  <Check className="w-5 h-5 text-accent-mint" />
+                  <span>Скопировано!</span>
+                </>
+              ) : (
+                <>
+                  <ShoppingCart className="w-5 h-5" />
+                  <span>Скопировать список</span>
+                </>
+              )}
+            </button>
+            
+            <button
+              onClick={downloadPDF}
+              disabled={downloading}
+              className="py-3 rounded-xl bg-gradient-to-r from-accent-mint to-accent-teal text-dark-900 font-medium hover:shadow-lg hover:shadow-accent-mint/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {downloading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-dark-900 border-t-transparent rounded-full animate-spin" />
+                  <span>Генерация PDF...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="w-5 h-5" />
+                  <span>Скачать PDF</span>
+                </>
+              )}
+            </button>
+          </div>
         </motion.div>
       )}
     </motion.div>

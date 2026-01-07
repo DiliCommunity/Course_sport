@@ -46,27 +46,33 @@ interface ProgressData {
 
 export default function LearnCoursePage({ params }: { params: { id: string } }) {
   const router = useRouter()
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const [lessons, setLessons] = useState<Lesson[]>([])
   const [modules, setModules] = useState<Module[]>([])
-  const [loading, setLoading] = useState(true)
+  const [pageLoading, setPageLoading] = useState(true)
   const [hasAccess, setHasAccess] = useState(false)
   const [progress, setProgress] = useState<ProgressData>({ completedLessons: [], overallProgress: 0 })
   const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null)
   const hasScrolledRef = useRef(false)
 
   useEffect(() => {
+    // Ждем окончания загрузки аутентификации
+    if (authLoading) {
+      return
+    }
+    
+    // Если пользователь не авторизован после загрузки - редирект на логин
     if (!user) {
       router.push('/login')
       return
     }
     
     checkAccessAndLoadCourse()
-  }, [user, params.id])
+  }, [user, authLoading, params.id])
 
   const checkAccessAndLoadCourse = async () => {
     try {
-      setLoading(true)
+      setPageLoading(true)
       
       // Проверяем доступ
       const accessResponse = await fetch(`/api/courses/access?course_id=${params.id}`, {
@@ -90,7 +96,7 @@ export default function LearnCoursePage({ params }: { params: { id: string } }) 
     } catch (error) {
       console.error('Error loading course:', error)
     } finally {
-      setLoading(false)
+      setPageLoading(false)
     }
   }
 
@@ -255,21 +261,42 @@ export default function LearnCoursePage({ params }: { params: { id: string } }) 
 
   const markLessonComplete = async (lessonId: string) => {
     try {
+      console.log('[Learn] Marking lesson as complete:', lessonId)
+      
       const response = await fetch(`/api/courses/${params.id}/lessons/${lessonId}/complete`, {
         method: 'POST',
         credentials: 'include'
       })
       
-      if (response.ok) {
-        // Перезагружаем прогресс из API для точности
-        await loadProgress()
+      if (!response.ok) {
+        const errorData = await response.json()
+        console.error('[Learn] Failed to mark lesson complete:', errorData)
+        throw new Error(errorData.error || 'Failed to mark lesson complete')
       }
+      
+      const data = await response.json()
+      console.log('[Learn] Lesson marked complete. New progress:', data.progress)
+      
+      // Оптимистично обновляем локальное состояние сразу
+      setProgress(prev => ({
+        ...prev,
+        completedLessons: [...(prev.completedLessons || []), lessonId],
+        overallProgress: data.progress || prev.overallProgress
+      }))
+      
+      // Затем перезагружаем из API для синхронизации
+      await loadProgress()
+      
+      console.log('[Learn] Progress reloaded from API')
     } catch (error) {
-      console.error('Error marking lesson complete:', error)
+      console.error('[Learn] Error marking lesson complete:', error)
+      // Показываем ошибку пользователю
+      alert('Не удалось отметить урок как завершенный. Попробуйте еще раз.')
     }
   }
 
-  if (loading) {
+  // Показываем загрузку пока проверяется авторизация или загружается курс
+  if (authLoading || pageLoading) {
     return (
       <main className="min-h-screen flex items-center justify-center">
         <div className="text-center">

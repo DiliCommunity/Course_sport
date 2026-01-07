@@ -45,8 +45,8 @@ interface FinalModulesData {
 
 export default function FinalModulesPage({ params }: { params: { id: string } }) {
   const router = useRouter()
-  const { user } = useAuth()
-  const [loading, setLoading] = useState(true)
+  const { user, loading: authLoading } = useAuth()
+  const [pageLoading, setPageLoading] = useState(true)
   const [hasAccess, setHasAccess] = useState(false)
   const [accessData, setAccessData] = useState<any>(null)
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false)
@@ -55,6 +55,11 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
   const [expandedLessons, setExpandedLessons] = useState<Set<string>>(new Set())
 
   useEffect(() => {
+    // Ждем окончания загрузки аутентификации
+    if (authLoading) {
+      return
+    }
+    
     if (!user) {
       router.push('/login')
       return
@@ -62,11 +67,11 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
     
     checkAccess()
     loadFinalModulesData()
-  }, [user, params.id])
+  }, [user, authLoading, params.id])
 
   const checkAccess = async () => {
     try {
-      setLoading(true)
+      setPageLoading(true)
       const response = await fetch(`/api/courses/${params.id}/final-access`, {
         credentials: 'include'
       })
@@ -78,7 +83,7 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
     } catch (error) {
       console.error('Error checking final access:', error)
     } finally {
-      setLoading(false)
+      setPageLoading(false)
     }
   }
 
@@ -125,7 +130,7 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
     })
   }
 
-  if (loading) {
+  if (authLoading || pageLoading) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-gradient-to-b from-dark-900 via-dark-800 to-dark-900">
         <div className="text-center">
