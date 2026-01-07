@@ -2744,7 +2744,8 @@ export default function CoursePage({ params }: { params: { id: string } }) {
                 </div>
               </motion.div>
 
-              {/* Lessons */}
+              {/* Lessons - только если нет доступа */}
+              {!hasAccess && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -2939,6 +2940,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
                   )}
                 </div>
               </motion.div>
+              )}
             </div>
 
             {/* Sidebar */}

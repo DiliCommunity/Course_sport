@@ -93,7 +93,24 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
   const userId = metadata?.user_id
   const rawCourseId = metadata?.course_id
   const courseId = rawCourseId ? getCourseUUID(rawCourseId) : null
-  const amountInKopecks = Math.round(parseFloat(payment.amount.value) * 100)
+  
+  // ЮКасса возвращает amount.value в рублях (например "10.00")
+  // Конвертируем в копейки для хранения в БД
+  const amountValue = parseFloat(payment.amount.value)
+  
+  // ЮКасса всегда возвращает amount.value в рублях с двумя знаками после запятой
+  // Если значение выглядит как целое число > 100, возможно это уже копейки (нестандартный случай)
+  // Но по документации ЮКассы, value всегда в рублях, поэтому умножаем на 100
+  const amountInKopecks = Math.round(amountValue * 100)
+  
+  console.log('💰 Webhook amount processing:', {
+    paymentAmountValue: payment.amount.value,
+    parsedAmount: amountValue,
+    amountInKopecks,
+    amountInRubles: amountInKopecks / 100,
+    warning: amountValue > 1000 ? '⚠️ Подозрительно большое значение amount.value' : null
+  })
+  
   const paymentType = metadata?.type || 'course_purchase'
   
   if (!userId) {
