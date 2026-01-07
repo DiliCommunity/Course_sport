@@ -66,16 +66,6 @@ export function CourseCard({
             {/* Overlay gradient */}
             <div className="absolute inset-0 bg-gradient-to-t from-dark-900 via-transparent to-transparent opacity-60" />
             
-            {/* Play button */}
-            <motion.div
-              className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-              whileHover={{ scale: 1.1 }}
-            >
-              <div className="w-12 h-12 rounded-full bg-emerald-400/90 backdrop-blur-sm flex items-center justify-center shadow-lg shadow-emerald-400/40">
-                <Play className="w-5 h-5 text-dark-900 ml-0.5" fill="currentColor" />
-              </div>
-            </motion.div>
-
             {/* Category badge */}
             <div className="absolute top-3 left-3">
               <span className="badge glass text-xs px-2 py-1">{category}</span>

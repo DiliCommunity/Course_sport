@@ -2539,6 +2539,12 @@ export default function CoursePage({ params }: { params: { id: string } }) {
   const [isFullAccessPrice, setIsFullAccessPrice] = useState(false)
   const [hasFinalModulesAccess, setHasFinalModulesAccess] = useState(false)
   const [finalAccessData, setFinalAccessData] = useState<any>(null)
+  
+  // Состояние для прогресса
+  const [progress, setProgress] = useState<{
+    completedLessons: string[]
+    overallProgress: number
+  }>({ completedLessons: [], overallProgress: 0 })
 
   // Проверка доступа к курсу
   useEffect(() => {
@@ -2560,6 +2566,24 @@ export default function CoursePage({ params }: { params: { id: string } }) {
         setHasFullAccess(data.hasFullAccess || false)
         // Если есть доступ но нет полного - следующая покупка = полный доступ
         setIsFullAccessPrice(data.hasAccess && !data.hasFullAccess)
+        
+        // Загружаем прогресс если есть доступ
+        if (data.hasAccess) {
+          try {
+            const progressResponse = await fetch(`/api/courses/${params.id}/progress`, {
+              credentials: 'include'
+            })
+            if (progressResponse.ok) {
+              const progressData = await progressResponse.json()
+              setProgress({
+                completedLessons: progressData.completedLessons || [],
+                overallProgress: progressData.overallProgress || 0
+              })
+            }
+          } catch (error) {
+            console.error('Error loading progress:', error)
+          }
+        }
         
         // Проверяем доступ к финальным модулям
         const finalResponse = await fetch(`/api/courses/${params.id}/final-access`, {
@@ -2607,11 +2631,11 @@ export default function CoursePage({ params }: { params: { id: string } }) {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-8">
-              {/* Video Preview */}
+              {/* Course Image */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="relative aspect-video rounded-2xl overflow-hidden group"
+                className="relative aspect-video rounded-2xl overflow-hidden"
               >
                 <Image
                   src={courseData.imageUrl}
@@ -2619,16 +2643,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
                   fill
                   className="object-cover"
                 />
-                <div className="absolute inset-0 bg-dark-900/40 group-hover:bg-dark-900/30 transition-colors" />
-                <motion.button
-                  className="absolute inset-0 flex items-center justify-center"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <div className="w-20 h-20 rounded-full bg-accent-electric flex items-center justify-center shadow-lg shadow-accent-electric/30">
-                    <Play className="w-8 h-8 text-dark-900 ml-1" fill="currentColor" />
-                  </div>
-                </motion.button>
+                <div className="absolute inset-0 bg-dark-900/40" />
                 
                 {/* Duration badge */}
                 <div className="absolute bottom-4 right-4 px-3 py-1.5 rounded-lg glass text-sm">
@@ -3041,6 +3056,24 @@ export default function CoursePage({ params }: { params: { id: string } }) {
                   <p className="text-white/60 mb-6">
                     Практические материалы, рецепты, планы питания и продвинутые техники
                   </p>
+                  
+                  {/* Progress Bar */}
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-white/80 text-sm">Прогресс курса</span>
+                      <span className="text-white font-semibold">{progress.overallProgress}%</span>
+                    </div>
+                    <div className="relative h-2 bg-white/10 rounded-full overflow-hidden">
+                      <motion.div
+                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-400 to-teal-400"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${progress.overallProgress}%` }}
+                        transition={{ duration: 0.8 }}
+                      />
+                    </div>
+                    <p className="text-xs text-white/50 mt-1">{progress.overallProgress}% завершено</p>
+                  </div>
+                  
                   <div className="p-4 rounded-xl bg-accent-mint/10 border border-accent-mint/20 mb-6">
                     <div className="flex items-center justify-center gap-2 text-accent-mint">
                       <CheckCircle2 className="w-5 h-5" />
