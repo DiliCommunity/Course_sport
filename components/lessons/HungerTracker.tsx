@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Heart, Brain, Clock, TrendingUp, Download, X, Plus, AlertCircle } from 'lucide-react'
+import { Heart, Brain, Clock, TrendingUp, Download, X, Plus, AlertCircle, CheckCircle2 } from 'lucide-react'
 import html2canvas from 'html2canvas'
 import { jsPDF } from 'jspdf'
 

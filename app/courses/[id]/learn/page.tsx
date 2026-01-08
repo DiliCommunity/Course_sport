@@ -22,6 +22,7 @@ import { IFCalculator } from '@/components/lessons/IFCalculator'
 import { AcneRecipeGenerator } from '@/components/lessons/AcneRecipeGenerator'
 import { IFProtocolPlanner } from '@/components/lessons/IFProtocolPlanner'
 import { HungerTracker } from '@/components/lessons/HungerTracker'
+import { IFProgressTracker } from '@/components/lessons/IFProgressTracker'
 
 interface Lesson {
   id: string
@@ -671,6 +672,15 @@ function LessonModal({
             lesson.content?.toLowerCase().includes('психологический голод') ||
             lesson.content?.toLowerCase().includes('виды голода')) ? (
             <HungerTracker />
+          ) : null}
+
+          {(lesson.title.toLowerCase().includes('прогресс') ||
+            lesson.title.toLowerCase().includes('трекер') ||
+            lesson.title.toLowerCase().includes('отслеживание') ||
+            lesson.content?.toLowerCase().includes('отслеживайте прогресс') ||
+            lesson.content?.toLowerCase().includes('трекер прогресса') ||
+            lesson.content?.toLowerCase().includes('90-дневный план')) ? (
+            <IFProgressTracker />
           ) : null}
 
           {lesson.title.toLowerCase().includes('акне') ||

@@ -18,6 +18,7 @@ import { TravelKetoKit } from '@/components/lessons/TravelKetoKit'
 import { AcneRecipeGenerator } from '@/components/lessons/AcneRecipeGenerator'
 import { IFProtocolPlanner } from '@/components/lessons/IFProtocolPlanner'
 import { HungerTracker } from '@/components/lessons/HungerTracker'
+import { IFProgressTracker } from '@/components/lessons/IFProgressTracker'
 
 interface FinalModulesData {
   module4: {
@@ -491,6 +492,17 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
                                   </div>
                                 )}
 
+                                {(lesson.title.toLowerCase().includes('прогресс') ||
+                                  lesson.title.toLowerCase().includes('трекер') ||
+                                  lesson.title.toLowerCase().includes('отслеживание') ||
+                                  lesson.content?.toLowerCase().includes('отслеживайте прогресс') ||
+                                  lesson.content?.toLowerCase().includes('трекер прогресса') ||
+                                  lesson.content?.toLowerCase().includes('90-дневный план')) && (
+                                  <div className="mt-6">
+                                    <IFProgressTracker />
+                                  </div>
+                                )}
+
                                 {lesson.bonus && (
                                   <div className="mt-6">
                                     {lesson.bonus.title === 'Чек-лист для ресторанов' && (
@@ -713,6 +725,17 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
                                   lesson.content?.toLowerCase().includes('виды голода')) && (
                                   <div className="mt-6">
                                     <HungerTracker />
+                                  </div>
+                                )}
+
+                                {(lesson.title.toLowerCase().includes('прогресс') ||
+                                  lesson.title.toLowerCase().includes('трекер') ||
+                                  lesson.title.toLowerCase().includes('отслеживание') ||
+                                  lesson.content?.toLowerCase().includes('отслеживайте прогресс') ||
+                                  lesson.content?.toLowerCase().includes('трекер прогресса') ||
+                                  lesson.content?.toLowerCase().includes('90-дневный план')) && (
+                                  <div className="mt-6">
+                                    <IFProgressTracker />
                                   </div>
                                 )}
 
