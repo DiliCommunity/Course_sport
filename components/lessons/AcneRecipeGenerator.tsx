@@ -1,0 +1,679 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
+import { Sparkles, X, RefreshCw, Download, ChefHat, AlertCircle, CheckCircle2 } from 'lucide-react'
+import html2canvas from 'html2canvas'
+import { jsPDF } from 'jspdf'
+
+interface Ingredient {
+  name: string
+  quantity: string
+  checked: boolean
+}
+
+interface Recipe {
+  id: string
+  name: string
+  description: string
+  mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack'
+  ingredients: Ingredient[]
+  instructions: string[]
+  calories: number
+  fats: number
+  proteins: number
+  carbs: number
+  prepTime: number
+  difficulty: 'Простой' | 'Средний' | 'Сложный'
+  benefits: string[] // Польза для кожи
+}
+
+const ALL_RECIPES: Recipe[] = [
+  // Завтраки
+  {
+    id: 'breakfast-1',
+    name: 'Яичница с авокадо и шпинатом',
+    description: 'Богата омега-3, витаминами и антиоксидантами для чистой кожи',
+    mealType: 'breakfast',
+    ingredients: [
+      { name: 'Яйца', quantity: '3 шт', checked: false },
+      { name: 'Авокадо', quantity: '1/2 шт', checked: false },
+      { name: 'Шпинат свежий', quantity: '50г', checked: false },
+      { name: 'Оливковое масло', quantity: '1 ст.л.', checked: false },
+      { name: 'Соль, перец', quantity: 'по вкусу', checked: false },
+    ],
+    instructions: [
+      'Нарежьте авокадо кубиками',
+      'Промойте и обсушите шпинат',
+      'Разогрейте оливковое масло на сковороде',
+      'Взбейте яйца, вылейте на сковороду',
+      'Добавьте шпинат за минуту до готовности',
+      'Подавайте с авокадо, посолите и поперчите',
+    ],
+    calories: 420,
+    fats: 32,
+    proteins: 22,
+    carbs: 8,
+    prepTime: 15,
+    difficulty: 'Простой',
+    benefits: ['Омега-3 для противовоспалительного эффекта', 'Витамин E для восстановления кожи', 'Антиоксиданты из шпината']
+  },
+  {
+    id: 'breakfast-2',
+    name: 'Смузи с кокосовым маслом и шпинатом',
+    description: 'Противовоспалительный смузи с лауриновой кислотой для чистой кожи',
+    mealType: 'breakfast',
+    ingredients: [
+      { name: 'Кокосовое молоко', quantity: '50мл', checked: false },
+      { name: 'Кокосовое масло', quantity: '1 ст.л.', checked: false },
+      { name: 'Коллаген или протеин', quantity: '30г', checked: false },
+      { name: 'Шпинат', quantity: '50г', checked: false },
+      { name: 'Лимонный сок', quantity: '1 ст.л.', checked: false },
+      { name: 'Лед', quantity: 'по вкусу', checked: false },
+    ],
+    instructions: [
+      'Поместите все ингредиенты в блендер',
+      'Взбейте до однородной консистенции',
+      'Добавьте лед и еще раз взбейте',
+      'Подавайте сразу',
+    ],
+    calories: 380,
+    fats: 28,
+    proteins: 30,
+    carbs: 5,
+    prepTime: 5,
+    difficulty: 'Простой',
+    benefits: ['Лауриновая кислота (антибактериальное)', 'Коллаген для упругости кожи', 'Антиоксиданты']
+  },
+  // Обеды
+  {
+    id: 'lunch-1',
+    name: 'Лосось с овощами и авокадо',
+    description: 'Богат омега-3, противовоспалительными жирами и витаминами',
+    mealType: 'lunch',
+    ingredients: [
+      { name: 'Филе лосося', quantity: '200г', checked: false },
+      { name: 'Авокадо', quantity: '1/2 шт', checked: false },
+      { name: 'Салат руккола', quantity: '50г', checked: false },
+      { name: 'Огурцы', quantity: '1 шт', checked: false },
+      { name: 'Оливковое масло', quantity: '2 ст.л.', checked: false },
+      { name: 'Лимонный сок', quantity: '1 ст.л.', checked: false },
+      { name: 'Соль, перец', quantity: 'по вкусу', checked: false },
+    ],
+    instructions: [
+      'Разогрейте оливковое масло на сковороде',
+      'Посолите и поперчите лосось',
+      'Обжарьте лосось по 4-5 минут с каждой стороны',
+      'Нарежьте авокадо и огурцы',
+      'Выложите салат на тарелку, добавьте овощи и лосось',
+      'Полейте оливковым маслом и лимонным соком',
+    ],
+    calories: 550,
+    fats: 42,
+    proteins: 38,
+    carbs: 6,
+    prepTime: 20,
+    difficulty: 'Средний',
+    benefits: ['Омега-3 для уменьшения воспаления', 'Витамины группы B', 'Антиоксиданты']
+  },
+  {
+    id: 'lunch-2',
+    name: 'Салат с тунцом и авокадо',
+    description: 'Легкий и питательный салат с противовоспалительными жирами',
+    mealType: 'lunch',
+    ingredients: [
+      { name: 'Тунец консервированный (в масле)', quantity: '1 банка (200г)', checked: false },
+      { name: 'Авокадо', quantity: '1/2 шт', checked: false },
+      { name: 'Огурцы', quantity: '1 шт', checked: false },
+      { name: 'Листья салата', quantity: '50г', checked: false },
+      { name: 'Оливковое масло', quantity: '2 ст.л.', checked: false },
+      { name: 'Лимонный сок', quantity: '1 ст.л.', checked: false },
+    ],
+    instructions: [
+      'Слейте масло с тунца, разомните вилкой',
+      'Нарежьте авокадо и огурцы кубиками',
+      'Смешайте все ингредиенты с листьями салата',
+      'Заправьте оливковым маслом и лимонным соком',
+    ],
+    calories: 480,
+    fats: 35,
+    proteins: 28,
+    carbs: 8,
+    prepTime: 15,
+    difficulty: 'Простой',
+    benefits: ['Белок для восстановления', 'Противовоспалительные жиры', 'Витамин C']
+  },
+  {
+    id: 'lunch-3',
+    name: 'Куриная грудка с брокколи',
+    description: 'Богата белком и антиоксидантами, без воспалительных продуктов',
+    mealType: 'lunch',
+    ingredients: [
+      { name: 'Куриная грудка', quantity: '250г', checked: false },
+      { name: 'Брокколи', quantity: '200г', checked: false },
+      { name: 'Кокосовое масло', quantity: '30г', checked: false },
+      { name: 'Чеснок', quantity: '2 зубчика', checked: false },
+      { name: 'Соль, перец', quantity: 'по вкусу', checked: false },
+    ],
+    instructions: [
+      'Нарежьте куриную грудку на кусочки',
+      'Разогрейте кокосовое масло на сковороде',
+      'Обжарьте курицу до золотистой корочки',
+      'Добавьте брокколи и чеснок, обжаривайте 5 минут',
+      'Посолите и поперчите по вкусу',
+    ],
+    calories: 520,
+    fats: 32,
+    proteins: 48,
+    carbs: 7,
+    prepTime: 25,
+    difficulty: 'Средний',
+    benefits: ['Белок для восстановления тканей', 'Сульфорафан из брокколи (противовоспалительное)', 'Антиоксиданты']
+  },
+  // Ужины
+  {
+    id: 'dinner-1',
+    name: 'Стейк из говядины с овощами',
+    description: 'Богат цинком и железом, важными для здоровья кожи',
+    mealType: 'dinner',
+    ingredients: [
+      { name: 'Говядина (стейк)', quantity: '200г', checked: false },
+      { name: 'Кабачки', quantity: '150г', checked: false },
+      { name: 'Грибы', quantity: '100г', checked: false },
+      { name: 'Оливковое масло', quantity: '2 ст.л.', checked: false },
+      { name: 'Соль, перец', quantity: 'по вкусу', checked: false },
+    ],
+    instructions: [
+      'Разогрейте сковороду с оливковым маслом',
+      'Посолите и поперчите стейк',
+      'Обжарьте стейк по 4-5 минут с каждой стороны',
+      'Нарежьте кабачки и грибы',
+      'Обжарьте овощи на той же сковороде',
+      'Подавайте сразу',
+    ],
+    calories: 580,
+    fats: 45,
+    proteins: 40,
+    carbs: 6,
+    prepTime: 25,
+    difficulty: 'Средний',
+    benefits: ['Цинк для заживления', 'Железо для здорового цвета', 'Белок для коллагена']
+  },
+  {
+    id: 'dinner-2',
+    name: 'Креветки в чесночном масле с овощами',
+    description: 'Легкое блюдо с противовоспалительными свойствами',
+    mealType: 'dinner',
+    ingredients: [
+      { name: 'Креветки крупные', quantity: '300г', checked: false },
+      { name: 'Чеснок', quantity: '4 зубчика', checked: false },
+      { name: 'Кокосовое масло', quantity: '40г', checked: false },
+      { name: 'Шпинат', quantity: '100г', checked: false },
+      { name: 'Лимон', quantity: '1/2 шт', checked: false },
+      { name: 'Соль, перец', quantity: 'по вкусу', checked: false },
+    ],
+    instructions: [
+      'Очистите креветки от панциря',
+      'Разогрейте кокосовое масло',
+      'Обжарьте чеснок 1 минуту',
+      'Добавьте креветки, жарьте 3-4 минуты',
+      'Добавьте шпинат, жарьте еще 1 минуту',
+      'Подавайте с лимонным соком',
+    ],
+    calories: 350,
+    fats: 22,
+    proteins: 32,
+    carbs: 4,
+    prepTime: 15,
+    difficulty: 'Простой',
+    benefits: ['Омега-3 из креветок', 'Антиоксиданты из чеснока', 'Витамины из шпината']
+  },
+  {
+    id: 'dinner-3',
+    name: 'Рыба на пару с цветной капустой',
+    description: 'Нежное блюдо, богатое омега-3 и витаминами',
+    mealType: 'dinner',
+    ingredients: [
+      { name: 'Белая рыба (треска/пикша)', quantity: '250г', checked: false },
+      { name: 'Цветная капуста', quantity: '200г', checked: false },
+      { name: 'Оливковое масло', quantity: '2 ст.л.', checked: false },
+      { name: 'Лимон', quantity: '1/4 шт', checked: false },
+      { name: 'Укроп свежий', quantity: '2 ст.л.', checked: false },
+      { name: 'Соль, перец', quantity: 'по вкусу', checked: false },
+    ],
+    instructions: [
+      'Подготовьте пароварку или мультиварку',
+      'Разделите цветную капусту на соцветия',
+      'Посолите и поперчите рыбу',
+      'Готовьте на пару 15-20 минут',
+      'Подавайте с оливковым маслом, лимоном и укропом',
+    ],
+    calories: 420,
+    fats: 28,
+    proteins: 35,
+    carbs: 8,
+    prepTime: 20,
+    difficulty: 'Простой',
+    benefits: ['Омега-3', 'Антиоксиданты', 'Низкий гликемический индекс']
+  },
+  // Перекусы
+  {
+    id: 'snack-1',
+    name: 'Авокадо с орехами макадамия',
+    description: 'Быстрый перекус с противовоспалительными жирами',
+    mealType: 'snack',
+    ingredients: [
+      { name: 'Авокадо', quantity: '1/2 шт', checked: false },
+      { name: 'Орехи макадамия', quantity: '20г', checked: false },
+      { name: 'Лимонный сок', quantity: 'несколько капель', checked: false },
+      { name: 'Соль', quantity: 'щепотка', checked: false },
+    ],
+    instructions: [
+      'Разрежьте авокадо пополам',
+      'Посыпьте орехами макадамия',
+      'Сбрызните лимонным соком',
+      'Посолите по вкусу',
+    ],
+    calories: 280,
+    fats: 25,
+    proteins: 4,
+    carbs: 6,
+    prepTime: 3,
+    difficulty: 'Простой',
+    benefits: ['Мононенасыщенные жиры', 'Витамин E', 'Низкий омега-6']
+  },
+]
+
+const COMMON_ALLERGENS = [
+  'Яйца',
+  'Рыба',
+  'Морепродукты',
+  'Орехи',
+  'Молочные продукты',
+  'Помидоры',
+  'Перец',
+]
+
+export function AcneRecipeGenerator() {
+  const [selectedMealType, setSelectedMealType] = useState<'all' | Recipe['mealType']>('all')
+  const [excludedIngredients, setExcludedIngredients] = useState<string[]>([])
+  const [customExclusions, setCustomExclusions] = useState<string[]>([])
+  const [newExclusion, setNewExclusion] = useState('')
+  const [filteredRecipes, setFilteredRecipes] = useState<Recipe[]>(ALL_RECIPES)
+  const [downloading, setDownloading] = useState(false)
+
+  // Фильтрация рецептов
+  useEffect(() => {
+    let filtered = [...ALL_RECIPES]
+
+    // Фильтр по типу приема пищи
+    if (selectedMealType !== 'all') {
+      filtered = filtered.filter(r => r.mealType === selectedMealType)
+    }
+
+    // Фильтр по исключенным ингредиентам
+    const allExclusions = [...excludedIngredients, ...customExclusions]
+    if (allExclusions.length > 0) {
+      filtered = filtered.filter(recipe => {
+        return !recipe.ingredients.some(ing => 
+          allExclusions.some(excluded => 
+            ing.name.toLowerCase().includes(excluded.toLowerCase()) ||
+            excluded.toLowerCase().includes(ing.name.toLowerCase())
+          )
+        )
+      })
+    }
+
+    setFilteredRecipes(filtered)
+  }, [selectedMealType, excludedIngredients, customExclusions])
+
+  const toggleExclusion = (ingredient: string) => {
+    if (excludedIngredients.includes(ingredient)) {
+      setExcludedIngredients(excludedIngredients.filter(i => i !== ingredient))
+    } else {
+      setExcludedIngredients([...excludedIngredients, ingredient])
+    }
+  }
+
+  const addCustomExclusion = () => {
+    if (newExclusion.trim() && !customExclusions.includes(newExclusion.trim()) && !excludedIngredients.includes(newExclusion.trim())) {
+      setCustomExclusions([...customExclusions, newExclusion.trim()])
+      setNewExclusion('')
+    }
+  }
+
+  const removeCustomExclusion = (item: string) => {
+    setCustomExclusions(customExclusions.filter(i => i !== item))
+  }
+
+  const downloadPDF = async () => {
+    if (filteredRecipes.length === 0) return
+
+    try {
+      setDownloading(true)
+
+      const { jsPDF } = await import('jspdf')
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      })
+
+      const pageWidth = 210
+      const pageHeight = 297
+      const margin = 20
+      let yPos = 25
+
+      // Заголовок
+      pdf.setFontSize(24)
+      pdf.setTextColor(59, 130, 246)
+      pdf.text('Рецепты для чистой кожи', pageWidth / 2, yPos, { align: 'center' })
+      yPos += 15
+
+      pdf.setFontSize(12)
+      pdf.setTextColor(100, 100, 100)
+      pdf.text('Кето-рационы для борьбы с акне', pageWidth / 2, yPos, { align: 'center' })
+      yPos += 10
+
+      if (excludedIngredients.length > 0 || customExclusions.length > 0) {
+        pdf.setFontSize(10)
+        pdf.setTextColor(200, 0, 0)
+        pdf.text('Исключено: ' + [...excludedIngredients, ...customExclusions].join(', '), margin, yPos)
+        yPos += 8
+      }
+
+      // Рецепты
+      filteredRecipes.forEach((recipe, index) => {
+        if (yPos > pageHeight - 60) {
+          pdf.addPage()
+          yPos = 25
+        }
+
+        pdf.setFontSize(16)
+        pdf.setTextColor(59, 130, 246)
+        pdf.text(`${index + 1}. ${recipe.name}`, margin, yPos)
+        yPos += 8
+
+        pdf.setFontSize(10)
+        pdf.setTextColor(0, 0, 0)
+        const mealTypeText = recipe.mealType === 'breakfast' ? 'Завтрак' : 
+                            recipe.mealType === 'lunch' ? 'Обед' : 
+                            recipe.mealType === 'dinner' ? 'Ужин' : 'Перекус'
+        pdf.text(`${mealTypeText} | ${recipe.prepTime} мин | ${recipe.difficulty}`, margin, yPos)
+        yPos += 6
+
+        pdf.setFontSize(9)
+        pdf.setTextColor(100, 100, 100)
+        const descLines = pdf.splitTextToSize(recipe.description, pageWidth - 2 * margin)
+        pdf.text(descLines, margin, yPos)
+        yPos += descLines.length * 5 + 3
+
+        pdf.setFontSize(10)
+        pdf.setTextColor(0, 0, 0)
+        pdf.text(`БЖУ: ${recipe.proteins}Б / ${recipe.fats}Ж / ${recipe.carbs}У | ${recipe.calories} ккал`, margin, yPos)
+        yPos += 6
+
+        pdf.setFontSize(11)
+        pdf.setTextColor(59, 130, 246)
+        pdf.text('Ингредиенты:', margin, yPos)
+        yPos += 6
+
+        pdf.setFontSize(9)
+        pdf.setTextColor(0, 0, 0)
+        recipe.ingredients.forEach(ing => {
+          pdf.text(`• ${ing.name} - ${ing.quantity}`, margin + 5, yPos)
+          yPos += 5
+        })
+        yPos += 3
+
+        pdf.setFontSize(11)
+        pdf.setTextColor(59, 130, 246)
+        pdf.text('Инструкция:', margin, yPos)
+        yPos += 6
+
+        pdf.setFontSize(9)
+        pdf.setTextColor(0, 0, 0)
+        recipe.instructions.forEach((step, stepIndex) => {
+          const stepLines = pdf.splitTextToSize(`${stepIndex + 1}. ${step}`, pageWidth - 2 * margin - 10)
+          pdf.text(stepLines, margin + 5, yPos)
+          yPos += stepLines.length * 5
+        })
+        yPos += 8
+      })
+
+      const fileName = `Рецепты-для-чистой-кожи-${new Date().toLocaleDateString('ru-RU').replace(/\//g, '-')}.pdf`
+      pdf.save(fileName)
+
+      setDownloading(false)
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+      setDownloading(false)
+      alert('Не удалось создать PDF файл. Попробуйте еще раз.')
+    }
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="mt-8 p-6 rounded-2xl bg-gradient-to-br from-accent-electric/10 via-dark-800/50 to-accent-teal/10 border-2 border-accent-electric/30 shadow-[0_0_30px_rgba(59,130,246,0.2)]"
+    >
+      <div className="flex items-center gap-3 mb-6">
+        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-electric to-accent-teal flex items-center justify-center">
+          <Sparkles className="w-6 h-6 text-dark-900" />
+        </div>
+        <div>
+          <h3 className="text-xl font-bold text-white mb-1">Генератор рецептов для чистой кожи</h3>
+          <p className="text-white/60 text-sm">Персональные кето-рецепты без продуктов-триггеров</p>
+        </div>
+      </div>
+
+      {/* Фильтр по типу приема пищи */}
+      <div className="mb-6">
+        <label className="text-white/80 text-sm font-medium mb-2 block">Тип приема пищи:</label>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+          {[
+            { value: 'all', label: 'Все' },
+            { value: 'breakfast', label: 'Завтрак' },
+            { value: 'lunch', label: 'Обед' },
+            { value: 'dinner', label: 'Ужин' },
+            { value: 'snack', label: 'Перекус' },
+          ].map(option => (
+            <button
+              key={option.value}
+              onClick={() => setSelectedMealType(option.value as any)}
+              className={`py-2 px-3 rounded-xl text-sm font-medium transition-all ${
+                selectedMealType === option.value
+                  ? 'bg-gradient-to-r from-accent-electric to-accent-teal text-dark-900 shadow-lg'
+                  : 'bg-white/5 text-white/70 hover:bg-white/10'
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Исключение продуктов */}
+      <div className="mb-6 p-4 rounded-xl bg-white/5 border border-white/10">
+        <label className="text-white/80 text-sm font-medium mb-3 block flex items-center gap-2">
+          <AlertCircle className="w-4 h-4" />
+          Исключить продукты (аллергия, непереносимость, не нравится):
+        </label>
+        
+        {/* Часто исключаемые продукты */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          {COMMON_ALLERGENS.map(ingredient => (
+            <button
+              key={ingredient}
+              onClick={() => toggleExclusion(ingredient)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                excludedIngredients.includes(ingredient)
+                  ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                  : 'bg-white/5 text-white/70 hover:bg-white/10 border border-white/10'
+              }`}
+            >
+              {ingredient} {excludedIngredients.includes(ingredient) && '✕'}
+            </button>
+          ))}
+        </div>
+
+        {/* Пользовательские исключения */}
+        <div className="space-y-2">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newExclusion}
+              onChange={(e) => setNewExclusion(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && addCustomExclusion()}
+              placeholder="Добавить продукт для исключения..."
+              className="flex-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-accent-electric/50 text-sm"
+            />
+            <button
+              onClick={addCustomExclusion}
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-accent-electric to-accent-teal text-dark-900 font-medium hover:shadow-lg transition-all text-sm"
+            >
+              Добавить
+            </button>
+          </div>
+          
+          {customExclusions.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {customExclusions.map(item => (
+                <div
+                  key={item}
+                  className="px-3 py-1.5 rounded-lg bg-red-500/20 text-red-400 border border-red-500/30 text-xs font-medium flex items-center gap-2"
+                >
+                  {item}
+                  <button
+                    onClick={() => removeCustomExclusion(item)}
+                    className="hover:text-red-300"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Статистика */}
+      <div className="mb-6 p-4 rounded-xl bg-white/5 border border-white/10">
+        <div className="flex items-center justify-between">
+          <span className="text-white/60 text-sm">Найдено рецептов:</span>
+          <span className="text-white font-bold text-lg">{filteredRecipes.length}</span>
+        </div>
+        {(excludedIngredients.length > 0 || customExclusions.length > 0) && (
+          <div className="mt-2 text-xs text-white/50">
+            Исключено продуктов: {excludedIngredients.length + customExclusions.length}
+          </div>
+        )}
+      </div>
+
+      {/* Список рецептов */}
+      {filteredRecipes.length === 0 ? (
+        <div className="p-8 text-center rounded-xl bg-white/5 border border-white/10">
+          <AlertCircle className="w-12 h-12 text-white/40 mx-auto mb-4" />
+          <p className="text-white/60 mb-2">Не найдено рецептов с указанными фильтрами</p>
+          <p className="text-white/40 text-sm">Попробуйте изменить фильтры или исключить меньше продуктов</p>
+        </div>
+      ) : (
+        <div className="space-y-4 mb-6">
+          {filteredRecipes.map((recipe) => (
+            <motion.div
+              key={recipe.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <ChefHat className="w-4 h-4 text-accent-electric" />
+                    <h4 className="text-lg font-bold text-white">{recipe.name}</h4>
+                    <span className="px-2 py-0.5 rounded text-xs bg-accent-electric/20 text-accent-electric">
+                      {recipe.mealType === 'breakfast' ? 'Завтрак' : 
+                       recipe.mealType === 'lunch' ? 'Обед' : 
+                       recipe.mealType === 'dinner' ? 'Ужин' : 'Перекус'}
+                    </span>
+                  </div>
+                  <p className="text-white/60 text-sm mb-2">{recipe.description}</p>
+                  <div className="flex flex-wrap gap-3 text-xs text-white/50">
+                    <span>⏱ {recipe.prepTime} мин</span>
+                    <span>📊 {recipe.proteins}Б / {recipe.fats}Ж / {recipe.carbs}У</span>
+                    <span>🔥 {recipe.calories} ккал</span>
+                    <span>⭐ {recipe.difficulty}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Польза для кожи */}
+              {recipe.benefits.length > 0 && (
+                <div className="mb-3 p-3 rounded-lg bg-accent-mint/10 border border-accent-mint/20">
+                  <div className="text-xs font-medium text-accent-mint mb-1">Польза для кожи:</div>
+                  <ul className="space-y-1">
+                    {recipe.benefits.map((benefit, idx) => (
+                      <li key={idx} className="text-xs text-white/70 flex items-start gap-1">
+                        <CheckCircle2 className="w-3 h-3 text-accent-mint mt-0.5 flex-shrink-0" />
+                        {benefit}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Ингредиенты */}
+              <div className="mb-3">
+                <div className="text-sm font-medium text-white/80 mb-2">Ингредиенты:</div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {recipe.ingredients.map((ing, idx) => (
+                    <div key={idx} className="text-sm text-white/70 flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-accent-electric"></span>
+                      <span>{ing.name} - {ing.quantity}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Инструкция */}
+              <div>
+                <div className="text-sm font-medium text-white/80 mb-2">Инструкция:</div>
+                <ol className="space-y-1">
+                  {recipe.instructions.map((step, idx) => (
+                    <li key={idx} className="text-sm text-white/70 flex items-start gap-2">
+                      <span className="text-accent-electric font-medium flex-shrink-0">{idx + 1}.</span>
+                      <span>{step}</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      )}
+
+      {/* Кнопка скачать PDF */}
+      {filteredRecipes.length > 0 && (
+        <button
+          onClick={downloadPDF}
+          disabled={downloading}
+          className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-accent-electric to-accent-teal text-dark-900 font-medium hover:shadow-lg hover:shadow-accent-electric/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {downloading ? (
+            <>
+              <div className="w-4 h-4 border-2 border-dark-900 border-t-transparent rounded-full animate-spin" />
+              <span>Создание PDF...</span>
+            </>
+          ) : (
+            <>
+              <Download className="w-4 h-4" />
+              <span>Скачать рецепты в PDF</span>
+            </>
+          )}
+        </button>
+      )}
+    </motion.div>
+  )
+}
+

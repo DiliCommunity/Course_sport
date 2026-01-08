@@ -19,6 +19,7 @@ import { KetoFluCalculator } from '@/components/lessons/KetoFluCalculator'
 import { ShoppingListGenerator } from '@/components/lessons/ShoppingListGenerator'
 import { MealGenerator } from '@/components/lessons/MealGenerator'
 import { IFCalculator } from '@/components/lessons/IFCalculator'
+import { AcneRecipeGenerator } from '@/components/lessons/AcneRecipeGenerator'
 
 interface Lesson {
   id: string
@@ -652,6 +653,14 @@ function LessonModal({
            lesson.content?.toLowerCase().includes('16:8') ||
            lesson.content?.toLowerCase().includes('18:6') ? (
             <IFCalculator />
+          ) : null}
+
+          {lesson.title.toLowerCase().includes('акне') ||
+           lesson.title.toLowerCase().includes('кето при акне') ||
+           lesson.content?.toLowerCase().includes('акне') ||
+           lesson.content?.toLowerCase().includes('проблемная кожа') ||
+           lesson.content?.toLowerCase().includes('чистая кожа') ? (
+            <AcneRecipeGenerator />
           ) : null}
           
           {/* Кнопка назад внизу для удобства */}

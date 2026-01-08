@@ -15,6 +15,7 @@ import { PaymentModal } from '@/components/ui/PaymentModal'
 import { formatPrice, formatDuration } from '@/lib/utils'
 import { RestaurantChecklist } from '@/components/lessons/RestaurantChecklist'
 import { TravelKetoKit } from '@/components/lessons/TravelKetoKit'
+import { AcneRecipeGenerator } from '@/components/lessons/AcneRecipeGenerator'
 
 interface FinalModulesData {
   module4: {
@@ -457,6 +458,17 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
                                   </div>
                                 )}
 
+                                {/* Мини-приложения для уроков */}
+                                {(lesson.title.toLowerCase().includes('акне') ||
+                                  lesson.title.toLowerCase().includes('кето при акне') ||
+                                  lesson.content?.toLowerCase().includes('акне') ||
+                                  lesson.content?.toLowerCase().includes('проблемная кожа') ||
+                                  lesson.content?.toLowerCase().includes('чистая кожа')) && (
+                                  <div className="mt-6">
+                                    <AcneRecipeGenerator />
+                                  </div>
+                                )}
+
                                 {lesson.bonus && (
                                   <div className="mt-6">
                                     {lesson.bonus.title === 'Чек-лист для ресторанов' && (
@@ -648,6 +660,17 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
                                         </li>
                                       ))}
                                     </ul>
+                                  </div>
+                                )}
+
+                                {/* Мини-приложения для уроков */}
+                                {(lesson.title.toLowerCase().includes('акне') ||
+                                  lesson.title.toLowerCase().includes('кето при акне') ||
+                                  lesson.content?.toLowerCase().includes('акне') ||
+                                  lesson.content?.toLowerCase().includes('проблемная кожа') ||
+                                  lesson.content?.toLowerCase().includes('чистая кожа')) && (
+                                  <div className="mt-6">
+                                    <AcneRecipeGenerator />
                                   </div>
                                 )}
 
