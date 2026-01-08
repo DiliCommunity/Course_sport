@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Sparkles, X, RefreshCw, Download, ChefHat, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { Sparkles, X, RefreshCw, Download, ChefHat, AlertCircle, CheckCircle2, Shuffle } from 'lucide-react'
 import html2canvas from 'html2canvas'
 import { jsPDF } from 'jspdf'
 
@@ -301,6 +301,7 @@ export function AcneRecipeGenerator() {
   const [newExclusion, setNewExclusion] = useState('')
   const [filteredRecipes, setFilteredRecipes] = useState<Recipe[]>(ALL_RECIPES)
   const [downloading, setDownloading] = useState(false)
+  const [generatedRecipe, setGeneratedRecipe] = useState<Recipe | null>(null)
 
   // Фильтрация рецептов
   useEffect(() => {
@@ -344,6 +345,23 @@ export function AcneRecipeGenerator() {
 
   const removeCustomExclusion = (item: string) => {
     setCustomExclusions(customExclusions.filter(i => i !== item))
+  }
+
+  const generateRandomRecipe = () => {
+    if (filteredRecipes.length === 0) {
+      alert('Нет доступных рецептов с текущими фильтрами. Попробуйте изменить фильтры.')
+      return
+    }
+    const randomIndex = Math.floor(Math.random() * filteredRecipes.length)
+    const randomRecipe = filteredRecipes[randomIndex]
+    setGeneratedRecipe(randomRecipe)
+    // Прокрутка к сгенерированному рецепту
+    setTimeout(() => {
+      const element = document.getElementById(`recipe-${randomRecipe.id}`)
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+    }, 100)
   }
 
   const downloadPDF = async () => {
@@ -458,20 +476,20 @@ export function AcneRecipeGenerator() {
       animate={{ opacity: 1, y: 0 }}
       className="mt-8 p-6 rounded-2xl bg-gradient-to-br from-accent-electric/10 via-dark-800/50 to-accent-teal/10 border-2 border-accent-electric/30 shadow-[0_0_30px_rgba(59,130,246,0.2)]"
     >
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-electric to-accent-teal flex items-center justify-center">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-6">
+        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-electric to-accent-teal flex items-center justify-center flex-shrink-0">
           <Sparkles className="w-6 h-6 text-dark-900" />
         </div>
-        <div>
-          <h3 className="text-xl font-bold text-white mb-1">Генератор рецептов для чистой кожи</h3>
-          <p className="text-white/60 text-sm">Персональные кето-рецепты без продуктов-триггеров</p>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-lg sm:text-xl font-bold text-white mb-1">Генератор рецептов для чистой кожи</h3>
+          <p className="text-white/60 text-xs sm:text-sm">Персональные кето-рецепты без продуктов-триггеров</p>
         </div>
       </div>
 
       {/* Фильтр по типу приема пищи */}
-      <div className="mb-6">
-        <label className="text-white/80 text-sm font-medium mb-2 block">Тип приема пищи:</label>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+      <div className="mb-4 sm:mb-6">
+        <label className="text-white/80 text-xs sm:text-sm font-medium mb-2 block">Тип приема пищи:</label>
+        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
           {[
             { value: 'all', label: 'Все' },
             { value: 'breakfast', label: 'Завтрак' },
@@ -482,7 +500,7 @@ export function AcneRecipeGenerator() {
             <button
               key={option.value}
               onClick={() => setSelectedMealType(option.value as any)}
-              className={`py-2 px-3 rounded-xl text-sm font-medium transition-all ${
+              className={`py-2 px-2 sm:px-3 rounded-xl text-xs sm:text-sm font-medium transition-all ${
                 selectedMealType === option.value
                   ? 'bg-gradient-to-r from-accent-electric to-accent-teal text-dark-900 shadow-lg'
                   : 'bg-white/5 text-white/70 hover:bg-white/10'
@@ -495,19 +513,19 @@ export function AcneRecipeGenerator() {
       </div>
 
       {/* Исключение продуктов */}
-      <div className="mb-6 p-4 rounded-xl bg-white/5 border border-white/10">
-        <label className="text-white/80 text-sm font-medium mb-3 block flex items-center gap-2">
-          <AlertCircle className="w-4 h-4" />
-          Исключить продукты (аллергия, непереносимость, не нравится):
+      <div className="mb-4 sm:mb-6 p-3 sm:p-4 rounded-xl bg-white/5 border border-white/10">
+        <label className="text-white/80 text-xs sm:text-sm font-medium mb-2 sm:mb-3 block flex items-start sm:items-center gap-2">
+          <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 sm:mt-0" />
+          <span className="flex-1">Исключить продукты (аллергия, непереносимость, не нравится):</span>
         </label>
         
         {/* Часто исключаемые продукты */}
-        <div className="flex flex-wrap gap-2 mb-4">
+        <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-3 sm:mb-4">
           {COMMON_ALLERGENS.map(ingredient => (
             <button
               key={ingredient}
               onClick={() => toggleExclusion(ingredient)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs font-medium transition-all ${
                 excludedIngredients.includes(ingredient)
                   ? 'bg-red-500/20 text-red-400 border border-red-500/30'
                   : 'bg-white/5 text-white/70 hover:bg-white/10 border border-white/10'
@@ -520,34 +538,34 @@ export function AcneRecipeGenerator() {
 
         {/* Пользовательские исключения */}
         <div className="space-y-2">
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <input
               type="text"
               value={newExclusion}
               onChange={(e) => setNewExclusion(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && addCustomExclusion()}
               placeholder="Добавить продукт для исключения..."
-              className="flex-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-accent-electric/50 text-sm"
+              className="flex-1 px-3 sm:px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-accent-electric/50 text-xs sm:text-sm"
             />
             <button
               onClick={addCustomExclusion}
-              className="px-4 py-2 rounded-xl bg-gradient-to-r from-accent-electric to-accent-teal text-dark-900 font-medium hover:shadow-lg transition-all text-sm"
+              className="px-3 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-accent-electric to-accent-teal text-dark-900 font-medium hover:shadow-lg transition-all text-xs sm:text-sm whitespace-nowrap"
             >
               Добавить
             </button>
           </div>
           
           {customExclusions.length > 0 && (
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
               {customExclusions.map(item => (
                 <div
                   key={item}
-                  className="px-3 py-1.5 rounded-lg bg-red-500/20 text-red-400 border border-red-500/30 text-xs font-medium flex items-center gap-2"
+                  className="px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-red-500/20 text-red-400 border border-red-500/30 text-xs font-medium flex items-center gap-1.5 sm:gap-2"
                 >
-                  {item}
+                  <span className="break-words">{item}</span>
                   <button
                     onClick={() => removeCustomExclusion(item)}
-                    className="hover:text-red-300"
+                    className="hover:text-red-300 flex-shrink-0"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -558,17 +576,30 @@ export function AcneRecipeGenerator() {
         </div>
       </div>
 
-      {/* Статистика */}
-      <div className="mb-6 p-4 rounded-xl bg-white/5 border border-white/10">
-        <div className="flex items-center justify-between">
-          <span className="text-white/60 text-sm">Найдено рецептов:</span>
-          <span className="text-white font-bold text-lg">{filteredRecipes.length}</span>
-        </div>
-        {(excludedIngredients.length > 0 || customExclusions.length > 0) && (
-          <div className="mt-2 text-xs text-white/50">
-            Исключено продуктов: {excludedIngredients.length + customExclusions.length}
+      {/* Статистика и генератор */}
+      <div className="mb-4 sm:mb-6 p-3 sm:p-4 rounded-xl bg-white/5 border border-white/10">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex-1">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-white/60 text-xs sm:text-sm">Найдено рецептов:</span>
+              <span className="text-white font-bold text-base sm:text-lg">{filteredRecipes.length}</span>
+            </div>
+            {(excludedIngredients.length > 0 || customExclusions.length > 0) && (
+              <div className="text-xs text-white/50">
+                Исключено продуктов: {excludedIngredients.length + customExclusions.length}
+              </div>
+            )}
           </div>
-        )}
+          {filteredRecipes.length > 0 && (
+            <button
+              onClick={generateRandomRecipe}
+              className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900 font-medium hover:shadow-lg hover:shadow-accent-gold/30 transition-all flex items-center justify-center gap-2 text-sm sm:text-base whitespace-nowrap"
+            >
+              <Shuffle className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span>Сгенерировать блюдо</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Список рецептов */}
@@ -579,27 +610,34 @@ export function AcneRecipeGenerator() {
           <p className="text-white/40 text-sm">Попробуйте изменить фильтры или исключить меньше продуктов</p>
         </div>
       ) : (
-        <div className="space-y-4 mb-6">
+        <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
           {filteredRecipes.map((recipe) => (
             <motion.div
               key={recipe.id}
+              id={`recipe-${recipe.id}`}
               initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="p-5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all"
+              animate={{ 
+                opacity: 1, 
+                y: 0,
+                borderColor: generatedRecipe?.id === recipe.id ? 'rgba(59, 130, 246, 0.5)' : 'rgba(255, 255, 255, 0.1)',
+                boxShadow: generatedRecipe?.id === recipe.id ? '0 0 20px rgba(59, 130, 246, 0.3)' : 'none'
+              }}
+              transition={{ duration: 0.3 }}
+              className="p-4 sm:p-5 rounded-xl bg-white/5 border-2 transition-all"
             >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <ChefHat className="w-4 h-4 text-accent-electric" />
-                    <h4 className="text-lg font-bold text-white">{recipe.name}</h4>
-                    <span className="px-2 py-0.5 rounded text-xs bg-accent-electric/20 text-accent-electric">
+              <div className="flex items-start justify-between mb-2 sm:mb-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
+                    <ChefHat className="w-4 h-4 sm:w-5 sm:h-5 text-accent-electric flex-shrink-0" />
+                    <h4 className="text-base sm:text-lg font-bold text-white break-words">{recipe.name}</h4>
+                    <span className="px-2 py-0.5 rounded text-xs bg-accent-electric/20 text-accent-electric whitespace-nowrap">
                       {recipe.mealType === 'breakfast' ? 'Завтрак' : 
                        recipe.mealType === 'lunch' ? 'Обед' : 
                        recipe.mealType === 'dinner' ? 'Ужин' : 'Перекус'}
                     </span>
                   </div>
-                  <p className="text-white/60 text-sm mb-2">{recipe.description}</p>
-                  <div className="flex flex-wrap gap-3 text-xs text-white/50">
+                  <p className="text-white/60 text-xs sm:text-sm mb-2 break-words">{recipe.description}</p>
+                  <div className="flex flex-wrap gap-2 sm:gap-3 text-xs text-white/50">
                     <span>⏱ {recipe.prepTime} мин</span>
                     <span>📊 {recipe.proteins}Б / {recipe.fats}Ж / {recipe.carbs}У</span>
                     <span>🔥 {recipe.calories} ккал</span>
@@ -610,13 +648,13 @@ export function AcneRecipeGenerator() {
 
               {/* Польза для кожи */}
               {recipe.benefits.length > 0 && (
-                <div className="mb-3 p-3 rounded-lg bg-accent-mint/10 border border-accent-mint/20">
-                  <div className="text-xs font-medium text-accent-mint mb-1">Польза для кожи:</div>
+                <div className="mb-2 sm:mb-3 p-2.5 sm:p-3 rounded-lg bg-accent-mint/10 border border-accent-mint/20">
+                  <div className="text-xs font-medium text-accent-mint mb-1.5">Польза для кожи:</div>
                   <ul className="space-y-1">
                     {recipe.benefits.map((benefit, idx) => (
-                      <li key={idx} className="text-xs text-white/70 flex items-start gap-1">
+                      <li key={idx} className="text-xs text-white/70 flex items-start gap-1.5 break-words">
                         <CheckCircle2 className="w-3 h-3 text-accent-mint mt-0.5 flex-shrink-0" />
-                        {benefit}
+                        <span>{benefit}</span>
                       </li>
                     ))}
                   </ul>
@@ -624,13 +662,13 @@ export function AcneRecipeGenerator() {
               )}
 
               {/* Ингредиенты */}
-              <div className="mb-3">
-                <div className="text-sm font-medium text-white/80 mb-2">Ингредиенты:</div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div className="mb-2 sm:mb-3">
+                <div className="text-xs sm:text-sm font-medium text-white/80 mb-1.5 sm:mb-2">Ингредиенты:</div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2">
                   {recipe.ingredients.map((ing, idx) => (
-                    <div key={idx} className="text-sm text-white/70 flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-accent-electric"></span>
-                      <span>{ing.name} - {ing.quantity}</span>
+                    <div key={idx} className="text-xs sm:text-sm text-white/70 flex items-start gap-1.5 sm:gap-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-accent-electric mt-1.5 sm:mt-2 flex-shrink-0"></span>
+                      <span className="break-words">{ing.name} - {ing.quantity}</span>
                     </div>
                   ))}
                 </div>
@@ -638,12 +676,12 @@ export function AcneRecipeGenerator() {
 
               {/* Инструкция */}
               <div>
-                <div className="text-sm font-medium text-white/80 mb-2">Инструкция:</div>
-                <ol className="space-y-1">
+                <div className="text-xs sm:text-sm font-medium text-white/80 mb-1.5 sm:mb-2">Инструкция:</div>
+                <ol className="space-y-1.5 sm:space-y-2">
                   {recipe.instructions.map((step, idx) => (
-                    <li key={idx} className="text-sm text-white/70 flex items-start gap-2">
+                    <li key={idx} className="text-xs sm:text-sm text-white/70 flex items-start gap-2">
                       <span className="text-accent-electric font-medium flex-shrink-0">{idx + 1}.</span>
-                      <span>{step}</span>
+                      <span className="break-words">{step}</span>
                     </li>
                   ))}
                 </ol>
@@ -658,7 +696,7 @@ export function AcneRecipeGenerator() {
         <button
           onClick={downloadPDF}
           disabled={downloading}
-          className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-accent-electric to-accent-teal text-dark-900 font-medium hover:shadow-lg hover:shadow-accent-electric/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-2.5 sm:py-3 px-4 rounded-xl bg-gradient-to-r from-accent-electric to-accent-teal text-dark-900 font-medium hover:shadow-lg hover:shadow-accent-electric/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
         >
           {downloading ? (
             <>
@@ -667,7 +705,7 @@ export function AcneRecipeGenerator() {
             </>
           ) : (
             <>
-              <Download className="w-4 h-4" />
+              <Download className="w-4 h-4 sm:w-5 sm:h-5" />
               <span>Скачать рецепты в PDF</span>
             </>
           )}
