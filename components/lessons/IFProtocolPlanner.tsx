@@ -161,7 +161,7 @@ export function IFProtocolPlanner() {
       const phase = getCurrentAutophagyPhase(hour)
       timeline.push({
         time: currentTime.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', hour12: false }),
-        hours,
+        hours: hour,
         phase
       })
     }
