@@ -191,7 +191,11 @@ export function HungerTracker() {
         }
 
         pdf.setFontSize(9)
-        pdf.setTextColor(entry.handled ? 34, 197, 94 : 239, 68, 68)
+        if (entry.handled) {
+          pdf.setTextColor(34, 197, 94)
+        } else {
+          pdf.setTextColor(239, 68, 68)
+        }
         pdf.text(entry.handled ? '✓ Справлено' : '✗ Не справлено', margin + 5, yPos)
         yPos += 8
       })
