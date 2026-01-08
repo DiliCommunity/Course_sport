@@ -92,8 +92,6 @@ export async function POST(request: NextRequest) {
           return 'sbp'
         case 'sber_pay':
           return 'sberbank'
-        case 'tinkoff_pay':
-          return 'tinkoff_bank'
         case 'yoomoney':
           return 'yoo_money'
         case 'card':
@@ -193,7 +191,7 @@ export async function POST(request: NextRequest) {
         // ВАЖНО: Если метод 'sbp', используем 'card' как fallback из-за constraint
         const rawPaymentMethod = paymentMethod || 'card'
         // Используем 'card' для БД если метод не в списке разрешенных или если это sbp
-        const dbPaymentMethod = ['card', 'sbp', 'sber_pay', 'tinkoff_pay', 'yoomoney'].includes(rawPaymentMethod) 
+        const dbPaymentMethod = ['card', 'sbp', 'sber_pay', 'yoomoney'].includes(rawPaymentMethod) 
           ? (rawPaymentMethod === 'sbp' ? 'card' : rawPaymentMethod) // sbp -> card для БД
           : 'card'
         

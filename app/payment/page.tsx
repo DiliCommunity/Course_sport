@@ -29,12 +29,6 @@ const paymentMethods = [
     icon: '🏦',
   },
   {
-    id: 'tinkoff_pay',
-    name: 'Т-Пей',
-    description: 'Оплата через Тинькофф',
-    icon: '💛',
-  },
-  {
     id: 'yoomoney',
     name: 'ЮMoney',
     description: 'Электронный кошелек',
