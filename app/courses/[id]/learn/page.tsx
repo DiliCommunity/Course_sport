@@ -20,6 +20,8 @@ import { ShoppingListGenerator } from '@/components/lessons/ShoppingListGenerato
 import { MealGenerator } from '@/components/lessons/MealGenerator'
 import { IFCalculator } from '@/components/lessons/IFCalculator'
 import { AcneRecipeGenerator } from '@/components/lessons/AcneRecipeGenerator'
+import { IFProtocolPlanner } from '@/components/lessons/IFProtocolPlanner'
+import { HungerTracker } from '@/components/lessons/HungerTracker'
 
 interface Lesson {
   id: string
@@ -653,6 +655,22 @@ function LessonModal({
            lesson.content?.toLowerCase().includes('16:8') ||
            lesson.content?.toLowerCase().includes('18:6') ? (
             <IFCalculator />
+          ) : null}
+
+          {(lesson.title.toLowerCase().includes('протокол') ||
+            lesson.title.toLowerCase().includes('автофагия') ||
+            lesson.content?.toLowerCase().includes('протокол') ||
+            lesson.content?.toLowerCase().includes('автофагия') ||
+            lesson.content?.toLowerCase().includes('клеточное обновление')) ? (
+            <IFProtocolPlanner />
+          ) : null}
+
+          {(lesson.title.toLowerCase().includes('голод') ||
+            lesson.title.toLowerCase().includes('борьба с голодом') ||
+            lesson.content?.toLowerCase().includes('физический голод') ||
+            lesson.content?.toLowerCase().includes('психологический голод') ||
+            lesson.content?.toLowerCase().includes('виды голода')) ? (
+            <HungerTracker />
           ) : null}
 
           {lesson.title.toLowerCase().includes('акне') ||

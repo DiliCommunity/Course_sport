@@ -16,6 +16,8 @@ import { formatPrice, formatDuration } from '@/lib/utils'
 import { RestaurantChecklist } from '@/components/lessons/RestaurantChecklist'
 import { TravelKetoKit } from '@/components/lessons/TravelKetoKit'
 import { AcneRecipeGenerator } from '@/components/lessons/AcneRecipeGenerator'
+import { IFProtocolPlanner } from '@/components/lessons/IFProtocolPlanner'
+import { HungerTracker } from '@/components/lessons/HungerTracker'
 
 interface FinalModulesData {
   module4: {
@@ -469,6 +471,26 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
                                   </div>
                                 )}
 
+                                {(lesson.title.toLowerCase().includes('протокол') ||
+                                  lesson.title.toLowerCase().includes('автофагия') ||
+                                  lesson.content?.toLowerCase().includes('протокол') ||
+                                  lesson.content?.toLowerCase().includes('автофагия') ||
+                                  lesson.content?.toLowerCase().includes('клеточное обновление')) && (
+                                  <div className="mt-6">
+                                    <IFProtocolPlanner />
+                                  </div>
+                                )}
+
+                                {(lesson.title.toLowerCase().includes('голод') ||
+                                  lesson.title.toLowerCase().includes('борьба с голодом') ||
+                                  lesson.content?.toLowerCase().includes('физический голод') ||
+                                  lesson.content?.toLowerCase().includes('психологический голод') ||
+                                  lesson.content?.toLowerCase().includes('виды голода')) && (
+                                  <div className="mt-6">
+                                    <HungerTracker />
+                                  </div>
+                                )}
+
                                 {lesson.bonus && (
                                   <div className="mt-6">
                                     {lesson.bonus.title === 'Чек-лист для ресторанов' && (
@@ -671,6 +693,26 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
                                   lesson.content?.toLowerCase().includes('чистая кожа')) && (
                                   <div className="mt-6">
                                     <AcneRecipeGenerator />
+                                  </div>
+                                )}
+
+                                {(lesson.title.toLowerCase().includes('протокол') ||
+                                  lesson.title.toLowerCase().includes('автофагия') ||
+                                  lesson.content?.toLowerCase().includes('протокол') ||
+                                  lesson.content?.toLowerCase().includes('автофагия') ||
+                                  lesson.content?.toLowerCase().includes('клеточное обновление')) && (
+                                  <div className="mt-6">
+                                    <IFProtocolPlanner />
+                                  </div>
+                                )}
+
+                                {(lesson.title.toLowerCase().includes('голод') ||
+                                  lesson.title.toLowerCase().includes('борьба с голодом') ||
+                                  lesson.content?.toLowerCase().includes('физический голод') ||
+                                  lesson.content?.toLowerCase().includes('психологический голод') ||
+                                  lesson.content?.toLowerCase().includes('виды голода')) && (
+                                  <div className="mt-6">
+                                    <HungerTracker />
                                   </div>
                                 )}
 
