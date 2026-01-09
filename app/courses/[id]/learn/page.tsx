@@ -23,6 +23,8 @@ import { AcneRecipeGenerator } from '@/components/lessons/AcneRecipeGenerator'
 import { IFProtocolPlanner } from '@/components/lessons/IFProtocolPlanner'
 import { HungerTracker } from '@/components/lessons/HungerTracker'
 import { IFProgressTracker } from '@/components/lessons/IFProgressTracker'
+import { FastingWorkoutGenerator } from '@/components/lessons/FastingWorkoutGenerator'
+import { KetoRecipeGenerator } from '@/components/lessons/KetoRecipeGenerator'
 
 interface Lesson {
   id: string
@@ -682,6 +684,31 @@ function LessonModal({
             lesson.content?.toLowerCase().includes('90-дневный план')) ? (
             <IFProgressTracker />
           ) : null}
+
+          {(lesson.title.toLowerCase().includes('тренировка') ||
+            lesson.title.toLowerCase().includes('тренировки') ||
+            lesson.title.toLowerCase().includes('натощак') ||
+            lesson.content?.toLowerCase().includes('тренировки натощак') ||
+            lesson.content?.toLowerCase().includes('тренировка натощак') ||
+            lesson.content?.toLowerCase().includes('физическая активность') ||
+            lesson.content?.toLowerCase().includes('спорт при if') ||
+            lesson.content?.toLowerCase().includes('упражнения при голодании')) ? (
+            <FastingWorkoutGenerator />
+          ) : null}
+
+          {(lesson.title.toLowerCase().includes('завтрак') ||
+            lesson.title.toLowerCase().includes('завтраки') ||
+            lesson.content?.toLowerCase().includes('кето-завтраки') ||
+            lesson.content?.toLowerCase().includes('15 рецептов на каждый день')) && (
+            <KetoRecipeGenerator type="breakfast" />
+          )}
+
+          {(lesson.title.toLowerCase().includes('десерт') ||
+            lesson.title.toLowerCase().includes('десерты') ||
+            lesson.content?.toLowerCase().includes('кето-десерты') ||
+            lesson.content?.toLowerCase().includes('сладкие кето-десерты')) && (
+            <KetoRecipeGenerator type="dessert" />
+          )}
 
           {lesson.title.toLowerCase().includes('акне') ||
            lesson.title.toLowerCase().includes('кето при акне') ||

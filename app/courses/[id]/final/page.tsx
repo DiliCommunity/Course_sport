@@ -19,6 +19,8 @@ import { AcneRecipeGenerator } from '@/components/lessons/AcneRecipeGenerator'
 import { IFProtocolPlanner } from '@/components/lessons/IFProtocolPlanner'
 import { HungerTracker } from '@/components/lessons/HungerTracker'
 import { IFProgressTracker } from '@/components/lessons/IFProgressTracker'
+import { FastingWorkoutGenerator } from '@/components/lessons/FastingWorkoutGenerator'
+import { KetoRecipeGenerator } from '@/components/lessons/KetoRecipeGenerator'
 
 interface FinalModulesData {
   module4: {
@@ -462,6 +464,24 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
                                 )}
 
                                 {/* Мини-приложения для уроков */}
+                                {(lesson.title.toLowerCase().includes('завтрак') ||
+                                  lesson.title.toLowerCase().includes('завтраки') ||
+                                  lesson.content?.toLowerCase().includes('кето-завтраки') ||
+                                  lesson.content?.toLowerCase().includes('15 рецептов на каждый день')) && (
+                                  <div className="mt-6">
+                                    <KetoRecipeGenerator type="breakfast" />
+                                  </div>
+                                )}
+
+                                {(lesson.title.toLowerCase().includes('десерт') ||
+                                  lesson.title.toLowerCase().includes('десерты') ||
+                                  lesson.content?.toLowerCase().includes('кето-десерты') ||
+                                  lesson.content?.toLowerCase().includes('сладкие кето-десерты')) && (
+                                  <div className="mt-6">
+                                    <KetoRecipeGenerator type="dessert" />
+                                  </div>
+                                )}
+
                                 {(lesson.title.toLowerCase().includes('акне') ||
                                   lesson.title.toLowerCase().includes('кето при акне') ||
                                   lesson.content?.toLowerCase().includes('акне') ||
@@ -500,6 +520,19 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
                                   lesson.content?.toLowerCase().includes('90-дневный план')) && (
                                   <div className="mt-6">
                                     <IFProgressTracker />
+                                  </div>
+                                )}
+
+                                {(lesson.title.toLowerCase().includes('тренировка') ||
+                                  lesson.title.toLowerCase().includes('тренировки') ||
+                                  lesson.title.toLowerCase().includes('натощак') ||
+                                  lesson.content?.toLowerCase().includes('тренировки натощак') ||
+                                  lesson.content?.toLowerCase().includes('тренировка натощак') ||
+                                  lesson.content?.toLowerCase().includes('физическая активность') ||
+                                  lesson.content?.toLowerCase().includes('спорт при if') ||
+                                  lesson.content?.toLowerCase().includes('упражнения при голодании')) && (
+                                  <div className="mt-6">
+                                    <FastingWorkoutGenerator />
                                   </div>
                                 )}
 
@@ -698,6 +731,24 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
                                 )}
 
                                 {/* Мини-приложения для уроков */}
+                                {(lesson.title.toLowerCase().includes('завтрак') ||
+                                  lesson.title.toLowerCase().includes('завтраки') ||
+                                  lesson.content?.toLowerCase().includes('кето-завтраки') ||
+                                  lesson.content?.toLowerCase().includes('15 рецептов на каждый день')) && (
+                                  <div className="mt-6">
+                                    <KetoRecipeGenerator type="breakfast" />
+                                  </div>
+                                )}
+
+                                {(lesson.title.toLowerCase().includes('десерт') ||
+                                  lesson.title.toLowerCase().includes('десерты') ||
+                                  lesson.content?.toLowerCase().includes('кето-десерты') ||
+                                  lesson.content?.toLowerCase().includes('сладкие кето-десерты')) && (
+                                  <div className="mt-6">
+                                    <KetoRecipeGenerator type="dessert" />
+                                  </div>
+                                )}
+
                                 {(lesson.title.toLowerCase().includes('акне') ||
                                   lesson.title.toLowerCase().includes('кето при акне') ||
                                   lesson.content?.toLowerCase().includes('акне') ||
@@ -736,6 +787,19 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
                                   lesson.content?.toLowerCase().includes('90-дневный план')) && (
                                   <div className="mt-6">
                                     <IFProgressTracker />
+                                  </div>
+                                )}
+
+                                {(lesson.title.toLowerCase().includes('тренировка') ||
+                                  lesson.title.toLowerCase().includes('тренировки') ||
+                                  lesson.title.toLowerCase().includes('натощак') ||
+                                  lesson.content?.toLowerCase().includes('тренировки натощак') ||
+                                  lesson.content?.toLowerCase().includes('тренировка натощак') ||
+                                  lesson.content?.toLowerCase().includes('физическая активность') ||
+                                  lesson.content?.toLowerCase().includes('спорт при if') ||
+                                  lesson.content?.toLowerCase().includes('упражнения при голодании')) && (
+                                  <div className="mt-6">
+                                    <FastingWorkoutGenerator />
                                   </div>
                                 )}
 

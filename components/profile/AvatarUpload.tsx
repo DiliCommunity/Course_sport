@@ -53,10 +53,10 @@ export function AvatarUpload({ currentAvatar, userId, onUploadComplete }: Avatar
     }
   }
 
-  // Проверяем, является ли текущий аватар эмодзи
-  const displayEmoji = AVATAR_EMOJIS.includes(currentAvatar || '') 
-    ? currentAvatar 
-    : selectedEmoji
+  // Проверяем, является ли текущий аватар эмодзи или URL
+  const isEmoji = currentAvatar && AVATAR_EMOJIS.includes(currentAvatar)
+  const isUrl = currentAvatar && (currentAvatar.startsWith('http') || currentAvatar.startsWith('https'))
+  const displayEmoji = isEmoji ? currentAvatar : selectedEmoji
 
   return (
     <div className="relative group">
@@ -66,9 +66,31 @@ export function AvatarUpload({ currentAvatar, userId, onUploadComplete }: Avatar
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
       >
-        <div className="w-full h-full bg-gradient-to-br from-accent-teal/30 to-accent-mint/30 flex items-center justify-center">
-          <span className="text-6xl">{displayEmoji}</span>
-        </div>
+        {isUrl ? (
+          // Если аватар - URL, показываем изображение
+          <img
+            src={currentAvatar}
+            alt="Avatar"
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              // Если изображение не загрузилось, показываем эмодзи
+              const target = e.target as HTMLImageElement
+              target.style.display = 'none'
+              const parent = target.parentElement
+              if (parent) {
+                const fallback = document.createElement('div')
+                fallback.className = 'w-full h-full bg-gradient-to-br from-accent-teal/30 to-accent-mint/30 flex items-center justify-center'
+                fallback.innerHTML = `<span class="text-6xl">${displayEmoji}</span>`
+                parent.appendChild(fallback)
+              }
+            }}
+          />
+        ) : (
+          // Если аватар - эмодзи, показываем эмодзи
+          <div className="w-full h-full bg-gradient-to-br from-accent-teal/30 to-accent-mint/30 flex items-center justify-center">
+            <span className="text-6xl">{displayEmoji}</span>
+          </div>
+        )}
 
         {/* Hover overlay */}
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">

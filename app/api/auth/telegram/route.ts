@@ -54,12 +54,24 @@ export async function POST(request: NextRequest) {
       // Пользователь существует - обновляем данные
       userId = existingUser.id
       
+      // Определяем, какой аватар использовать
+      // Если пользователь уже выбрал аватар (эмодзи или другой), сохраняем его
+      // Если аватара нет, используем photo_url из Telegram
+      let avatarToUse = existingUser.avatar_url
+      
+      // Если у пользователя нет аватара (null или пустая строка), используем photo_url из Telegram
+      // Если аватар уже есть (эмодзи или выбранный пользователем), сохраняем его
+      if (!existingUser.avatar_url || existingUser.avatar_url.trim() === '') {
+        avatarToUse = photo_url || null
+      }
+      // Если аватар уже есть - сохраняем его (не перезаписываем)
+      
       await supabase
         .from('users')
         .update({
           name,
           telegram_username: telegramUsername,
-          avatar_url: photo_url || existingUser.avatar_url,
+          avatar_url: avatarToUse,
           telegram_verified: true,
           last_login: new Date().toISOString(),
         })
