@@ -168,6 +168,19 @@ export async function POST(request: NextRequest) {
       paymentData.payment_method_data = { type: paymentMethodType }
     }
 
+    // Логируем данные платежа для отладки (без секретных данных)
+    console.log('📤 Создание платежа в ЮКасса:', {
+      amount: paymentData.amount,
+      description: paymentData.description,
+      hasReceipt: !!(receipt && (receipt.email || receipt.phone)),
+      receipt: receipt && (receipt.email || receipt.phone) ? {
+        hasEmail: !!receipt.email,
+        hasPhone: !!receipt.phone
+      } : null,
+      paymentMethod: paymentMethodType,
+      metadata: paymentData.metadata
+    })
+
     const response = await fetch('https://api.yookassa.ru/v3/payments', {
       method: 'POST',
       headers: {
@@ -180,9 +193,19 @@ export async function POST(request: NextRequest) {
 
     if (!response.ok) {
       const errorData = await response.json()
-      console.error('Ошибка ЮКасса:', errorData)
+      console.error('❌ Ошибка ЮКасса:', JSON.stringify(errorData, null, 2))
+      console.error('❌ Отправленные данные (без секретов):', JSON.stringify({
+        amount: paymentData.amount,
+        description: paymentData.description,
+        receipt: paymentData.receipt,
+        metadata: paymentData.metadata
+      }, null, 2))
       return NextResponse.json(
-        { error: errorData.description || 'Ошибка создания платежа' },
+        { 
+          error: errorData.description || errorData.message || 'Ошибка создания платежа',
+          details: errorData,
+          code: errorData.code
+        },
         { status: response.status }
       )
     }

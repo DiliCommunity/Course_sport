@@ -14,30 +14,45 @@ function PaymentSuccessContent() {
   
   const courseId = searchParams.get('course')
   const type = searchParams.get('type') || 'course_purchase'
-  const paymentId = searchParams.get('payment_id')
+  const paymentIdFromUrl = searchParams.get('payment_id')
+  // Пытаемся получить payment_id из localStorage (сохранен перед редиректом)
+  const paymentIdFromStorage = typeof window !== 'undefined' ? localStorage.getItem('last_payment_id') : null
+  const paymentId = paymentIdFromUrl || paymentIdFromStorage
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   useEffect(() => {
     // Проверяем статус платежа в БД
     const verifyPayment = async () => {
       try {
-        if (!courseId && !paymentId) {
-          // Если нет параметров - показываем ошибку
+        // Если нет payment_id, используем course_id из URL или localStorage
+        const courseIdToUse = courseId || (typeof window !== 'undefined' ? localStorage.getItem('last_payment_course_id') : null)
+        
+        if (!courseIdToUse && !paymentId) {
+          console.error('❌ No payment_id or course_id available')
           setStatus('error')
+          setErrorMessage('Не удалось определить параметры платежа')
           return
         }
+
+        console.log('🔍 Verifying payment:', { paymentId, courseId: courseIdToUse })
 
         // Проверяем статус платежа через API
         const params = new URLSearchParams()
         if (paymentId) params.append('payment_id', paymentId)
-        if (courseId) params.append('course_id', courseId)
+        if (courseIdToUse) params.append('course_id', courseIdToUse)
 
-        const response = await fetch(`/api/payments/verify?${params.toString()}`)
+        console.log('📤 Fetching payment status:', params.toString())
+        const response = await fetch(`/api/payments/verify?${params.toString()}`, {
+          credentials: 'include' // Важно для передачи cookies
+        })
         const data = await response.json()
 
+        console.log('📥 Payment verification response:', { status: response.status, data })
+
         if (!response.ok) {
-          console.error('Payment verification failed:', data)
+          console.error('❌ Payment verification failed:', data)
           setStatus('error')
+          setErrorMessage(data.error || 'Не удалось проверить статус платежа')
           return
         }
 
@@ -65,7 +80,7 @@ function PaymentSuccessContent() {
     }
 
     verifyPayment()
-  }, [paymentId, courseId])
+  }, [paymentId, courseId, paymentIdFromStorage])
 
   if (status === 'loading') {
     return (

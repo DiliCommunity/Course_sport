@@ -178,6 +178,12 @@ export function PaymentModal({
       }
 
       if (data.confirmationUrl) {
+        // Сохраняем payment_id в localStorage для проверки на странице success
+        if (data.paymentId) {
+          localStorage.setItem('last_payment_id', data.paymentId)
+          localStorage.setItem('last_payment_course_id', courseId || '')
+        }
+        
         // Для Telegram Web App используем openLink, для браузера - window.location
         if (isTelegramApp && webApp) {
           webApp.openLink(data.confirmationUrl)
