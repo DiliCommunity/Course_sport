@@ -610,6 +610,7 @@ const COMMON_ALLERGENS = [
 ]
 
 export function AcneRecipeGenerator() {
+  const [selectedMealType, setSelectedMealType] = useState<'all' | Recipe['mealType']>('all')
   const [excludedIngredients, setExcludedIngredients] = useState<string[]>([])
   const [customExclusions, setCustomExclusions] = useState<string[]>([])
   const [newExclusion, setNewExclusion] = useState('')
@@ -618,9 +619,14 @@ export function AcneRecipeGenerator() {
   const [dishCount, setDishCount] = useState(1)
   const [downloading, setDownloading] = useState(false)
 
-  // Фильтрация доступных рецептов по исключенным ингредиентам
+  // Фильтрация доступных рецептов по типу приема пищи и исключенным ингредиентам
   useEffect(() => {
     let filtered = [...ALL_RECIPES]
+
+    // Фильтр по типу приема пищи
+    if (selectedMealType !== 'all') {
+      filtered = filtered.filter(r => r.mealType === selectedMealType)
+    }
 
     // Фильтр по исключенным ингредиентам
     const allExclusions = [...excludedIngredients, ...customExclusions]
@@ -636,7 +642,7 @@ export function AcneRecipeGenerator() {
     }
 
     setAvailableRecipes(filtered)
-  }, [excludedIngredients, customExclusions])
+  }, [selectedMealType, excludedIngredients, customExclusions])
 
   const toggleExclusion = (ingredient: string) => {
     if (excludedIngredients.includes(ingredient)) {
@@ -811,6 +817,32 @@ export function AcneRecipeGenerator() {
         </div>
       </div>
 
+      {/* Фильтр по типу приема пищи */}
+      <div className="mb-4 sm:mb-6">
+        <label className="text-white/80 text-xs sm:text-sm font-medium mb-2 block">Тип приема пищи:</label>
+        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+          {[
+            { value: 'all', label: 'Все' },
+            { value: 'breakfast', label: 'Завтрак' },
+            { value: 'lunch', label: 'Обед' },
+            { value: 'dinner', label: 'Ужин' },
+            { value: 'snack', label: 'Перекус' },
+          ].map(option => (
+            <button
+              key={option.value}
+              onClick={() => setSelectedMealType(option.value as any)}
+              className={`py-2 px-2 sm:px-3 rounded-xl text-xs sm:text-sm font-medium transition-all ${
+                selectedMealType === option.value
+                  ? 'bg-gradient-to-r from-accent-electric to-accent-teal text-dark-900 shadow-lg'
+                  : 'bg-white/5 text-white/70 hover:bg-white/10'
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Выбор количества блюд */}
       <div className="mb-4 sm:mb-6 p-3 sm:p-4 rounded-xl bg-white/5 border border-white/10">
         <label className="text-white/80 text-xs sm:text-sm font-medium mb-3 block flex items-center gap-2">
@@ -902,6 +934,16 @@ export function AcneRecipeGenerator() {
               <span className="text-white/60 text-xs sm:text-sm">Доступно рецептов:</span>
               <span className="text-white font-bold text-base sm:text-lg">{availableRecipes.length}</span>
             </div>
+            {selectedMealType !== 'all' && (
+              <div className="text-xs text-white/50 mb-1">
+                Тип приема пищи: {
+                  selectedMealType === 'breakfast' ? 'Завтрак' :
+                  selectedMealType === 'lunch' ? 'Обед' :
+                  selectedMealType === 'dinner' ? 'Ужин' :
+                  'Перекус'
+                }
+              </div>
+            )}
             {(excludedIngredients.length > 0 || customExclusions.length > 0) && (
               <div className="text-xs text-white/50">
                 Исключено продуктов: {excludedIngredients.length + customExclusions.length}
@@ -914,7 +956,10 @@ export function AcneRecipeGenerator() {
               className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900 font-medium hover:shadow-lg hover:shadow-accent-gold/30 transition-all flex items-center justify-center gap-2 text-sm sm:text-base whitespace-nowrap"
             >
               <Shuffle className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span>Сгенерировать {dishCount} {dishCount === 1 ? 'блюдо' : dishCount < 5 ? 'блюда' : 'блюд'}</span>
+              <span>
+                Сгенерировать {dishCount} {dishCount === 1 ? 'блюдо' : dishCount < 5 ? 'блюда' : 'блюд'}
+                {selectedMealType !== 'all' && ` (${selectedMealType === 'breakfast' ? 'Завтрак' : selectedMealType === 'lunch' ? 'Обед' : selectedMealType === 'dinner' ? 'Ужин' : 'Перекус'})`}
+              </span>
             </button>
           )}
         </div>
