@@ -46,13 +46,6 @@ export async function POST(request: NextRequest) {
         )
       }
     } else {
-      // Проверяем минимальную сумму для всех типов платежей
-      if (amount && amount < 100) { // Минимум 1₽ в копейках
-        return NextResponse.json(
-          { error: 'Минимальная сумма платежа: 1₽' },
-          { status: 400 }
-        )
-      }
       const promotionId = metadata?.promotion_id
       
       // Для покупки курса нужны курс и сумма (кроме акции "2 курса")

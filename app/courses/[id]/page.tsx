@@ -4008,7 +4008,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
         courseTitle={courseData.title}
-        coursePrice={isFullAccessPrice ? fullAccessPrice : courseData.price}
+        coursePrice={isFullAccessPrice ? fullAccessPrice * 100 : courseData.price * 100}
         courseId={params.id}
         isFullAccess={isFullAccessPrice}
         onPaymentSuccess={async () => {

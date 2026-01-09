@@ -859,7 +859,7 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
         courseTitle="Финальные модули (25% курса)"
-        coursePrice={(accessData?.finalPrice || 300) / 100}
+        coursePrice={accessData?.finalPrice || 300}
         courseId={params.id}
         type="final_modules"
         onPaymentSuccess={handlePaymentSuccess}
