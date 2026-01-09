@@ -154,8 +154,8 @@ export function FastingWorkoutGenerator() {
       
       // Выбираем упражнения в зависимости от интенсивности
       const availableExercises = workoutType.exercises.filter((_, i) => {
-        const exIntensity = workoutType.intensity[i % workoutType.intensity.length]
-        return workoutType.intensity.includes(intensity) || exIntensity === intensity
+        const exIntensity = workoutType.intensity[i % workoutType.intensity.length] as 'low' | 'medium' | 'high'
+        return exIntensity === intensity
       })
 
       const selectedExercises = availableExercises.slice(0, Math.min(4, availableExercises.length))
@@ -163,14 +163,14 @@ export function FastingWorkoutGenerator() {
       let notes = ''
       if (isFasting) {
         notes = `⚠️ Тренировка натощак. Пейте воду до и во время тренировки. При головокружении - остановитесь.`
-        if (week === 1) {
+        if (ifWeek === 1) {
           notes += ' Первая неделя IF - снизьте интенсивность при необходимости.'
         }
       } else {
         notes = `Тренировка после еды. Подождите 1-2 часа после приема пищи.`
       }
 
-      if (intensity === 'high' && week < 3) {
+      if (intensity === 'high' && ifWeek < 3) {
         notes += ' Высокая интенсивность только при хорошем самочувствии.'
       }
 
