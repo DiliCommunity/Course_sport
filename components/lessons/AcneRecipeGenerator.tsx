@@ -282,6 +282,321 @@ const ALL_RECIPES: Recipe[] = [
     difficulty: 'Простой',
     benefits: ['Мононенасыщенные жиры', 'Витамин E', 'Низкий омега-6']
   },
+  // Дополнительные завтраки
+  {
+    id: 'breakfast-3',
+    name: 'Омлет со шпинатом и авокадо',
+    description: 'Богат белком и антиоксидантами для здоровья кожи',
+    mealType: 'breakfast',
+    ingredients: [
+      { name: 'Яйца', quantity: '3 шт', checked: false },
+      { name: 'Шпинат свежий', quantity: '80г', checked: false },
+      { name: 'Авокадо', quantity: '1/2 шт', checked: false },
+      { name: 'Кокосовое масло', quantity: '1 ст.л.', checked: false },
+      { name: 'Соль, перец', quantity: 'по вкусу', checked: false },
+    ],
+    instructions: [
+      'Взбейте яйца с солью и перцем',
+      'Нарежьте авокадо кубиками',
+      'Разогрейте кокосовое масло на сковороде',
+      'Добавьте шпинат и обжаривайте 1 минуту',
+      'Влейте яйца и готовьте 2-3 минуты',
+      'Подавайте с авокадо',
+    ],
+    calories: 410,
+    fats: 30,
+    proteins: 24,
+    carbs: 7,
+    prepTime: 12,
+    difficulty: 'Простой',
+    benefits: ['Белок для восстановления', 'Антиоксиданты', 'Противовоспалительные жиры']
+  },
+  {
+    id: 'breakfast-4',
+    name: 'Чиа-пудинг с кокосовым молоком',
+    description: 'Богат омега-3 и клетчаткой для чистой кожи',
+    mealType: 'breakfast',
+    ingredients: [
+      { name: 'Семена чиа', quantity: '3 ст.л.', checked: false },
+      { name: 'Кокосовое молоко', quantity: '200мл', checked: false },
+      { name: 'Кокосовое масло', quantity: '1 ч.л.', checked: false },
+      { name: 'Ваниль', quantity: 'щепотка', checked: false },
+    ],
+    instructions: [
+      'Смешайте семена чиа с кокосовым молоком',
+      'Добавьте кокосовое масло и ваниль',
+      'Тщательно перемешайте',
+      'Оставьте на ночь в холодильнике',
+      'Подавайте охлажденным',
+    ],
+    calories: 320,
+    fats: 26,
+    proteins: 8,
+    carbs: 12,
+    prepTime: 5,
+    difficulty: 'Простой',
+    benefits: ['Омега-3 из чиа', 'Лауриновая кислота', 'Клетчатка']
+  },
+  // Дополнительные обеды
+  {
+    id: 'lunch-4',
+    name: 'Салат с курицей и авокадо',
+    description: 'Сбалансированное блюдо с противовоспалительными свойствами',
+    mealType: 'lunch',
+    ingredients: [
+      { name: 'Куриная грудка (запеченная)', quantity: '200г', checked: false },
+      { name: 'Авокадо', quantity: '1 шт', checked: false },
+      { name: 'Огурцы', quantity: '1 шт', checked: false },
+      { name: 'Листья салата', quantity: '100г', checked: false },
+      { name: 'Оливковое масло', quantity: '2 ст.л.', checked: false },
+      { name: 'Лимонный сок', quantity: '1 ст.л.', checked: false },
+      { name: 'Соль, перец', quantity: 'по вкусу', checked: false },
+    ],
+    instructions: [
+      'Нарежьте курицу на кусочки',
+      'Нарежьте авокадо и огурцы',
+      'Смешайте с листьями салата',
+      'Заправьте оливковым маслом и лимонным соком',
+      'Посолите и поперчите',
+    ],
+    calories: 520,
+    fats: 38,
+    proteins: 42,
+    carbs: 8,
+    prepTime: 15,
+    difficulty: 'Простой',
+    benefits: ['Белок для восстановления', 'Противовоспалительные жиры', 'Витамины']
+  },
+  {
+    id: 'lunch-5',
+    name: 'Цветная капуста с курицей',
+    description: 'Богата антиоксидантами и белком для здоровья кожи',
+    mealType: 'lunch',
+    ingredients: [
+      { name: 'Куриная грудка', quantity: '250г', checked: false },
+      { name: 'Цветная капуста', quantity: '300г', checked: false },
+      { name: 'Кокосовое масло', quantity: '30г', checked: false },
+      { name: 'Чеснок', quantity: '3 зубчика', checked: false },
+      { name: 'Куркума', quantity: '1 ч.л.', checked: false },
+      { name: 'Соль, перец', quantity: 'по вкусу', checked: false },
+    ],
+    instructions: [
+      'Нарежьте курицу на кусочки',
+      'Разделите капусту на соцветия',
+      'Разогрейте кокосовое масло',
+      'Обжарьте курицу до золотистого цвета',
+      'Добавьте капусту, чеснок и куркуму',
+      'Тушите 10-12 минут до готовности',
+    ],
+    calories: 480,
+    fats: 30,
+    proteins: 46,
+    carbs: 10,
+    prepTime: 25,
+    difficulty: 'Средний',
+    benefits: ['Куркумин (противовоспалительное)', 'Белок', 'Антиоксиданты']
+  },
+  {
+    id: 'lunch-6',
+    name: 'Говядина с брокколи и грибами',
+    description: 'Богат цинком и антиоксидантами для чистой кожи',
+    mealType: 'lunch',
+    ingredients: [
+      { name: 'Говядина (нарезанная)', quantity: '200г', checked: false },
+      { name: 'Брокколи', quantity: '200г', checked: false },
+      { name: 'Грибы шампиньоны', quantity: '150г', checked: false },
+      { name: 'Кокосовое масло', quantity: '30г', checked: false },
+      { name: 'Чеснок', quantity: '2 зубчика', checked: false },
+      { name: 'Соль, перец', quantity: 'по вкусу', checked: false },
+    ],
+    instructions: [
+      'Нарежьте говядину тонкими полосками',
+      'Разогрейте кокосовое масло на сковороде',
+      'Обжарьте говядину 5-6 минут',
+      'Добавьте грибы и чеснок, жарьте 3 минуты',
+      'Добавьте брокколи и готовьте еще 5 минут',
+      'Посолите и поперчите',
+    ],
+    calories: 560,
+    fats: 38,
+    proteins: 48,
+    carbs: 9,
+    prepTime: 25,
+    difficulty: 'Средний',
+    benefits: ['Цинк для заживления', 'Сульфорафан', 'Белок']
+  },
+  // Дополнительные ужины
+  {
+    id: 'dinner-4',
+    name: 'Запеченный лосось с овощами',
+    description: 'Богат омега-3 для уменьшения воспалений',
+    mealType: 'dinner',
+    ingredients: [
+      { name: 'Филе лосося', quantity: '250г', checked: false },
+      { name: 'Кабачки', quantity: '200г', checked: false },
+      { name: 'Брокколи', quantity: '150г', checked: false },
+      { name: 'Оливковое масло', quantity: '2 ст.л.', checked: false },
+      { name: 'Лимон', quantity: '1/2 шт', checked: false },
+      { name: 'Укроп', quantity: '2 ст.л.', checked: false },
+      { name: 'Соль, перец', quantity: 'по вкусу', checked: false },
+    ],
+    instructions: [
+      'Разогрейте духовку до 200°C',
+      'Нарежьте овощи',
+      'Выложите лосось и овощи на противень',
+      'Полейте оливковым маслом, посолите, поперчите',
+      'Запекайте 20 минут',
+      'Подавайте с лимоном и укропом',
+    ],
+    calories: 520,
+    fats: 36,
+    proteins: 42,
+    carbs: 8,
+    prepTime: 25,
+    difficulty: 'Средний',
+    benefits: ['Омега-3', 'Противовоспалительные жиры', 'Витамины']
+  },
+  {
+    id: 'dinner-5',
+    name: 'Куриные бедра с цветной капустой',
+    description: 'Богата белком и антиоксидантами',
+    mealType: 'dinner',
+    ingredients: [
+      { name: 'Куриные бедра', quantity: '300г', checked: false },
+      { name: 'Цветная капуста', quantity: '300г', checked: false },
+      { name: 'Кокосовое масло', quantity: '30г', checked: false },
+      { name: 'Розмарин', quantity: '1 веточка', checked: false },
+      { name: 'Чеснок', quantity: '3 зубчика', checked: false },
+      { name: 'Соль, перец', quantity: 'по вкусу', checked: false },
+    ],
+    instructions: [
+      'Разогрейте духовку до 180°C',
+      'Разделите капусту на соцветия',
+      'Выложите курицу и капусту в форму',
+      'Добавьте кокосовое масло, розмарин, чеснок',
+      'Посолите и поперчите',
+      'Запекайте 40-45 минут',
+    ],
+    calories: 620,
+    fats: 42,
+    proteins: 52,
+    carbs: 10,
+    prepTime: 50,
+    difficulty: 'Средний',
+    benefits: ['Белок', 'Антиоксиданты', 'Здоровые жиры']
+  },
+  {
+    id: 'dinner-6',
+    name: 'Рыбный салат с авокадо',
+    description: 'Легкое блюдо, богатое омега-3',
+    mealType: 'dinner',
+    ingredients: [
+      { name: 'Филе белой рыбы (запеченное)', quantity: '200г', checked: false },
+      { name: 'Авокадо', quantity: '1 шт', checked: false },
+      { name: 'Огурцы', quantity: '1 шт', checked: false },
+      { name: 'Листья салата', quantity: '100г', checked: false },
+      { name: 'Оливковое масло', quantity: '2 ст.л.', checked: false },
+      { name: 'Лимонный сок', quantity: '1 ст.л.', checked: false },
+      { name: 'Укроп', quantity: '2 ст.л.', checked: false },
+      { name: 'Соль, перец', quantity: 'по вкусу', checked: false },
+    ],
+    instructions: [
+      'Запеките рыбу в духовке 20 минут',
+      'Нарежьте авокадо и огурцы',
+      'Разломайте рыбу на кусочки',
+      'Смешайте с листьями салата',
+      'Заправьте оливковым маслом и лимонным соком',
+      'Посыпьте укропом, посолите и поперчите',
+    ],
+    calories: 480,
+    fats: 34,
+    proteins: 38,
+    carbs: 9,
+    prepTime: 25,
+    difficulty: 'Простой',
+    benefits: ['Омега-3', 'Легкое усвоение', 'Витамины']
+  },
+  // Дополнительные перекусы
+  {
+    id: 'snack-2',
+    name: 'Огуречные рулетики с авокадо',
+    description: 'Быстрый перекус с противовоспалительными жирами',
+    mealType: 'snack',
+    ingredients: [
+      { name: 'Огурец', quantity: '1 шт', checked: false },
+      { name: 'Авокадо', quantity: '1/2 шт', checked: false },
+      { name: 'Лимонный сок', quantity: '1 ч.л.', checked: false },
+      { name: 'Укроп', quantity: '1 ст.л.', checked: false },
+      { name: 'Соль', quantity: 'щепотка', checked: false },
+    ],
+    instructions: [
+      'Нарежьте огурец тонкими полосками',
+      'Разомните авокадо вилкой',
+      'Добавьте лимонный сок, укроп и соль',
+      'Выложите авокадо на огуречные полоски',
+      'Сверните в рулетики',
+    ],
+    calories: 180,
+    fats: 15,
+    proteins: 3,
+    carbs: 8,
+    prepTime: 5,
+    difficulty: 'Простой',
+    benefits: ['Противовоспалительные жиры', 'Низкокалорийно', 'Витамины']
+  },
+  {
+    id: 'snack-3',
+    name: 'Рыбные котлеты из лосося',
+    description: 'Богаты омега-3 для здоровья кожи',
+    mealType: 'snack',
+    ingredients: [
+      { name: 'Филе лосося', quantity: '200г', checked: false },
+      { name: 'Лук репчатый', quantity: '1/4 шт', checked: false },
+      { name: 'Кокосовое масло', quantity: '2 ст.л.', checked: false },
+      { name: 'Укроп', quantity: '2 ст.л.', checked: false },
+      { name: 'Соль, перец', quantity: 'по вкусу', checked: false },
+    ],
+    instructions: [
+      'Пропустите лосось через мясорубку',
+      'Мелко нарежьте лук и укроп',
+      'Смешайте все ингредиенты',
+      'Сформируйте котлеты',
+      'Обжарьте на кокосовом масле по 4-5 минут с каждой стороны',
+    ],
+    calories: 380,
+    fats: 28,
+    proteins: 32,
+    carbs: 3,
+    prepTime: 20,
+    difficulty: 'Средний',
+    benefits: ['Омега-3', 'Белок', 'Противовоспалительные жиры']
+  },
+  {
+    id: 'snack-4',
+    name: 'Шпинатный смузи с авокадо',
+    description: 'Питательный напиток с антиоксидантами',
+    mealType: 'snack',
+    ingredients: [
+      { name: 'Шпинат свежий', quantity: '100г', checked: false },
+      { name: 'Авокадо', quantity: '1/2 шт', checked: false },
+      { name: 'Кокосовое молоко', quantity: '150мл', checked: false },
+      { name: 'Лимонный сок', quantity: '1 ст.л.', checked: false },
+      { name: 'Лед', quantity: 'по вкусу', checked: false },
+    ],
+    instructions: [
+      'Поместите все ингредиенты в блендер',
+      'Взбейте до однородной консистенции',
+      'Добавьте лед и взбейте еще раз',
+      'Подавайте сразу',
+    ],
+    calories: 320,
+    fats: 26,
+    proteins: 6,
+    carbs: 12,
+    prepTime: 5,
+    difficulty: 'Простой',
+    benefits: ['Антиоксиданты', 'Противовоспалительные жиры', 'Витамины']
+  },
 ]
 
 const COMMON_ALLERGENS = [
@@ -295,22 +610,17 @@ const COMMON_ALLERGENS = [
 ]
 
 export function AcneRecipeGenerator() {
-  const [selectedMealType, setSelectedMealType] = useState<'all' | Recipe['mealType']>('all')
   const [excludedIngredients, setExcludedIngredients] = useState<string[]>([])
   const [customExclusions, setCustomExclusions] = useState<string[]>([])
   const [newExclusion, setNewExclusion] = useState('')
-  const [filteredRecipes, setFilteredRecipes] = useState<Recipe[]>(ALL_RECIPES)
+  const [availableRecipes, setAvailableRecipes] = useState<Recipe[]>(ALL_RECIPES)
+  const [generatedRecipes, setGeneratedRecipes] = useState<Recipe[]>([])
+  const [dishCount, setDishCount] = useState(1)
   const [downloading, setDownloading] = useState(false)
-  const [generatedRecipe, setGeneratedRecipe] = useState<Recipe | null>(null)
 
-  // Фильтрация рецептов
+  // Фильтрация доступных рецептов по исключенным ингредиентам
   useEffect(() => {
     let filtered = [...ALL_RECIPES]
-
-    // Фильтр по типу приема пищи
-    if (selectedMealType !== 'all') {
-      filtered = filtered.filter(r => r.mealType === selectedMealType)
-    }
 
     // Фильтр по исключенным ингредиентам
     const allExclusions = [...excludedIngredients, ...customExclusions]
@@ -325,8 +635,8 @@ export function AcneRecipeGenerator() {
       })
     }
 
-    setFilteredRecipes(filtered)
-  }, [selectedMealType, excludedIngredients, customExclusions])
+    setAvailableRecipes(filtered)
+  }, [excludedIngredients, customExclusions])
 
   const toggleExclusion = (ingredient: string) => {
     if (excludedIngredients.includes(ingredient)) {
@@ -347,17 +657,29 @@ export function AcneRecipeGenerator() {
     setCustomExclusions(customExclusions.filter(i => i !== item))
   }
 
-  const generateRandomRecipe = () => {
-    if (filteredRecipes.length === 0) {
+  const generateRandomRecipes = () => {
+    if (availableRecipes.length === 0) {
       alert('Нет доступных рецептов с текущими фильтрами. Попробуйте изменить фильтры.')
       return
     }
-    const randomIndex = Math.floor(Math.random() * filteredRecipes.length)
-    const randomRecipe = filteredRecipes[randomIndex]
-    setGeneratedRecipe(randomRecipe)
-    // Прокрутка к сгенерированному рецепту
+    
+    const count = Math.min(dishCount, availableRecipes.length)
+    const selected: Recipe[] = []
+    const available = [...availableRecipes]
+    
+    // Генерируем уникальные рецепты
+    for (let i = 0; i < count; i++) {
+      if (available.length === 0) break
+      const randomIndex = Math.floor(Math.random() * available.length)
+      selected.push(available[randomIndex])
+      available.splice(randomIndex, 1) // Убираем выбранный рецепт
+    }
+    
+    setGeneratedRecipes(selected)
+    
+    // Прокрутка к первому сгенерированному рецепту
     setTimeout(() => {
-      const element = document.getElementById(`recipe-${randomRecipe.id}`)
+      const element = document.getElementById(`recipe-${selected[0].id}`)
       if (element) {
         element.scrollIntoView({ behavior: 'smooth', block: 'center' })
       }
@@ -365,7 +687,10 @@ export function AcneRecipeGenerator() {
   }
 
   const downloadPDF = async () => {
-    if (filteredRecipes.length === 0) return
+    if (generatedRecipes.length === 0) {
+      alert('Сначала сгенерируйте рецепты!')
+      return
+    }
 
     try {
       setDownloading(true)
@@ -401,7 +726,7 @@ export function AcneRecipeGenerator() {
       }
 
       // Рецепты
-      filteredRecipes.forEach((recipe, index) => {
+      generatedRecipes.forEach((recipe, index) => {
         if (yPos > pageHeight - 60) {
           pdf.addPage()
           yPos = 25
@@ -486,29 +811,22 @@ export function AcneRecipeGenerator() {
         </div>
       </div>
 
-      {/* Фильтр по типу приема пищи */}
-      <div className="mb-4 sm:mb-6">
-        <label className="text-white/80 text-xs sm:text-sm font-medium mb-2 block">Тип приема пищи:</label>
-        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-          {[
-            { value: 'all', label: 'Все' },
-            { value: 'breakfast', label: 'Завтрак' },
-            { value: 'lunch', label: 'Обед' },
-            { value: 'dinner', label: 'Ужин' },
-            { value: 'snack', label: 'Перекус' },
-          ].map(option => (
-            <button
-              key={option.value}
-              onClick={() => setSelectedMealType(option.value as any)}
-              className={`py-2 px-2 sm:px-3 rounded-xl text-xs sm:text-sm font-medium transition-all ${
-                selectedMealType === option.value
-                  ? 'bg-gradient-to-r from-accent-electric to-accent-teal text-dark-900 shadow-lg'
-                  : 'bg-white/5 text-white/70 hover:bg-white/10'
-              }`}
-            >
-              {option.label}
-            </button>
-          ))}
+      {/* Выбор количества блюд */}
+      <div className="mb-4 sm:mb-6 p-3 sm:p-4 rounded-xl bg-white/5 border border-white/10">
+        <label className="text-white/80 text-xs sm:text-sm font-medium mb-3 block flex items-center gap-2">
+          <Sparkles className="w-4 h-4 flex-shrink-0" />
+          <span>Сколько блюд сгенерировать:</span>
+        </label>
+        <div className="flex items-center gap-3">
+          <input
+            type="number"
+            min="1"
+            max="10"
+            value={dishCount}
+            onChange={(e) => setDishCount(Math.max(1, Math.min(10, parseInt(e.target.value) || 1)))}
+            className="w-20 px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-center font-bold text-lg focus:outline-none focus:border-accent-electric/50"
+          />
+          <span className="text-white/60 text-sm">блюд (до {availableRecipes.length} доступно)</span>
         </div>
       </div>
 
@@ -581,8 +899,8 @@ export function AcneRecipeGenerator() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
           <div className="flex-1">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-white/60 text-xs sm:text-sm">Найдено рецептов:</span>
-              <span className="text-white font-bold text-base sm:text-lg">{filteredRecipes.length}</span>
+              <span className="text-white/60 text-xs sm:text-sm">Доступно рецептов:</span>
+              <span className="text-white font-bold text-base sm:text-lg">{availableRecipes.length}</span>
             </div>
             {(excludedIngredients.length > 0 || customExclusions.length > 0) && (
               <div className="text-xs text-white/50">
@@ -590,28 +908,33 @@ export function AcneRecipeGenerator() {
               </div>
             )}
           </div>
-          {filteredRecipes.length > 0 && (
+          {availableRecipes.length > 0 && (
             <button
-              onClick={generateRandomRecipe}
+              onClick={generateRandomRecipes}
               className="w-full sm:w-auto px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900 font-medium hover:shadow-lg hover:shadow-accent-gold/30 transition-all flex items-center justify-center gap-2 text-sm sm:text-base whitespace-nowrap"
             >
               <Shuffle className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span>Сгенерировать блюдо</span>
+              <span>Сгенерировать {dishCount} {dishCount === 1 ? 'блюдо' : dishCount < 5 ? 'блюда' : 'блюд'}</span>
             </button>
           )}
         </div>
       </div>
 
-      {/* Список рецептов */}
-      {filteredRecipes.length === 0 ? (
+      {/* Сгенерированные рецепты */}
+      {generatedRecipes.length === 0 ? (
         <div className="p-8 text-center rounded-xl bg-white/5 border border-white/10">
-          <AlertCircle className="w-12 h-12 text-white/40 mx-auto mb-4" />
-          <p className="text-white/60 mb-2">Не найдено рецептов с указанными фильтрами</p>
-          <p className="text-white/40 text-sm">Попробуйте изменить фильтры или исключить меньше продуктов</p>
+          <ChefHat className="w-12 h-12 text-white/40 mx-auto mb-4" />
+          <p className="text-white/60 mb-2">Сгенерируйте рецепты для отображения</p>
+          <p className="text-white/40 text-sm">Выберите количество блюд и нажмите кнопку генерации</p>
         </div>
       ) : (
         <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
-          {filteredRecipes.map((recipe) => (
+          <div className="mb-4 p-3 rounded-xl bg-accent-electric/10 border border-accent-electric/30">
+            <p className="text-white font-medium text-sm sm:text-base">
+              Сгенерировано рецептов: <span className="text-accent-electric font-bold">{generatedRecipes.length}</span>
+            </p>
+          </div>
+          {generatedRecipes.map((recipe) => (
             <motion.div
               key={recipe.id}
               id={`recipe-${recipe.id}`}
@@ -619,8 +942,8 @@ export function AcneRecipeGenerator() {
               animate={{ 
                 opacity: 1, 
                 y: 0,
-                borderColor: generatedRecipe?.id === recipe.id ? 'rgba(59, 130, 246, 0.5)' : 'rgba(255, 255, 255, 0.1)',
-                boxShadow: generatedRecipe?.id === recipe.id ? '0 0 20px rgba(59, 130, 246, 0.3)' : 'none'
+                borderColor: 'rgba(59, 130, 246, 0.5)',
+                boxShadow: '0 0 20px rgba(59, 130, 246, 0.3)'
               }}
               transition={{ duration: 0.3 }}
               className="p-4 sm:p-5 rounded-xl bg-white/5 border-2 transition-all"
@@ -692,7 +1015,7 @@ export function AcneRecipeGenerator() {
       )}
 
       {/* Кнопка скачать PDF */}
-      {filteredRecipes.length > 0 && (
+      {generatedRecipes.length > 0 && (
         <button
           onClick={downloadPDF}
           disabled={downloading}
@@ -706,7 +1029,7 @@ export function AcneRecipeGenerator() {
           ) : (
             <>
               <Download className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span>Скачать рецепты в PDF</span>
+              <span>Скачать {generatedRecipes.length} {generatedRecipes.length === 1 ? 'рецепт' : generatedRecipes.length < 5 ? 'рецепта' : 'рецептов'} в PDF</span>
             </>
           )}
         </button>
