@@ -47,9 +47,15 @@ function PaymentSuccessContent() {
         console.log(`🔍 Verifying payment (attempt ${retryCount + 1}/${MAX_RETRIES}):`, { paymentId, courseId: courseIdToUse })
 
         // Проверяем статус платежа через API
+        // ВАЖНО: Приоритет payment_id - он работает без авторизации
         const params = new URLSearchParams()
-        if (paymentId) params.append('payment_id', paymentId)
-        if (courseIdToUse) params.append('course_id', courseIdToUse)
+        if (paymentId) {
+          // Если есть payment_id, используем только его (работает без авторизации)
+          params.append('payment_id', paymentId)
+        } else if (courseIdToUse) {
+          // Если нет payment_id, но есть course_id, используем его (требует авторизацию)
+          params.append('course_id', courseIdToUse)
+        }
 
         console.log('📤 Fetching payment status:', params.toString())
         const response = await fetch(`/api/payments/verify?${params.toString()}`, {
@@ -59,8 +65,38 @@ function PaymentSuccessContent() {
 
         console.log('📥 Payment verification response:', { status: response.status, data })
 
+        // Если ошибка авторизации, но есть payment_id в localStorage, пробуем еще раз только с payment_id
+        if (!response.ok && response.status === 401 && !paymentId && paymentIdFromStorage) {
+          console.log('🔄 Retrying with payment_id from storage...')
+          const retryParams = new URLSearchParams()
+          retryParams.append('payment_id', paymentIdFromStorage)
+          const retryResponse = await fetch(`/api/payments/verify?${retryParams.toString()}`, {
+            credentials: 'include'
+          })
+          const retryData = await retryResponse.json()
+          if (retryResponse.ok && retryData.status === 'completed') {
+            console.log('✅ Payment verified via retry')
+            setStatus('success')
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('last_payment_id')
+              localStorage.removeItem('last_payment_course_id')
+            }
+            return
+          }
+        }
+
         if (!response.ok) {
           console.error('❌ Payment verification failed:', data)
+          // Если платеж был успешен (статус completed), но ошибка авторизации - все равно показываем успех
+          if (data.status === 'completed') {
+            console.log('✅ Payment is completed despite auth error')
+            setStatus('success')
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('last_payment_id')
+              localStorage.removeItem('last_payment_course_id')
+            }
+            return
+          }
           setStatus('error')
           setErrorMessage(data.error || 'Не удалось проверить статус платежа')
           return

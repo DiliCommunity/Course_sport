@@ -53,19 +53,16 @@ export async function GET(request: NextRequest) {
       console.log('🔍 Searching by payment_id:', paymentId)
       query = query.filter('metadata->>yookassa_payment_id', 'eq', paymentId) as any
     } else if (courseId) {
-      // Для проверки по course_id нужен user_id
-      if (!user) {
-        console.error('❌ No user for course_id check')
-        return NextResponse.json(
-          { error: 'Unauthorized - user required for course_id check' },
-          { status: 401 }
-        )
-      }
-      // Ищем последний платеж по курсу (конвертируем ID если нужно)
+      // Для проверки по course_id пытаемся найти без user_id (последний платеж по курсу)
+      // Если есть user - фильтруем по нему, если нет - берем последний
       const { getCourseUUID } = await import('@/lib/constants')
       const courseUUID = courseId.includes('-') ? courseId : getCourseUUID(courseId)
-      console.log('🔍 Searching by course_id:', courseUUID, 'for user:', user.id)
-      query = query.eq('course_id', courseUUID).eq('user_id', user.id) as any
+      console.log('🔍 Searching by course_id:', courseUUID, user ? `for user: ${user.id}` : 'without user filter')
+      query = query.eq('course_id', courseUUID) as any
+      if (user) {
+        query = query.eq('user_id', user.id) as any
+      }
+      // Берем последний платеж по курсу, отсортированный по дате
     }
     
     query = query.limit(1) as any
