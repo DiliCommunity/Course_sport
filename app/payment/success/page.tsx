@@ -19,6 +19,8 @@ function PaymentSuccessContent() {
   const paymentIdFromStorage = typeof window !== 'undefined' ? localStorage.getItem('last_payment_id') : null
   const paymentId = paymentIdFromUrl || paymentIdFromStorage
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [retryCount, setRetryCount] = useState(0)
+  const MAX_RETRIES = 10 // Максимум 10 попыток (30 секунд)
 
   useEffect(() => {
     // Проверяем статус платежа в БД
@@ -34,7 +36,15 @@ function PaymentSuccessContent() {
           return
         }
 
-        console.log('🔍 Verifying payment:', { paymentId, courseId: courseIdToUse })
+        // Проверяем лимит попыток
+        if (retryCount >= MAX_RETRIES) {
+          console.warn('⚠️ Max retries reached, showing pending message')
+          setStatus('error')
+          setErrorMessage('Платеж обрабатывается. Проверьте статус в профиле через несколько минут. Если платеж прошел, доступ к курсу будет предоставлен автоматически.')
+          return
+        }
+
+        console.log(`🔍 Verifying payment (attempt ${retryCount + 1}/${MAX_RETRIES}):`, { paymentId, courseId: courseIdToUse })
 
         // Проверяем статус платежа через API
         const params = new URLSearchParams()
@@ -59,28 +69,43 @@ function PaymentSuccessContent() {
         // Проверяем реальный статус из БД
         if (data.verified && data.status === 'completed') {
           // Платеж успешно обработан
-          setStatus('success')
-        } else {
-          // Платеж не прошел или еще обрабатывается
-          console.log('Payment not completed:', data)
-          if (data.status === 'pending') {
-            // Платеж еще обрабатывается - ждем немного и проверяем снова
-            setTimeout(() => {
-              verifyPayment()
-            }, 3000)
-            return
+          console.log('✅ Payment verified successfully')
+          // Очищаем localStorage
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('last_payment_id')
+            localStorage.removeItem('last_payment_course_id')
           }
+          setStatus('success')
+        } else if (data.status === 'pending') {
+          // Платеж еще обрабатывается - ждем немного и проверяем снова
+          console.log(`⏳ Payment pending (${retryCount + 1}/${MAX_RETRIES}), retrying in 3 seconds...`)
+          setRetryCount(prev => prev + 1)
+          setTimeout(() => {
+            verifyPayment()
+          }, 3000)
+          return
+        } else {
+          // Платеж не прошел (failed, canceled)
+          console.log('❌ Payment failed or canceled:', data)
           setErrorMessage(data.message || 'Платеж не был завершен успешно')
           setStatus('error')
         }
       } catch (error) {
-        console.error('Payment verification error:', error)
-        setStatus('error')
+        console.error('❌ Payment verification error:', error)
+        if (retryCount < MAX_RETRIES) {
+          setRetryCount(prev => prev + 1)
+          setTimeout(() => {
+            verifyPayment()
+          }, 3000)
+        } else {
+          setStatus('error')
+          setErrorMessage('Не удалось проверить статус платежа. Попробуйте позже или проверьте в профиле.')
+        }
       }
     }
 
     verifyPayment()
-  }, [paymentId, courseId, paymentIdFromStorage])
+  }, [paymentId, courseId, paymentIdFromStorage, retryCount, MAX_RETRIES])
 
   if (status === 'loading') {
     return (
@@ -90,7 +115,12 @@ function PaymentSuccessContent() {
           <h1 className="font-display font-bold text-2xl text-white mb-2">
             Проверяем оплату...
           </h1>
-          <p className="text-white/60">Пожалуйста, подождите</p>
+          <p className="text-white/60 mb-2">Пожалуйста, подождите</p>
+          {retryCount > 0 && (
+            <p className="text-white/40 text-sm">
+              Попытка {retryCount + 1} из {MAX_RETRIES}
+            </p>
+          )}
         </div>
       </main>
     )

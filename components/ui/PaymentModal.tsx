@@ -257,7 +257,7 @@ export function PaymentModal({
                 <div className="flex items-baseline justify-between">
                   <span className="text-white/70">К оплате:</span>
                   <span className="font-display font-bold text-3xl bg-gradient-to-r from-accent-gold to-accent-electric bg-clip-text text-transparent">
-                    {formatPrice(coursePrice)}
+                    {formatPrice(coursePrice / 100)}
                   </span>
                 </div>
                 <div className="mt-2 text-center">
@@ -327,7 +327,7 @@ export function PaymentModal({
                     Оплата криптовалютой (TON)
                   </h3>
                   <TonPaymentButton
-                    amountRub={coursePrice}
+                    amountRub={coursePrice / 100}
                     courseId={courseId || 'unknown'}
                     courseName={courseTitle}
                     userId={user?.id || ''}
@@ -362,7 +362,7 @@ export function PaymentModal({
                   isLoading={isLoading}
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Создание платежа...' : `Оплатить ${formatPrice(coursePrice)}`}
+                  {isLoading ? 'Создание платежа...' : `Оплатить ${formatPrice(coursePrice / 100)}`}
                 </Button>
                 <Button
                   variant="secondary"

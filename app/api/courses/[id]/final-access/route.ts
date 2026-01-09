@@ -144,8 +144,8 @@ export async function GET(
 
     // Цена модулей 2-4 = полная цена курса (т.к. модули 2-4 стоят 10₽ за все)
     const modules24Price = courseData?.price || 1000 // 10₽ в копейках (тестовая цена)
-    // Финальные модули = 30% от цены модулей 2-4
-    const finalModulesPrice = Math.round(modules24Price * 0.3) // 30% от цены модулей 2-4 = 3₽ (300 копеек)
+    // Финальные модули = 30% от цены модулей 2-4, минимум 1₽ (100 копеек) для ЮКассы
+    const finalModulesPrice = Math.max(Math.round(modules24Price * 0.3), 100) // 30% от цены модулей 2-4 = 3₽ (300 копеек), минимум 1₽
 
     // Доступ ТОЛЬКО после оплаты, даже если прогресс >= 70%
     return NextResponse.json({

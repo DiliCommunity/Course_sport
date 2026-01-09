@@ -59,21 +59,30 @@ export async function POST(request: NextRequest) {
     switch (event) {
       case 'payment.succeeded':
         // Платеж успешен - обновляем статус и даем доступ к курсу
+        console.log('✅ Payment succeeded event received')
         await handlePaymentSuccess(supabase, payment)
         break
 
       case 'payment.canceled':
         // Платеж отменен
+        console.log('❌ Payment canceled event received')
         await handlePaymentCanceled(supabase, payment)
+        break
+
+      case 'payment.waiting_for_capture':
+        // Платеж ожидает подтверждения (для ручного подтверждения)
+        console.log('⏳ Payment waiting for capture')
+        // Обычно не требуется действий, но можно обновить статус
         break
 
       case 'refund.succeeded':
         // Возврат средств
+        console.log('💰 Refund succeeded event received')
         await handleRefund(supabase, payment)
         break
 
       default:
-        console.log(`Неизвестное событие: ${event}`)
+        console.log(`⚠️ Unknown event type: ${event}`)
     }
 
     return NextResponse.json({ success: true })

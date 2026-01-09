@@ -22,6 +22,7 @@ export function getCourseUUID(id: string): string {
 }
 
 // Цены курсов (в копейках)
+// ВАЖНО: Минимальная сумма для ЮКассы - 1₽ (100 копеек), тестовая цена - 10₽
 export const COURSE_PRICES = {
   [COURSE_IDS.KETO]: 1000, // 10₽ тестовая цена
   [COURSE_IDS.INTERVAL]: 1000, // 10₽ тестовая цена

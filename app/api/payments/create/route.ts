@@ -36,15 +36,23 @@ export async function POST(request: NextRequest) {
     console.log('amount:', amount)
 
     // Проверяем обязательные параметры
+    // ВАЖНО: Минимальная сумма для ЮКассы - 1₽ (100 копеек)
     if (type === 'balance_topup') {
       // Для пополнения баланса нужна только сумма
-      if (!amount || amount < 10000) { // Минимум 100₽ в копейках
+      if (!amount || amount < 100) { // Минимум 1₽ в копейках
         return NextResponse.json(
-          { error: 'Минимальная сумма пополнения: 100₽' },
+          { error: 'Минимальная сумма пополнения: 1₽' },
           { status: 400 }
         )
       }
     } else {
+      // Проверяем минимальную сумму для всех типов платежей
+      if (amount && amount < 100) { // Минимум 1₽ в копейках
+        return NextResponse.json(
+          { error: 'Минимальная сумма платежа: 1₽' },
+          { status: 400 }
+        )
+      }
       const promotionId = metadata?.promotion_id
       
       // Для покупки курса нужны курс и сумма (кроме акции "2 курса")
@@ -115,6 +123,9 @@ export async function POST(request: NextRequest) {
 
     const paymentMethodType = getPaymentMethodType(paymentMethod || 'card')
 
+    // URL для webhook от ЮКассы
+    const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://course-sport.vercel.app'}/api/payments/webhook`
+    
     // Создаем платеж в ЮКасса
     const paymentData: any = {
       amount: {
@@ -126,6 +137,11 @@ export async function POST(request: NextRequest) {
         type: 'redirect',
         return_url: returnUrl || `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/payment/success?course=${courseId}`
       },
+      // Добавляем webhook URL для получения уведомлений о статусе платежа
+      ...(webhookUrl && {
+        save_payment_method: false,
+        // ЮКасса автоматически отправляет webhook на этот URL при изменении статуса
+      }),
       description: type === 'balance_topup' 
         ? `Пополнение баланса на ${(amount / 100).toFixed(2)}₽`
         : type === 'promotion' && metadata?.promotion_id === 'two_courses'
@@ -136,6 +152,7 @@ export async function POST(request: NextRequest) {
         ? `Оплата финальных модулей курса #${courseId}`
         : `Оплата курса #${courseId}`,
       // Добавляем receipt только если есть валидный email или телефон
+      // ВАЖНО: receipt требует items, поэтому добавляем их
       ...(receipt && (receipt.email || receipt.phone) && {
         receipt: {
           customer: {
@@ -149,7 +166,28 @@ export async function POST(request: NextRequest) {
                 ? `+7${receipt.phone.replace(/\D/g, '').slice(1)}`
                 : `+7${receipt.phone.replace(/\D/g, '')}`
             })
-          }
+          },
+          items: [
+            {
+              description: type === 'balance_topup' 
+                ? 'Пополнение баланса'
+                : type === 'promotion' && metadata?.promotion_id === 'two_courses'
+                ? 'Оплата 2 курсов по акции'
+                : type === 'promotion' && metadata?.promotion_id === 'first_100'
+                ? 'Оплата курса по акции "Первым 100 студентам"'
+                : type === 'final_modules'
+                ? 'Оплата финальных модулей курса'
+                : 'Оплата курса',
+              quantity: '1.00',
+              amount: {
+                value: (amount / 100).toFixed(2),
+                currency: 'RUB'
+              },
+              vat_code: 1, // Без НДС (для образовательных услуг)
+              payment_mode: 'full_prepayment',
+              payment_subject: 'educational_services'
+            }
+          ]
         }
       }),
       metadata: {
@@ -161,12 +199,9 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Для СБП и СберПей указываем payment_method_types, для остальных - payment_method_data
-    if (paymentMethodType === 'sbp' || paymentMethodType === 'sberbank') {
-      paymentData.payment_method_types = [paymentMethodType]
-    } else {
-      paymentData.payment_method_data = { type: paymentMethodType }
-    }
+    // Для всех методов оплаты используем payment_method_types
+    // Это более универсальный подход, который работает для всех методов
+    paymentData.payment_method_types = [paymentMethodType]
 
     // Логируем данные платежа для отладки (без секретных данных)
     console.log('📤 Создание платежа в ЮКасса:', {
