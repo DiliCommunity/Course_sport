@@ -17,7 +17,8 @@ interface PaymentModalProps {
   coursePrice: number
   courseId?: string
   isFullAccess?: boolean // true = покупка полного доступа (осталось 30%), false = первый раз
-  type?: 'course_purchase' | 'final_modules' | 'balance_topup' // Тип платежа
+  type?: 'course_purchase' | 'final_modules' | 'balance_topup' | 'promotion' // Тип платежа
+  promotionId?: string // ID акции (first_100, two_courses)
   onPaymentSuccess?: () => void
 }
 
@@ -93,6 +94,7 @@ export function PaymentModal({
   courseId,
   isFullAccess = false,
   type = 'course_purchase',
+  promotionId,
   onPaymentSuccess,
 }: PaymentModalProps) {
   const router = useRouter()
@@ -141,14 +143,15 @@ export function PaymentModal({
         },
         credentials: 'include',
         body: JSON.stringify({
-          courseId: courseId || 'unknown',
+          courseId: courseId || (type === 'promotion' && promotionId === 'two_courses' ? null : 'unknown'),
           paymentMethod: selectedMethod,
-          amount: coursePrice * 100, // Конвертируем рубли в копейки для API
+          amount: coursePrice, // coursePrice уже в копейках (109900, 219900)
           userId: userId,
-          returnUrl: `${window.location.origin}/payment/success?course=${courseId}`,
+          returnUrl: `${window.location.origin}/payment/success${courseId ? `?course=${courseId}` : ''}`,
           type: type,
           metadata: {
-            is_full_access: isFullAccess
+            is_full_access: isFullAccess,
+            ...(promotionId && { promotion_id: promotionId })
           }
         })
       })

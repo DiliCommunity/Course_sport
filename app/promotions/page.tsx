@@ -1,10 +1,41 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { Gift, Users, Share2, TrendingUp, ArrowRight, Flame, Star, Zap } from 'lucide-react'
+import { PaymentModal } from '@/components/ui/PaymentModal'
+import { useAuth } from '@/components/providers/AuthProvider'
+import { COURSE_IDS } from '@/lib/constants'
+
+interface PromotionStatus {
+  available: boolean
+  usedSlots?: number
+  totalSlots?: number
+  availableSlots?: number
+}
 
 export default function PromotionsPage() {
+  const { user } = useAuth()
+  const [selectedPromotion, setSelectedPromotion] = useState<string | null>(null)
+  const [selectedCourseForPromotion, setSelectedCourseForPromotion] = useState<string>(COURSE_IDS.KETO)
+  const [promotionStatus, setPromotionStatus] = useState<Record<string, PromotionStatus>>({})
+  
+  // Загружаем статус акций
+  useEffect(() => {
+    const checkPromotions = async () => {
+      try {
+        const response = await fetch('/api/promotions/check?id=first_100')
+        if (response.ok) {
+          const data = await response.json()
+          setPromotionStatus(prev => ({ ...prev, first_100: data }))
+        }
+      } catch (error) {
+        console.error('Error checking promotions:', error)
+      }
+    }
+    checkPromotions()
+  }, [])
   return (
     <main className="min-h-screen pt-28 pb-16">
       {/* Hero Section */}
@@ -57,15 +88,32 @@ export default function PromotionsPage() {
               </div>
               <div className="p-3 rounded-xl bg-accent-gold/10 border border-accent-gold/20 mb-6">
                 <div className="text-white/60 text-xs mb-1">Осталось мест:</div>
-                <div className="text-accent-gold font-bold text-2xl">100</div>
+                <div className="text-accent-gold font-bold text-2xl">
+                  {promotionStatus.first_100?.availableSlots ?? 100}
+                </div>
               </div>
-              <Link
-                href="/courses"
-                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900 font-medium hover:shadow-lg hover:shadow-accent-gold/30 transition-all flex items-center justify-center gap-2"
+              <button
+                onClick={() => {
+                  if (!user) {
+                    // Redirect to login if not authenticated
+                    window.location.href = '/login?redirect=/promotions'
+                    return
+                  }
+                  if (!promotionStatus.first_100?.available) {
+                    alert('К сожалению, все места по этой акции уже заняты!')
+                    return
+                  }
+                  // Для акции first_100 нужно выбрать курс - пока используем KETO по умолчанию
+                  // Можно будет добавить выбор курса в модалке
+                  setSelectedPromotion('first_100')
+                  setSelectedCourseForPromotion(COURSE_IDS.KETO)
+                }}
+                disabled={!promotionStatus.first_100?.available && promotionStatus.first_100 !== undefined}
+                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900 font-medium hover:shadow-lg hover:shadow-accent-gold/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <span>Воспользоваться</span>
                 <ArrowRight className="w-4 h-4" />
-              </Link>
+              </button>
             </div>
           </motion.div>
 
@@ -158,13 +206,19 @@ export default function PromotionsPage() {
                 <div className="text-white/60 text-xs mb-1">Экономия:</div>
                 <div className="text-accent-flame font-bold text-xl">1799₽</div>
               </div>
-              <Link
-                href="/courses"
+              <button
+                onClick={() => {
+                  if (!user) {
+                    window.location.href = '/login?redirect=/promotions'
+                    return
+                  }
+                  setSelectedPromotion('two_courses')
+                }}
                 className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-accent-flame to-accent-gold text-dark-900 font-medium hover:shadow-lg hover:shadow-accent-flame/30 transition-all flex items-center justify-center gap-2"
               >
                 <span>Воспользоваться</span>
                 <ArrowRight className="w-4 h-4" />
-              </Link>
+              </button>
             </div>
           </motion.div>
         </div>
@@ -200,6 +254,45 @@ export default function PromotionsPage() {
           </ul>
         </motion.div>
       </section>
+
+      {/* Payment Modals */}
+      {selectedPromotion === 'first_100' && (
+        <PaymentModal
+          isOpen={true}
+          onClose={() => {
+            setSelectedPromotion(null)
+            // Обновляем статус после закрытия
+            fetch('/api/promotions/check?id=first_100')
+              .then(res => res.json())
+              .then(data => setPromotionStatus(prev => ({ ...prev, first_100: data })))
+              .catch(console.error)
+          }}
+          courseTitle={`Курс по акции (1099₽)`}
+          coursePrice={109900} // 1099₽ в копейках
+          courseId={selectedCourseForPromotion}
+          type="promotion"
+          promotionId="first_100"
+          onPaymentSuccess={() => {
+            setSelectedPromotion(null)
+            window.location.href = '/courses'
+          }}
+        />
+      )}
+
+      {selectedPromotion === 'two_courses' && (
+        <PaymentModal
+          isOpen={true}
+          onClose={() => setSelectedPromotion(null)}
+          courseTitle="2 курса: Кето-диета + Интервальное голодание"
+          coursePrice={219900} // 2199₽ в копейках
+          type="promotion"
+          promotionId="two_courses"
+          onPaymentSuccess={() => {
+            setSelectedPromotion(null)
+            window.location.href = '/profile/courses'
+          }}
+        />
+      )}
     </main>
   )
 }

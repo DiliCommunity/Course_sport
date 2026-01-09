@@ -389,7 +389,7 @@ export function FastingWorkoutGenerator() {
                     : 'bg-white/5 text-white/70 hover:bg-white/10'
                 }`}
               >
-                {week} {week === 1 ? 'неделя' : week < 5 ? 'недели' : '+'} недель
+                {week === 5 ? '5+ недель' : week === 1 ? '1 неделя' : `${week} недели`}
               </button>
             ))}
           </div>

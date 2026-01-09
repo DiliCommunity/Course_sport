@@ -24,7 +24,7 @@ interface YooKassaPayment {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { courseId: rawCourseId, paymentMethod, amount, userId, returnUrl, type } = body
+    const { courseId: rawCourseId, paymentMethod, amount, userId, returnUrl, type, metadata } = body
     
     // Конвертируем старые ID ('1', '2') в UUID для БД
     const courseId = rawCourseId ? getCourseUUID(rawCourseId) : null
@@ -45,12 +45,25 @@ export async function POST(request: NextRequest) {
         )
       }
     } else {
-      // Для покупки курса нужны курс и сумма
-      if (!courseId || !amount) {
-        return NextResponse.json(
-          { error: 'Не указан курс или сумма' },
-          { status: 400 }
-        )
+      const promotionId = metadata?.promotion_id
+      
+      // Для покупки курса нужны курс и сумма (кроме акции "2 курса")
+      if (type === 'promotion' && promotionId === 'two_courses') {
+        // Для акции "2 курса" не требуется courseId
+        if (!amount) {
+          return NextResponse.json(
+            { error: 'Не указана сумма' },
+            { status: 400 }
+          )
+        }
+      } else {
+        // Для обычной покупки курса нужен курс и сумма
+        if (!courseId || !amount) {
+          return NextResponse.json(
+            { error: 'Не указан курс или сумма' },
+            { status: 400 }
+          )
+        }
       }
     }
 
@@ -115,6 +128,10 @@ export async function POST(request: NextRequest) {
       },
       description: type === 'balance_topup' 
         ? `Пополнение баланса на ${(amount / 100).toFixed(2)}₽`
+        : type === 'promotion' && metadata?.promotion_id === 'two_courses'
+        ? `Оплата 2 курсов по акции (2199₽)`
+        : type === 'promotion' && metadata?.promotion_id === 'first_100'
+        ? `Оплата курса по акции "Первым 100 студентам" (1099₽)`
         : type === 'final_modules'
         ? `Оплата финальных модулей курса #${courseId}`
         : `Оплата курса #${courseId}`,
@@ -122,7 +139,8 @@ export async function POST(request: NextRequest) {
         ...(courseId && { course_id: courseId }),
         user_id: userId || 'guest',
         payment_method: paymentMethod || 'card',
-        type: type || 'course_purchase'
+        type: type || 'course_purchase',
+        ...(body.metadata || {})
       }
     }
 
@@ -175,8 +193,8 @@ export async function POST(request: NextRequest) {
         
           // Если цена совпадает с полной ценой курса - это полный доступ
           // Или если в metadata явно указано is_full_access
-          const metadata = body.metadata || {}
-          isFullAccess = metadata.is_full_access === true || 
+          const paymentMetadata = metadata || {}
+          isFullAccess = paymentMetadata.is_full_access === true || 
                         (courseData ? amount >= courseData.price : false)
         }
         
@@ -195,6 +213,9 @@ export async function POST(request: NextRequest) {
           ? (rawPaymentMethod === 'sbp' ? 'card' : rawPaymentMethod) // sbp -> card для БД
           : 'card'
         
+        const promotionId = metadata?.promotion_id
+        const paymentType = type || 'course_purchase'
+        
         const { data: insertedPayment, error: insertError } = await supabase
         .from('payments')
         .insert({
@@ -208,9 +229,10 @@ export async function POST(request: NextRequest) {
           metadata: {
             yookassa_payment_id: payment.id,
             confirmation_url: payment.confirmation.confirmation_url,
-            type: type || 'course_purchase',
+            type: paymentType,
             original_payment_method: rawPaymentMethod, // Сохраняем оригинальный метод (sbp) в metadata
-            ...(body.metadata || {})
+            ...(promotionId && { promotion_id: promotionId }),
+            ...(metadata || {})
           }
         })
         .select()

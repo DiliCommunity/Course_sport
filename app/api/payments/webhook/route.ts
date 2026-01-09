@@ -25,6 +25,8 @@ interface YooKassaEvent {
       user_id: string
       payment_method: string
       type?: string
+      promotion_id?: string
+      [key: string]: any // Для других полей metadata
     }
     payment_method: {
       type: string
@@ -176,6 +178,8 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
       const rawPaymentMethod = metadata?.payment_method || payment.payment_method?.type || 'card'
       const dbPaymentMethod = rawPaymentMethod === 'sbp' ? 'card' : rawPaymentMethod
 
+      const promotionId = metadata?.promotion_id
+      
       const { data: newPayment, error: createError } = await supabase
         .from('payments')
         .insert({
@@ -192,6 +196,7 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
             type: paymentType,
             paid: payment.paid,
             original_payment_method: rawPaymentMethod,
+            ...(promotionId && { promotion_id: promotionId }),
           }
         })
         .select()
@@ -206,9 +211,71 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
     }
   }
 
-  // Создаем enrollment для курса (только для course_purchase, не для final_modules)
+  // Обработка акций
+  const promotionId = metadata?.promotion_id
+  if (paymentType === 'promotion' && promotionId) {
+    console.log('🎁 Обработка акции:', promotionId)
+    
+    // Акция "2 курса за 2199₽"
+    if (promotionId === 'two_courses') {
+      const { COURSE_IDS } = await import('@/lib/constants')
+      const ketoCourseId = getCourseUUID(COURSE_IDS.KETO)
+      const intervalCourseId = getCourseUUID(COURSE_IDS.INTERVAL)
+      
+      // Открываем доступ к обоим курсам
+      for (const cId of [ketoCourseId, intervalCourseId]) {
+        const { data: existingEnrollment } = await supabase
+          .from('enrollments')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('course_id', cId)
+          .maybeSingle()
+
+        if (!existingEnrollment) {
+          const { error: enrollmentError } = await supabase
+            .from('enrollments')
+            .upsert({
+              user_id: userId,
+              course_id: cId,
+              progress: 0,
+              created_at: new Date().toISOString()
+            }, {
+              onConflict: 'user_id,course_id',
+              ignoreDuplicates: false
+            })
+
+          if (enrollmentError) {
+            console.error(`❌ Ошибка создания enrollment для курса ${cId}:`, enrollmentError)
+          } else {
+            console.log(`✅ Enrollment создан для курса: ${cId}`)
+          }
+        }
+      }
+      console.log('✅ Доступ к обоим курсам открыт (акция "2 курса")')
+    }
+    
+    // Акция "Первым 100 студентам" - обрабатываем как обычный курс
+    if (promotionId === 'first_100' && courseId) {
+      // Обновляем payment с promotion_id
+      if (paymentRecordId) {
+        await supabase
+          .from('payments')
+          .update({
+            metadata: {
+              ...metadata,
+              promotion_id: 'first_100',
+              type: 'promotion'
+            }
+          })
+          .eq('id', paymentRecordId)
+      }
+      // Открываем доступ к курсу (обработается ниже)
+    }
+  }
+
+  // Создаем enrollment для курса (только для course_purchase и promotion с курсом, не для final_modules)
   // Для final_modules enrollment уже должен существовать
-  if (courseId && paymentType !== 'final_modules') {
+  if (courseId && paymentType !== 'final_modules' && (paymentType === 'course_purchase' || (paymentType === 'promotion' && promotionId === 'first_100'))) {
     const { data: existingEnrollment } = await supabase
       .from('enrollments')
       .select('id')
