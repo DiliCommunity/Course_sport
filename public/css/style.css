@@ -2746,9 +2746,10 @@ section > * {
     backdrop-filter: blur(10px);
     z-index: 4900;
     display: none;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     padding: 20px;
+    padding-top: 96px; /* 24 * 4px = 96px для отступа от header (h-20 = 80px + 16px) */
 }
 
 .recipe-modal-overlay.active {

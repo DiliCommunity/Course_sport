@@ -15,15 +15,49 @@ function PaymentSuccessContent() {
   const courseId = searchParams.get('course')
   const type = searchParams.get('type') || 'course_purchase'
   const paymentId = searchParams.get('payment_id')
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   useEffect(() => {
-    // Проверяем статус платежа
+    // Проверяем статус платежа в БД
     const verifyPayment = async () => {
       try {
-        // Здесь можно добавить проверку статуса через API
-        // Пока просто показываем успех
-        await new Promise(resolve => setTimeout(resolve, 1500))
-        setStatus('success')
+        if (!courseId && !paymentId) {
+          // Если нет параметров - показываем ошибку
+          setStatus('error')
+          return
+        }
+
+        // Проверяем статус платежа через API
+        const params = new URLSearchParams()
+        if (paymentId) params.append('payment_id', paymentId)
+        if (courseId) params.append('course_id', courseId)
+
+        const response = await fetch(`/api/payments/verify?${params.toString()}`)
+        const data = await response.json()
+
+        if (!response.ok) {
+          console.error('Payment verification failed:', data)
+          setStatus('error')
+          return
+        }
+
+        // Проверяем реальный статус из БД
+        if (data.verified && data.status === 'completed') {
+          // Платеж успешно обработан
+          setStatus('success')
+        } else {
+          // Платеж не прошел или еще обрабатывается
+          console.log('Payment not completed:', data)
+          if (data.status === 'pending') {
+            // Платеж еще обрабатывается - ждем немного и проверяем снова
+            setTimeout(() => {
+              verifyPayment()
+            }, 3000)
+            return
+          }
+          setErrorMessage(data.message || 'Платеж не был завершен успешно')
+          setStatus('error')
+        }
       } catch (error) {
         console.error('Payment verification error:', error)
         setStatus('error')
@@ -31,7 +65,7 @@ function PaymentSuccessContent() {
     }
 
     verifyPayment()
-  }, [paymentId])
+  }, [paymentId, courseId])
 
   if (status === 'loading') {
     return (
@@ -55,14 +89,39 @@ function PaymentSuccessContent() {
             <span className="text-4xl">❌</span>
           </div>
           <h1 className="font-display font-bold text-2xl text-white mb-4">
-            Ошибка оплаты
+            Оплата не прошла
           </h1>
-          <p className="text-white/60 mb-8">
-            Произошла ошибка при обработке платежа. Пожалуйста, попробуйте снова или обратитесь в поддержку.
+          <p className="text-white/60 mb-4">
+            {errorMessage || 'К сожалению, оплата не была завершена успешно. Это может произойти по разным причинам.'}
+          </p>
+          <div className="glass rounded-xl p-4 mb-6 text-left">
+            <p className="text-white/80 text-sm mb-2">Что можно сделать:</p>
+            <ul className="space-y-2 text-white/60 text-sm">
+              <li className="flex items-start gap-2">
+                <span className="text-accent-electric mt-1">•</span>
+                <span>Попробуйте другой способ оплаты (СБП, карта, СберПей)</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-accent-electric mt-1">•</span>
+                <span>Проверьте баланс карты или счета</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-accent-electric mt-1">•</span>
+                <span>Попробуйте позже — иногда требуется время для обработки</span>
+              </li>
+            </ul>
+          </div>
+          <p className="text-white/40 text-xs mb-8">
+            Приносим извинения за неудобства. Если проблема повторяется, обратитесь в поддержку.
           </p>
           <div className="space-y-3">
-            <Link href="/payment" className="w-full">
-              <Button className="w-full">Попробовать снова</Button>
+            {courseId && (
+              <Link href={`/courses/${courseId}`} className="w-full">
+                <Button className="w-full">Попробовать другой способ оплаты</Button>
+              </Link>
+            )}
+            <Link href="/courses" className="w-full">
+              <Button variant="secondary" className="w-full">Вернуться к курсам</Button>
             </Link>
             <Link href="/" className="w-full">
               <Button variant="secondary" className="w-full">На главную</Button>
