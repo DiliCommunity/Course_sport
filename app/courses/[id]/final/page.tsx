@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { 
-  ArrowLeft, CheckCircle2, Lock, Clock, FileText, Video, 
-  ChevronDown, ChevronUp, Loader2, Award, Sparkles, Star
+  ArrowLeft, CheckCircle2, Lock, Clock, FileText, Sparkles, 
+  ChevronDown, ChevronUp, Loader2, Award, Zap, Star
 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -376,8 +376,8 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
                                     ? 'bg-gradient-to-br from-accent-gold/20 to-accent-electric/20' 
                                     : 'bg-white/5'
                                 }`}>
-                                  {lesson.type === 'video' ? (
-                                    <Video className={`w-6 h-6 ${hasAccess ? 'text-accent-gold' : 'text-white/30'}`} />
+                                  {(lesson.type === 'text' || lesson.type === 'infographic') ? (
+                                    <Sparkles className={`w-6 h-6 ${hasAccess ? 'text-accent-gold' : 'text-white/30'}`} />
                                   ) : (
                                     <FileText className={`w-6 h-6 ${hasAccess ? 'text-accent-gold' : 'text-white/30'}`} />
                                   )}
@@ -644,8 +644,8 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
                                     ? 'bg-gradient-to-br from-accent-neon/20 to-accent-electric/20' 
                                     : 'bg-white/5'
                                 }`}>
-                                  {lesson.type === 'video' ? (
-                                    <Video className={`w-6 h-6 ${hasAccess ? 'text-accent-neon' : 'text-white/30'}`} />
+                                  {(lesson.type === 'text' || lesson.type === 'infographic') ? (
+                                    <Sparkles className={`w-6 h-6 ${hasAccess ? 'text-accent-neon' : 'text-white/30'}`} />
                                   ) : (
                                     <FileText className={`w-6 h-6 ${hasAccess ? 'text-accent-neon' : 'text-white/30'}`} />
                                   )}

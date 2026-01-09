@@ -6,7 +6,7 @@ import { motion } from 'framer-motion'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { 
   ArrowLeft, Play, CheckCircle2, Lock, BookOpen, 
-  Clock, FileText, Video, Image as ImageIcon, ChevronRight,
+  Clock, FileText, Sparkles, Image as ImageIcon, ChevronRight,
   Loader2, AlertCircle
 } from 'lucide-react'
 import Link from 'next/link'
