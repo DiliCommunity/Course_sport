@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowLeft, Download, Clock, Flame, X, ChefHat, FileText, Minus, Plus, Users } from 'lucide-react'
+import { ArrowLeft, Download, Clock, Flame, X, ChefHat, FileText, Minus, Plus, Users, Lock } from 'lucide-react'
+import { useAuth } from '@/components/providers/AuthProvider'
 
 // PDF гайды по кето продуктам
 const ketoGuides = [
@@ -450,6 +451,91 @@ const recipes: Record<string, Recipe[]> = {
         'Добавьте яйца и бекон',
       ],
     },
+    {
+      id: 'l12',
+      name: 'Кето-бургер с салатом',
+      image: '/img/recipes/keto-burger.jpg',
+      time: 20,
+      calories: 580,
+      protein: 38,
+      fat: 44,
+      carbs: 6,
+      ingredients: ['200г говяжьего фарша', '2 листа салата', '50г сыра', '50г бекона', 'Кето-соус'],
+      instructions: [
+        'Сформируйте котлету из фарша',
+        'Обжарьте котлету и бекон',
+        'Соберите бургер: салат, котлета, сыр, бекон',
+        'Подавайте с кето-соусом',
+      ],
+    },
+    {
+      id: 'l13',
+      name: 'Куриные крылышки в кето-соусе',
+      image: '/img/recipes/keto-chicken-wings.jpg',
+      time: 35,
+      calories: 520,
+      protein: 42,
+      fat: 36,
+      carbs: 4,
+      ingredients: ['500г куриных крылышек', 'Кето-соус', 'Специи', 'Оливковое масло'],
+      instructions: [
+        'Замаринуйте крылышки в специях',
+        'Запекайте 25-30 минут при 200°C',
+        'Обмажьте кето-соусом',
+        'Запекайте еще 5 минут',
+      ],
+    },
+    {
+      id: 'l14',
+      name: 'Салат Нисуаз кето-версия',
+      image: '/img/recipes/keto-nicoise.jpg',
+      time: 20,
+      calories: 480,
+      protein: 32,
+      fat: 36,
+      carbs: 5,
+      ingredients: ['200г тунца', '2 яйца', '100г стручковой фасоли', '50г оливок', 'Оливковое масло'],
+      instructions: [
+        'Отварите яйца и фасоль',
+        'Обжарьте тунец',
+        'Соберите салат',
+        'Заправьте оливковым маслом',
+      ],
+    },
+    {
+      id: 'l15',
+      name: 'Кето-пицца на капустной основе',
+      image: '/img/recipes/keto-cauliflower-pizza.jpg',
+      time: 40,
+      calories: 420,
+      protein: 28,
+      fat: 30,
+      carbs: 8,
+      ingredients: ['300г цветной капусты', '100г сыра моцарелла', '100г колбасы', '50г томатов', 'Базилик'],
+      instructions: [
+        'Измельчите капусту в блендере',
+        'Смешайте с яйцом и сыром',
+        'Выпекайте основу 15 минут',
+        'Добавьте начинку и запекайте еще 10 минут',
+      ],
+    },
+    {
+      id: 'l16',
+      name: 'Кето-лазанья с кабачками',
+      image: '/img/recipes/keto-zucchini-lasagna.jpg',
+      time: 50,
+      calories: 520,
+      protein: 36,
+      fat: 38,
+      carbs: 8,
+      ingredients: ['300г кабачков', '300г фарша', '200г сыра', '150мл сливок', 'Томатная паста'],
+      instructions: [
+        'Нарежьте кабачки тонкими пластинами',
+        'Обжарьте фарш с томатной пастой',
+        'Соберите лазанью слоями',
+        'Запекайте 35-40 минут при 180°C',
+      ],
+    },
   ],
   dinner: [
     {
@@ -650,6 +736,91 @@ const recipes: Record<string, Recipe[]> = {
         'Подавайте стейк с фасолью и розмарином',
       ],
     },
+    {
+      id: 'd12',
+      name: 'Лосось в кокосовом соусе',
+      image: '/img/recipes/salmon-coconut-sauce.jpg',
+      time: 25,
+      calories: 560,
+      protein: 42,
+      fat: 40,
+      carbs: 6,
+      ingredients: ['300г лосося', '200мл кокосового молока', 'Имбирь', 'Чеснок', 'Лайм'],
+      instructions: [
+        'Обжарьте лосось с двух сторон',
+        'Приготовьте соус из кокосового молока и специй',
+        'Тушите лосось в соусе 5-7 минут',
+        'Подавайте с лаймом',
+      ],
+    },
+    {
+      id: 'd13',
+      name: 'Кето-паста из цуккини',
+      image: '/img/recipes/keto-zucchini-pasta.jpg',
+      time: 20,
+      calories: 380,
+      protein: 22,
+      fat: 28,
+      carbs: 8,
+      ingredients: ['400г цуккини', '200г креветок', '100мл сливок', '50г пармезана', 'Чеснок'],
+      instructions: [
+        'Нарежьте цуккини спиралью',
+        'Обжарьте креветки с чесноком',
+        'Добавьте цуккини и сливки',
+        'Посыпьте пармезаном',
+      ],
+    },
+    {
+      id: 'd14',
+      name: 'Индейка с брокколи и сыром',
+      image: '/img/recipes/turkey-broccoli-cheese.jpg',
+      time: 30,
+      calories: 480,
+      protein: 46,
+      fat: 32,
+      carbs: 6,
+      ingredients: ['300г индейки', '300г брокколи', '100г сыра чеддер', 'Сливки', 'Чеснок'],
+      instructions: [
+        'Обжарьте индейку до готовности',
+        'Отварите брокколи',
+        'Приготовьте сырный соус',
+        'Запекайте все вместе 10 минут',
+      ],
+    },
+    {
+      id: 'd15',
+      name: 'Кето-чили кон карне',
+      image: '/img/recipes/keto-chili-con-carne.jpg',
+      time: 45,
+      calories: 520,
+      protein: 38,
+      fat: 36,
+      carbs: 8,
+      ingredients: ['400г говяжьего фарша', '200г томатов', '100г перца', 'Чеснок', 'Кето-специи'],
+      instructions: [
+        'Обжарьте фарш',
+        'Добавьте овощи и специи',
+        'Тушите 30-35 минут',
+        'Подавайте горячим',
+      ],
+    },
+    {
+      id: 'd16',
+      name: 'Запеченная рыба с овощами',
+      image: '/img/recipes/baked-fish-vegetables.jpg',
+      time: 30,
+      calories: 420,
+      protein: 36,
+      fat: 28,
+      carbs: 6,
+      ingredients: ['300г белой рыбы', '200г кабачков', '150г перца', 'Оливковое масло', 'Лимон'],
+      instructions: [
+        'Нарежьте овощи',
+        'Выложите рыбу и овощи в форму',
+        'Полейте маслом и лимоном',
+        'Запекайте 25 минут при 180°C',
+      ],
+    },
   ],
   snacks: [
     {
@@ -836,6 +1007,90 @@ const recipes: Record<string, Recipe[]> = {
         'Выложите на противень тонким слоем',
         'Запекайте 25-30 минут при 150°C',
         'Охладите и разломайте на крекеры',
+      ],
+    },
+    {
+      id: 's12',
+      name: 'Кето-чипсы из капусты',
+      image: '/img/recipes/keto-kale-chips.jpg',
+      time: 20,
+      calories: 120,
+      protein: 4,
+      fat: 10,
+      carbs: 4,
+      ingredients: ['200г капусты кале', 'Оливковое масло', 'Морская соль', 'Паприка'],
+      instructions: [
+        'Нарежьте капусту',
+        'Смешайте с маслом и специями',
+        'Запекайте 12-15 минут при 150°C',
+        'Подавайте охлажденными',
+      ],
+    },
+    {
+      id: 's13',
+      name: 'Сырные шарики с орехами',
+      image: '/img/recipes/cheese-nut-balls.jpg',
+      time: 15,
+      calories: 280,
+      protein: 16,
+      fat: 24,
+      carbs: 3,
+      ingredients: ['200г сливочного сыра', '100г орехов', 'Зелень', 'Специи'],
+      instructions: [
+        'Смешайте сыр с зеленью и специями',
+        'Сформируйте шарики',
+        'Обваляйте в измельченных орехах',
+        'Охладите 30 минут',
+      ],
+    },
+    {
+      id: 's14',
+      name: 'Кето-дропсы с кокосом',
+      image: '/img/recipes/keto-coconut-drops.jpg',
+      time: 25,
+      calories: 220,
+      protein: 4,
+      fat: 20,
+      carbs: 6,
+      ingredients: ['150г кокосовой стружки', '50г кокосового масла', '50г эритритола', 'Ваниль'],
+      instructions: [
+        'Смешайте все ингредиенты',
+        'Сформируйте дропсы',
+        'Охладите 1 час',
+        'Храните в холодильнике',
+      ],
+    },
+    {
+      id: 's15',
+      name: 'Овощные палочки с соусом',
+      image: '/img/recipes/vegetable-sticks-dip.jpg',
+      time: 10,
+      calories: 180,
+      protein: 6,
+      fat: 16,
+      carbs: 4,
+      ingredients: ['Огурцы', 'Сельдерей', 'Перец', 'Кето-соус', 'Сливочный сыр'],
+      instructions: [
+        'Нарежьте овощи палочками',
+        'Приготовьте соус из сыра и специй',
+        'Подавайте овощи с соусом',
+      ],
+    },
+    {
+      id: 's16',
+      name: 'Кето-печенье с миндалем',
+      image: '/img/recipes/keto-almond-cookies.jpg',
+      time: 30,
+      calories: 160,
+      protein: 6,
+      fat: 14,
+      carbs: 4,
+      ingredients: ['150г миндальной муки', '50г миндаля', '50г эритритола', '1 яйцо', 'Ваниль'],
+      instructions: [
+        'Смешайте муку с эритритолом',
+        'Добавьте яйцо и ваниль',
+        'Добавьте цельный миндаль',
+        'Выпекайте 15-18 минут при 175°C',
       ],
     },
   ],
@@ -1037,6 +1292,93 @@ const recipes: Record<string, Recipe[]> = {
         'Охладите 1 час',
       ],
     },
+    {
+      id: 'ds12',
+      name: 'Кето-кексы с шоколадом',
+      image: '/img/recipes/keto-chocolate-cupcakes.jpg',
+      time: 35,
+      calories: 260,
+      protein: 8,
+      fat: 24,
+      carbs: 6,
+      ingredients: ['150г миндальной муки', '50г какао', '80г эритритола', '3 яйца', 'Кокосовое масло'],
+      instructions: [
+        'Смешайте сухие ингредиенты',
+        'Добавьте яйца и масло',
+        'Разложите по формочкам',
+        'Выпекайте 20-25 минут при 180°C',
+      ],
+    },
+    {
+      id: 'ds13',
+      name: 'Кето-мороженое с клубникой',
+      image: '/img/recipes/keto-strawberry-ice-cream.jpg',
+      time: 20,
+      calories: 300,
+      protein: 6,
+      fat: 28,
+      carbs: 6,
+      ingredients: ['400мл кокосовых сливок', '150г клубники', '50г эритритола', 'Ваниль'],
+      instructions: [
+        'Измельчите клубнику',
+        'Взбейте сливки с эритритолом',
+        'Смешайте все ингредиенты',
+        'Заморозьте 4 часа',
+      ],
+    },
+    {
+      id: 'ds14',
+      name: 'Кето-крем-брюле',
+      image: '/img/recipes/keto-creme-brulee.jpg',
+      time: 40,
+      calories: 340,
+      protein: 8,
+      fat: 32,
+      carbs: 5,
+      ingredients: ['400мл кокосовых сливок', '4 яичных желтка', '50г эритритола', 'Ваниль'],
+      instructions: [
+        'Подогрейте сливки с ванилью',
+        'Взбейте желтки с эритритолом',
+        'Соедините и разлейте по формам',
+        'Запекайте на водяной бане 30 минут',
+        'Охладите 2 часа',
+      ],
+    },
+    {
+      id: 'ds15',
+      name: 'Кето-трюфели',
+      image: '/img/recipes/keto-truffles.jpg',
+      time: 30,
+      calories: 180,
+      protein: 4,
+      fat: 18,
+      carbs: 4,
+      ingredients: ['200г темного шоколада 90%', '100мл кокосовых сливок', '50г эритритола', 'Какао для обвалки'],
+      instructions: [
+        'Растопите шоколад со сливками',
+        'Добавьте эритритол',
+        'Охладите 2 часа',
+        'Сформируйте шарики',
+        'Обваляйте в какао',
+      ],
+    },
+    {
+      id: 'ds16',
+      name: 'Кето-пончики',
+      image: '/img/recipes/keto-donuts.jpg',
+      time: 30,
+      calories: 280,
+      protein: 8,
+      fat: 26,
+      carbs: 6,
+      ingredients: ['150г миндальной муки', '50г кокосовой муки', '80г эритритола', '3 яйца', 'Кокосовое масло'],
+      instructions: [
+        'Смешайте все ингредиенты',
+        'Выложите в формы для пончиков',
+        'Выпекайте 18-20 минут при 175°C',
+        'Охладите и украсьте',
+      ],
+    },
   ],
 }
 
@@ -1057,6 +1399,41 @@ export default function KetoFoodPage() {
   const [activeCategory, setActiveCategory] = useState('breakfast')
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
   const [portions, setPortions] = useState(1)
+  const [hasPurchasedCourse, setHasPurchasedCourse] = useState(false)
+  const [isCheckingAccess, setIsCheckingAccess] = useState(true)
+  const { user } = useAuth()
+
+  // Проверяем, купил ли пользователь хотя бы один курс
+  useEffect(() => {
+    const checkAccess = async () => {
+      if (!user) {
+        setHasPurchasedCourse(false)
+        setIsCheckingAccess(false)
+        return
+      }
+
+      try {
+        const response = await fetch('/api/courses/access?check_purchased=true')
+        const data = await response.json()
+        setHasPurchasedCourse(data.hasPurchased || false)
+      } catch (error) {
+        console.error('Error checking access:', error)
+        setHasPurchasedCourse(false)
+      } finally {
+        setIsCheckingAccess(false)
+      }
+    }
+
+    checkAccess()
+  }, [user])
+
+  // Фильтруем рецепты: первые 15 для всех, остальные для купивших
+  const getAvailableRecipes = (categoryRecipes: Recipe[]): Recipe[] => {
+    if (hasPurchasedCourse) {
+      return categoryRecipes // Все рецепты для купивших
+    }
+    return categoryRecipes.slice(0, 15) // Первые 15 для всех
+  }
 
   // Скачать PDF гайд
   const downloadGuide = (pdfUrl: string, title: string) => {
@@ -1270,7 +1647,7 @@ export default function KetoFoodPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {recipes[category.id]?.map((recipe, index) => (
+              {getAvailableRecipes(recipes[category.id] || []).map((recipe, index) => (
                 <motion.div
                   key={recipe.id}
                   initial={{ opacity: 0, y: 20 }}

@@ -22,6 +22,27 @@ export async function GET(request: NextRequest) {
     const courseId = searchParams.get('course_id')
     const moduleNumber = searchParams.get('module_number')
     const lessonId = searchParams.get('lesson_id')
+    const checkPurchased = searchParams.get('check_purchased') === 'true'
+
+    // Если проверяем только покупку любого курса (для рецептов)
+    if (checkPurchased) {
+      const user = await getUserFromSession(supabase)
+      if (!user) {
+        return NextResponse.json({ hasPurchased: false })
+      }
+
+      // Проверяем, есть ли хотя бы один завершенный платеж
+      const { data: payments } = await adminSupabase
+        .from('payments')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('status', 'completed')
+        .limit(1)
+
+      return NextResponse.json({
+        hasPurchased: (payments && payments.length > 0) || false
+      })
+    }
 
     if (!courseId) {
       return NextResponse.json(

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Lock, CheckCircle2, Shield, LogIn } from 'lucide-react'
+import { X, Lock, CheckCircle2, Shield, LogIn, Mail, Phone } from 'lucide-react'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { useTelegram } from '@/components/providers/TelegramProvider'
 import { Button } from './Button'
@@ -101,6 +101,9 @@ export function PaymentModal({
   const [selectedMethod, setSelectedMethod] = useState('sbp')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
+  const [showContactForm, setShowContactForm] = useState(false)
   const { user } = useAuth()
   const { user: telegramUser, isTelegramApp, webApp } = useTelegram()
   
@@ -149,6 +152,18 @@ export function PaymentModal({
           userId: userId,
           returnUrl: `${window.location.origin}/payment/success${courseId ? `?course=${courseId}` : ''}`,
           type: type,
+          receipt: {
+            ...(email && email.includes('@') && { email }),
+            ...(phone && phone.trim() && { 
+              phone: phone.trim().startsWith('+') 
+                ? phone.trim() 
+                : phone.trim().replace(/\D/g, '').startsWith('7')
+                ? `+${phone.trim().replace(/\D/g, '')}`
+                : phone.trim().replace(/\D/g, '').startsWith('8')
+                ? `+7${phone.trim().replace(/\D/g, '').slice(1)}`
+                : `+7${phone.trim().replace(/\D/g, '')}`
+            })
+          },
           metadata: {
             is_full_access: isFullAccess,
             ...(promotionId && { promotion_id: promotionId })

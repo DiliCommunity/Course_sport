@@ -24,7 +24,7 @@ interface YooKassaPayment {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { courseId: rawCourseId, paymentMethod, amount, userId, returnUrl, type, metadata } = body
+    const { courseId: rawCourseId, paymentMethod, amount, userId, returnUrl, type, metadata, receipt } = body
     
     // Конвертируем старые ID ('1', '2') в UUID для БД
     const courseId = rawCourseId ? getCourseUUID(rawCourseId) : null
@@ -135,6 +135,23 @@ export async function POST(request: NextRequest) {
         : type === 'final_modules'
         ? `Оплата финальных модулей курса #${courseId}`
         : `Оплата курса #${courseId}`,
+      // Добавляем receipt только если есть валидный email или телефон
+      ...(receipt && (receipt.email || receipt.phone) && {
+        receipt: {
+          customer: {
+            ...(receipt.email && receipt.email.includes('@') && { email: receipt.email }),
+            ...(receipt.phone && {
+              phone: receipt.phone.startsWith('+') 
+                ? receipt.phone 
+                : receipt.phone.replace(/\D/g, '').startsWith('7')
+                ? `+${receipt.phone.replace(/\D/g, '')}`
+                : receipt.phone.replace(/\D/g, '').startsWith('8')
+                ? `+7${receipt.phone.replace(/\D/g, '').slice(1)}`
+                : `+7${receipt.phone.replace(/\D/g, '')}`
+            })
+          }
+        }
+      }),
       metadata: {
         ...(courseId && { course_id: courseId }),
         user_id: userId || 'guest',
