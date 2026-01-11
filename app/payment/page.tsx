@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, Suspense } from 'react'
+import { useState, Suspense, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Lock, CheckCircle2, Shield, Loader2, Mail, Phone } from 'lucide-react'
@@ -52,6 +52,18 @@ function PaymentPageContent() {
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
 
+  // Заполняем email/phone из БД при загрузке
+  useEffect(() => {
+    if (user) {
+      if (user.email && !email) {
+        setEmail(user.email)
+      }
+      if (user.phone && !phone) {
+        setPhone(user.phone)
+      }
+    }
+  }, [user])
+
   const handlePayment = async () => {
     setIsLoading(true)
     setError(null)
@@ -61,6 +73,16 @@ function PaymentPageContent() {
 
       if (typeof window === 'undefined') {
         throw new Error('Ошибка инициализации')
+      }
+
+      // Проверяем наличие email или phone (из формы или из БД)
+      const finalEmail = email.trim() || user?.email || ''
+      const finalPhone = phone.trim() || user?.phone || ''
+      
+      if (!finalEmail && !finalPhone) {
+        setError('Необходимо указать email или телефон для получения чека')
+        setIsLoading(false)
+        return
       }
 
       const returnUrl = `${window.location.origin}/payment/success?${type === 'course_purchase' ? `course=${courseId}` : 'type=balance_topup'}`
@@ -187,7 +209,7 @@ function PaymentPageContent() {
             </div>
             
             <div>
-              <label className="block text-sm text-white/70 mb-2">Email (опционально)</label>
+              <label className="block text-sm text-white/70 mb-2">Email {!user?.email && '(необходимо указать email или телефон)'}</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
                 <input
@@ -201,7 +223,7 @@ function PaymentPageContent() {
             </div>
             
             <div>
-              <label className="block text-sm text-white/70 mb-2">Телефон (опционально)</label>
+              <label className="block text-sm text-white/70 mb-2">Телефон {!user?.phone && '(необходимо указать email или телефон)'}</label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
                 <input
@@ -212,7 +234,7 @@ function PaymentPageContent() {
                   className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-accent-electric transition-colors"
                 />
               </div>
-              <p className="mt-1 text-xs text-white/40">Укажите email или телефон (хотя бы один для получения чека)</p>
+              <p className="mt-1 text-xs text-white/40">Обязательно укажите email или телефон (хотя бы один)</p>
             </div>
           </div>
 

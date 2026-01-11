@@ -110,6 +110,18 @@ export function PaymentModal({
   // Проверка авторизации - ТОЛЬКО по наличию сессии (user), не по данным Telegram
   const isAuthenticated = !!user
 
+  // Заполняем email/phone из БД при открытии модалки
+  useEffect(() => {
+    if (isOpen && user) {
+      if (user.email && !email) {
+        setEmail(user.email)
+      }
+      if (user.phone && !phone) {
+        setPhone(user.phone)
+      }
+    }
+  }, [isOpen, user])
+
   // Редирект на страницу входа если не авторизован
   useEffect(() => {
     if (isOpen && !isAuthenticated) {
@@ -137,6 +149,16 @@ export function PaymentModal({
       return
     }
 
+    // Проверяем наличие email или phone (из формы или из БД)
+    const finalEmail = email.trim() || user?.email || ''
+    const finalPhone = phone.trim() || user?.phone || ''
+    
+    if (!finalEmail && !finalPhone) {
+      setError('Необходимо указать email или телефон для получения чека')
+      setIsLoading(false)
+      return
+    }
+
     try {
       
       const response = await fetch('/api/payments/create', {
@@ -153,15 +175,15 @@ export function PaymentModal({
           returnUrl: `${window.location.origin}/payment/success${courseId ? `?course=${courseId}` : ''}`,
           type: type,
           receipt: {
-            ...(email && email.includes('@') && { email }),
-            ...(phone && phone.trim() && { 
-              phone: phone.trim().startsWith('+') 
-                ? phone.trim() 
-                : phone.trim().replace(/\D/g, '').startsWith('7')
-                ? `+${phone.trim().replace(/\D/g, '')}`
-                : phone.trim().replace(/\D/g, '').startsWith('8')
-                ? `+7${phone.trim().replace(/\D/g, '').slice(1)}`
-                : `+7${phone.trim().replace(/\D/g, '')}`
+            ...(finalEmail && finalEmail.includes('@') && { email: finalEmail }),
+            ...(finalPhone && { 
+              phone: finalPhone.startsWith('+') 
+                ? finalPhone 
+                : finalPhone.replace(/\D/g, '').startsWith('7')
+                ? `+${finalPhone.replace(/\D/g, '')}`
+                : finalPhone.replace(/\D/g, '').startsWith('8')
+                ? `+7${finalPhone.replace(/\D/g, '').slice(1)}`
+                : `+7${finalPhone.replace(/\D/g, '')}`
             })
           },
           metadata: {
@@ -345,7 +367,7 @@ export function PaymentModal({
                 
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-sm text-white/70 mb-2">Email (опционально)</label>
+                    <label className="block text-sm text-white/70 mb-2">Email {!user?.email && '(необходимо указать email или телефон)'}</label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
                       <input
@@ -359,7 +381,7 @@ export function PaymentModal({
                   </div>
                   
                   <div>
-                    <label className="block text-sm text-white/70 mb-2">Телефон (опционально)</label>
+                    <label className="block text-sm text-white/70 mb-2">Телефон {!user?.phone && '(необходимо указать email или телефон)'}</label>
                     <div className="relative">
                       <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
                       <input
@@ -370,7 +392,7 @@ export function PaymentModal({
                         className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-accent-electric transition-colors"
                       />
                     </div>
-                    <p className="mt-1 text-xs text-white/40">Укажите email или телефон (хотя бы один для получения чека)</p>
+                    <p className="mt-1 text-xs text-white/40">Обязательно укажите email или телефон (хотя бы один)</p>
                   </div>
                 </div>
               </div>

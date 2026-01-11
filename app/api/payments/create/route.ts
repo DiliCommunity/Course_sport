@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { getCourseUUID } from '@/lib/constants'
+import { getUserFromSession } from '@/lib/session-utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -116,6 +117,28 @@ export async function POST(request: NextRequest) {
 
     const paymentMethodType = getPaymentMethodType(paymentMethod || 'card')
 
+    // Получаем email/phone из БД если не переданы в receipt
+    let finalReceipt = receipt
+    if (userId && (!receipt || (!receipt.email && !receipt.phone))) {
+      const supabase = await createClient()
+      const userFromDb = await getUserFromSession(supabase)
+      
+      if (userFromDb && userFromDb.id === userId) {
+        finalReceipt = {
+          email: receipt?.email || userFromDb.email || '',
+          phone: receipt?.phone || userFromDb.phone || ''
+        }
+      }
+    }
+
+    // Проверяем наличие email или phone
+    if (!finalReceipt || (!finalReceipt.email && !finalReceipt.phone)) {
+      return NextResponse.json(
+        { error: 'Необходимо указать email или телефон для получения чека' },
+        { status: 400 }
+      )
+    }
+
     // URL для webhook от ЮКассы
     const webhookUrl = `${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://course-sport.vercel.app'}/api/payments/webhook`
     
@@ -146,18 +169,18 @@ export async function POST(request: NextRequest) {
         : `Оплата курса #${courseId}`,
       // Всегда формируем receipt для покупателя (если есть email или телефон)
       // ВАЖНО: receipt требует items, поэтому добавляем их
-      ...(receipt && (receipt.email || receipt.phone) && {
+      ...(finalReceipt && (finalReceipt.email || finalReceipt.phone) && {
         receipt: {
           customer: {
-            ...(receipt.email && receipt.email.includes('@') && { email: receipt.email }),
-            ...(receipt.phone && {
-              phone: receipt.phone.startsWith('+') 
-                ? receipt.phone 
-                : receipt.phone.replace(/\D/g, '').startsWith('7')
-                ? `+${receipt.phone.replace(/\D/g, '')}`
-                : receipt.phone.replace(/\D/g, '').startsWith('8')
-                ? `+7${receipt.phone.replace(/\D/g, '').slice(1)}`
-                : `+7${receipt.phone.replace(/\D/g, '')}`
+            ...(finalReceipt.email && finalReceipt.email.includes('@') && { email: finalReceipt.email }),
+            ...(finalReceipt.phone && {
+              phone: finalReceipt.phone.startsWith('+') 
+                ? finalReceipt.phone 
+                : finalReceipt.phone.replace(/\D/g, '').startsWith('7')
+                ? `+${finalReceipt.phone.replace(/\D/g, '')}`
+                : finalReceipt.phone.replace(/\D/g, '').startsWith('8')
+                ? `+7${finalReceipt.phone.replace(/\D/g, '').slice(1)}`
+                : `+7${finalReceipt.phone.replace(/\D/g, '')}`
             })
           },
           items: [
@@ -201,10 +224,10 @@ export async function POST(request: NextRequest) {
     console.log('📤 Создание платежа в ЮКасса:', {
       amount: paymentData.amount,
       description: paymentData.description,
-      hasReceipt: !!(receipt && (receipt.email || receipt.phone)),
-      receipt: receipt && (receipt.email || receipt.phone) ? {
-        hasEmail: !!receipt.email,
-        hasPhone: !!receipt.phone
+      hasReceipt: !!(finalReceipt && (finalReceipt.email || finalReceipt.phone)),
+      receipt: finalReceipt && (finalReceipt.email || finalReceipt.phone) ? {
+        hasEmail: !!finalReceipt.email,
+        hasPhone: !!finalReceipt.phone
       } : null,
       paymentMethod: paymentMethodType,
       metadata: paymentData.metadata
@@ -302,10 +325,10 @@ export async function POST(request: NextRequest) {
             original_payment_method: rawPaymentMethod, // Сохраняем оригинальный метод (sbp) в metadata
             ...(promotionId && { promotion_id: promotionId }),
             // Сохраняем email/phone из receipt для истории
-            ...(receipt && (receipt.email || receipt.phone) && {
+            ...(finalReceipt && (finalReceipt.email || finalReceipt.phone) && {
               receipt: {
-                ...(receipt.email && { email: receipt.email }),
-                ...(receipt.phone && { phone: receipt.phone })
+                ...(finalReceipt.email && { email: finalReceipt.email }),
+                ...(finalReceipt.phone && { phone: finalReceipt.phone })
               }
             }),
             ...(metadata || {})

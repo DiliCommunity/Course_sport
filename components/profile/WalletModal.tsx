@@ -60,6 +60,18 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
   const { user } = useAuth()
   const { isTelegramApp, webApp } = useTelegram()
 
+  // Заполняем email/phone из БД при открытии модалки
+  useEffect(() => {
+    if (isOpen && user) {
+      if (user.email && !email) {
+        setEmail(user.email)
+      }
+      if (user.phone && !phone) {
+        setPhone(user.phone)
+      }
+    }
+  }, [isOpen, user])
+
   // Загружаем подключенный TON кошелек
   useEffect(() => {
     if (user?.id && isOpen) {
@@ -107,6 +119,16 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
       return
     }
 
+    // Проверяем наличие email или phone (из формы или из БД)
+    const finalEmail = email.trim() || user?.email || ''
+    const finalPhone = phone.trim() || user?.phone || ''
+    
+    if (!finalEmail && !finalPhone) {
+      alert('Необходимо указать email или телефон для получения чека')
+      setIsProcessing(false)
+      return
+    }
+
     setIsProcessing(true)
     try {
       const response = await fetch('/api/payments/create', {
@@ -122,15 +144,15 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
           userId: user.id,
           returnUrl: `${window.location.origin}/profile`,
           receipt: {
-            ...(email && email.includes('@') && { email }),
-            ...(phone && phone.trim() && { 
-              phone: phone.trim().startsWith('+') 
-                ? phone.trim() 
-                : phone.trim().replace(/\D/g, '').startsWith('7')
-                ? `+${phone.trim().replace(/\D/g, '')}`
-                : phone.trim().replace(/\D/g, '').startsWith('8')
-                ? `+7${phone.trim().replace(/\D/g, '').slice(1)}`
-                : `+7${phone.trim().replace(/\D/g, '')}`
+            ...(finalEmail && finalEmail.includes('@') && { email: finalEmail }),
+            ...(finalPhone && { 
+              phone: finalPhone.startsWith('+') 
+                ? finalPhone 
+                : finalPhone.replace(/\D/g, '').startsWith('7')
+                ? `+${finalPhone.replace(/\D/g, '')}`
+                : finalPhone.replace(/\D/g, '').startsWith('8')
+                ? `+7${finalPhone.replace(/\D/g, '').slice(1)}`
+                : `+7${finalPhone.replace(/\D/g, '')}`
             })
           },
         }),
