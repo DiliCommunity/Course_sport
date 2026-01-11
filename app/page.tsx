@@ -69,7 +69,7 @@ export default function HomePage() {
       <section className="py-10">
         <div className="container mx-auto px-4">
           <Link 
-            href="/about"
+            href="/reviews"
             className="flex items-center justify-between bg-gradient-to-r from-accent-gold/15 to-accent-electric/15 border-2 border-accent-gold/40 rounded-2xl p-6 hover:translate-y-[-5px] hover:shadow-[0_20px_60px_rgba(255,215,0,0.3)] hover:border-accent-gold transition-all duration-300"
           >
             <div className="flex items-center gap-5">

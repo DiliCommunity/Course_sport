@@ -2345,24 +2345,24 @@ export default function KetoFoodPage() {
           <p className="text-white/60">Скачайте PDF со списками разрешённых и запрещённых продуктов</p>
         </motion.div>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="flex justify-center">
           {ketoGuides.map((guide, index) => (
             <motion.div
               key={guide.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 + index * 0.1 }}
-              className={`glass rounded-2xl p-6 border ${guide.borderClass} hover:scale-[1.02] transition-transform`}
+              className={`glass rounded-2xl p-8 md:p-10 border ${guide.borderClass} hover:scale-[1.02] transition-transform w-full max-w-2xl`}
             >
-              <div className="text-4xl mb-4">{guide.icon}</div>
-              <h3 className={`font-bold text-lg ${guide.colorClass} mb-2`}>{guide.title}</h3>
-              <p className="text-white/60 text-sm mb-4">{guide.description}</p>
+              <div className="text-5xl md:text-6xl mb-6 text-center">{guide.icon}</div>
+              <h3 className={`font-bold text-2xl md:text-3xl ${guide.colorClass} mb-4 text-center`}>{guide.title}</h3>
+              <p className="text-white/60 text-base md:text-lg mb-6 text-center">{guide.description}</p>
               <a
                 href={guide.pdfUrl}
                 download
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-orange-500 via-amber-400 to-yellow-400 text-dark-900 font-bold flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(255,107,53,0.5),0_0_30px_rgba(255,215,0,0.3)] hover:shadow-[0_0_25px_rgba(255,107,53,0.7),0_0_50px_rgba(255,215,0,0.5)] hover:scale-105 transition-all duration-300 border-2 border-yellow-300/50"
+                className="w-full py-4 md:py-5 rounded-xl bg-gradient-to-r from-orange-500 via-amber-400 to-yellow-400 text-dark-900 font-bold flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(255,107,53,0.5),0_0_30px_rgba(255,215,0,0.3)] hover:shadow-[0_0_25px_rgba(255,107,53,0.7),0_0_50px_rgba(255,215,0,0.5)] hover:scale-105 transition-all duration-300 border-2 border-yellow-300/50 text-lg md:text-xl"
               >
-                <Download className="w-5 h-5" />
+                <Download className="w-6 h-6" />
                 📥 Скачать PDF
               </a>
             </motion.div>
