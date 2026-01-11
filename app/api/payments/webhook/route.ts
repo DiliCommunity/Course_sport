@@ -96,6 +96,92 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// Функция отправки чека продавцу через API ЮКассы
+async function sendReceiptToSeller(
+  paymentId: string,
+  payment: any,
+  metadata: any,
+  paymentType: string,
+  amountInKopecks: number
+) {
+  try {
+    const sellerEmail = process.env.NEXT_PUBLIC_EMAIL_ORDER
+    
+    if (!sellerEmail) {
+      console.log('⚠️ NEXT_PUBLIC_EMAIL_ORDER не настроен, пропускаем отправку чека продавцу')
+      return
+    }
+
+    const shopId = process.env.YOOKASSA_SHOP_ID
+    const secretKey = process.env.YOOKASSA_SECRET_KEY
+
+    if (!shopId || !secretKey) {
+      console.error('❌ ЮКасса не настроена для отправки чека')
+      return
+    }
+
+    // Формируем описание товара
+    const itemDescription = paymentType === 'balance_topup' 
+      ? 'Пополнение баланса'
+      : paymentType === 'promotion' && metadata?.promotion_id === 'two_courses'
+      ? 'Оплата 2 курсов по акции'
+      : paymentType === 'promotion' && metadata?.promotion_id === 'first_100'
+      ? 'Оплата курса по акции "Первым 100 студентам"'
+      : paymentType === 'final_modules'
+      ? 'Оплата финальных модулей курса'
+      : 'Оплата курса'
+
+    // Создаем чек через API ЮКассы
+    const receiptData = {
+      type: 'payment',
+      payment_id: paymentId,
+      customer: {
+        email: sellerEmail
+      },
+      items: [
+        {
+          description: itemDescription,
+          quantity: '1.00',
+          amount: {
+            value: (amountInKopecks / 100).toFixed(2),
+            currency: 'RUB'
+          },
+          vat_code: 1, // Без НДС (для образовательных услуг)
+          payment_mode: 'full_prepayment',
+          payment_subject: 'educational_services'
+        }
+      ],
+      send: true // Автоматическая отправка на email
+    }
+
+    console.log('📧 Отправка чека продавцу на:', sellerEmail)
+    console.log('📋 Данные чека:', JSON.stringify(receiptData, null, 2))
+
+    const response = await fetch('https://api.yookassa.ru/v3/receipts', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Idempotence-Key': `receipt-seller-${paymentId}-${Date.now()}`,
+        'Authorization': 'Basic ' + Buffer.from(`${shopId}:${secretKey}`).toString('base64')
+      },
+      body: JSON.stringify(receiptData)
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      console.error('❌ Ошибка создания чека для продавца:', JSON.stringify(errorData, null, 2))
+      return
+    }
+
+    const receipt = await response.json()
+    console.log('✅ Чек для продавца успешно создан и отправлен:', receipt.id)
+    
+  } catch (error: any) {
+    console.error('❌ Ошибка при отправке чека продавцу:', error.message)
+    // Не прерываем обработку платежа из-за ошибки отправки чека
+  }
+}
+
 async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['object']) {
   console.log('🚀 Обработка успешного платежа:', payment.id)
   
@@ -219,6 +305,9 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
       }
     }
   }
+
+  // Отправляем чек продавцу на email (NEXT_PUBLIC_EMAIL_ORDER)
+  await sendReceiptToSeller(paymentId, payment, metadata, paymentType, amountInKopecks)
 
   // Обработка акций
   const promotionId = metadata?.promotion_id

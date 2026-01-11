@@ -46,6 +46,8 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
   const [amount, setAmount] = useState('')
   const [selectedMethod, setSelectedMethod] = useState('card')
   const [isProcessing, setIsProcessing] = useState(false)
+  const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
   const [activeTab, setActiveTab] = useState<'topup' | 'withdraw' | 'ton'>('topup')
   const [withdrawAmount, setWithdrawAmount] = useState('')
   const [withdrawMethod, setWithdrawMethod] = useState<'card' | 'sbp' | 'yoomoney' | 'phone'>('card')
@@ -119,6 +121,18 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
           type: 'balance_topup',
           userId: user.id,
           returnUrl: `${window.location.origin}/profile`,
+          receipt: {
+            ...(email && email.includes('@') && { email }),
+            ...(phone && phone.trim() && { 
+              phone: phone.trim().startsWith('+') 
+                ? phone.trim() 
+                : phone.trim().replace(/\D/g, '').startsWith('7')
+                ? `+${phone.trim().replace(/\D/g, '')}`
+                : phone.trim().replace(/\D/g, '').startsWith('8')
+                ? `+7${phone.trim().replace(/\D/g, '').slice(1)}`
+                : `+7${phone.trim().replace(/\D/g, '')}`
+            })
+          },
         }),
       })
 

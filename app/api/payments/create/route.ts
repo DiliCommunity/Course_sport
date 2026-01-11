@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
       capture: true, // Автоматическое подтверждение
       confirmation: {
         type: 'redirect',
-        return_url: returnUrl || `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/payment/success?course=${courseId}`
+        return_url: returnUrl || `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/payment/success?course=${courseId || ''}`
       },
       // Добавляем webhook URL для получения уведомлений о статусе платежа
       ...(webhookUrl && {
@@ -144,7 +144,7 @@ export async function POST(request: NextRequest) {
         : type === 'final_modules'
         ? `Оплата финальных модулей курса #${courseId}`
         : `Оплата курса #${courseId}`,
-      // Добавляем receipt только если есть валидный email или телефон
+      // Всегда формируем receipt для покупателя (если есть email или телефон)
       // ВАЖНО: receipt требует items, поэтому добавляем их
       ...(receipt && (receipt.email || receipt.phone) && {
         receipt: {
@@ -180,7 +180,8 @@ export async function POST(request: NextRequest) {
               payment_mode: 'full_prepayment',
               payment_subject: 'educational_services'
             }
-          ]
+          ],
+          send: true // Автоматическая отправка чека покупателю
         }
       }),
       metadata: {
@@ -300,6 +301,13 @@ export async function POST(request: NextRequest) {
             type: paymentType,
             original_payment_method: rawPaymentMethod, // Сохраняем оригинальный метод (sbp) в metadata
             ...(promotionId && { promotion_id: promotionId }),
+            // Сохраняем email/phone из receipt для истории
+            ...(receipt && (receipt.email || receipt.phone) && {
+              receipt: {
+                ...(receipt.email && { email: receipt.email }),
+                ...(receipt.phone && { phone: receipt.phone })
+              }
+            }),
             ...(metadata || {})
           }
         })

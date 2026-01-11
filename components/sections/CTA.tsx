@@ -52,7 +52,7 @@ export function CTA() {
               {/* Subtitle */}
               <p className="text-xl text-white/60 max-w-2xl mx-auto mb-10">
                 Присоединяйся к тысячам студентов! 🎁 <span className="text-accent-mint font-medium">15% каждого курса бесплатно</span>, 
-                полный доступ всего за 19₽ (тест)
+                полный доступ всего за 19₽
               </p>
 
               {/* CTA Buttons */}

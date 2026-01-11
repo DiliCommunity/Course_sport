@@ -3617,14 +3617,6 @@ export default function CoursePage({ params }: { params: { id: string } }) {
                       </motion.div>
                       
                       {/* Test price label */}
-                      <motion.div 
-                        className="mt-2 inline-flex items-center gap-1 px-3 py-1 rounded-full bg-yellow-400 text-yellow-900 font-bold text-xs"
-                        animate={{ y: [0, -3, 0] }}
-                        transition={{ duration: 1.5, repeat: Infinity }}
-                      >
-                        🎉 Тестовая цена для проверки
-                      </motion.div>
-                      
                       {/* Savings */}
                       {courseData.originalPrice && (
                         <div className="mt-3 text-white/90 font-medium">

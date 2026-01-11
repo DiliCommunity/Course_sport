@@ -59,7 +59,7 @@ export default function CoursesPage() {
             Все курсы
           </h1>
           <p className="text-white/60 text-lg max-w-2xl mx-auto">
-            Выбери курс и начни обучение. <span className="text-emerald-400 font-semibold">15% контента бесплатно</span>, полный доступ за <span className="text-emerald-400 font-bold">19₽</span> <span className="text-amber-400 text-sm">(тест)</span>
+            Выбери курс и начни обучение. <span className="text-emerald-400 font-semibold">15% контента бесплатно</span>, полный доступ за <span className="text-emerald-400 font-bold">19₽</span>
           </p>
         </motion.div>
 
@@ -177,7 +177,6 @@ export default function CoursesPage() {
               <div className="inline-flex items-baseline gap-3 mb-6">
                 <span className="text-white/40 line-through text-2xl">4 999₽</span>
                 <span className="font-display font-black text-5xl bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">19₽</span>
-                <span className="text-amber-400 text-sm font-medium">(тест)</span>
               </div>
             </div>
           </div>

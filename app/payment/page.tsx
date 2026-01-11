@@ -3,7 +3,7 @@
 import { useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Lock, CheckCircle2, Shield, Loader2 } from 'lucide-react'
+import { Lock, CheckCircle2, Shield, Loader2, Mail, Phone } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { formatPrice } from '@/lib/utils'
@@ -49,6 +49,8 @@ function PaymentPageContent() {
   const [selectedMethod, setSelectedMethod] = useState('card')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
 
   const handlePayment = async () => {
     setIsLoading(true)
@@ -173,6 +175,46 @@ function PaymentPageContent() {
               {error}
             </div>
           )}
+
+          {/* Email/Phone для чека */}
+          <div className="mb-6 space-y-3">
+            <div className="flex items-start gap-2 p-3 rounded-lg bg-accent-electric/10 border border-accent-electric/20">
+              <Mail className="w-4 h-4 text-accent-electric flex-shrink-0 mt-1" />
+              <div className="flex-1 text-sm text-white/70">
+                <div className="font-semibold text-white mb-1">Для отправки чека</div>
+                <div>Укажите email или телефон для получения чека</div>
+              </div>
+            </div>
+            
+            <div>
+              <label className="block text-sm text-white/70 mb-2">Email (опционально)</label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="example@mail.com"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-accent-electric transition-colors"
+                />
+              </div>
+            </div>
+            
+            <div>
+              <label className="block text-sm text-white/70 mb-2">Телефон (опционально)</label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+7 (999) 123-45-67"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-accent-electric transition-colors"
+                />
+              </div>
+              <p className="mt-1 text-xs text-white/40">Укажите email или телефон (хотя бы один для получения чека)</p>
+            </div>
+          </div>
 
           {/* Submit Button */}
           <Button
