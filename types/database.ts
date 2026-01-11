@@ -341,6 +341,59 @@ export interface Database {
           reference_type?: string | null
         }
       }
+      withdrawal_requests: {
+        Row: {
+          id: string
+          user_id: string
+          amount: number
+          withdrawal_method: 'card' | 'sbp' | 'yoomoney' | 'phone'
+          card_number: string | null
+          phone: string | null
+          wallet_address: string | null
+          status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled'
+          error_message: string | null
+          yookassa_payout_id: string | null
+          created_at: string
+          processed_at: string | null
+          completed_at: string | null
+          failed_at: string | null
+          metadata: Record<string, any> | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          amount: number
+          withdrawal_method: 'card' | 'sbp' | 'yoomoney' | 'phone'
+          card_number?: string | null
+          phone?: string | null
+          wallet_address?: string | null
+          status?: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled'
+          error_message?: string | null
+          yookassa_payout_id?: string | null
+          created_at?: string
+          processed_at?: string | null
+          completed_at?: string | null
+          failed_at?: string | null
+          metadata?: Record<string, any> | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          amount?: number
+          withdrawal_method?: 'card' | 'sbp' | 'yoomoney' | 'phone'
+          card_number?: string | null
+          phone?: string | null
+          wallet_address?: string | null
+          status?: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled'
+          error_message?: string | null
+          yookassa_payout_id?: string | null
+          created_at?: string
+          processed_at?: string | null
+          completed_at?: string | null
+          failed_at?: string | null
+          metadata?: Record<string, any> | null
+        }
+      }
     }
     Views: {
       [_ in never]: never

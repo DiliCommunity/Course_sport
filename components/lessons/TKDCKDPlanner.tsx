@@ -54,7 +54,7 @@ export function TKDCKDPlanner() {
         carbsInfo = 'Рекомендуемые продукты: декстроза/глюкоза (20-30г), мед (1-2 ст.л.), финики (2-3 шт). НЕ фрукты (фруктоза идет в печень)!'
         scheduleInfo = `Дни тренировок: ${workoutsPerWeek} раз в неделю за 30 мин до тренировки - 20-50г быстрых углеводов\nДни отдыха: строгое кето (<30г У)`
       }
-    } else if (workoutsPerWeek >= 4 && workoutIntensity !== 'low' && ketoExperience !== 'beginner') {
+    } else if (workoutsPerWeek >= 4 && workoutIntensity !== 'low') {
       // TKD для активных
       recommendedType = 'tkd'
       title = 'Целевое Кето (TKD)'
