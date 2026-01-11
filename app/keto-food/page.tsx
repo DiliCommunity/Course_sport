@@ -2486,9 +2486,17 @@ export default function KetoFoodPage() {
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
-              className="w-full max-w-2xl max-h-[90vh] overflow-y-auto glass rounded-2xl border border-emerald-400/20"
+              className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto glass rounded-2xl border border-emerald-400/20"
               onClick={(e) => e.stopPropagation()}
             >
+              {/* Close Button - вне контейнера изображения */}
+              <button
+                onClick={() => setSelectedRecipe(null)}
+                className="absolute top-4 right-4 z-50 w-12 h-12 rounded-full bg-red-500/80 hover:bg-red-500 flex items-center justify-center transition-colors shadow-[0_0_20px_rgba(239,68,68,0.5)] border-2 border-white/30"
+              >
+                <X className="w-6 h-6 text-white" />
+              </button>
+              
               {/* Header Image */}
               <div className="relative aspect-video">
                 <Image
@@ -2498,12 +2506,6 @@ export default function KetoFoodPage() {
                   className="object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-dark-900 via-dark-900/50 to-transparent" />
-                <button
-                  onClick={() => setSelectedRecipe(null)}
-                  className="absolute top-4 right-4 w-12 h-12 rounded-full bg-red-500/80 hover:bg-red-500 flex items-center justify-center transition-colors shadow-[0_0_20px_rgba(239,68,68,0.5)] border-2 border-white/30"
-                >
-                  <X className="w-6 h-6 text-white" />
-                </button>
                 <div className="absolute bottom-4 left-4 right-4">
                   <h2 className="font-display font-bold text-2xl text-white mb-2">{selectedRecipe.name}</h2>
                   <div className="flex items-center gap-4 text-sm text-white/80">
