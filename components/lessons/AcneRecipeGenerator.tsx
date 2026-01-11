@@ -701,94 +701,110 @@ export function AcneRecipeGenerator() {
     try {
       setDownloading(true)
 
+      // Создаем временный HTML элемент для PDF
+      const printContent = document.createElement('div')
+      printContent.style.position = 'absolute'
+      printContent.style.left = '-9999px'
+      printContent.style.width = '800px'
+      printContent.style.padding = '40px'
+      printContent.style.backgroundColor = '#ffffff'
+      printContent.style.fontFamily = 'Arial, sans-serif'
+      printContent.style.color = '#000000'
+
+      // Заголовок документа
+      printContent.innerHTML = `
+        <h1 style="font-size: 28px; color: #3b82f6; text-align: center; margin-bottom: 10px; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">
+          Рецепты для чистой кожи
+        </h1>
+        <p style="text-align: center; color: #666666; font-size: 14px; margin-bottom: 20px;">
+          Кето-рационы для борьбы с акне
+        </p>
+        ${excludedIngredients.length > 0 || customExclusions.length > 0 ? `
+        <div style="background-color: #ffe0e0; padding: 10px; border-left: 4px solid #c80000; margin-bottom: 20px; color: #c80000; font-size: 12px;">
+          <strong>Исключено:</strong> ${[...excludedIngredients, ...customExclusions].join(', ')}
+        </div>
+        ` : ''}
+      `
+
+      // Добавляем рецепты
+      generatedRecipes.forEach((recipe, index) => {
+        const mealTypeText = recipe.mealType === 'breakfast' ? 'Завтрак' : 
+                            recipe.mealType === 'lunch' ? 'Обед' : 
+                            recipe.mealType === 'dinner' ? 'Ужин' : 'Перекус'
+
+        const recipeDiv = document.createElement('div')
+        recipeDiv.style.marginBottom = '40px'
+        recipeDiv.style.pageBreakInside = 'avoid'
+        recipeDiv.innerHTML = `
+          <h2 style="font-size: 20px; color: #3b82f6; margin-bottom: 8px; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px;">
+            ${index + 1}. ${recipe.name}
+          </h2>
+          <p style="color: #666666; font-size: 12px; margin-bottom: 8px;">
+            ${mealTypeText} | ${recipe.prepTime} мин | ${recipe.difficulty}
+          </p>
+          <p style="color: #666666; font-size: 11px; margin-bottom: 10px; line-height: 1.5;">
+            ${recipe.description}
+          </p>
+          <p style="color: #000000; font-size: 12px; margin-bottom: 15px; font-weight: bold;">
+            БЖУ: ${recipe.proteins}Б / ${recipe.fats}Ж / ${recipe.carbs}У | ${recipe.calories} ккал
+          </p>
+          
+          <h3 style="font-size: 14px; color: #3b82f6; margin-bottom: 8px; margin-top: 15px;">
+            Ингредиенты:
+          </h3>
+          <ul style="margin-left: 20px; margin-bottom: 15px; line-height: 1.8; font-size: 11px;">
+            ${recipe.ingredients.map(ing => `<li>${ing.name} - ${ing.quantity}</li>`).join('')}
+          </ul>
+          
+          <h3 style="font-size: 14px; color: #3b82f6; margin-bottom: 8px; margin-top: 15px;">
+            Инструкция:
+          </h3>
+          <ol style="margin-left: 20px; line-height: 1.8; font-size: 11px;">
+            ${recipe.instructions.map(step => `<li>${step}</li>`).join('')}
+          </ol>
+        `
+        printContent.appendChild(recipeDiv)
+      })
+
+      // Добавляем элемент в DOM
+      document.body.appendChild(printContent)
+
+      // Используем html2canvas для создания изображения
+      const html2canvas = (await import('html2canvas')).default
+      const canvas = await html2canvas(printContent, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      })
+
+      // Удаляем временный элемент
+      document.body.removeChild(printContent)
+
+      // Конвертируем canvas в изображение и добавляем в PDF
       const { jsPDF } = await import('jspdf')
+      const imgData = canvas.toDataURL('image/png')
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4'
       })
 
-      const pageWidth = 210
-      const pageHeight = 297
-      const margin = 20
-      let yPos = 25
+      const imgWidth = 210 // A4 width in mm
+      const pageHeight = 297 // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
+      let heightLeft = imgHeight
+      let position = 0
 
-      // Заголовок
-      pdf.setFontSize(24)
-      pdf.setTextColor(59, 130, 246)
-      pdf.text('Рецепты для чистой кожи', pageWidth / 2, yPos, { align: 'center' })
-      yPos += 15
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
+      heightLeft -= pageHeight
 
-      pdf.setFontSize(12)
-      pdf.setTextColor(100, 100, 100)
-      pdf.text('Кето-рационы для борьбы с акне', pageWidth / 2, yPos, { align: 'center' })
-      yPos += 10
-
-      if (excludedIngredients.length > 0 || customExclusions.length > 0) {
-        pdf.setFontSize(10)
-        pdf.setTextColor(200, 0, 0)
-        pdf.text('Исключено: ' + [...excludedIngredients, ...customExclusions].join(', '), margin, yPos)
-        yPos += 8
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight
+        pdf.addPage()
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
+        heightLeft -= pageHeight
       }
-
-      // Рецепты
-      generatedRecipes.forEach((recipe, index) => {
-        if (yPos > pageHeight - 60) {
-          pdf.addPage()
-          yPos = 25
-        }
-
-        pdf.setFontSize(16)
-        pdf.setTextColor(59, 130, 246)
-        pdf.text(`${index + 1}. ${recipe.name}`, margin, yPos)
-        yPos += 8
-
-        pdf.setFontSize(10)
-        pdf.setTextColor(0, 0, 0)
-        const mealTypeText = recipe.mealType === 'breakfast' ? 'Завтрак' : 
-                            recipe.mealType === 'lunch' ? 'Обед' : 
-                            recipe.mealType === 'dinner' ? 'Ужин' : 'Перекус'
-        pdf.text(`${mealTypeText} | ${recipe.prepTime} мин | ${recipe.difficulty}`, margin, yPos)
-        yPos += 6
-
-        pdf.setFontSize(9)
-        pdf.setTextColor(100, 100, 100)
-        const descLines = pdf.splitTextToSize(recipe.description, pageWidth - 2 * margin)
-        pdf.text(descLines, margin, yPos)
-        yPos += descLines.length * 5 + 3
-
-        pdf.setFontSize(10)
-        pdf.setTextColor(0, 0, 0)
-        pdf.text(`БЖУ: ${recipe.proteins}Б / ${recipe.fats}Ж / ${recipe.carbs}У | ${recipe.calories} ккал`, margin, yPos)
-        yPos += 6
-
-        pdf.setFontSize(11)
-        pdf.setTextColor(59, 130, 246)
-        pdf.text('Ингредиенты:', margin, yPos)
-        yPos += 6
-
-        pdf.setFontSize(9)
-        pdf.setTextColor(0, 0, 0)
-        recipe.ingredients.forEach(ing => {
-          pdf.text(`• ${ing.name} - ${ing.quantity}`, margin + 5, yPos)
-          yPos += 5
-        })
-        yPos += 3
-
-        pdf.setFontSize(11)
-        pdf.setTextColor(59, 130, 246)
-        pdf.text('Инструкция:', margin, yPos)
-        yPos += 6
-
-        pdf.setFontSize(9)
-        pdf.setTextColor(0, 0, 0)
-        recipe.instructions.forEach((step, stepIndex) => {
-          const stepLines = pdf.splitTextToSize(`${stepIndex + 1}. ${step}`, pageWidth - 2 * margin - 10)
-          pdf.text(stepLines, margin + 5, yPos)
-          yPos += stepLines.length * 5
-        })
-        yPos += 8
-      })
 
       const fileName = `Рецепты-для-чистой-кожи-${new Date().toLocaleDateString('ru-RU').replace(/\//g, '-')}.pdf`
       pdf.save(fileName)

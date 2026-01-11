@@ -21,6 +21,7 @@ import { HungerTracker } from '@/components/lessons/HungerTracker'
 import { IFProgressTracker } from '@/components/lessons/IFProgressTracker'
 import { FastingWorkoutGenerator } from '@/components/lessons/FastingWorkoutGenerator'
 import { KetoRecipeGenerator } from '@/components/lessons/KetoRecipeGenerator'
+import { TKDCKDPlanner } from '@/components/lessons/TKDCKDPlanner'
 
 interface FinalModulesData {
   module4: {
@@ -800,6 +801,19 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
                                   lesson.content?.toLowerCase().includes('упражнения при голодании')) && (
                                   <div className="mt-6">
                                     <FastingWorkoutGenerator />
+                                  </div>
+                                )}
+
+                                {(lesson.title.toLowerCase().includes('целевое') ||
+                                  lesson.title.toLowerCase().includes('циклическое') ||
+                                  lesson.title.toLowerCase().includes('tkd') ||
+                                  lesson.title.toLowerCase().includes('ckd') ||
+                                  lesson.content?.toLowerCase().includes('целевое кето') ||
+                                  lesson.content?.toLowerCase().includes('циклическое кето') ||
+                                  lesson.content?.toLowerCase().includes('targeted ketogenic') ||
+                                  lesson.content?.toLowerCase().includes('cyclical ketogenic')) && (
+                                  <div className="mt-6">
+                                    <TKDCKDPlanner />
                                   </div>
                                 )}
 

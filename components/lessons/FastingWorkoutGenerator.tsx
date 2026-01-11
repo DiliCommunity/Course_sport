@@ -198,77 +198,102 @@ export function FastingWorkoutGenerator() {
 
     try {
       setDownloading(true)
+
+      // Создаем временный HTML элемент для PDF
+      const printContent = document.createElement('div')
+      printContent.style.position = 'absolute'
+      printContent.style.left = '-9999px'
+      printContent.style.width = '800px'
+      printContent.style.padding = '40px'
+      printContent.style.backgroundColor = '#ffffff'
+      printContent.style.fontFamily = 'Arial, sans-serif'
+      printContent.style.color = '#000000'
+
+      const statusText = (status: string) => status === 'fasting' ? 'Натощак ⚠️' : 'После еды'
+      const intensityText = (intensity: string) => {
+        if (intensity === 'low') return 'Низкая'
+        if (intensity === 'medium') return 'Средняя'
+        return 'Высокая'
+      }
+
+      // Заголовок документа
+      printContent.innerHTML = `
+        <h1 style="font-size: 28px; color: #3b82f6; text-align: center; margin-bottom: 10px; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">
+          План тренировок натощак
+        </h1>
+        <p style="text-align: center; color: #666666; font-size: 14px; margin-bottom: 20px;">
+          Хронотип: ${CHRONOTYPE_INFO[chronotype].name} | Неделя IF: ${ifWeek} | Протокол: ${ifProtocol}
+        </p>
+        <div style="background-color: #ffe0e0; padding: 12px; border-left: 4px solid #c80000; margin-bottom: 25px; color: #c80000; font-size: 12px;">
+          <p style="margin: 5px 0; font-weight: bold;">⚠️ ВАЖНО: Проконсультируйтесь с врачом перед началом тренировок натощак!</p>
+          <p style="margin: 5px 0;">Тренировки натощак подходят не всем. При хронических заболеваниях, беременности, диабете, проблемах с сердцем или давлением обязательна консультация специалиста.</p>
+        </div>
+      `
+
+      // Добавляем тренировки
+      generatedWorkouts.forEach((workout, index) => {
+        const workoutDiv = document.createElement('div')
+        workoutDiv.style.marginBottom = '30px'
+        workoutDiv.style.pageBreakInside = 'avoid'
+        workoutDiv.innerHTML = `
+          <h2 style="font-size: 18px; color: #3b82f6; margin-bottom: 8px; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px;">
+            ${index + 1}. ${workout.day} - ${workout.time}
+          </h2>
+          <p style="color: #000000; font-size: 12px; margin-bottom: 12px;">
+            <strong>Тип:</strong> ${workout.type} | <strong>${statusText(workout.ifStatus)}</strong> | <strong>Интенсивность:</strong> ${intensityText(workout.intensity)} | <strong>Длительность:</strong> ${workout.duration} мин
+          </p>
+          <h3 style="font-size: 14px; color: #3b82f6; margin-bottom: 8px; margin-top: 12px;">
+            Упражнения:
+          </h3>
+          <ul style="margin-left: 20px; margin-bottom: 12px; line-height: 1.8; font-size: 11px;">
+            ${workout.exercises.map(exercise => `<li>${exercise}</li>`).join('')}
+          </ul>
+          <p style="color: #666666; font-size: 10px; line-height: 1.5; margin-top: 8px; padding: 8px; background-color: #f5f5f5; border-left: 3px solid #999;">
+            ${workout.notes}
+          </p>
+        `
+        printContent.appendChild(workoutDiv)
+      })
+
+      // Добавляем элемент в DOM
+      document.body.appendChild(printContent)
+
+      // Используем html2canvas для создания изображения
+      const html2canvas = (await import('html2canvas')).default
+      const canvas = await html2canvas(printContent, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      })
+
+      // Удаляем временный элемент
+      document.body.removeChild(printContent)
+
+      // Конвертируем canvas в изображение и добавляем в PDF
+      const { jsPDF } = await import('jspdf')
+      const imgData = canvas.toDataURL('image/png')
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4'
       })
 
-      const pageWidth = 210
-      const pageHeight = 297
-      const margin = 20
-      let yPos = 25
+      const imgWidth = 210 // A4 width in mm
+      const pageHeight = 297 // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
+      let heightLeft = imgHeight
+      let position = 0
 
-      // Заголовок
-      pdf.setFontSize(24)
-      pdf.setTextColor(59, 130, 246)
-      pdf.text('План тренировок натощак', pageWidth / 2, yPos, { align: 'center' })
-      yPos += 15
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
+      heightLeft -= pageHeight
 
-      pdf.setFontSize(12)
-      pdf.setTextColor(100, 100, 100)
-      pdf.text(`Хронотип: ${CHRONOTYPE_INFO[chronotype].name} | Неделя IF: ${ifWeek} | Протокол: ${ifProtocol}`, pageWidth / 2, yPos, { align: 'center' })
-      yPos += 15
-
-      // Важное предупреждение
-      pdf.setFontSize(10)
-      pdf.setTextColor(200, 0, 0)
-      pdf.text('⚠️ ВАЖНО: Проконсультируйтесь с врачом перед началом тренировок натощак!', margin, yPos)
-      yPos += 8
-      pdf.setTextColor(0, 0, 0)
-      pdf.text('Тренировки натощак подходят не всем. При хронических заболеваниях, беременности,', margin, yPos)
-      yPos += 5
-      pdf.text('диабете, проблемах с сердцем или давлением обязательна консультация специалиста.', margin, yPos)
-      yPos += 10
-
-      // Тренировки
-      generatedWorkouts.forEach((workout, index) => {
-        if (yPos > pageHeight - 80) {
-          pdf.addPage()
-          yPos = 25
-        }
-
-        pdf.setFontSize(16)
-        pdf.setTextColor(59, 130, 246)
-        pdf.text(`${index + 1}. ${workout.day} - ${workout.time}`, margin, yPos)
-        yPos += 8
-
-        pdf.setFontSize(10)
-        pdf.setTextColor(0, 0, 0)
-        const statusText = workout.ifStatus === 'fasting' ? 'Натощак ⚠️' : 'После еды'
-        const intensityText = workout.intensity === 'low' ? 'Низкая' : workout.intensity === 'medium' ? 'Средняя' : 'Высокая'
-        pdf.text(`Тип: ${workout.type} | ${statusText} | Интенсивность: ${intensityText} | Длительность: ${workout.duration} мин`, margin, yPos)
-        yPos += 6
-
-        pdf.setFontSize(11)
-        pdf.setTextColor(59, 130, 246)
-        pdf.text('Упражнения:', margin, yPos)
-        yPos += 6
-
-        pdf.setFontSize(9)
-        pdf.setTextColor(0, 0, 0)
-        workout.exercises.forEach(exercise => {
-          pdf.text(`• ${exercise}`, margin + 5, yPos)
-          yPos += 5
-        })
-        yPos += 3
-
-        pdf.setFontSize(9)
-        pdf.setTextColor(100, 100, 100)
-        const noteLines = pdf.splitTextToSize(workout.notes, pageWidth - 2 * margin)
-        pdf.text(noteLines, margin, yPos)
-        yPos += noteLines.length * 5 + 5
-      })
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight
+        pdf.addPage()
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
+        heightLeft -= pageHeight
+      }
 
       const fileName = `Тренировки-натощак-${CHRONOTYPE_INFO[chronotype].name}-${ifWeek}нед-${ifProtocol}-${new Date().toLocaleDateString('ru-RU').replace(/\//g, '-')}.pdf`
       pdf.save(fileName)

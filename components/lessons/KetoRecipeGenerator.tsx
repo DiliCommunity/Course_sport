@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { ChefHat, Shuffle, Download, Clock, Flame, Image as ImageIcon } from 'lucide-react'
 import Image from 'next/image'
-import { jsPDF } from 'jspdf'
 
 interface Recipe {
   id: string
@@ -588,65 +587,81 @@ export function KetoRecipeGenerator({ type = 'breakfast' }: KetoRecipeGeneratorP
 
     try {
       setDownloading(true)
+
+      // Создаем временный HTML элемент для PDF
+      const printContent = document.createElement('div')
+      printContent.style.position = 'absolute'
+      printContent.style.left = '-9999px'
+      printContent.style.width = '800px'
+      printContent.style.padding = '40px'
+      printContent.style.backgroundColor = '#ffffff'
+      printContent.style.fontFamily = 'Arial, sans-serif'
+      printContent.style.color = '#000000'
+
+      printContent.innerHTML = `
+        <h1 style="font-size: 32px; color: #3b82f6; text-align: center; margin-bottom: 10px; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">
+          ${selectedRecipe.name}
+        </h1>
+        <p style="text-align: center; color: #666666; font-size: 14px; margin-bottom: 30px;">
+          Кето-рецепт
+        </p>
+        
+        <div style="margin-bottom: 25px; padding: 15px; background-color: #f5f5f5; border-radius: 8px;">
+          <p style="margin: 5px 0; font-size: 13px; color: #000000;">
+            ⏱ Время приготовления: ${selectedRecipe.time} минут
+          </p>
+          <p style="margin: 5px 0; font-size: 13px; color: #000000;">
+            🔥 Калории: ${selectedRecipe.calories} ккал
+          </p>
+          <p style="margin: 5px 0; font-size: 13px; color: #000000; font-weight: bold;">
+            📊 БЖУ: ${selectedRecipe.protein}Б / ${selectedRecipe.fat}Ж / ${selectedRecipe.carbs}У
+          </p>
+        </div>
+        
+        <h2 style="font-size: 18px; color: #3b82f6; margin-bottom: 12px; margin-top: 25px; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px;">
+          Ингредиенты:
+        </h2>
+        <ul style="margin-left: 25px; margin-bottom: 25px; line-height: 2; font-size: 13px;">
+          ${selectedRecipe.ingredients.map(ing => `<li>${ing}</li>`).join('')}
+        </ul>
+        
+        <h2 style="font-size: 18px; color: #3b82f6; margin-bottom: 12px; margin-top: 25px; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px;">
+          Приготовление:
+        </h2>
+        <ol style="margin-left: 25px; line-height: 2; font-size: 13px;">
+          ${selectedRecipe.instructions.map(step => `<li>${step}</li>`).join('')}
+        </ol>
+      `
+
+      // Добавляем элемент в DOM
+      document.body.appendChild(printContent)
+
+      // Используем html2canvas для создания изображения
+      const html2canvas = (await import('html2canvas')).default
+      const canvas = await html2canvas(printContent, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      })
+
+      // Удаляем временный элемент
+      document.body.removeChild(printContent)
+
+      // Конвертируем canvas в изображение и добавляем в PDF
+      const { jsPDF } = await import('jspdf')
+      const imgData = canvas.toDataURL('image/png')
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4'
       })
 
-      const pageWidth = 210
-      const pageHeight = 297
-      const margin = 20
-      let yPos = 25
+      const imgWidth = 210 // A4 width in mm
+      const pageHeight = 297 // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
 
-      // Заголовок
-      pdf.setFontSize(24)
-      pdf.setTextColor(59, 130, 246)
-      pdf.text(selectedRecipe.name, pageWidth / 2, yPos, { align: 'center' })
-      yPos += 15
-
-      pdf.setFontSize(12)
-      pdf.setTextColor(100, 100, 100)
-      pdf.text('Кето-рецепт', pageWidth / 2, yPos, { align: 'center' })
-      yPos += 10
-
-      // Статистика
-      pdf.setFontSize(10)
-      pdf.setTextColor(0, 0, 0)
-      pdf.text(`⏱ Время приготовления: ${selectedRecipe.time} минут`, margin, yPos)
-      yPos += 6
-      pdf.text(`🔥 Калории: ${selectedRecipe.calories} ккал`, margin, yPos)
-      yPos += 6
-      pdf.text(`📊 БЖУ: ${selectedRecipe.protein}Б / ${selectedRecipe.fat}Ж / ${selectedRecipe.carbs}У`, margin, yPos)
-      yPos += 10
-
-      // Ингредиенты
-      pdf.setFontSize(14)
-      pdf.setTextColor(59, 130, 246)
-      pdf.text('Ингредиенты:', margin, yPos)
-      yPos += 8
-
-      pdf.setFontSize(10)
-      pdf.setTextColor(0, 0, 0)
-      selectedRecipe.ingredients.forEach(ing => {
-        pdf.text(`• ${ing}`, margin + 5, yPos)
-        yPos += 5
-      })
-      yPos += 5
-
-      // Инструкция
-      pdf.setFontSize(14)
-      pdf.setTextColor(59, 130, 246)
-      pdf.text('Приготовление:', margin, yPos)
-      yPos += 8
-
-      pdf.setFontSize(10)
-      pdf.setTextColor(0, 0, 0)
-      selectedRecipe.instructions.forEach((step, idx) => {
-        const stepLines = pdf.splitTextToSize(`${idx + 1}. ${step}`, pageWidth - 2 * margin - 10)
-        pdf.text(stepLines, margin + 5, yPos)
-        yPos += stepLines.length * 5
-      })
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight)
 
       const fileName = `${selectedRecipe.name.replace(/\s+/g, '_')}_${new Date().toLocaleDateString('ru-RU').replace(/\//g, '-')}.pdf`
       pdf.save(fileName)
