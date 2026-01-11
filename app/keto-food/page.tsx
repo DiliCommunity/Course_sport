@@ -2234,30 +2234,40 @@ export default function KetoFoodPage() {
     const adjustedFat = Math.round(recipe.fat * portionCount)
     const adjustedCarbs = Math.round(recipe.carbs * portionCount)
 
+    // Пытаемся загрузить изображение и конвертировать в base64
+    let imageBase64 = ''
+    try {
+      const imageUrl = recipe.image.startsWith('/') 
+        ? `${window.location.origin}${recipe.image}` 
+        : recipe.image
+      
+      const response = await fetch(imageUrl)
+      if (response.ok) {
+        const blob = await response.blob()
+        const reader = new FileReader()
+        imageBase64 = await new Promise((resolve) => {
+          reader.onloadend = () => resolve(reader.result as string)
+          reader.readAsDataURL(blob)
+        })
+      }
+    } catch (error) {
+      console.warn('Failed to load image, continuing without it:', error)
+    }
+
     // Создаём скрытый контейнер для рендеринга
     const container = document.createElement('div')
     container.style.position = 'absolute'
     container.style.left = '-9999px'
+    container.style.top = '0'
     container.style.width = '800px'
     container.style.background = '#0a0a0a'
     container.style.padding = '0'
     container.style.fontFamily = 'system-ui, -apple-system, sans-serif'
-    
-    // Загружаем изображение
-    const img = new window.Image()
-    img.crossOrigin = 'anonymous'
-    
-    await new Promise((resolve, reject) => {
-      img.onload = resolve
-      img.onerror = reject
-      img.src = recipe.image
-    })
+    container.style.zIndex = '999999'
 
-    container.innerHTML = `
-      <div style="background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%); border-radius: 16px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
-        <!-- Header Image -->
-        <div style="position: relative; width: 100%; height: 300px; overflow: hidden;">
-          <img src="${recipe.image}" style="width: 100%; height: 100%; object-fit: cover;" />
+    const imageSection = imageBase64 
+      ? `<div style="position: relative; width: 100%; height: 300px; overflow: hidden;">
+          <img src="${imageBase64}" style="width: 100%; height: 100%; object-fit: cover;" />
           <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(10,10,10,0.95) 0%, rgba(10,10,10,0.5) 50%, transparent 100%);"></div>
           <div style="position: absolute; bottom: 20px; left: 20px; right: 20px;">
             <h2 style="font-size: 32px; font-weight: bold; color: white; margin: 0 0 10px 0;">${recipe.name}</h2>
@@ -2266,7 +2276,19 @@ export default function KetoFoodPage() {
               <span>🔥 ${recipe.calories} ккал</span>
             </div>
           </div>
-        </div>
+        </div>`
+      : `<div style="position: relative; width: 100%; height: 200px; background: linear-gradient(135deg, #1a1a2e 0%, #0a0a0a 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 30px;">
+          <h2 style="font-size: 36px; font-weight: bold; color: white; margin: 0 0 15px 0; text-align: center;">${recipe.name}</h2>
+          <div style="display: flex; gap: 20px; color: rgba(255,255,255,0.8); font-size: 16px;">
+            <span>⏱️ ${recipe.time} мин</span>
+            <span>🔥 ${recipe.calories} ккал</span>
+          </div>
+        </div>`
+
+    container.innerHTML = `
+      <div style="background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%); border-radius: 16px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
+        <!-- Header Image -->
+        ${imageSection}
 
         <!-- Content -->
         <div style="padding: 30px; background: rgba(255,255,255,0.05);">
@@ -2339,8 +2361,8 @@ export default function KetoFoodPage() {
     document.body.appendChild(container)
     
     try {
-      // Ждём загрузки изображения
-      await new Promise(resolve => setTimeout(resolve, 500))
+      // Ждём рендеринга
+      await new Promise(resolve => setTimeout(resolve, 1000))
       
       // Конвертируем в canvas
       const canvas = await html2canvas(container, {
@@ -2348,6 +2370,8 @@ export default function KetoFoodPage() {
         scale: 2,
         logging: false,
         useCORS: true,
+        allowTaint: true,
+        imageTimeout: 0,
       })
 
       // Конвертируем canvas в PNG и скачиваем
@@ -2362,11 +2386,16 @@ export default function KetoFoodPage() {
           document.body.removeChild(a)
           URL.revokeObjectURL(url)
         }
-        document.body.removeChild(container)
-      }, 'image/png')
+        if (container.parentNode) {
+          document.body.removeChild(container)
+        }
+      }, 'image/png', 0.95)
     } catch (error) {
       console.error('Error generating PNG:', error)
-      document.body.removeChild(container)
+      alert('Ошибка при генерации изображения. Попробуйте еще раз.')
+      if (container.parentNode) {
+        document.body.removeChild(container)
+      }
     }
   }
 
