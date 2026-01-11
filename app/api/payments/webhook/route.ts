@@ -102,7 +102,8 @@ async function sendReceiptToSeller(
   payment: any,
   metadata: any,
   paymentType: string,
-  amountInKopecks: number
+  amountInKopecks: number,
+  courseTitle?: string | null
 ) {
   try {
     const sellerEmail = process.env.NEXT_PUBLIC_EMAIL_ORDER
@@ -120,16 +121,22 @@ async function sendReceiptToSeller(
       return
     }
 
-    // Формируем описание товара
+    // Формируем описание товара с названием курса
     const itemDescription = paymentType === 'balance_topup' 
       ? 'Пополнение баланса'
       : paymentType === 'promotion' && metadata?.promotion_id === 'two_courses'
       ? 'Оплата 2 курсов по акции'
       : paymentType === 'promotion' && metadata?.promotion_id === 'first_100'
-      ? 'Оплата курса по акции "Первым 100 студентам"'
+      ? courseTitle 
+        ? `Оплата курса "${courseTitle}" по акции "Первым 100 студентам"`
+        : 'Оплата курса по акции "Первым 100 студентам"'
       : paymentType === 'final_modules'
-      ? 'Оплата финальных модулей курса'
-      : 'Оплата курса'
+      ? courseTitle 
+        ? `Оплата финальных модулей курса "${courseTitle}"`
+        : 'Оплата финальных модулей курса'
+      : courseTitle
+      ? `Образовательная услуга: ${courseTitle}`
+      : 'Образовательная услуга: онлайн-курс'
 
     // Создаем чек через API ЮКассы
     const receiptData = {
@@ -213,6 +220,20 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
   if (!userId) {
     console.error('❌ Нет user_id в metadata')
     return
+  }
+
+  // Получаем название курса для чека
+  let courseTitle: string | null = null
+  if (courseId) {
+    const { data: courseData } = await supabase
+      .from('courses')
+      .select('title')
+      .eq('id', courseId)
+      .maybeSingle()
+    
+    if (courseData?.title) {
+      courseTitle = courseData.title
+    }
   }
 
   // ПРОСТАЯ ЛОГИКА: Найти или создать платеж
@@ -307,7 +328,7 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
   }
 
   // Отправляем чек продавцу на email (NEXT_PUBLIC_EMAIL_ORDER)
-  await sendReceiptToSeller(paymentId, payment, metadata, paymentType, amountInKopecks)
+  await sendReceiptToSeller(paymentId, payment, metadata, paymentType, amountInKopecks, courseTitle)
 
   // Обработка акций
   const promotionId = metadata?.promotion_id

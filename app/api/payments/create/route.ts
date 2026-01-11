@@ -117,8 +117,25 @@ export async function POST(request: NextRequest) {
 
     const paymentMethodType = getPaymentMethodType(paymentMethod || 'card')
 
-    // Получаем email/phone из БД если не переданы в receipt
+    // Получаем информацию о курсе и пользователе для чека
+    let courseTitle: string | null = null
     let finalReceipt = receipt
+    
+    const supabaseForData = createAdminClient() || await createClient()
+    if (courseId && supabaseForData) {
+      // Получаем название курса
+      const { data: courseData } = await supabaseForData
+        .from('courses')
+        .select('title')
+        .eq('id', courseId)
+        .maybeSingle()
+      
+      if (courseData?.title) {
+        courseTitle = courseData.title
+      }
+    }
+    
+    // Получаем email/phone из БД если не переданы в receipt
     if (userId && (!receipt || (!receipt.email && !receipt.phone))) {
       const supabase = await createClient()
       const userFromDb = await getUserFromSession(supabase)
