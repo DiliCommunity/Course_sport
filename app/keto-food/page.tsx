@@ -2163,6 +2163,7 @@ export default function KetoFoodPage() {
   const [portions, setPortions] = useState(1)
   const [hasPurchasedCourse, setHasPurchasedCourse] = useState(false)
   const [isCheckingAccess, setIsCheckingAccess] = useState(true)
+  const [isImageFullscreen, setIsImageFullscreen] = useState(false)
   const { user } = useAuth()
 
   // Проверяем, купил ли пользователь хотя бы один курс
@@ -2188,6 +2189,25 @@ export default function KetoFoodPage() {
 
     checkAccess()
   }, [user])
+
+  // Блокируем прокрутку body когда модалка открыта
+  useEffect(() => {
+    if (selectedRecipe || isImageFullscreen) {
+      document.body.style.overflow = 'hidden'
+      document.body.style.position = 'fixed'
+      document.body.style.width = '100%'
+    } else {
+      document.body.style.overflow = ''
+      document.body.style.position = ''
+      document.body.style.width = ''
+    }
+    
+    return () => {
+      document.body.style.overflow = ''
+      document.body.style.position = ''
+      document.body.style.width = ''
+    }
+  }, [selectedRecipe, isImageFullscreen])
 
   // Фильтруем рецепты: первые 15 для всех, остальные для купивших
   const getAvailableRecipes = (categoryRecipes: Recipe[]): Recipe[] => {
@@ -2528,34 +2548,54 @@ export default function KetoFoodPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-dark-900/95 backdrop-blur-lg"
+            className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-dark-900/95 backdrop-blur-lg"
             onClick={() => setSelectedRecipe(null)}
+            style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
           >
             <motion.div
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
-              className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto glass rounded-2xl border border-emerald-400/20"
+              className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto glass rounded-2xl border border-emerald-400/20 z-[99999]"
               onClick={(e) => e.stopPropagation()}
+              style={{ position: 'relative', zIndex: 99999 }}
             >
               {/* Close Button - вне контейнера изображения */}
               <button
-                onClick={() => setSelectedRecipe(null)}
-                className="absolute top-4 right-4 z-50 w-12 h-12 rounded-full bg-red-500/80 hover:bg-red-500 flex items-center justify-center transition-colors shadow-[0_0_20px_rgba(239,68,68,0.5)] border-2 border-white/30"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setSelectedRecipe(null)
+                }}
+                className="absolute top-4 right-4 z-[99999] w-12 h-12 rounded-full bg-red-500/90 hover:bg-red-500 flex items-center justify-center transition-colors shadow-[0_0_20px_rgba(239,68,68,0.5)] border-2 border-white/30 cursor-pointer"
+                style={{ position: 'absolute', zIndex: 99999, pointerEvents: 'auto' }}
+                aria-label="Закрыть"
               >
-                <X className="w-6 h-6 text-white" />
+                <X className="w-6 h-6 text-white pointer-events-none" />
               </button>
               
               {/* Header Image */}
-              <div className="relative aspect-video">
+              <div 
+                className="relative aspect-video cursor-pointer group"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setIsImageFullscreen(true)
+                }}
+              >
                 <Image
                   src={selectedRecipe.image}
                   alt={selectedRecipe.name}
                   fill
-                  className="object-cover"
+                  className="object-cover group-hover:scale-105 transition-transform duration-300"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-dark-900 via-dark-900/50 to-transparent" />
-                <div className="absolute bottom-4 left-4 right-4">
+                <div className="absolute inset-0 bg-gradient-to-t from-dark-900 via-dark-900/50 to-transparent group-hover:opacity-80 transition-opacity" />
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="bg-white/20 backdrop-blur-sm rounded-full p-4">
+                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="absolute bottom-4 left-4 right-4 pointer-events-none">
                   <h2 className="font-display font-bold text-2xl text-white mb-2">{selectedRecipe.name}</h2>
                   <div className="flex items-center gap-4 text-sm text-white/80">
                     <span className="flex items-center gap-1">
@@ -2657,6 +2697,69 @@ export default function KetoFoodPage() {
                   <Download className="w-6 h-6" />
                   📥 Скачать рецепт (PDF) на {portions} {portions === 1 ? 'порцию' : portions < 5 ? 'порции' : 'порций'}
                 </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Fullscreen Image Viewer */}
+      <AnimatePresence>
+        {isImageFullscreen && selectedRecipe && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/95 backdrop-blur-xl"
+            onClick={() => setIsImageFullscreen(false)}
+            style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
+          >
+            {/* Back Button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                setIsImageFullscreen(false)
+              }}
+              className="absolute top-4 left-4 z-[999999] px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 flex items-center gap-2 text-white font-medium transition-all shadow-lg"
+              style={{ position: 'absolute', zIndex: 999999, pointerEvents: 'auto' }}
+            >
+              <ArrowLeft className="w-5 h-5" />
+              Вернуться к рецепту
+            </button>
+
+            {/* Close Button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                setIsImageFullscreen(false)
+              }}
+              className="absolute top-4 right-4 z-[999999] w-12 h-12 rounded-full bg-red-500/90 hover:bg-red-500 flex items-center justify-center transition-colors shadow-[0_0_20px_rgba(239,68,68,0.5)] border-2 border-white/30 cursor-pointer"
+              style={{ position: 'absolute', zIndex: 999999, pointerEvents: 'auto' }}
+              aria-label="Закрыть"
+            >
+              <X className="w-6 h-6 text-white pointer-events-none" />
+            </button>
+
+            {/* Fullscreen Image */}
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="relative w-full h-full flex items-center justify-center p-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="relative w-full h-full max-w-7xl max-h-[95vh]">
+                <Image
+                  src={selectedRecipe.image}
+                  alt={selectedRecipe.name}
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
+              {/* Recipe Title Overlay */}
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/60 backdrop-blur-md rounded-xl px-6 py-3 border border-white/20">
+                <h3 className="font-display font-bold text-xl text-white text-center">{selectedRecipe.name}</h3>
               </div>
             </motion.div>
           </motion.div>
