@@ -6,7 +6,6 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowLeft, Download, Clock, Flame, X, ChefHat, FileText, Minus, Plus, Users, Lock } from 'lucide-react'
 import { useAuth } from '@/components/providers/AuthProvider'
-import html2canvas from 'html2canvas'
 
 // PDF гайды по кето продуктам
 const ketoGuides = [
@@ -2224,178 +2223,138 @@ export default function KetoFoodPage() {
     return ingredient
   }
 
-  const downloadRecipePNG = async (recipe: Recipe, portionCount: number = 1) => {
-    // Пересчитываем ингредиенты на количество порций
-    const adjustedIngredients = recipe.ingredients.map(i => multiplyIngredient(i, portionCount))
-    
-    // Пересчитываем КБЖУ
-    const adjustedCalories = Math.round(recipe.calories * portionCount)
-    const adjustedProtein = Math.round(recipe.protein * portionCount)
-    const adjustedFat = Math.round(recipe.fat * portionCount)
-    const adjustedCarbs = Math.round(recipe.carbs * portionCount)
-
-    // Пытаемся загрузить изображение и конвертировать в base64
-    let imageBase64 = ''
+  const downloadRecipePDF = async (recipe: Recipe, portionCount: number = 1) => {
     try {
-      const imageUrl = recipe.image.startsWith('/') 
-        ? `${window.location.origin}${recipe.image}` 
-        : recipe.image
+      // Динамически импортируем jsPDF
+      const { jsPDF } = await import('jspdf')
       
-      const response = await fetch(imageUrl)
-      if (response.ok) {
-        const blob = await response.blob()
-        const reader = new FileReader()
-        imageBase64 = await new Promise((resolve) => {
-          reader.onloadend = () => resolve(reader.result as string)
-          reader.readAsDataURL(blob)
-        })
-      }
-    } catch (error) {
-      console.warn('Failed to load image, continuing without it:', error)
-    }
-
-    // Создаём скрытый контейнер для рендеринга
-    const container = document.createElement('div')
-    container.style.position = 'absolute'
-    container.style.left = '-9999px'
-    container.style.top = '0'
-    container.style.width = '800px'
-    container.style.background = '#0a0a0a'
-    container.style.padding = '0'
-    container.style.fontFamily = 'system-ui, -apple-system, sans-serif'
-    container.style.zIndex = '999999'
-
-    const imageSection = imageBase64 
-      ? `<div style="position: relative; width: 100%; height: 300px; overflow: hidden;">
-          <img src="${imageBase64}" style="width: 100%; height: 100%; object-fit: cover;" />
-          <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(10,10,10,0.95) 0%, rgba(10,10,10,0.5) 50%, transparent 100%);"></div>
-          <div style="position: absolute; bottom: 20px; left: 20px; right: 20px;">
-            <h2 style="font-size: 32px; font-weight: bold; color: white; margin: 0 0 10px 0;">${recipe.name}</h2>
-            <div style="display: flex; gap: 20px; color: rgba(255,255,255,0.8); font-size: 14px;">
-              <span>⏱️ ${recipe.time} мин</span>
-              <span>🔥 ${recipe.calories} ккал</span>
-            </div>
-          </div>
-        </div>`
-      : `<div style="position: relative; width: 100%; height: 200px; background: linear-gradient(135deg, #1a1a2e 0%, #0a0a0a 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 30px;">
-          <h2 style="font-size: 36px; font-weight: bold; color: white; margin: 0 0 15px 0; text-align: center;">${recipe.name}</h2>
-          <div style="display: flex; gap: 20px; color: rgba(255,255,255,0.8); font-size: 16px;">
-            <span>⏱️ ${recipe.time} мин</span>
-            <span>🔥 ${recipe.calories} ккал</span>
-          </div>
-        </div>`
-
-    container.innerHTML = `
-      <div style="background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%); border-radius: 16px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
-        <!-- Header Image -->
-        ${imageSection}
-
-        <!-- Content -->
-        <div style="padding: 30px; background: rgba(255,255,255,0.05);">
-          <!-- Portions Info -->
-          <div style="background: rgba(0, 217, 255, 0.1); border: 1px solid rgba(0, 217, 255, 0.3); border-radius: 12px; padding: 15px; margin-bottom: 25px; text-align: center;">
-            <div style="color: #00D9FF; font-size: 16px; font-weight: 600;">
-              👥 Расчёт на ${portionCount} ${portionCount === 1 ? 'порцию' : portionCount < 5 ? 'порции' : 'порций'}
-            </div>
-          </div>
-
-          <!-- Macros -->
-          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 25px;">
-            <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 15px; text-align: center;">
-              <div style="font-size: 24px; font-weight: bold; color: white; margin-bottom: 5px;">${adjustedCalories}</div>
-              <div style="font-size: 12px; color: rgba(255,255,255,0.6);">Калории</div>
-            </div>
-            <div style="background: rgba(0, 217, 255, 0.1); border-radius: 12px; padding: 15px; text-align: center;">
-              <div style="font-size: 24px; font-weight: bold; color: #00D9FF; margin-bottom: 5px;">${adjustedProtein}г</div>
-              <div style="font-size: 12px; color: rgba(255,255,255,0.6);">Белки</div>
-            </div>
-            <div style="background: rgba(255, 215, 0, 0.1); border-radius: 12px; padding: 15px; text-align: center;">
-              <div style="font-size: 24px; font-weight: bold; color: #FFD700; margin-bottom: 5px;">${adjustedFat}г</div>
-              <div style="font-size: 12px; color: rgba(255,255,255,0.6);">Жиры</div>
-            </div>
-            <div style="background: rgba(0, 255, 127, 0.1); border-radius: 12px; padding: 15px; text-align: center;">
-              <div style="font-size: 24px; font-weight: bold; color: #00FF7F; margin-bottom: 5px;">${adjustedCarbs}г</div>
-              <div style="font-size: 12px; color: rgba(255,255,255,0.6);">Углеводы</div>
-            </div>
-          </div>
-
-          <!-- Ingredients -->
-          <div style="margin-bottom: 25px;">
-            <h3 style="font-size: 20px; font-weight: bold; color: white; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
-              📝 Ингредиенты <span style="font-size: 14px; font-weight: normal; color: rgba(255,255,255,0.5);">(на ${portionCount} ${portionCount === 1 ? 'порцию' : portionCount < 5 ? 'порции' : 'порций'})</span>
-            </h3>
-            <ul style="list-style: none; padding: 0; margin: 0;">
-              ${adjustedIngredients.map(i => `
-                <li style="display: flex; align-items: center; gap: 10px; color: rgba(255,255,255,0.8); margin-bottom: 10px; font-size: 16px;">
-                  <span style="width: 8px; height: 8px; border-radius: 50%; background: #00D9FF;"></span>
-                  ${i}
-                </li>
-              `).join('')}
-            </ul>
-          </div>
-
-          <!-- Instructions -->
-          <div>
-            <h3 style="font-size: 20px; font-weight: bold; color: white; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
-              👨‍🍳 Приготовление
-            </h3>
-            <ol style="list-style: none; padding: 0; margin: 0; counter-reset: step-counter;">
-              ${recipe.instructions.map((step, idx) => `
-                <li style="counter-increment: step-counter; margin-bottom: 15px; padding-left: 35px; position: relative; color: rgba(255,255,255,0.8); font-size: 16px; line-height: 1.6;">
-                  <span style="position: absolute; left: 0; top: 0; width: 24px; height: 24px; background: #00D9FF; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #0a0a0a; font-size: 12px;">${idx + 1}</span>
-                  ${step}
-                </li>
-              `).join('')}
-            </ol>
-          </div>
-
-          <!-- Footer -->
-          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); text-align: center;">
-            <div style="color: rgba(255,255,255,0.4); font-size: 12px;">🥗 Course Health - Кето рецепты</div>
-            <div style="color: rgba(255,255,255,0.3); font-size: 11px; margin-top: 5px;">course-sport.vercel.app</div>
-          </div>
-        </div>
-      </div>
-    `
-
-    document.body.appendChild(container)
-    
-    try {
-      // Ждём рендеринга
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // Пересчитываем ингредиенты на количество порций
+      const adjustedIngredients = recipe.ingredients.map(i => multiplyIngredient(i, portionCount))
       
-      // Конвертируем в canvas
-      const canvas = await html2canvas(container, {
-        backgroundColor: '#0a0a0a',
-        scale: 2,
-        logging: false,
-        useCORS: true,
-        allowTaint: true,
-        imageTimeout: 0,
+      // Пересчитываем КБЖУ
+      const adjustedCalories = Math.round(recipe.calories * portionCount)
+      const adjustedProtein = Math.round(recipe.protein * portionCount)
+      const adjustedFat = Math.round(recipe.fat * portionCount)
+      const adjustedCarbs = Math.round(recipe.carbs * portionCount)
+
+      // Создаём PDF документ
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
       })
 
-      // Конвертируем canvas в PNG и скачиваем
-      canvas.toBlob((blob) => {
-        if (blob) {
-          const url = URL.createObjectURL(blob)
-          const a = document.createElement('a')
-          a.href = url
-          a.download = `${recipe.name.replace(/\s+/g, '_')}_${portionCount}_порций.png`
-          document.body.appendChild(a)
-          a.click()
-          document.body.removeChild(a)
-          URL.revokeObjectURL(url)
-        }
-        if (container.parentNode) {
-          document.body.removeChild(container)
-        }
-      }, 'image/png', 0.95)
-    } catch (error) {
-      console.error('Error generating PNG:', error)
-      alert('Ошибка при генерации изображения. Попробуйте еще раз.')
-      if (container.parentNode) {
-        document.body.removeChild(container)
+      // Настройки для русского текста
+      // В jsPDF 4.0.0 используется UTF-8 по умолчанию
+      // Стандартные шрифты (helvetica, times, courier) не поддерживают кириллицу
+      // Используем helvetica, но текст будет отображаться через правильную обработку UTF-8
+      pdf.setFont('helvetica')
+      
+      // Функция для добавления текста с правильной обработкой UTF-8
+      // В jsPDF 4.0.0 метод text() должен правильно обрабатывать UTF-8 строки
+      const addTextSafe = (text: string, x: number, y: number, fontSize: number = 12, fontStyle: string = 'normal', maxW: number = maxWidth) => {
+        pdf.setFontSize(fontSize)
+        pdf.setFont('helvetica', fontStyle as any)
+        // Преобразуем текст в правильный формат для jsPDF
+        // В jsPDF 4.0.0 splitTextToSize и text() должны работать с UTF-8
+        const textStr = String(text)
+        const lines = pdf.splitTextToSize(textStr, maxW)
+        lines.forEach((line: string, idx: number) => {
+          // Используем метод text() который должен правильно обрабатывать UTF-8
+          pdf.text(line, x, y + (idx * fontSize * 0.4))
+        })
+        return lines.length
       }
+      
+      let yPos = 20
+      const pageWidth = pdf.internal.pageSize.getWidth()
+      const margin = 20
+      const maxWidth = pageWidth - 2 * margin
+
+      // Заголовок - название блюда
+      const titleLines = addTextSafe(recipe.name, margin, yPos, 24, 'bold', maxWidth)
+      yPos += titleLines * 10 + 10
+
+      // Информация о времени и калориях
+      const timeText = `Время приготовления: ${recipe.time} мин | Калории: ${adjustedCalories} ккал`
+      addTextSafe(timeText, margin, yPos, 12)
+      yPos += 10
+
+      // Информация о порциях
+      const portionText = `Расчёт на ${portionCount} ${portionCount === 1 ? 'порцию' : portionCount < 5 ? 'порции' : 'порций'}`
+      addTextSafe(portionText, margin, yPos, 11)
+      yPos += 10
+
+      // КБЖУ
+      const macrosText = `Белки: ${adjustedProtein}г | Жиры: ${adjustedFat}г | Углеводы: ${adjustedCarbs}г`
+      addTextSafe(macrosText, margin, yPos, 11)
+      yPos += 15
+
+      // Разделитель
+      pdf.setDrawColor(200, 200, 200)
+      pdf.line(margin, yPos, pageWidth - margin, yPos)
+      yPos += 10
+
+      // Ингредиенты
+      addTextSafe('Ингредиенты:', margin, yPos, 16, 'bold')
+      yPos += 10
+
+      adjustedIngredients.forEach((ingredient, index) => {
+        // Проверяем, не выходит ли за пределы страницы
+        if (yPos > 270) {
+          pdf.addPage()
+          yPos = 20
+        }
+        const ingredientText = `${index + 1}. ${ingredient}`
+        const lines = addTextSafe(ingredientText, margin + 5, yPos, 12, 'normal', maxWidth - 5)
+        yPos += lines * 7 + 2
+      })
+
+      yPos += 10
+
+      // Разделитель
+      if (yPos > 270) {
+        pdf.addPage()
+        yPos = 20
+      }
+      pdf.setDrawColor(200, 200, 200)
+      pdf.line(margin, yPos, pageWidth - margin, yPos)
+      yPos += 10
+
+      // Приготовление
+      addTextSafe('Приготовление:', margin, yPos, 16, 'bold')
+      yPos += 10
+
+      recipe.instructions.forEach((step, index) => {
+        // Проверяем, не выходит ли за пределы страницы
+        if (yPos > 270) {
+          pdf.addPage()
+          yPos = 20
+        }
+        const stepText = `${index + 1}. ${step}`
+        const lines = addTextSafe(stepText, margin + 5, yPos, 12, 'normal', maxWidth - 5)
+        yPos += lines * 7 + 3
+      })
+
+      // Футер
+      const totalPages = pdf.internal.pages.length - 1
+      for (let i = 1; i <= totalPages; i++) {
+        pdf.setPage(i)
+        pdf.setFontSize(8)
+        pdf.setFont('helvetica', 'normal')
+        pdf.setTextColor(150, 150, 150)
+        addTextSafe('Course Health - Кето рецепты', margin, pdf.internal.pageSize.getHeight() - 10, 8)
+        const pageText = `Страница ${i} из ${totalPages}`
+        const pageTextWidth = pdf.getTextWidth(pageText) * (8 / pdf.getFontSize())
+        pdf.text(pageText, pageWidth - margin - pageTextWidth, pdf.internal.pageSize.getHeight() - 10)
+      }
+
+      // Сохраняем PDF
+      const fileName = `${recipe.name.replace(/[^\w\s-]/g, '').replace(/\s+/g, '_')}_${portionCount}_порций.pdf`
+      pdf.save(fileName)
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+      alert('Ошибка при генерации PDF. Попробуйте еще раз.')
     }
   }
 
@@ -2547,9 +2506,9 @@ export default function KetoFoodPage() {
                         Смотреть рецепт
                       </button>
                       <button
-                        onClick={() => downloadRecipePNG(recipe, 1)}
+                        onClick={() => downloadRecipePDF(recipe, 1)}
                         className="py-2 px-4 rounded-xl bg-gradient-to-r from-orange-500 to-amber-400 text-dark-900 font-bold shadow-[0_0_10px_rgba(255,107,53,0.4)] hover:shadow-[0_0_20px_rgba(255,107,53,0.6)] hover:scale-110 transition-all duration-300 border border-yellow-300/50"
-                        title="Скачать PNG"
+                        title="Скачать PDF"
                       >
                         <Download className="w-5 h-5" />
                       </button>
@@ -2692,11 +2651,11 @@ export default function KetoFoodPage() {
 
                 {/* Download Button - ЯРКАЯ КНОПКА */}
                 <button
-                  onClick={() => downloadRecipePNG(selectedRecipe, portions)}
+                  onClick={() => downloadRecipePDF(selectedRecipe, portions)}
                   className="w-full py-4 rounded-xl bg-gradient-to-r from-orange-500 via-amber-400 to-yellow-400 text-dark-900 font-bold text-lg flex items-center justify-center gap-3 shadow-[0_0_25px_rgba(255,107,53,0.6),0_0_50px_rgba(255,215,0,0.4)] hover:shadow-[0_0_40px_rgba(255,107,53,0.8),0_0_80px_rgba(255,215,0,0.6)] hover:scale-[1.02] transition-all duration-300 border-2 border-yellow-300/60"
                 >
                   <Download className="w-6 h-6" />
-                  📥 Скачать рецепт (PNG) на {portions} {portions === 1 ? 'порцию' : portions < 5 ? 'порции' : 'порций'}
+                  📥 Скачать рецепт (PDF) на {portions} {portions === 1 ? 'порцию' : portions < 5 ? 'порции' : 'порций'}
                 </button>
               </div>
             </motion.div>
