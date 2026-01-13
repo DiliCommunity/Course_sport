@@ -226,89 +226,148 @@ export function MenuGenerator() {
     try {
       setDownloading(true)
 
+      // Создаем canvas для правильного рендеринга кириллицы
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+      if (!ctx) {
+        throw new Error('Could not get canvas context')
+      }
+
+      const dpi = 300
+      const mmToPx = dpi / 25.4
+      const pageWidthMm = 210
+      const pageHeightMm = 297
+      const pageWidthPx = pageWidthMm * mmToPx
+      const pageHeightPx = pageHeightMm * mmToPx
+
+      canvas.width = pageWidthPx
+      canvas.height = pageHeightPx
+
+      // Белый фон
+      ctx.fillStyle = '#ffffff'
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+      const marginPx = 20 * mmToPx
+      let yPosPx = 25 * mmToPx
+
+      // Заголовок
+      ctx.fillStyle = '#10b981' // accent-mint
+      ctx.font = 'bold 36px Arial, sans-serif'
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'top'
+      ctx.fillText('Персональное меню', pageWidthPx / 2, yPosPx)
+      yPosPx += 50
+
+      // Период и калории
+      ctx.fillStyle = '#666666'
+      ctx.font = '20px Arial, sans-serif'
+      const periodText = period === 'day' ? 'На день' : period === 'week' ? 'На неделю' : 'На месяц'
+      ctx.fillText(periodText, pageWidthPx / 2, yPosPx)
+      yPosPx += 30
+      ctx.fillText(`Целевые калории: ${targetCalories} ккал/день`, pageWidthPx / 2, yPosPx)
+      yPosPx += 40
+
+      // Меню для каждого дня
+      ctx.textAlign = 'left'
+      generatedMenu.forEach((day, dayIndex) => {
+        if (yPosPx > pageHeightPx - 100) {
+          // Если не хватает места, создаем новую страницу через jsPDF
+          return
+        }
+
+        const totals = getTotalForDay(day)
+
+        // День
+        ctx.fillStyle = '#10b981'
+        ctx.font = 'bold 24px Arial, sans-serif'
+        const dayText = day.day + (day.date ? ` (${day.date})` : '')
+        ctx.fillText(dayText, marginPx, yPosPx)
+        yPosPx += 35
+
+        ctx.fillStyle = '#000000'
+        ctx.font = '16px Arial, sans-serif'
+
+        if (day.breakfast) {
+          ctx.font = 'bold 16px Arial, sans-serif'
+          ctx.fillText('Завтрак:', marginPx + 10, yPosPx)
+          ctx.font = '16px Arial, sans-serif'
+          ctx.fillText(day.breakfast.name, marginPx + 80, yPosPx)
+          yPosPx += 25
+          ctx.font = '14px Arial, sans-serif'
+          ctx.fillStyle = '#666666'
+          ctx.fillText(`  ${day.breakfast.calories} ккал | ${day.breakfast.fats}г Ж | ${day.breakfast.proteins}г Б | ${day.breakfast.carbs}г У`, marginPx + 10, yPosPx)
+          yPosPx += 30
+          ctx.fillStyle = '#000000'
+        }
+
+        if (day.lunch) {
+          ctx.font = 'bold 16px Arial, sans-serif'
+          ctx.fillText('Обед:', marginPx + 10, yPosPx)
+          ctx.font = '16px Arial, sans-serif'
+          ctx.fillText(day.lunch.name, marginPx + 80, yPosPx)
+          yPosPx += 25
+          ctx.font = '14px Arial, sans-serif'
+          ctx.fillStyle = '#666666'
+          ctx.fillText(`  ${day.lunch.calories} ккал | ${day.lunch.fats}г Ж | ${day.lunch.proteins}г Б | ${day.lunch.carbs}г У`, marginPx + 10, yPosPx)
+          yPosPx += 30
+          ctx.fillStyle = '#000000'
+        }
+
+        if (day.dinner) {
+          ctx.font = 'bold 16px Arial, sans-serif'
+          ctx.fillText('Ужин:', marginPx + 10, yPosPx)
+          ctx.font = '16px Arial, sans-serif'
+          ctx.fillText(day.dinner.name, marginPx + 80, yPosPx)
+          yPosPx += 25
+          ctx.font = '14px Arial, sans-serif'
+          ctx.fillStyle = '#666666'
+          ctx.fillText(`  ${day.dinner.calories} ккал | ${day.dinner.fats}г Ж | ${day.dinner.proteins}г Б | ${day.dinner.carbs}г У`, marginPx + 10, yPosPx)
+          yPosPx += 30
+          ctx.fillStyle = '#000000'
+        }
+
+        if (day.snack) {
+          ctx.font = 'bold 16px Arial, sans-serif'
+          ctx.fillText('Перекус:', marginPx + 10, yPosPx)
+          ctx.font = '16px Arial, sans-serif'
+          ctx.fillText(day.snack.name, marginPx + 80, yPosPx)
+          yPosPx += 25
+          ctx.font = '14px Arial, sans-serif'
+          ctx.fillStyle = '#666666'
+          ctx.fillText(`  ${day.snack.calories} ккал | ${day.snack.fats}г Ж | ${day.snack.proteins}г Б | ${day.snack.carbs}г У`, marginPx + 10, yPosPx)
+          yPosPx += 30
+          ctx.fillStyle = '#000000'
+        }
+
+        // Итого
+        ctx.font = 'bold 16px Arial, sans-serif'
+        ctx.fillStyle = '#10b981'
+        ctx.fillText(`Итого: ${totals.calories} ккал | ${totals.fats}г жиров | ${totals.proteins}г белков | ${totals.carbs}г углеводов`, marginPx, yPosPx)
+        yPosPx += 40
+
+        if (dayIndex < generatedMenu.length - 1) {
+          ctx.strokeStyle = '#dddddd'
+          ctx.lineWidth = 1
+          ctx.beginPath()
+          ctx.moveTo(marginPx, yPosPx)
+          ctx.lineTo(pageWidthPx - marginPx, yPosPx)
+          ctx.stroke()
+          yPosPx += 20
+        }
+      })
+
+      // Конвертируем canvas в PDF
       const { jsPDF } = await import('jspdf')
+      const imgData = canvas.toDataURL('image/png', 1.0)
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4'
       })
 
-      const pageWidth = 210
-      const pageHeight = 297
-      const margin = 20
-      let yPos = margin
-
-      // Заголовок
-      pdf.setFontSize(20)
-      pdf.setTextColor(16, 185, 129) // accent-mint
-      pdf.text('Персональное меню', pageWidth / 2, yPos, { align: 'center' })
-      yPos += 10
-
-      pdf.setFontSize(12)
-      pdf.setTextColor(100, 100, 100)
-      const periodText = period === 'day' ? 'На день' : period === 'week' ? 'На неделю' : 'На месяц'
-      pdf.text(periodText, pageWidth / 2, yPos, { align: 'center' })
-      yPos += 5
-      pdf.text(`Целевые калории: ${targetCalories} ккал/день`, pageWidth / 2, yPos, { align: 'center' })
-      yPos += 10
-
-      // Меню для каждого дня
-      generatedMenu.forEach((day, dayIndex) => {
-        if (yPos > pageHeight - 60) {
-          pdf.addPage()
-          yPos = margin
-        }
-
-        const totals = getTotalForDay(day)
-
-        // День
-        pdf.setFontSize(14)
-        pdf.setTextColor(16, 185, 129)
-        pdf.text(day.day + (day.date ? ` (${day.date})` : ''), margin, yPos)
-        yPos += 8
-
-        pdf.setFontSize(10)
-        pdf.setTextColor(0, 0, 0)
-
-        if (day.breakfast) {
-          pdf.text(`Завтрак: ${day.breakfast.name}`, margin + 5, yPos)
-          yPos += 5
-          pdf.text(`  ${day.breakfast.calories} ккал | ${day.breakfast.fats}г Ж | ${day.breakfast.proteins}г Б | ${day.breakfast.carbs}г У`, margin + 5, yPos)
-          yPos += 6
-        }
-
-        if (day.lunch) {
-          pdf.text(`Обед: ${day.lunch.name}`, margin + 5, yPos)
-          yPos += 5
-          pdf.text(`  ${day.lunch.calories} ккал | ${day.lunch.fats}г Ж | ${day.lunch.proteins}г Б | ${day.lunch.carbs}г У`, margin + 5, yPos)
-          yPos += 6
-        }
-
-        if (day.dinner) {
-          pdf.text(`Ужин: ${day.dinner.name}`, margin + 5, yPos)
-          yPos += 5
-          pdf.text(`  ${day.dinner.calories} ккал | ${day.dinner.fats}г Ж | ${day.dinner.proteins}г Б | ${day.dinner.carbs}г У`, margin + 5, yPos)
-          yPos += 6
-        }
-
-        if (day.snack) {
-          pdf.text(`Перекус: ${day.snack.name}`, margin + 5, yPos)
-          yPos += 5
-          pdf.text(`  ${day.snack.calories} ккал | ${day.snack.fats}г Ж | ${day.snack.proteins}г Б | ${day.snack.carbs}г У`, margin + 5, yPos)
-          yPos += 6
-        }
-
-        pdf.setFontSize(11)
-        pdf.setTextColor(16, 185, 129)
-        pdf.text(`Итого: ${totals.calories} ккал | ${totals.fats}г жиров | ${totals.proteins}г белков | ${totals.carbs}г углеводов`, margin, yPos)
-        yPos += 10
-
-        if (dayIndex < generatedMenu.length - 1) {
-          pdf.setDrawColor(200, 200, 200)
-          pdf.line(margin, yPos, pageWidth - margin, yPos)
-          yPos += 5
-        }
-      })
+      const imgWidth = pageWidthMm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight)
 
       const fileName = `Меню-${period === 'day' ? 'день' : period === 'week' ? 'неделя' : 'месяц'}-${new Date().toLocaleDateString('ru-RU').replace(/\//g, '-')}.pdf`
       pdf.save(fileName)
