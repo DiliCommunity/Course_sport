@@ -2531,14 +2531,29 @@ export default function KetoFoodPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {getAvailableRecipes(recipes[category.id] || []).map((recipe, index) => (
+              {getAvailableRecipes(recipes[category.id] || []).map((recipe, index) => {
+                // Определяем, является ли рецепт платным (индекс >= 15 в исходном массиве)
+                const categoryRecipes = recipes[category.id] || []
+                const recipeIndex = categoryRecipes.findIndex(r => r.id === recipe.id)
+                const isPremium = recipeIndex >= 15
+                
+                return (
                 <motion.div
                   key={recipe.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="glass rounded-2xl overflow-hidden hover:scale-[1.02] transition-transform group"
+                  className={`glass rounded-2xl overflow-hidden hover:scale-[1.02] transition-transform group relative ${
+                    isPremium 
+                      ? 'border-2 border-transparent bg-gradient-to-br from-amber-500/20 via-sky-400/20 to-amber-500/20 hover:border-amber-400/50' 
+                      : ''
+                  }`}
                 >
+                  {isPremium && (
+                    <div className="absolute top-2 right-2 z-10 px-2 py-1 rounded-lg bg-gradient-to-r from-amber-400 via-sky-300 to-amber-400 text-dark-900 text-xs font-bold shadow-[0_0_10px_rgba(251,191,36,0.5)]">
+                      ⭐ Premium
+                    </div>
+                  )}
                   <div 
                     className="relative aspect-video cursor-pointer"
                     onClick={() => { setSelectedRecipe(recipe); setPortions(1) }}
@@ -2549,38 +2564,64 @@ export default function KetoFoodPage() {
                       fill
                       className="object-cover group-hover:scale-110 transition-transform duration-500"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-dark-900 to-transparent" />
+                    <div className={`absolute inset-0 bg-gradient-to-t ${
+                      isPremium 
+                        ? 'from-dark-900 via-dark-900/80 to-transparent' 
+                        : 'from-dark-900 to-transparent'
+                    }`} />
                     <div className="absolute bottom-4 left-4 right-4">
-                      <h3 className="font-bold text-white text-lg">{recipe.name}</h3>
+                      <h3 className={`font-bold text-lg ${
+                        isPremium 
+                          ? 'bg-gradient-to-r from-amber-300 via-sky-300 to-amber-300 bg-clip-text text-transparent' 
+                          : 'text-white'
+                      }`}>
+                        {recipe.name}
+                      </h3>
                     </div>
                   </div>
                   <div className="p-4">
                     <div className="flex items-center justify-between text-sm mb-4">
                       <div className="flex items-center gap-4">
-                        <span className="flex items-center gap-1 text-white/60">
+                        <span className={`flex items-center gap-1 ${
+                          isPremium ? 'text-amber-300/80' : 'text-white/60'
+                        }`}>
                           <Clock className="w-4 h-4" />
                           {recipe.time} мин
                         </span>
-                        <span className="flex items-center gap-1 text-accent-flame">
+                        <span className={`flex items-center gap-1 ${
+                          isPremium ? 'text-sky-300' : 'text-accent-flame'
+                        }`}>
                           <Flame className="w-4 h-4" />
                           {recipe.calories} ккал
                         </span>
                       </div>
-                      <span className="text-accent-neon text-xs">
+                      <span className={`text-xs ${
+                        isPremium 
+                          ? 'bg-gradient-to-r from-amber-300 to-sky-300 bg-clip-text text-transparent font-semibold' 
+                          : 'text-accent-neon'
+                      }`}>
                         Б:{recipe.protein} Ж:{recipe.fat} У:{recipe.carbs}
                       </span>
                     </div>
                     <div className="flex gap-2">
                       <button
                         onClick={() => { setSelectedRecipe(recipe); setPortions(1) }}
-                        className="flex-1 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                        className={`flex-1 py-2 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                          isPremium
+                            ? 'bg-gradient-to-r from-amber-500/20 via-sky-400/20 to-amber-500/20 hover:from-amber-500/30 hover:via-sky-400/30 hover:to-amber-500/30 border border-amber-400/30 text-white'
+                            : 'bg-white/10 hover:bg-white/20 text-white'
+                        }`}
                       >
                         <FileText className="w-4 h-4" />
                         Смотреть рецепт
                       </button>
                       <button
                         onClick={() => downloadRecipePDF(recipe, 1)}
-                        className="py-2 px-4 rounded-xl bg-gradient-to-r from-orange-500 to-amber-400 text-dark-900 font-bold shadow-[0_0_10px_rgba(255,107,53,0.4)] hover:shadow-[0_0_20px_rgba(255,107,53,0.6)] hover:scale-110 transition-all duration-300 border border-yellow-300/50"
+                        className={`py-2 px-4 rounded-xl font-bold shadow-[0_0_10px_rgba(255,107,53,0.4)] hover:shadow-[0_0_20px_rgba(255,107,53,0.6)] hover:scale-110 transition-all duration-300 ${
+                          isPremium
+                            ? 'bg-gradient-to-r from-amber-400 via-sky-300 to-amber-400 text-dark-900 border border-amber-300/50'
+                            : 'bg-gradient-to-r from-orange-500 to-amber-400 text-dark-900 border border-yellow-300/50'
+                        }`}
                         title="Скачать PDF"
                       >
                         <Download className="w-5 h-5" />
@@ -2588,7 +2629,8 @@ export default function KetoFoodPage() {
                     </div>
                   </div>
                 </motion.div>
-              ))}
+                )
+              })}
             </div>
           </motion.div>
         ))}

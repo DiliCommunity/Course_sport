@@ -28,19 +28,37 @@ export async function GET(request: NextRequest) {
     if (checkPurchased) {
       const user = await getUserFromSession(supabase)
       if (!user) {
+        console.log('[Access Check] No user found in session')
         return NextResponse.json({ hasPurchased: false })
       }
 
+      console.log('[Access Check] Checking purchases for user:', user.id)
+
       // Проверяем, есть ли хотя бы один завершенный платеж
-      const { data: payments } = await adminSupabase
+      const { data: payments, error: paymentsError } = await adminSupabase
         .from('payments')
-        .select('id')
+        .select('id, status, course_id')
         .eq('user_id', user.id)
         .eq('status', 'completed')
-        .limit(1)
+        .limit(10)
+
+      console.log('[Access Check] Payments found:', payments?.length || 0, 'Error:', paymentsError?.message)
+
+      // Альтернативная проверка: если пользователь записан на курс, значит он его купил
+      const { data: enrollments, error: enrollmentsError } = await adminSupabase
+        .from('enrollments')
+        .select('id, course_id')
+        .eq('user_id', user.id)
+        .limit(10)
+
+      console.log('[Access Check] Enrollments found:', enrollments?.length || 0, 'Error:', enrollmentsError?.message)
+
+      const hasPurchased = (payments && payments.length > 0) || (enrollments && enrollments.length > 0)
+
+      console.log('[Access Check] Final result - hasPurchased:', hasPurchased)
 
       return NextResponse.json({
-        hasPurchased: (payments && payments.length > 0) || false
+        hasPurchased: hasPurchased || false
       })
     }
 
