@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Check } from 'lucide-react'
 
@@ -24,6 +24,18 @@ export function AvatarUpload({ currentAvatar, userId, onUploadComplete }: Avatar
   const [isPickerOpen, setIsPickerOpen] = useState(false)
   const [selectedEmoji, setSelectedEmoji] = useState<string>(currentAvatar || '💚')
   const [saving, setSaving] = useState(false)
+
+  // Добавляем/удаляем класс modal-open к body для скрытия Header
+  useEffect(() => {
+    if (isPickerOpen) {
+      document.body.classList.add('modal-open')
+    } else {
+      document.body.classList.remove('modal-open')
+    }
+    return () => {
+      document.body.classList.remove('modal-open')
+    }
+  }, [isPickerOpen])
 
   const handleEmojiSelect = async (emoji: string) => {
     setSaving(true)

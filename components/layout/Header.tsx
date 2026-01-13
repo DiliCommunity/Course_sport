@@ -20,6 +20,7 @@ export function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
   
   const { user, signOut } = useAuth()
   const { user: telegramUser, isTelegramApp } = useTelegram()
@@ -28,6 +29,25 @@ export function Header() {
   // Пользователь должен явно войти через кнопку, даже если Telegram передает данные
   const isAuthenticated = !!user
   const displayName = user?.email?.split('@')[0] || user?.name || user?.username || 'Профиль'
+
+  // Проверяем наличие класса modal-open на body для скрытия Header
+  useEffect(() => {
+    const checkModalOpen = () => {
+      setIsModalOpen(document.body.classList.contains('modal-open'))
+    }
+    
+    // Проверяем сразу
+    checkModalOpen()
+    
+    // Создаем MutationObserver для отслеживания изменений класса body
+    const observer = new MutationObserver(checkModalOpen)
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['class']
+    })
+    
+    return () => observer.disconnect()
+  }, [])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -51,6 +71,11 @@ export function Header() {
     document.addEventListener('click', handleClickOutside)
     return () => document.removeEventListener('click', handleClickOutside)
   }, [isUserMenuOpen])
+
+  // Скрываем Header когда открыта модалка
+  if (isModalOpen) {
+    return null
+  }
 
   return (
     <header

@@ -130,6 +130,18 @@ export function PaymentModal({
     }
   }, [isOpen, isAuthenticated, onClose, router, courseId])
 
+  // Добавляем/удаляем класс modal-open к body для скрытия Header
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('modal-open')
+    } else {
+      document.body.classList.remove('modal-open')
+    }
+    return () => {
+      document.body.classList.remove('modal-open')
+    }
+  }, [isOpen])
+
   const handlePayment = async () => {
     // Двойная проверка авторизации
     if (!isAuthenticated) {

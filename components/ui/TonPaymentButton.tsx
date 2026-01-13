@@ -71,6 +71,18 @@ export function TonPaymentButton({
   const shortCourseId = courseId.substring(0, 8)
   const paymentComment = `CH-${shortCourseId}-${shortUserId}`
 
+  // Добавляем/удаляем класс modal-open к body для скрытия Header
+  useEffect(() => {
+    if (isModalOpen) {
+      document.body.classList.add('modal-open')
+    } else {
+      document.body.classList.remove('modal-open')
+    }
+    return () => {
+      document.body.classList.remove('modal-open')
+    }
+  }, [isModalOpen])
+
   // Не показываем если адрес не настроен
   if (!RECEIVER_ADDRESS || RECEIVER_ADDRESS === 'your_ton_wallet_address') {
     return null

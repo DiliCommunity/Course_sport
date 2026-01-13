@@ -546,6 +546,14 @@ function LessonModal({
   onClose: () => void
   onComplete: () => void
 }) {
+  // Добавляем/удаляем класс modal-open к body для скрытия Header
+  useEffect(() => {
+    document.body.classList.add('modal-open')
+    return () => {
+      document.body.classList.remove('modal-open')
+    }
+  }, [])
+
   return (
     <div className="fixed inset-0 bg-dark-900/95 z-50 overflow-y-auto">
       <div className="container mx-auto px-4 py-8 max-w-4xl">

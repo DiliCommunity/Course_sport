@@ -68,6 +68,18 @@ export function ReferralModal({
     }
   }
 
+  // Добавляем/удаляем класс modal-open к body для скрытия Header
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('modal-open')
+    } else {
+      document.body.classList.remove('modal-open')
+    }
+    return () => {
+      document.body.classList.remove('modal-open')
+    }
+  }, [isOpen])
+
   if (typeof window === 'undefined') return null
 
   return createPortal(

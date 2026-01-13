@@ -36,15 +36,18 @@ export function MyCoursesModal({ isOpen, onClose }: MyCoursesModalProps) {
   const [isAdmin, setIsAdmin] = useState(false)
   const { user } = useAuth()
 
-  // Блокируем скролл body когда модалка открыта
+  // Блокируем скролл body и добавляем класс modal-open для скрытия Header
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden'
+      document.body.classList.add('modal-open')
     } else {
       document.body.style.overflow = ''
+      document.body.classList.remove('modal-open')
     }
     return () => {
       document.body.style.overflow = ''
+      document.body.classList.remove('modal-open')
     }
   }, [isOpen])
 

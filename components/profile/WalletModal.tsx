@@ -95,15 +95,18 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
     }
   }
 
-  // Блокируем скролл body когда модалка открыта
+  // Блокируем скролл body и добавляем класс modal-open для скрытия Header
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden'
+      document.body.classList.add('modal-open')
     } else {
       document.body.style.overflow = ''
+      document.body.classList.remove('modal-open')
     }
     return () => {
       document.body.style.overflow = ''
+      document.body.classList.remove('modal-open')
     }
   }, [isOpen])
 

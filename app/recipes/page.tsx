@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/Button'
 export default function RecipesPage() {
   const [hasAccess, setHasAccess] = useState<boolean | null>(null)
   const [isChecking, setIsChecking] = useState(true)
-  const { user, telegramUser } = useAuth()
+  const { user } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
@@ -30,8 +30,10 @@ export default function RecipesPage() {
       }
     }
 
+    // Проверяем доступ независимо от того, загружен ли user на клиенте
+    // Серверная проверка работает через cookies (session_token или telegram_id)
     checkAccess()
-  }, [user, telegramUser])
+  }, [user]) // Перепроверяем при изменении user (если он загрузился)
 
   if (isChecking) {
     return (

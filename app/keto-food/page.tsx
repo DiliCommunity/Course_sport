@@ -2190,22 +2190,25 @@ export default function KetoFoodPage() {
     checkAccess()
   }, [user])
 
-  // Блокируем прокрутку body когда модалка открыта
+  // Блокируем прокрутку body и добавляем класс modal-open для скрытия Header
   useEffect(() => {
     if (selectedRecipe || isImageFullscreen) {
       document.body.style.overflow = 'hidden'
       document.body.style.position = 'fixed'
       document.body.style.width = '100%'
+      document.body.classList.add('modal-open')
     } else {
       document.body.style.overflow = ''
       document.body.style.position = ''
       document.body.style.width = ''
+      document.body.classList.remove('modal-open')
     }
     
     return () => {
       document.body.style.overflow = ''
       document.body.style.position = ''
       document.body.style.width = ''
+      document.body.classList.remove('modal-open')
     }
   }, [selectedRecipe, isImageFullscreen])
 
