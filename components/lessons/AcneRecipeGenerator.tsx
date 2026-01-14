@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { Sparkles, X, RefreshCw, Download, ChefHat, AlertCircle, CheckCircle2, Shuffle } from 'lucide-react'
 import html2canvas from 'html2canvas'
 import { jsPDF } from 'jspdf'
+import Image from 'next/image'
 
 interface Ingredient {
   name: string
@@ -16,6 +17,7 @@ interface Recipe {
   id: string
   name: string
   description: string
+  image?: string
   mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack'
   ingredients: Ingredient[]
   instructions: string[]
@@ -1009,6 +1011,25 @@ export function AcneRecipeGenerator() {
               transition={{ duration: 0.3 }}
               className="p-4 sm:p-5 rounded-xl bg-white/5 border-2 transition-all"
             >
+              {/* Изображение */}
+              {recipe.image && (
+                <div className="relative w-full h-48 sm:h-64 rounded-xl overflow-hidden mb-4">
+                  <Image
+                    src={recipe.image}
+                    alt={recipe.name}
+                    fill
+                    className="object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement
+                      target.style.display = 'none'
+                    }}
+                  />
+                  {recipe.image.includes('recipes/') && (
+                    <div className="absolute inset-0 bg-gradient-to-t from-dark-900 via-dark-900/50 to-transparent" />
+                  )}
+                </div>
+              )}
+
               <div className="flex items-start justify-between mb-2 sm:mb-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">

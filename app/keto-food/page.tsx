@@ -4,8 +4,10 @@ import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowLeft, Download, Clock, Flame, X, ChefHat, FileText, Minus, Plus, Users, Lock, Sparkles, ArrowRight } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { ArrowLeft, Download, Clock, Flame, X, ChefHat, FileText, Minus, Plus, Users, Lock, Sparkles, ArrowRight, Loader2 } from 'lucide-react'
 import { useAuth } from '@/components/providers/AuthProvider'
+import { Button } from '@/components/ui/Button'
 
 // PDF гайды по кето продуктам
 const ketoGuides = [
@@ -2165,18 +2167,15 @@ export default function KetoFoodPage() {
   const [isCheckingAccess, setIsCheckingAccess] = useState(true)
   const [isImageFullscreen, setIsImageFullscreen] = useState(false)
   const { user } = useAuth()
+  const router = useRouter()
 
   // Проверяем, купил ли пользователь хотя бы один курс
   useEffect(() => {
     const checkAccess = async () => {
-      if (!user) {
-        setHasPurchasedCourse(false)
-        setIsCheckingAccess(false)
-        return
-      }
-
       try {
-        const response = await fetch('/api/courses/access?check_purchased=true')
+        const response = await fetch('/api/courses/access?check_purchased=true', {
+          credentials: 'include'
+        })
         const data = await response.json()
         setHasPurchasedCourse(data.hasPurchased || false)
       } catch (error) {
@@ -2187,6 +2186,8 @@ export default function KetoFoodPage() {
       }
     }
 
+    // Проверяем доступ независимо от того, загружен ли user на клиенте
+    // Серверная проверка работает через cookies (session_token или telegram_id)
     checkAccess()
   }, [user])
 
@@ -2212,12 +2213,12 @@ export default function KetoFoodPage() {
     }
   }, [selectedRecipe, isImageFullscreen])
 
-  // Фильтруем рецепты: первые 15 для всех, остальные для купивших
+  // Все рецепты доступны только после оплаты курса
   const getAvailableRecipes = (categoryRecipes: Recipe[]): Recipe[] => {
     if (hasPurchasedCourse) {
       return categoryRecipes // Все рецепты для купивших
     }
-    return categoryRecipes.slice(0, 15) // Первые 15 для всех
+    return [] // Без доступа - пустой массив
   }
 
   // Скачать PDF гайд
@@ -2248,9 +2249,6 @@ export default function KetoFoodPage() {
 
   const downloadRecipePDF = async (recipe: Recipe, portionCount: number = 1) => {
     try {
-      // Динамически импортируем jsPDF
-      const { jsPDF } = await import('jspdf')
-      
       // Пересчитываем ингредиенты на количество порций
       const adjustedIngredients = recipe.ingredients.map(i => multiplyIngredient(i, portionCount))
       
@@ -2260,125 +2258,132 @@ export default function KetoFoodPage() {
       const adjustedFat = Math.round(recipe.fat * portionCount)
       const adjustedCarbs = Math.round(recipe.carbs * portionCount)
 
-      // Создаём PDF документ
+      // Создаем временный HTML элемент для PDF
+      const printContent = document.createElement('div')
+      printContent.style.position = 'absolute'
+      printContent.style.left = '-9999px'
+      printContent.style.width = '800px'
+      printContent.style.padding = '40px'
+      printContent.style.backgroundColor = '#ffffff'
+      printContent.style.fontFamily = 'Arial, sans-serif'
+      printContent.style.color = '#000000'
+
+      const portionText = portionCount === 1 ? 'порцию' : portionCount < 5 ? 'порции' : 'порций'
+
+      printContent.innerHTML = `
+        <h1 style="font-size: 32px; color: #10b981; text-align: center; margin-bottom: 10px; border-bottom: 2px solid #10b981; padding-bottom: 10px;">
+          ${recipe.name}
+        </h1>
+        <p style="text-align: center; color: #666666; font-size: 14px; margin-bottom: 30px;">
+          Кето-рецепт
+        </p>
+        
+        <div style="margin-bottom: 25px; padding: 15px; background-color: #f5f5f5; border-radius: 8px;">
+          <p style="margin: 5px 0; font-size: 13px; color: #000000;">
+            ⏱ Время приготовления: ${recipe.time} минут
+          </p>
+          <p style="margin: 5px 0; font-size: 13px; color: #000000;">
+            🔥 Калории: ${adjustedCalories} ккал
+          </p>
+          <p style="margin: 5px 0; font-size: 13px; color: #000000; font-weight: bold;">
+            📊 БЖУ: ${adjustedProtein}Б / ${adjustedFat}Ж / ${adjustedCarbs}У
+          </p>
+          <p style="margin: 5px 0; font-size: 13px; color: #666666;">
+            Расчёт на ${portionCount} ${portionText}
+          </p>
+        </div>
+        
+        <h2 style="font-size: 18px; color: #10b981; margin-bottom: 12px; margin-top: 25px; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px;">
+          Ингредиенты:
+        </h2>
+        <ul style="margin-left: 25px; margin-bottom: 25px; line-height: 2; font-size: 13px;">
+          ${adjustedIngredients.map(ing => `<li>${ing}</li>`).join('')}
+        </ul>
+        
+        <h2 style="font-size: 18px; color: #10b981; margin-bottom: 12px; margin-top: 25px; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px;">
+          Приготовление:
+        </h2>
+        <ol style="margin-left: 25px; line-height: 2; font-size: 13px;">
+          ${recipe.instructions.map(step => `<li>${step}</li>`).join('')}
+        </ol>
+      `
+
+      // Добавляем элемент в DOM
+      document.body.appendChild(printContent)
+
+      // Используем html2canvas для создания изображения
+      const html2canvas = (await import('html2canvas')).default
+      const canvas = await html2canvas(printContent, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      })
+
+      // Удаляем временный элемент
+      document.body.removeChild(printContent)
+
+      // Конвертируем canvas в изображение и добавляем в PDF
+      const { jsPDF } = await import('jspdf')
+      const imgData = canvas.toDataURL('image/png')
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4'
       })
 
-      // Настройки для русского текста
-      // В jsPDF 4.0.0 используется UTF-8 по умолчанию
-      // Стандартные шрифты (helvetica, times, courier) не поддерживают кириллицу
-      // Используем helvetica, но текст будет отображаться через правильную обработку UTF-8
-      pdf.setFont('helvetica')
-      
-      // Функция для добавления текста с правильной обработкой UTF-8
-      // В jsPDF 4.0.0 метод text() должен правильно обрабатывать UTF-8 строки
-      const addTextSafe = (text: string, x: number, y: number, fontSize: number = 12, fontStyle: string = 'normal', maxW: number = maxWidth) => {
-        pdf.setFontSize(fontSize)
-        pdf.setFont('helvetica', fontStyle as any)
-        // Преобразуем текст в правильный формат для jsPDF
-        // В jsPDF 4.0.0 splitTextToSize и text() должны работать с UTF-8
-        const textStr = String(text)
-        const lines = pdf.splitTextToSize(textStr, maxW)
-        lines.forEach((line: string, idx: number) => {
-          // Используем метод text() который должен правильно обрабатывать UTF-8
-          pdf.text(line, x, y + (idx * fontSize * 0.4))
-        })
-        return lines.length
-      }
-      
-      let yPos = 20
-      const pageWidth = pdf.internal.pageSize.getWidth()
-      const margin = 20
-      const maxWidth = pageWidth - 2 * margin
+      const imgWidth = 210 // A4 width in mm
+      const pageHeight = 297 // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
 
-      // Заголовок - название блюда
-      const titleLines = addTextSafe(recipe.name, margin, yPos, 24, 'bold', maxWidth)
-      yPos += titleLines * 10 + 10
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight)
 
-      // Информация о времени и калориях
-      const timeText = `Время приготовления: ${recipe.time} мин | Калории: ${adjustedCalories} ккал`
-      addTextSafe(timeText, margin, yPos, 12)
-      yPos += 10
-
-      // Информация о порциях
-      const portionText = `Расчёт на ${portionCount} ${portionCount === 1 ? 'порцию' : portionCount < 5 ? 'порции' : 'порций'}`
-      addTextSafe(portionText, margin, yPos, 11)
-      yPos += 10
-
-      // КБЖУ
-      const macrosText = `Белки: ${adjustedProtein}г | Жиры: ${adjustedFat}г | Углеводы: ${adjustedCarbs}г`
-      addTextSafe(macrosText, margin, yPos, 11)
-      yPos += 15
-
-      // Разделитель
-      pdf.setDrawColor(200, 200, 200)
-      pdf.line(margin, yPos, pageWidth - margin, yPos)
-      yPos += 10
-
-      // Ингредиенты
-      addTextSafe('Ингредиенты:', margin, yPos, 16, 'bold')
-      yPos += 10
-
-      adjustedIngredients.forEach((ingredient, index) => {
-        // Проверяем, не выходит ли за пределы страницы
-        if (yPos > 270) {
-          pdf.addPage()
-          yPos = 20
-        }
-        const ingredientText = `${index + 1}. ${ingredient}`
-        const lines = addTextSafe(ingredientText, margin + 5, yPos, 12, 'normal', maxWidth - 5)
-        yPos += lines * 7 + 2
-      })
-
-      yPos += 10
-
-      // Разделитель
-      if (yPos > 270) {
-        pdf.addPage()
-        yPos = 20
-      }
-      pdf.setDrawColor(200, 200, 200)
-      pdf.line(margin, yPos, pageWidth - margin, yPos)
-      yPos += 10
-
-      // Приготовление
-      addTextSafe('Приготовление:', margin, yPos, 16, 'bold')
-      yPos += 10
-
-      recipe.instructions.forEach((step, index) => {
-        // Проверяем, не выходит ли за пределы страницы
-        if (yPos > 270) {
-          pdf.addPage()
-          yPos = 20
-        }
-        const stepText = `${index + 1}. ${step}`
-        const lines = addTextSafe(stepText, margin + 5, yPos, 12, 'normal', maxWidth - 5)
-        yPos += lines * 7 + 3
-      })
-
-      // Футер
-      const totalPages = pdf.internal.pages.length - 1
-      for (let i = 1; i <= totalPages; i++) {
-        pdf.setPage(i)
-        pdf.setFontSize(8)
-        pdf.setFont('helvetica', 'normal')
-        pdf.setTextColor(150, 150, 150)
-        addTextSafe('Course Health - Кето рецепты', margin, pdf.internal.pageSize.getHeight() - 10, 8)
-        const pageText = `Страница ${i} из ${totalPages}`
-        const pageTextWidth = pdf.getTextWidth(pageText) * (8 / pdf.getFontSize())
-        pdf.text(pageText, pageWidth - margin - pageTextWidth, pdf.internal.pageSize.getHeight() - 10)
-      }
-
-      // Сохраняем PDF
       const fileName = `${recipe.name.replace(/[^\w\s-]/g, '').replace(/\s+/g, '_')}_${portionCount}_порций.pdf`
       pdf.save(fileName)
     } catch (error) {
       console.error('Error generating PDF:', error)
       alert('Ошибка при генерации PDF. Попробуйте еще раз.')
     }
+  }
+
+  // Блокируем доступ, пока проверяем
+  if (isCheckingAccess) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-accent-mint mx-auto mb-4" />
+          <p className="text-white/60">Проверка доступа...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Блокируем доступ, если нет оплаченного курса
+  if (!hasPurchasedCourse) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-md w-full p-8 rounded-2xl bg-gradient-to-br from-dark-800/90 via-dark-800/50 to-dark-900/90 border-2 border-white/10 backdrop-blur-xl shadow-2xl text-center"
+        >
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-accent-mint/20 to-accent-teal/20 flex items-center justify-center mx-auto mb-6">
+            <Lock className="w-10 h-10 text-accent-mint" />
+          </div>
+          <h1 className="text-2xl font-bold text-white mb-4">Доступ ограничен</h1>
+          <p className="text-white/70 mb-6">
+            Кето-рецепты доступны только для пользователей, которые оплатили хотя бы один курс.
+          </p>
+          <Button
+            onClick={() => router.push('/courses')}
+            variant="primary"
+            size="lg"
+          >
+            Посмотреть курсы
+          </Button>
+        </motion.div>
+      </div>
+    )
   }
 
   return (
@@ -2532,28 +2537,14 @@ export default function KetoFoodPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {getAvailableRecipes(recipes[category.id] || []).map((recipe, index) => {
-                // Определяем, является ли рецепт платным (индекс >= 15 в исходном массиве)
-                const categoryRecipes = recipes[category.id] || []
-                const recipeIndex = categoryRecipes.findIndex(r => r.id === recipe.id)
-                const isPremium = recipeIndex >= 15
-                
                 return (
                 <motion.div
                   key={recipe.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className={`glass rounded-2xl overflow-hidden hover:scale-[1.02] transition-transform group relative ${
-                    isPremium 
-                      ? 'border-2 border-transparent bg-gradient-to-br from-amber-500/20 via-sky-400/20 to-amber-500/20 hover:border-amber-400/50' 
-                      : ''
-                  }`}
+                  className="glass rounded-2xl overflow-hidden hover:scale-[1.02] transition-transform group relative"
                 >
-                  {isPremium && (
-                    <div className="absolute top-2 right-2 z-10 px-2 py-1 rounded-lg bg-gradient-to-r from-amber-400 via-sky-300 to-amber-400 text-dark-900 text-xs font-bold shadow-[0_0_10px_rgba(251,191,36,0.5)]">
-                      ⭐ Premium
-                    </div>
-                  )}
                   <div 
                     className="relative aspect-video cursor-pointer"
                     onClick={() => { setSelectedRecipe(recipe); setPortions(1) }}
@@ -2564,17 +2555,9 @@ export default function KetoFoodPage() {
                       fill
                       className="object-cover group-hover:scale-110 transition-transform duration-500"
                     />
-                    <div className={`absolute inset-0 bg-gradient-to-t ${
-                      isPremium 
-                        ? 'from-dark-900 via-dark-900/80 to-transparent' 
-                        : 'from-dark-900 to-transparent'
-                    }`} />
+                    <div className="absolute inset-0 bg-gradient-to-t from-dark-900 to-transparent" />
                     <div className="absolute bottom-4 left-4 right-4">
-                      <h3 className={`font-bold text-lg ${
-                        isPremium 
-                          ? 'bg-gradient-to-r from-amber-300 via-sky-300 to-amber-300 bg-clip-text text-transparent' 
-                          : 'text-white'
-                      }`}>
+                      <h3 className="font-bold text-lg bg-gradient-to-r from-amber-300 via-sky-300 to-amber-300 bg-clip-text text-transparent">
                         {recipe.name}
                       </h3>
                     </div>
@@ -2582,46 +2565,30 @@ export default function KetoFoodPage() {
                   <div className="p-4">
                     <div className="flex items-center justify-between text-sm mb-4">
                       <div className="flex items-center gap-4">
-                        <span className={`flex items-center gap-1 ${
-                          isPremium ? 'text-amber-300/80' : 'text-white/60'
-                        }`}>
+                        <span className="flex items-center gap-1 text-white/60">
                           <Clock className="w-4 h-4" />
                           {recipe.time} мин
                         </span>
-                        <span className={`flex items-center gap-1 ${
-                          isPremium ? 'text-sky-300' : 'text-accent-flame'
-                        }`}>
+                        <span className="flex items-center gap-1 text-accent-flame">
                           <Flame className="w-4 h-4" />
                           {recipe.calories} ккал
                         </span>
                       </div>
-                      <span className={`text-xs ${
-                        isPremium 
-                          ? 'bg-gradient-to-r from-amber-300 to-sky-300 bg-clip-text text-transparent font-semibold' 
-                          : 'text-accent-neon'
-                      }`}>
+                      <span className="text-xs text-accent-neon">
                         Б:{recipe.protein} Ж:{recipe.fat} У:{recipe.carbs}
                       </span>
                     </div>
                     <div className="flex gap-2">
                       <button
                         onClick={() => { setSelectedRecipe(recipe); setPortions(1) }}
-                        className={`flex-1 py-2 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
-                          isPremium
-                            ? 'bg-gradient-to-r from-amber-500/20 via-sky-400/20 to-amber-500/20 hover:from-amber-500/30 hover:via-sky-400/30 hover:to-amber-500/30 border border-amber-400/30 text-white'
-                            : 'bg-white/10 hover:bg-white/20 text-white'
-                        }`}
+                        className="flex-1 py-2 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white"
                       >
                         <FileText className="w-4 h-4" />
                         Смотреть рецепт
                       </button>
                       <button
                         onClick={() => downloadRecipePDF(recipe, 1)}
-                        className={`py-2 px-4 rounded-xl font-bold shadow-[0_0_10px_rgba(255,107,53,0.4)] hover:shadow-[0_0_20px_rgba(255,107,53,0.6)] hover:scale-110 transition-all duration-300 ${
-                          isPremium
-                            ? 'bg-gradient-to-r from-amber-400 via-sky-300 to-amber-400 text-dark-900 border border-amber-300/50'
-                            : 'bg-gradient-to-r from-orange-500 to-amber-400 text-dark-900 border border-yellow-300/50'
-                        }`}
+                        className="py-2 px-4 rounded-xl font-bold shadow-[0_0_10px_rgba(255,107,53,0.4)] hover:shadow-[0_0_20px_rgba(255,107,53,0.6)] hover:scale-110 transition-all duration-300 bg-gradient-to-r from-orange-500 to-amber-400 text-dark-900 border border-yellow-300/50"
                         title="Скачать PDF"
                       >
                         <Download className="w-5 h-5" />

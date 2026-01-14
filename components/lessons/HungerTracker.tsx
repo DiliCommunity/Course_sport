@@ -113,92 +113,88 @@ export function HungerTracker() {
     try {
       setDownloading(true)
 
-      const { jsPDF } = await import('jspdf')
+      // Создаем временный HTML элемент для PDF
+      const printContent = document.createElement('div')
+      printContent.style.position = 'absolute'
+      printContent.style.left = '-9999px'
+      printContent.style.width = '800px'
+      printContent.style.padding = '40px'
+      printContent.style.backgroundColor = '#ffffff'
+      printContent.style.fontFamily = 'Arial, sans-serif'
+      printContent.style.color = '#000000'
+
+      const topTriggerHtml = stats.topTrigger 
+        ? `<p style="margin: 5px 0; font-size: 13px; color: #000000;">Частый триггер: ${stats.topTrigger[0]} (${stats.topTrigger[1]} раз)</p>`
+        : ''
+
+      const entriesHtml = entries.map((entry, index) => {
+        const typeLabel = entry.type === 'physical' ? 'Физический' : 'Психологический'
+        const triggerHtml = entry.trigger ? `<p style="margin: 3px 0; font-size: 12px; color: #666666;">Триггер: ${entry.trigger}</p>` : ''
+        const notesHtml = entry.notes ? `<p style="margin: 3px 0; font-size: 12px; color: #666666;">Заметки: ${entry.notes}</p>` : ''
+        const handledColor = entry.handled ? '#22c55e' : '#ef4444'
+        const handledText = entry.handled ? '✓ Справлено' : '✗ Не справлено'
+        return `
+          <div style="margin-bottom: 15px; padding: 10px; border-bottom: 1px solid #e0e0e0;">
+            <p style="font-size: 14px; color: #000000; font-weight: bold; margin-bottom: 5px;">${index + 1}. ${entry.time} - ${typeLabel} (${entry.intensity}/10)</p>
+            ${triggerHtml}
+            ${notesHtml}
+            <p style="margin: 3px 0; font-size: 12px; color: ${handledColor}; font-weight: bold;">${handledText}</p>
+          </div>
+        `
+      }).join('')
+
+      printContent.innerHTML = `
+        <h1 style="font-size: 32px; color: #3b82f6; text-align: center; margin-bottom: 10px; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">
+          Трекер голода
+        </h1>
+        <p style="text-align: center; color: #666666; font-size: 14px; margin-bottom: 30px;">
+          Период: ${new Date().toLocaleDateString('ru-RU')}
+        </p>
+        
+        <div style="margin-bottom: 25px; padding: 15px; background-color: #f5f5f5; border-radius: 8px;">
+          <h3 style="font-size: 16px; color: #3b82f6; margin-bottom: 10px;">Статистика:</h3>
+          <p style="margin: 5px 0; font-size: 13px; color: #000000;">Всего записей: ${stats.total}</p>
+          <p style="margin: 5px 0; font-size: 13px; color: #000000;">Физический голод: ${stats.physical} (${Math.round(stats.physical / stats.total * 100)}%)</p>
+          <p style="margin: 5px 0; font-size: 13px; color: #000000;">Психологический голод: ${stats.psychological} (${Math.round(stats.psychological / stats.total * 100)}%)</p>
+          <p style="margin: 5px 0; font-size: 13px; color: #000000;">Успешно справлено: ${stats.handled}</p>
+          <p style="margin: 5px 0; font-size: 13px; color: #000000;">Средняя интенсивность: ${stats.avgIntensity}/10</p>
+          ${topTriggerHtml}
+        </div>
+        
+        <h2 style="font-size: 18px; color: #3b82f6; margin-bottom: 12px; margin-top: 25px; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px;">
+          Записи:
+        </h2>
+        <div>
+          ${entriesHtml}
+        </div>
+      `
+
+      // Добавляем элемент в DOM
+      document.body.appendChild(printContent)
+
+      // Используем html2canvas для создания изображения
+      const canvas = await html2canvas(printContent, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      })
+
+      // Удаляем временный элемент
+      document.body.removeChild(printContent)
+
+      // Конвертируем canvas в изображение и добавляем в PDF
+      const imgData = canvas.toDataURL('image/png')
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4'
       })
 
-      const pageWidth = 210
-      const pageHeight = 297
-      const margin = 20
-      let yPos = 25
+      const imgWidth = 210 // A4 width in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
 
-      // Заголовок
-      pdf.setFontSize(24)
-      pdf.setTextColor(59, 130, 246)
-      pdf.text('Трекер голода', pageWidth / 2, yPos, { align: 'center' })
-      yPos += 15
-
-      pdf.setFontSize(12)
-      pdf.setTextColor(100, 100, 100)
-      pdf.text(`Период: ${new Date().toLocaleDateString('ru-RU')}`, pageWidth / 2, yPos, { align: 'center' })
-      yPos += 10
-
-      // Статистика
-      pdf.setFontSize(11)
-      pdf.setTextColor(0, 0, 0)
-      pdf.text(`Всего записей: ${stats.total}`, margin, yPos)
-      yPos += 6
-      pdf.text(`Физический голод: ${stats.physical} (${Math.round(stats.physical / stats.total * 100)}%)`, margin, yPos)
-      yPos += 6
-      pdf.text(`Психологический голод: ${stats.psychological} (${Math.round(stats.psychological / stats.total * 100)}%)`, margin, yPos)
-      yPos += 6
-      pdf.text(`Успешно справлено: ${stats.handled}`, margin, yPos)
-      yPos += 6
-      pdf.text(`Средняя интенсивность: ${stats.avgIntensity}/10`, margin, yPos)
-      yPos += 6
-      if (stats.topTrigger) {
-        pdf.text(`Частый триггер: ${stats.topTrigger[0]} (${stats.topTrigger[1]} раз)`, margin, yPos)
-        yPos += 6
-      }
-      yPos += 5
-
-      // Записи
-      pdf.setFontSize(14)
-      pdf.setTextColor(59, 130, 246)
-      pdf.text('Записи:', margin, yPos)
-      yPos += 10
-
-      pdf.setFontSize(9)
-      pdf.setTextColor(0, 0, 0)
-      entries.forEach((entry, index) => {
-        if (yPos > pageHeight - 30) {
-          pdf.addPage()
-          yPos = 25
-        }
-
-        const typeLabel = entry.type === 'physical' ? 'Физический' : 'Психологический'
-        pdf.setFontSize(10)
-        pdf.setTextColor(0, 0, 0)
-        pdf.text(`${index + 1}. ${entry.time} - ${typeLabel} (${entry.intensity}/10)`, margin, yPos)
-        yPos += 5
-
-        if (entry.trigger) {
-          pdf.setFontSize(9)
-          pdf.setTextColor(100, 100, 100)
-          pdf.text(`Триггер: ${entry.trigger}`, margin + 5, yPos)
-          yPos += 4
-        }
-
-        if (entry.notes) {
-          pdf.setFontSize(9)
-          pdf.setTextColor(100, 100, 100)
-          const noteLines = pdf.splitTextToSize(`Заметки: ${entry.notes}`, pageWidth - 2 * margin - 10)
-          pdf.text(noteLines, margin + 5, yPos)
-          yPos += noteLines.length * 4
-        }
-
-        pdf.setFontSize(9)
-        if (entry.handled) {
-          pdf.setTextColor(34, 197, 94)
-        } else {
-          pdf.setTextColor(239, 68, 68)
-        }
-        pdf.text(entry.handled ? '✓ Справлено' : '✗ Не справлено', margin + 5, yPos)
-        yPos += 8
-      })
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight)
 
       const fileName = `Трекер-голода-${new Date().toLocaleDateString('ru-RU').replace(/\//g, '-')}.pdf`
       pdf.save(fileName)

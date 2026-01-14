@@ -17,7 +17,7 @@ export default function RecipesPage() {
   useEffect(() => {
     const checkAccess = async () => {
       try {
-        const response = await fetch('/api/courses/access?checkPurchased=true', {
+        const response = await fetch('/api/courses/access?check_purchased=true', {
           credentials: 'include'
         })
         const data = await response.json()

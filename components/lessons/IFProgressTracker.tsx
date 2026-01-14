@@ -106,99 +106,91 @@ export function IFProgressTracker() {
     try {
       setDownloading(true)
 
-      const { jsPDF } = await import('jspdf')
+      const dateRange = entries.length > 0 
+        ? `${entries[0].date} - ${entries[entries.length - 1].date}`
+        : new Date().toLocaleDateString('ru-RU')
+
+      // Создаем временный HTML элемент для PDF
+      const printContent = document.createElement('div')
+      printContent.style.position = 'absolute'
+      printContent.style.left = '-9999px'
+      printContent.style.width = '800px'
+      printContent.style.padding = '40px'
+      printContent.style.backgroundColor = '#ffffff'
+      printContent.style.fontFamily = 'Arial, sans-serif'
+      printContent.style.color = '#000000'
+
+      const statsHtml = stats ? `
+        <div style="margin-bottom: 25px; padding: 15px; background-color: #f5f5f5; border-radius: 8px;">
+          <h3 style="font-size: 16px; color: #a855f7; margin-bottom: 10px;">Статистика:</h3>
+          <p style="margin: 5px 0; font-size: 13px; color: #000000;">Всего записей: ${stats.total}</p>
+          <p style="margin: 5px 0; font-size: 13px; color: #000000;">Средняя энергия: ${stats.avgEnergy}/10</p>
+          <p style="margin: 5px 0; font-size: 13px; color: #000000;">Средний сон: ${stats.avgSleep}/10</p>
+          <p style="margin: 5px 0; font-size: 13px; color: #000000;">Средний фокус: ${stats.avgFocus}/10</p>
+          ${stats.weightEntries >= 2 ? `
+            <p style="margin: 5px 0; font-size: 13px; color: #000000;">Изменение веса: ${stats.weightChange > 0 ? '+' : ''}${stats.weightChange.toFixed(1)} кг</p>
+            <p style="margin: 5px 0; font-size: 13px; color: #000000;">Начальный вес: ${stats.firstWeight} кг</p>
+            <p style="margin: 5px 0; font-size: 13px; color: #000000;">Текущий вес: ${stats.lastWeight} кг</p>
+          ` : ''}
+        </div>
+      ` : ''
+
+      const entriesHtml = entries.map((entry, index) => {
+        const date = new Date(entry.date).toLocaleDateString('ru-RU')
+        const weightHtml = entry.weight ? `<p style="margin: 3px 0; font-size: 12px; color: #666666;">Вес: ${entry.weight} кг</p>` : ''
+        const notesHtml = entry.notes ? `<p style="margin: 3px 0; font-size: 12px; color: #666666;">Заметки: ${entry.notes}</p>` : ''
+        return `
+          <div style="margin-bottom: 15px; padding: 10px; border-bottom: 1px solid #e0e0e0;">
+            <p style="font-size: 14px; color: #000000; font-weight: bold; margin-bottom: 5px;">${index + 1}. ${date}</p>
+            <p style="margin: 3px 0; font-size: 12px; color: #666666;">Энергия: ${entry.energy}/10 | Сон: ${entry.sleep}/10 | Фокус: ${entry.focus}/10</p>
+            ${weightHtml}
+            ${notesHtml}
+          </div>
+        `
+      }).join('')
+
+      printContent.innerHTML = `
+        <h1 style="font-size: 32px; color: #a855f7; text-align: center; margin-bottom: 10px; border-bottom: 2px solid #a855f7; padding-bottom: 10px;">
+          Трекер прогресса IF
+        </h1>
+        <p style="text-align: center; color: #666666; font-size: 14px; margin-bottom: 30px;">
+          Период: ${dateRange}
+        </p>
+        ${statsHtml}
+        <h2 style="font-size: 18px; color: #a855f7; margin-bottom: 12px; margin-top: 25px; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px;">
+          Записи:
+        </h2>
+        <div>
+          ${entriesHtml}
+        </div>
+      `
+
+      // Добавляем элемент в DOM
+      document.body.appendChild(printContent)
+
+      // Используем html2canvas для создания изображения
+      const canvas = await html2canvas(printContent, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      })
+
+      // Удаляем временный элемент
+      document.body.removeChild(printContent)
+
+      // Конвертируем canvas в изображение и добавляем в PDF
+      const imgData = canvas.toDataURL('image/png')
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4'
       })
 
-      const pageWidth = 210
-      const pageHeight = 297
-      const margin = 20
-      let yPos = 25
+      const imgWidth = 210 // A4 width in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
 
-      // Заголовок
-      pdf.setFontSize(24)
-      pdf.setTextColor(168, 85, 247)
-      pdf.text('Трекер прогресса IF', pageWidth / 2, yPos, { align: 'center' })
-      yPos += 15
-
-      pdf.setFontSize(12)
-      pdf.setTextColor(100, 100, 100)
-      const dateRange = entries.length > 0 
-        ? `${entries[0].date} - ${entries[entries.length - 1].date}`
-        : new Date().toLocaleDateString('ru-RU')
-      pdf.text(`Период: ${dateRange}`, pageWidth / 2, yPos, { align: 'center' })
-      yPos += 10
-
-      // Статистика
-      if (stats) {
-        pdf.setFontSize(14)
-        pdf.setTextColor(168, 85, 247)
-        pdf.text('Статистика:', margin, yPos)
-        yPos += 10
-
-        pdf.setFontSize(11)
-        pdf.setTextColor(0, 0, 0)
-        pdf.text(`Всего записей: ${stats.total}`, margin, yPos)
-        yPos += 6
-        pdf.text(`Средняя энергия: ${stats.avgEnergy}/10`, margin, yPos)
-        yPos += 6
-        pdf.text(`Средний сон: ${stats.avgSleep}/10`, margin, yPos)
-        yPos += 6
-        pdf.text(`Средний фокус: ${stats.avgFocus}/10`, margin, yPos)
-        yPos += 6
-        
-        if (stats.weightEntries >= 2) {
-          pdf.text(`Изменение веса: ${stats.weightChange > 0 ? '+' : ''}${stats.weightChange.toFixed(1)} кг`, margin, yPos)
-          yPos += 6
-          pdf.text(`Начальный вес: ${stats.firstWeight} кг`, margin, yPos)
-          yPos += 6
-          pdf.text(`Текущий вес: ${stats.lastWeight} кг`, margin, yPos)
-          yPos += 6
-        }
-        yPos += 5
-      }
-
-      // Записи
-      pdf.setFontSize(14)
-      pdf.setTextColor(168, 85, 247)
-      pdf.text('Записи:', margin, yPos)
-      yPos += 10
-
-      pdf.setFontSize(9)
-      pdf.setTextColor(0, 0, 0)
-      entries.forEach((entry, index) => {
-        if (yPos > pageHeight - 40) {
-          pdf.addPage()
-          yPos = 25
-        }
-
-        const date = new Date(entry.date).toLocaleDateString('ru-RU')
-        pdf.setFontSize(10)
-        pdf.setTextColor(0, 0, 0)
-        pdf.text(`${index + 1}. ${date}`, margin, yPos)
-        yPos += 5
-
-        pdf.setFontSize(9)
-        pdf.setTextColor(100, 100, 100)
-        pdf.text(`Энергия: ${entry.energy}/10 | Сон: ${entry.sleep}/10 | Фокус: ${entry.focus}/10`, margin + 5, yPos)
-        yPos += 4
-
-        if (entry.weight) {
-          pdf.text(`Вес: ${entry.weight} кг`, margin + 5, yPos)
-          yPos += 4
-        }
-
-        if (entry.notes) {
-          const noteLines = pdf.splitTextToSize(`Заметки: ${entry.notes}`, pageWidth - 2 * margin - 10)
-          pdf.text(noteLines, margin + 5, yPos)
-          yPos += noteLines.length * 4
-        }
-
-        yPos += 6
-      })
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight)
 
       const fileName = `IF-Прогресс-${new Date().toLocaleDateString('ru-RU').replace(/\//g, '-')}.pdf`
       pdf.save(fileName)

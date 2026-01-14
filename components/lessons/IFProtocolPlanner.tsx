@@ -179,90 +179,98 @@ export function IFProtocolPlanner() {
         item.hours > max.hours ? item : max
       )
 
-      const { jsPDF } = await import('jspdf')
+      // Создаем временный HTML элемент для PDF
+      const printContent = document.createElement('div')
+      printContent.style.position = 'absolute'
+      printContent.style.left = '-9999px'
+      printContent.style.width = '800px'
+      printContent.style.padding = '40px'
+      printContent.style.backgroundColor = '#ffffff'
+      printContent.style.fontFamily = 'Arial, sans-serif'
+      printContent.style.color = '#000000'
+
+      const timelineItems = timeline
+        .filter((item, index) => index % 2 === 0 || item.phase.intensity === 'high' || item.phase.intensity === 'maximum')
+        .map(item => {
+          const benefits = item.phase.benefits.length > 0 
+            ? `<ul style="margin-left: 20px; margin-top: 5px; font-size: 12px; color: #666666;">${item.phase.benefits.map(b => `<li>${b}</li>`).join('')}</ul>`
+            : ''
+          return `
+            <div style="margin-bottom: 15px;">
+              <p style="font-size: 14px; color: #000000; font-weight: bold; margin-bottom: 3px;">
+                ${item.time} (${item.hours}ч) - ${item.phase.phase}
+              </p>
+              <p style="font-size: 13px; color: #666666; margin-bottom: 5px;">
+                ${item.phase.description}
+              </p>
+              ${benefits}
+            </div>
+          `
+        }).join('')
+
+      const maxPhaseBenefits = maxPhase.phase.benefits.map(b => `<li style="margin-bottom: 5px;">${b}</li>`).join('')
+
+      printContent.innerHTML = `
+        <h1 style="font-size: 32px; color: #a855f7; text-align: center; margin-bottom: 10px; border-bottom: 2px solid #a855f7; padding-bottom: 10px;">
+          План протокола IF
+        </h1>
+        <p style="text-align: center; color: #666666; font-size: 14px; margin-bottom: 30px;">
+          Протокол: ${selectedProtocol}
+        </p>
+        
+        <div style="margin-bottom: 25px; padding: 15px; background-color: #f5f5f5; border-radius: 8px;">
+          <p style="margin: 5px 0; font-size: 13px; color: #000000;">
+            Окно питания: ${windowStart} - ${windowEnd}
+          </p>
+          <p style="margin: 5px 0; font-size: 13px; color: #000000;">
+            Голодание: ${protocol.fast} часов | Питание: ${protocol.eat} часов
+          </p>
+          <p style="margin: 5px 0; font-size: 13px; color: #000000;">
+            Описание: ${protocol.description}
+          </p>
+        </div>
+        
+        <h2 style="font-size: 18px; color: #a855f7; margin-bottom: 12px; margin-top: 25px; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px;">
+          Фазы автофагии:
+        </h2>
+        <div style="margin-bottom: 25px;">
+          ${timelineItems}
+        </div>
+        
+        <h2 style="font-size: 18px; color: #dc2626; margin-bottom: 12px; margin-top: 25px; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px;">
+          Максимальная автофагия: ${maxPhase.time} (${maxPhase.hours}ч)
+        </h2>
+        <ul style="margin-left: 25px; line-height: 2; font-size: 13px;">
+          ${maxPhaseBenefits}
+        </ul>
+      `
+
+      // Добавляем элемент в DOM
+      document.body.appendChild(printContent)
+
+      // Используем html2canvas для создания изображения
+      const canvas = await html2canvas(printContent, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      })
+
+      // Удаляем временный элемент
+      document.body.removeChild(printContent)
+
+      // Конвертируем canvas в изображение и добавляем в PDF
+      const imgData = canvas.toDataURL('image/png')
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4'
       })
 
-      const pageWidth = 210
-      const pageHeight = 297
-      const margin = 20
-      let yPos = 25
+      const imgWidth = 210 // A4 width in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
 
-      // Заголовок
-      pdf.setFontSize(24)
-      pdf.setTextColor(168, 85, 247)
-      pdf.text('План протокола IF', pageWidth / 2, yPos, { align: 'center' })
-      yPos += 15
-
-      pdf.setFontSize(12)
-      pdf.setTextColor(100, 100, 100)
-      pdf.text(`Протокол: ${selectedProtocol}`, pageWidth / 2, yPos, { align: 'center' })
-      yPos += 10
-
-      // Информация о протоколе
-      pdf.setFontSize(11)
-      pdf.setTextColor(0, 0, 0)
-      pdf.text(`Окно питания: ${windowStart} - ${windowEnd}`, margin, yPos)
-      yPos += 7
-      pdf.text(`Голодание: ${protocol.fast} часов | Питание: ${protocol.eat} часов`, margin, yPos)
-      yPos += 7
-      pdf.text(`Описание: ${protocol.description}`, margin, yPos)
-      yPos += 10
-
-      // Фазы автофагии
-      pdf.setFontSize(14)
-      pdf.setTextColor(168, 85, 247)
-      pdf.text('Фазы автофагии:', margin, yPos)
-      yPos += 10
-
-      pdf.setFontSize(10)
-      pdf.setTextColor(0, 0, 0)
-      timeline.forEach((item, index) => {
-        if (yPos > pageHeight - 40) {
-          pdf.addPage()
-          yPos = 25
-        }
-
-        if (index % 2 === 0 || item.phase.intensity === 'high' || item.phase.intensity === 'maximum') {
-          pdf.setFontSize(10)
-          pdf.setTextColor(0, 0, 0)
-          pdf.text(`${item.time} (${item.hours}ч) - ${item.phase.phase}`, margin + 5, yPos)
-          yPos += 5
-          
-          pdf.setFontSize(9)
-          pdf.setTextColor(100, 100, 100)
-          const descLines = pdf.splitTextToSize(item.phase.description, pageWidth - 2 * margin - 10)
-          pdf.text(descLines, margin + 10, yPos)
-          yPos += descLines.length * 4 + 3
-
-          if (item.phase.benefits.length > 0) {
-            item.phase.benefits.forEach(benefit => {
-              pdf.setFontSize(8)
-              pdf.setTextColor(100, 100, 100)
-              pdf.text(`• ${benefit}`, margin + 15, yPos)
-              yPos += 4
-            })
-            yPos += 2
-          }
-        }
-      })
-
-      // Максимальная фаза
-      yPos += 5
-      pdf.setFontSize(12)
-      pdf.setTextColor(220, 38, 38)
-      pdf.text(`Максимальная автофагия: ${maxPhase.time} (${maxPhase.hours}ч)`, margin, yPos)
-      yPos += 7
-
-      pdf.setFontSize(10)
-      pdf.setTextColor(0, 0, 0)
-      maxPhase.phase.benefits.forEach(benefit => {
-        pdf.text(`✓ ${benefit}`, margin + 5, yPos)
-        yPos += 5
-      })
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight)
 
       const fileName = `IF-Протокол-${selectedProtocol}-${new Date().toLocaleDateString('ru-RU').replace(/\//g, '-')}.pdf`
       pdf.save(fileName)

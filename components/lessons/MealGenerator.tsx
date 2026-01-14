@@ -3,10 +3,12 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { UtensilsCrossed, ChefHat, RefreshCw, Download, CheckCircle2, Clock, Flame } from 'lucide-react'
+import Image from 'next/image'
 
 interface Meal {
   name: string
   description: string
+  image: string
   ingredients: { name: string; quantity: string; checked: boolean }[]
   instructions: string[]
   calories: number
@@ -21,6 +23,7 @@ const LUNCH_MEALS: Meal[] = [
   {
     name: 'Салат с тунцом и авокадо',
     description: 'Свежий и сытный салат с консервированным тунцом, авокадо и зеленью',
+    image: '/img/recipes/avocado-tuna.jpg',
     ingredients: [
       { name: 'Тунец консервированный', quantity: '1 банка (200г)', checked: false },
       { name: 'Авокадо', quantity: '1 шт', checked: false },
@@ -46,6 +49,7 @@ const LUNCH_MEALS: Meal[] = [
   {
     name: 'Кето-бургер с говядиной',
     description: 'Сочный бургер без булки с говяжьей котлетой и овощами',
+    image: '/img/recipes/keto-burger.jpg',
     ingredients: [
       { name: 'Говяжий фарш', quantity: '200г', checked: false },
       { name: 'Сыр чеддер', quantity: '50г', checked: false },
@@ -70,6 +74,7 @@ const LUNCH_MEALS: Meal[] = [
   {
     name: 'Куриная грудка с брокколи',
     description: 'Нежное филе курицы с обжаренной брокколи в сливочном соусе',
+    image: '/img/recipes/chicken-mushrooms-cream.jpg',
     ingredients: [
       { name: 'Куриная грудка', quantity: '200г', checked: false },
       { name: 'Брокколи', quantity: '200г', checked: false },
@@ -95,6 +100,7 @@ const LUNCH_MEALS: Meal[] = [
   {
     name: 'Лосось с овощами на пару',
     description: 'Нежный лосось с цветной капустой и спаржей',
+    image: '/img/recipes/grilled-salmon-vegetables.jpg',
     ingredients: [
       { name: 'Филе лосося', quantity: '200г', checked: false },
       { name: 'Цветная капуста', quantity: '150г', checked: false },
@@ -122,6 +128,7 @@ const DINNER_MEALS: Meal[] = [
   {
     name: 'Стейк из говядины с салатом',
     description: 'Сочный стейк средней прожарки с свежим салатом',
+    image: '/img/recipes/beef-steak-green-salad.jpg',
     ingredients: [
       { name: 'Говядина (стейк)', quantity: '250г', checked: false },
       { name: 'Салат листовой', quantity: '100г', checked: false },
@@ -147,6 +154,7 @@ const DINNER_MEALS: Meal[] = [
   {
     name: 'Запеченная курица с овощами',
     description: 'Целая куриная ножка с запеченными овощами',
+    image: '/img/recipes/baked-chicken-vegetables.jpg',
     ingredients: [
       { name: 'Куриная ножка', quantity: '1 шт (250г)', checked: false },
       { name: 'Брокколи', quantity: '150г', checked: false },
@@ -172,6 +180,7 @@ const DINNER_MEALS: Meal[] = [
   {
     name: 'Кето-лазанья с цукини',
     description: 'Классическая лазанья без пасты, с листами цукини',
+    image: '/img/recipes/keto-zucchini-lasagna.jpg',
     ingredients: [
       { name: 'Цукини', quantity: '2 шт', checked: false },
       { name: 'Говяжий фарш', quantity: '300г', checked: false },
@@ -197,6 +206,7 @@ const DINNER_MEALS: Meal[] = [
   {
     name: 'Жареные креветки с чесноком',
     description: 'Крупные креветки в чесночном масле с зеленью',
+    image: '/img/recipes/shrimp-garlic-butter.jpg',
     ingredients: [
       { name: 'Креветки крупные', quantity: '300г', checked: false },
       { name: 'Чеснок', quantity: '4 зубчика', checked: false },
@@ -440,6 +450,23 @@ export function MealGenerator() {
           animate={{ opacity: 1, y: 0 }}
           className="space-y-4"
         >
+          {/* Изображение */}
+          <div className="relative w-full h-48 sm:h-64 rounded-xl overflow-hidden">
+            <Image
+              src={currentMeal.image}
+              alt={currentMeal.name}
+              fill
+              className="object-cover"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement
+                target.style.display = 'none'
+              }}
+            />
+            {currentMeal.image.includes('recipes/') && (
+              <div className="absolute inset-0 bg-gradient-to-t from-dark-900 via-dark-900/50 to-transparent" />
+            )}
+          </div>
+
           {/* Информация о блюде */}
           <div className="p-4 rounded-xl bg-white/5 border border-white/10">
             <h4 className="text-xl font-bold text-white mb-2">{currentMeal.name}</h4>
