@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Calendar, UtensilsCrossed, ShoppingCart, Download, Check, X, Sparkles, ChefHat } from 'lucide-react'
 import Image from 'next/image'
+import { ketoRecipesData } from './ketoRecipesData'
 
 interface Meal {
   name: string
@@ -23,215 +24,10 @@ interface DayMenu {
   breakfast?: Meal
   lunch?: Meal
   dinner?: Meal
-  snack?: Meal
 }
 
-// База данных блюд
-const MEALS_DATABASE: Record<string, Meal[]> = {
-  breakfast: [
-    { 
-      name: 'Яичница с беконом и авокадо', 
-      calories: 450, fats: 35, proteins: 20, carbs: 5, prepTime: 5,
-      image: '/img/recipes/bacon-eggs-spinach.jpg',
-      ingredients: ['3 яйца', '100г бекона', '1/2 авокадо', '1 ст.л. оливкового масла', 'Соль, перец'],
-      instructions: ['Обжарьте бекон до хрустящей корочки', 'Разбейте яйца и жарьте до готовности', 'Добавьте нарезанный авокадо', 'Приправьте солью и перцем']
-    },
-    { 
-      name: 'Омлет со шпинатом и сыром фета', 
-      calories: 380, fats: 28, proteins: 22, carbs: 4, prepTime: 7,
-      image: '/img/recipes/bacon-eggs-spinach.jpg',
-      ingredients: ['3 яйца', '50г шпината', '50г сыра фета', '1 ст.л. сливочного масла', 'Соль, перец'],
-      instructions: ['Взбейте яйца с солью и перцем', 'Обжарьте шпинат на сковороде', 'Вылейте яйца, добавьте сыр', 'Готовьте 3-4 минуты']
-    },
-    { 
-      name: 'Яйца Бенедикт на кето-булочке', 
-      calories: 520, fats: 38, proteins: 25, carbs: 8, prepTime: 15,
-      image: '/img/recipes/eggs-benedict-keto.jpg',
-      ingredients: ['2 яйца', '2 ломтика бекона', '1 кето-булочка', 'Голландский соус', 'Укроп'],
-      instructions: ['Приготовьте яйца пашот', 'Обжарьте бекон', 'Поджарьте булочку', 'Соберите блюдо с соусом']
-    },
-    { 
-      name: 'Скрэмбл с лососем и каперсами', 
-      calories: 410, fats: 30, proteins: 24, carbs: 3, prepTime: 8,
-      image: '/img/recipes/scrambled-eggs-salmon.jpg',
-      ingredients: ['3 яйца', '100г копченого лосося', '1 ст.л. каперсов', '1 ст.л. сливочного масла', 'Укроп'],
-      instructions: ['Взбейте яйца', 'Растопите масло на сковороде', 'Готовьте яйца на медленном огне', 'Добавьте лосось и каперсы', 'Посыпьте укропом']
-    },
-    { 
-      name: 'Чиа-пудинг с кокосовым молоком', 
-      calories: 280, fats: 22, proteins: 8, carbs: 6, prepTime: 5,
-      image: '/img/recipes/chia-coconut-pudding.jpg',
-      ingredients: ['3 ст.л. семян чиа', '100мл кокосового молока', '1 ст.л. эритрита', 'Ягоды для украшения'],
-      instructions: ['Смешайте чиа с кокосовым молоком', 'Добавьте эритрит', 'Оставьте на ночь в холодильнике', 'Украсьте ягодами']
-    },
-    { 
-      name: 'Кето-гранола с греческим йогуртом', 
-      calories: 350, fats: 28, proteins: 15, carbs: 5, prepTime: 5,
-      image: '/img/recipes/keto-granola-yogurt.jpg',
-      ingredients: ['50г кето-гранолы', '100г греческого йогурта', 'Орехи', 'Кокосовая стружка'],
-      instructions: ['Выложите йогурт в миску', 'Добавьте гранолу', 'Посыпьте орехами и кокосом']
-    },
-    { 
-      name: 'Омлет с авокадо и сыром', 
-      calories: 450, fats: 35, proteins: 25, carbs: 4, prepTime: 10,
-      image: '/img/recipes/avocado-cheese-omlet.jpg',
-      ingredients: ['3 яйца', '1/2 авокадо', '50г сыра чеддер', '1 ст.л. сливочного масла', 'Соль, перец'],
-      instructions: ['Взбейте яйца с солью и перцем', 'Растопите масло на сковороде', 'Вылейте яйца и готовьте 2-3 минуты', 'Добавьте нарезанный авокадо и сыр', 'Сложите омлет пополам']
-    },
-    { 
-      name: 'Яичница с грибами и сыром', 
-      calories: 440, fats: 34, proteins: 26, carbs: 5, prepTime: 15,
-      image: '/img/recipes/scrambled-mushrooms-cheese.jpg',
-      ingredients: ['3 яйца', '100г грибов', '50г сыра', '1 ст.л. оливкового масла', 'Соль, перец'],
-      instructions: ['Обжарьте грибы до золотистого цвета', 'Разбейте яйца', 'Добавьте сыр', 'Готовьте до готовности']
-    },
-    { 
-      name: 'Запеченные яйца в авокадо', 
-      calories: 390, fats: 32, proteins: 16, carbs: 8, prepTime: 15,
-      image: '/img/recipes/baked-eggs-avocado.jpg',
-      ingredients: ['2 авокадо', '4 яйца', '50г бекона', 'Соль, перец', 'Зеленый лук'],
-      instructions: ['Разрежьте авокадо пополам', 'Удалите немного мякоти', 'Разбейте яйцо в каждую половину', 'Запекайте 12-15 минут при 200°C', 'Украсьте беконом и зеленым луком']
-    },
-    { 
-      name: 'Творожные кето-оладьи', 
-      calories: 420, fats: 32, proteins: 24, carbs: 6, prepTime: 15,
-      image: '/img/recipes/keto-cottage-pancakes.jpg',
-      ingredients: ['200г творога', '2 яйца', '3 ст.л. миндальной муки', '1 ч.л. разрыхлителя', 'Соль'],
-      instructions: ['Смешайте все ингредиенты', 'Жарьте оладьи на сковороде', 'Подавайте со сметаной']
-    },
-  ],
-  lunch: [
-    { 
-      name: 'Салат с тунцом и оливковым маслом', 
-      calories: 380, fats: 28, proteins: 25, carbs: 4, prepTime: 10,
-      image: '/img/recipes/tuna-lettuce-boats.jpg',
-      ingredients: ['1 банка тунца', '100г салата', 'Оливковое масло', 'Лимонный сок', 'Соль, перец'],
-      instructions: ['Смешайте тунец с салатом', 'Заправьте маслом и лимонным соком', 'Приправьте солью и перцем']
-    },
-    { 
-      name: 'Кето-бургер с сыром и авокадо', 
-      calories: 550, fats: 42, proteins: 30, carbs: 6, prepTime: 15,
-      image: '/img/recipes/keto-burger.jpg',
-      ingredients: ['150г говяжьего фарша', 'Кето-булочка', '50г сыра', '1/2 авокадо', 'Салат'],
-      instructions: ['Сформируйте котлету из фарша', 'Обжарьте котлету', 'Соберите бургер с сыром и авокадо']
-    },
-    { 
-      name: 'Куриная грудка с овощами гриль', 
-      calories: 420, fats: 22, proteins: 38, carbs: 5, prepTime: 20,
-      image: '/img/recipes/baked-chicken-vegetables.jpg',
-      ingredients: ['200г куриной грудки', 'Овощи для гриля', 'Оливковое масло', 'Специи'],
-      instructions: ['Замаринуйте курицу', 'Обжарьте на гриле', 'Приготовьте овощи', 'Подавайте вместе']
-    },
-    { 
-      name: 'Лосось с зеленым салатом', 
-      calories: 480, fats: 32, proteins: 35, carbs: 3, prepTime: 15,
-      image: '/img/recipes/grilled-salmon-vegetables.jpg',
-      ingredients: ['200г филе лосося', '100г зеленого салата', 'Оливковое масло', 'Лимон', 'Соль, перец'],
-      instructions: ['Посолите и поперчите лосось', 'Обжарьте по 4-5 минут с каждой стороны', 'Подавайте с салатом и лимоном']
-    },
-    { 
-      name: 'Овощной салат с орехами и сыром', 
-      calories: 350, fats: 28, proteins: 15, carbs: 7, prepTime: 12,
-      image: '/img/recipes/keto-caesar-salad.jpg',
-      ingredients: ['Смесь овощей', '30г орехов', '50г сыра', 'Оливковое масло', 'Бальзамический уксус'],
-      instructions: ['Нарежьте овощи', 'Добавьте орехи и сыр', 'Заправьте маслом и уксусом']
-    },
-    { 
-      name: 'Кето-бургер с говядиной', 
-      calories: 520, fats: 38, proteins: 35, carbs: 5, prepTime: 20,
-      image: '/img/recipes/keto-burger.jpg',
-      ingredients: ['150г говяжьего фарша', 'Кето-булочка', 'Сыр', 'Салат', 'Помидор'],
-      instructions: ['Сформируйте котлету', 'Обжарьте на сковороде', 'Соберите бургер']
-    },
-    { 
-      name: 'Куриная грудка с брокколи', 
-      calories: 450, fats: 32, proteins: 30, carbs: 6, prepTime: 25,
-      image: '/img/recipes/baked-chicken-vegetables.jpg',
-      ingredients: ['200г куриной грудки', '200г брокколи', 'Сливочное масло', 'Чеснок', 'Соль, перец'],
-      instructions: ['Обжарьте курицу', 'Приготовьте брокколи на пару', 'Подавайте вместе с маслом и чесноком']
-    },
-    { 
-      name: 'Лосось с овощами на пару', 
-      calories: 420, fats: 26, proteins: 38, carbs: 7, prepTime: 20,
-      image: '/img/recipes/salmon-broccoli.jpg',
-      ingredients: ['200г филе лосося', 'Овощи для пара', 'Лимон', 'Укроп', 'Соль, перец'],
-      instructions: ['Приготовьте лосось на пару', 'Приготовьте овощи', 'Подавайте с лимоном и укропом']
-    },
-  ],
-  dinner: [
-    { 
-      name: 'Стейк из лосося с зеленым салатом', 
-      calories: 520, fats: 38, proteins: 40, carbs: 4, prepTime: 15,
-      image: '/img/recipes/grilled-salmon-vegetables.jpg',
-      ingredients: ['250г филе лосося', '100г зеленого салата', 'Оливковое масло', 'Лимон', 'Соль, перец'],
-      instructions: ['Посолите и поперчите лосось', 'Обжарьте на сковороде', 'Подавайте с салатом']
-    },
-    { 
-      name: 'Куриные котлетки с сыром', 
-      calories: 450, fats: 32, proteins: 32, carbs: 5, prepTime: 15,
-      image: '/img/recipes/baked-chicken-vegetables.jpg',
-      ingredients: ['200г куриного фарша', '50г сыра', 'Яйцо', 'Специи', 'Масло для жарки'],
-      instructions: ['Смешайте фарш с яйцом и специями', 'Добавьте сыр', 'Сформируйте котлеты', 'Обжарьте']
-    },
-    { 
-      name: 'Говядина с овощами', 
-      calories: 580, fats: 42, proteins: 38, carbs: 6, prepTime: 25,
-      image: '/img/recipes/beef-steak-green-salad.jpg',
-      ingredients: ['250г говядины', 'Овощи', 'Оливковое масло', 'Чеснок', 'Специи'],
-      instructions: ['Обжарьте говядину', 'Добавьте овощи', 'Тушите до готовности']
-    },
-    { 
-      name: 'Индейка с брокколи', 
-      calories: 420, fats: 24, proteins: 35, carbs: 4, prepTime: 20,
-      image: '/img/recipes/baked-chicken-vegetables.jpg',
-      ingredients: ['200г филе индейки', '200г брокколи', 'Сливочное масло', 'Соль, перец'],
-      instructions: ['Обжарьте индейку', 'Приготовьте брокколи', 'Подавайте вместе']
-    },
-    { 
-      name: 'Кето-пицца на миндальной муке', 
-      calories: 480, fats: 36, proteins: 22, carbs: 8, prepTime: 30,
-      image: '/img/recipes/keto-almond-pizza.jpg',
-      ingredients: ['Миндальная мука', 'Яйца', 'Сыр моцарелла', 'Томаты', 'Базилик'],
-      instructions: ['Приготовьте тесто из муки и яиц', 'Выложите начинку', 'Запеките в духовке']
-    },
-    { 
-      name: 'Стейк из говядины с салатом', 
-      calories: 580, fats: 42, proteins: 45, carbs: 6, prepTime: 25,
-      image: '/img/recipes/beef-steak-green-salad.jpg',
-      ingredients: ['300г говяжьего стейка', 'Салат', 'Оливковое масло', 'Соль, перец'],
-      instructions: ['Обжарьте стейк', 'Подавайте с салатом']
-    },
-    { 
-      name: 'Запеченная курица с овощами', 
-      calories: 520, fats: 35, proteins: 40, carbs: 8, prepTime: 45,
-      image: '/img/recipes/baked-chicken-vegetables.jpg',
-      ingredients: ['300г курицы', 'Овощи', 'Оливковое масло', 'Специи', 'Чеснок'],
-      instructions: ['Замаринуйте курицу', 'Выложите на противень с овощами', 'Запекайте 40 минут при 200°C']
-    },
-    { 
-      name: 'Кето-лазанья с цукини', 
-      calories: 480, fats: 32, proteins: 35, carbs: 10, prepTime: 50,
-      image: '/img/recipes/keto-zucchini-lasagna.jpg',
-      ingredients: ['Цукини', 'Фарш', 'Сыр', 'Томатный соус', 'Специи'],
-      instructions: ['Нарежьте цукини пластинами', 'Соберите лазанью слоями', 'Запекайте 40 минут']
-    },
-    { 
-      name: 'Жареные креветки с чесноком', 
-      calories: 350, fats: 22, proteins: 32, carbs: 4, prepTime: 15,
-      image: '/img/recipes/shrimp-garlic-butter.jpg',
-      ingredients: ['300г креветок', 'Чеснок', 'Сливочное масло', 'Лимон', 'Петрушка'],
-      instructions: ['Очистите креветки', 'Обжарьте с чесноком и маслом', 'Добавьте лимон и петрушку']
-    },
-  ],
-  snack: [
-    { name: 'Орехи макадамия 30г', calories: 200, fats: 21, proteins: 2, carbs: 2, prepTime: 0 },
-    { name: 'Авокадо с солью', calories: 160, fats: 15, proteins: 2, carbs: 2, prepTime: 2 },
-    { name: 'Сыр чеддер 50г', calories: 180, fats: 14, proteins: 12, carbs: 1, prepTime: 0 },
-    { name: 'Кето-печенье (2 шт)', calories: 150, fats: 12, proteins: 5, carbs: 3, prepTime: 0 },
-    { name: 'Орехи миндаль 30г', calories: 170, fats: 15, proteins: 6, carbs: 3, prepTime: 0 },
-    { name: 'Греческий йогурт с орехами', calories: 140, fats: 10, proteins: 8, carbs: 4, prepTime: 2 },
-  ],
-}
+// База данных блюд - используем все рецепты из кето-рецептов
+const MEALS_DATABASE: Record<string, Meal[]> = ketoRecipesData
 
 // Список продуктов для исключения
 const COMMON_PRODUCTS = [
@@ -259,7 +55,7 @@ const COMMON_PRODUCTS = [
 
 export function MenuGenerator() {
   const [period, setPeriod] = useState<'day' | 'week' | 'month'>('day')
-  const [mealType, setMealType] = useState<'breakfast' | 'lunch' | 'dinner' | 'snack' | 'full'>('full')
+  const [mealType, setMealType] = useState<'breakfast' | 'lunch' | 'dinner' | 'full'>('full')
   const [productFilter, setProductFilter] = useState<'all' | 'exclude'>('all')
   const [excludedProducts, setExcludedProducts] = useState<string[]>([])
   const [targetCalories, setTargetCalories] = useState('2000')
@@ -269,18 +65,18 @@ export function MenuGenerator() {
 
   // Фильтрация блюд по исключенным продуктам
   const filterMeals = (meals: Meal[]): Meal[] => {
-    if (productFilter === 'all' || excludedProducts.length === 0) {
+    if (productFilter === 'all') {
       return meals
     }
-
-    return meals.filter(meal => {
-      const mealNameLower = meal.name.toLowerCase()
-      return !excludedProducts.some(excluded => 
-        mealNameLower.includes(excluded.toLowerCase())
+    return meals.filter((meal) => {
+      const mealIngredients = meal.ingredients?.join(' ') || ''
+      return !excludedProducts.some((excluded) =>
+        mealIngredients.toLowerCase().includes(excluded.toLowerCase())
       )
     })
   }
 
+  // Генерация меню
   const generateMenu = () => {
     const targetCal = parseInt(targetCalories) || 2000
     const daysCount = period === 'day' ? 1 : period === 'week' ? 7 : 30
@@ -297,7 +93,6 @@ export function MenuGenerator() {
       let breakfast: Meal | undefined
       let lunch: Meal | undefined
       let dinner: Meal | undefined
-      let snack: Meal | undefined
 
       // Генерируем блюда в зависимости от выбранного типа
       if (mealType === 'full' || mealType === 'breakfast') {
@@ -321,16 +116,9 @@ export function MenuGenerator() {
         }
       }
 
-      if (mealType === 'full' || mealType === 'snack') {
-        const availableSnacks = filterMeals(MEALS_DATABASE.snack)
-        if (availableSnacks.length > 0 && Math.random() > 0.3) {
-          snack = { ...availableSnacks[Math.floor(Math.random() * availableSnacks.length)] }
-        }
-      }
-
       // Корректируем калории под целевое значение
       const totalCalories = (breakfast?.calories || 0) + (lunch?.calories || 0) + 
-                           (dinner?.calories || 0) + (snack?.calories || 0)
+                           (dinner?.calories || 0)
       
       if (totalCalories > 0) {
         const ratio = targetCal / totalCalories
@@ -349,7 +137,6 @@ export function MenuGenerator() {
         breakfast = adjustMeal(breakfast)
         lunch = adjustMeal(lunch)
         dinner = adjustMeal(dinner)
-        snack = adjustMeal(snack)
       }
 
       menu.push({
@@ -358,7 +145,6 @@ export function MenuGenerator() {
         breakfast,
         lunch,
         dinner,
-        snack,
       })
     }
 
@@ -376,13 +162,13 @@ export function MenuGenerator() {
   const getTotalForDay = (day: DayMenu) => {
     return {
       calories: (day.breakfast?.calories || 0) + (day.lunch?.calories || 0) + 
-               (day.dinner?.calories || 0) + (day.snack?.calories || 0),
+               (day.dinner?.calories || 0),
       fats: (day.breakfast?.fats || 0) + (day.lunch?.fats || 0) + 
-            (day.dinner?.fats || 0) + (day.snack?.fats || 0),
+            (day.dinner?.fats || 0),
       proteins: (day.breakfast?.proteins || 0) + (day.lunch?.proteins || 0) + 
-                (day.dinner?.proteins || 0) + (day.snack?.proteins || 0),
+                (day.dinner?.proteins || 0),
       carbs: (day.breakfast?.carbs || 0) + (day.lunch?.carbs || 0) + 
-             (day.dinner?.carbs || 0) + (day.snack?.carbs || 0),
+             (day.dinner?.carbs || 0),
     }
   }
 
@@ -492,18 +278,6 @@ export function MenuGenerator() {
           ctx.fillStyle = '#000000'
         }
 
-        if (day.snack) {
-          ctx.font = 'bold 16px Arial, sans-serif'
-          ctx.fillText('Перекус:', marginPx + 10, yPosPx)
-          ctx.font = '16px Arial, sans-serif'
-          ctx.fillText(day.snack.name, marginPx + 80, yPosPx)
-          yPosPx += 25
-          ctx.font = '14px Arial, sans-serif'
-          ctx.fillStyle = '#666666'
-          ctx.fillText(`  ${day.snack.calories} ккал | ${day.snack.fats}г Ж | ${day.snack.proteins}г Б | ${day.snack.carbs}г У`, marginPx + 10, yPosPx)
-          yPosPx += 30
-          ctx.fillStyle = '#000000'
-        }
 
         // Итого
         ctx.font = 'bold 16px Arial, sans-serif'
@@ -589,7 +363,6 @@ export function MenuGenerator() {
               { value: 'breakfast', label: 'Завтрак' },
               { value: 'lunch', label: 'Обед' },
               { value: 'dinner', label: 'Ужин' },
-              { value: 'snack', label: 'Полдник' },
             ] as const).map(({ value, label }) => (
               <button
                 key={value}
@@ -719,9 +492,6 @@ export function MenuGenerator() {
                   {day.dinner && (
                     <MealCard meal={day.dinner} label="Ужин" onImageClick={() => setSelectedMeal(day.dinner!)} />
                   )}
-                  {day.snack && (
-                    <MealCard meal={day.snack} label="Перекус" onImageClick={() => setSelectedMeal(day.snack!)} />
-                  )}
                 </div>
 
                 <div className="mt-3 pt-3 border-t border-white/10">
@@ -796,7 +566,7 @@ function MealCard({ meal, label, onImageClick }: { meal: Meal; label: string; on
             </button>
           )}
           <div className="flex items-center gap-1 text-white/40 text-xs">
-            <span className="whitespace-nowrap">{meal.prepTime}мин</span>
+          <span className="whitespace-nowrap">{meal.prepTime}мин</span>
           </div>
         </div>
       </div>
