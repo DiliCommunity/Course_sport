@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { Calendar, UtensilsCrossed, ShoppingCart, Download, Check, X, Sparkles } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Calendar, UtensilsCrossed, ShoppingCart, Download, Check, X, Sparkles, ChefHat } from 'lucide-react'
+import Image from 'next/image'
 
 interface Meal {
   name: string
@@ -11,7 +12,9 @@ interface Meal {
   proteins: number
   carbs: number
   prepTime: number
+  image?: string
   ingredients?: string[]
+  instructions?: string[]
 }
 
 interface DayMenu {
@@ -26,37 +29,199 @@ interface DayMenu {
 // База данных блюд
 const MEALS_DATABASE: Record<string, Meal[]> = {
   breakfast: [
-    { name: 'Яичница с беконом и авокадо', calories: 450, fats: 35, proteins: 20, carbs: 5, prepTime: 5 },
-    { name: 'Омлет со шпинатом и сыром фета', calories: 380, fats: 28, proteins: 22, carbs: 4, prepTime: 7 },
-    { name: 'Яйца Бенедикт на кето-булочке', calories: 520, fats: 38, proteins: 25, carbs: 8, prepTime: 15 },
-    { name: 'Скрэмбл с лососем и каперсами', calories: 410, fats: 30, proteins: 24, carbs: 3, prepTime: 8 },
-    { name: 'Чиа-пудинг с кокосовым молоком', calories: 280, fats: 22, proteins: 8, carbs: 6, prepTime: 5 },
-    { name: 'Кето-гранола с греческим йогуртом', calories: 350, fats: 28, proteins: 15, carbs: 5, prepTime: 5 },
-    { name: 'Омлет с авокадо и сыром', calories: 450, fats: 35, proteins: 25, carbs: 4, prepTime: 10 },
-    { name: 'Яичница с грибами и сыром', calories: 440, fats: 34, proteins: 26, carbs: 5, prepTime: 15 },
-    { name: 'Запеченные яйца в авокадо', calories: 390, fats: 32, proteins: 16, carbs: 8, prepTime: 15 },
-    { name: 'Творожные кето-оладьи', calories: 420, fats: 32, proteins: 24, carbs: 6, prepTime: 15 },
+    { 
+      name: 'Яичница с беконом и авокадо', 
+      calories: 450, fats: 35, proteins: 20, carbs: 5, prepTime: 5,
+      image: '/img/recipes/bacon-eggs-spinach.jpg',
+      ingredients: ['3 яйца', '100г бекона', '1/2 авокадо', '1 ст.л. оливкового масла', 'Соль, перец'],
+      instructions: ['Обжарьте бекон до хрустящей корочки', 'Разбейте яйца и жарьте до готовности', 'Добавьте нарезанный авокадо', 'Приправьте солью и перцем']
+    },
+    { 
+      name: 'Омлет со шпинатом и сыром фета', 
+      calories: 380, fats: 28, proteins: 22, carbs: 4, prepTime: 7,
+      image: '/img/recipes/bacon-eggs-spinach.jpg',
+      ingredients: ['3 яйца', '50г шпината', '50г сыра фета', '1 ст.л. сливочного масла', 'Соль, перец'],
+      instructions: ['Взбейте яйца с солью и перцем', 'Обжарьте шпинат на сковороде', 'Вылейте яйца, добавьте сыр', 'Готовьте 3-4 минуты']
+    },
+    { 
+      name: 'Яйца Бенедикт на кето-булочке', 
+      calories: 520, fats: 38, proteins: 25, carbs: 8, prepTime: 15,
+      image: '/img/recipes/scrambled-eggs-salmon.jpg',
+      ingredients: ['2 яйца', '2 ломтика бекона', '1 кето-булочка', 'Голландский соус', 'Укроп'],
+      instructions: ['Приготовьте яйца пашот', 'Обжарьте бекон', 'Поджарьте булочку', 'Соберите блюдо с соусом']
+    },
+    { 
+      name: 'Скрэмбл с лососем и каперсами', 
+      calories: 410, fats: 30, proteins: 24, carbs: 3, prepTime: 8,
+      image: '/img/recipes/scrambled-eggs-salmon.jpg',
+      ingredients: ['3 яйца', '100г копченого лосося', '1 ст.л. каперсов', '1 ст.л. сливочного масла', 'Укроп'],
+      instructions: ['Взбейте яйца', 'Растопите масло на сковороде', 'Готовьте яйца на медленном огне', 'Добавьте лосось и каперсы', 'Посыпьте укропом']
+    },
+    { 
+      name: 'Чиа-пудинг с кокосовым молоком', 
+      calories: 280, fats: 22, proteins: 8, carbs: 6, prepTime: 5,
+      image: '/img/recipes/smoothie-mct-berries.jpg',
+      ingredients: ['3 ст.л. семян чиа', '100мл кокосового молока', '1 ст.л. эритрита', 'Ягоды для украшения'],
+      instructions: ['Смешайте чиа с кокосовым молоком', 'Добавьте эритрит', 'Оставьте на ночь в холодильнике', 'Украсьте ягодами']
+    },
+    { 
+      name: 'Кето-гранола с греческим йогуртом', 
+      calories: 350, fats: 28, proteins: 15, carbs: 5, prepTime: 5,
+      image: '/img/recipes/smoothie-mct-berries.jpg',
+      ingredients: ['50г кето-гранолы', '100г греческого йогурта', 'Орехи', 'Кокосовая стружка'],
+      instructions: ['Выложите йогурт в миску', 'Добавьте гранолу', 'Посыпьте орехами и кокосом']
+    },
+    { 
+      name: 'Омлет с авокадо и сыром', 
+      calories: 450, fats: 35, proteins: 25, carbs: 4, prepTime: 10,
+      image: '/img/recipes/avocado-cheese-omlet.jpg',
+      ingredients: ['3 яйца', '1/2 авокадо', '50г сыра чеддер', '1 ст.л. сливочного масла', 'Соль, перец'],
+      instructions: ['Взбейте яйца с солью и перцем', 'Растопите масло на сковороде', 'Вылейте яйца и готовьте 2-3 минуты', 'Добавьте нарезанный авокадо и сыр', 'Сложите омлет пополам']
+    },
+    { 
+      name: 'Яичница с грибами и сыром', 
+      calories: 440, fats: 34, proteins: 26, carbs: 5, prepTime: 15,
+      image: '/img/recipes/bacon-eggs-spinach.jpg',
+      ingredients: ['3 яйца', '100г грибов', '50г сыра', '1 ст.л. оливкового масла', 'Соль, перец'],
+      instructions: ['Обжарьте грибы до золотистого цвета', 'Разбейте яйца', 'Добавьте сыр', 'Готовьте до готовности']
+    },
+    { 
+      name: 'Запеченные яйца в авокадо', 
+      calories: 390, fats: 32, proteins: 16, carbs: 8, prepTime: 15,
+      image: '/img/recipes/baked-eggs-avocado.jpg',
+      ingredients: ['2 авокадо', '4 яйца', '50г бекона', 'Соль, перец', 'Зеленый лук'],
+      instructions: ['Разрежьте авокадо пополам', 'Удалите немного мякоти', 'Разбейте яйцо в каждую половину', 'Запекайте 12-15 минут при 200°C', 'Украсьте беконом и зеленым луком']
+    },
+    { 
+      name: 'Творожные кето-оладьи', 
+      calories: 420, fats: 32, proteins: 24, carbs: 6, prepTime: 15,
+      image: '/img/recipes/smoothie-mct-berries.jpg',
+      ingredients: ['200г творога', '2 яйца', '3 ст.л. миндальной муки', '1 ч.л. разрыхлителя', 'Соль'],
+      instructions: ['Смешайте все ингредиенты', 'Жарьте оладьи на сковороде', 'Подавайте со сметаной']
+    },
   ],
   lunch: [
-    { name: 'Салат с тунцом и оливковым маслом', calories: 380, fats: 28, proteins: 25, carbs: 4, prepTime: 10 },
-    { name: 'Кето-бургер с сыром и авокадо', calories: 550, fats: 42, proteins: 30, carbs: 6, prepTime: 15 },
-    { name: 'Куриная грудка с овощами гриль', calories: 420, fats: 22, proteins: 38, carbs: 5, prepTime: 20 },
-    { name: 'Лосось с зеленым салатом', calories: 480, fats: 32, proteins: 35, carbs: 3, prepTime: 15 },
-    { name: 'Овощной салат с орехами и сыром', calories: 350, fats: 28, proteins: 15, carbs: 7, prepTime: 12 },
-    { name: 'Кето-бургер с говядиной', calories: 520, fats: 38, proteins: 35, carbs: 5, prepTime: 20 },
-    { name: 'Куриная грудка с брокколи', calories: 450, fats: 32, proteins: 30, carbs: 6, prepTime: 25 },
-    { name: 'Лосось с овощами на пару', calories: 420, fats: 26, proteins: 38, carbs: 7, prepTime: 20 },
+    { 
+      name: 'Салат с тунцом и оливковым маслом', 
+      calories: 380, fats: 28, proteins: 25, carbs: 4, prepTime: 10,
+      image: '/img/recipes/avocado-tuna.jpg',
+      ingredients: ['1 банка тунца', '100г салата', 'Оливковое масло', 'Лимонный сок', 'Соль, перец'],
+      instructions: ['Смешайте тунец с салатом', 'Заправьте маслом и лимонным соком', 'Приправьте солью и перцем']
+    },
+    { 
+      name: 'Кето-бургер с сыром и авокадо', 
+      calories: 550, fats: 42, proteins: 30, carbs: 6, prepTime: 15,
+      image: '/img/recipes/avocado-cheese-omlet.jpg',
+      ingredients: ['150г говяжьего фарша', 'Кето-булочка', '50г сыра', '1/2 авокадо', 'Салат'],
+      instructions: ['Сформируйте котлету из фарша', 'Обжарьте котлету', 'Соберите бургер с сыром и авокадо']
+    },
+    { 
+      name: 'Куриная грудка с овощами гриль', 
+      calories: 420, fats: 22, proteins: 38, carbs: 5, prepTime: 20,
+      image: '/img/recipes/salmon-broccoli.jpg',
+      ingredients: ['200г куриной грудки', 'Овощи для гриля', 'Оливковое масло', 'Специи'],
+      instructions: ['Замаринуйте курицу', 'Обжарьте на гриле', 'Приготовьте овощи', 'Подавайте вместе']
+    },
+    { 
+      name: 'Лосось с зеленым салатом', 
+      calories: 480, fats: 32, proteins: 35, carbs: 3, prepTime: 15,
+      image: '/img/recipes/grilled-salmon-vegetables.jpg',
+      ingredients: ['200г филе лосося', '100г зеленого салата', 'Оливковое масло', 'Лимон', 'Соль, перец'],
+      instructions: ['Посолите и поперчите лосось', 'Обжарьте по 4-5 минут с каждой стороны', 'Подавайте с салатом и лимоном']
+    },
+    { 
+      name: 'Овощной салат с орехами и сыром', 
+      calories: 350, fats: 28, proteins: 15, carbs: 7, prepTime: 12,
+      image: '/img/recipes/avocado-tuna.jpg',
+      ingredients: ['Смесь овощей', '30г орехов', '50г сыра', 'Оливковое масло', 'Бальзамический уксус'],
+      instructions: ['Нарежьте овощи', 'Добавьте орехи и сыр', 'Заправьте маслом и уксусом']
+    },
+    { 
+      name: 'Кето-бургер с говядиной', 
+      calories: 520, fats: 38, proteins: 35, carbs: 5, prepTime: 20,
+      image: '/img/recipes/beef-steak-green-salad.jpg',
+      ingredients: ['150г говяжьего фарша', 'Кето-булочка', 'Сыр', 'Салат', 'Помидор'],
+      instructions: ['Сформируйте котлету', 'Обжарьте на сковороде', 'Соберите бургер']
+    },
+    { 
+      name: 'Куриная грудка с брокколи', 
+      calories: 450, fats: 32, proteins: 30, carbs: 6, prepTime: 25,
+      image: '/img/recipes/salmon-broccoli.jpg',
+      ingredients: ['200г куриной грудки', '200г брокколи', 'Сливочное масло', 'Чеснок', 'Соль, перец'],
+      instructions: ['Обжарьте курицу', 'Приготовьте брокколи на пару', 'Подавайте вместе с маслом и чесноком']
+    },
+    { 
+      name: 'Лосось с овощами на пару', 
+      calories: 420, fats: 26, proteins: 38, carbs: 7, prepTime: 20,
+      image: '/img/recipes/grilled-salmon-vegetables.jpg',
+      ingredients: ['200г филе лосося', 'Овощи для пара', 'Лимон', 'Укроп', 'Соль, перец'],
+      instructions: ['Приготовьте лосось на пару', 'Приготовьте овощи', 'Подавайте с лимоном и укропом']
+    },
   ],
   dinner: [
-    { name: 'Стейк из лосося с зеленым салатом', calories: 520, fats: 38, proteins: 40, carbs: 4, prepTime: 15 },
-    { name: 'Куриные котлетки с сыром', calories: 450, fats: 32, proteins: 32, carbs: 5, prepTime: 15 },
-    { name: 'Говядина с овощами', calories: 580, fats: 42, proteins: 38, carbs: 6, prepTime: 25 },
-    { name: 'Индейка с брокколи', calories: 420, fats: 24, proteins: 35, carbs: 4, prepTime: 20 },
-    { name: 'Кето-пицца на миндальной муке', calories: 480, fats: 36, proteins: 22, carbs: 8, prepTime: 30 },
-    { name: 'Стейк из говядины с салатом', calories: 580, fats: 42, proteins: 45, carbs: 6, prepTime: 25 },
-    { name: 'Запеченная курица с овощами', calories: 520, fats: 35, proteins: 40, carbs: 8, prepTime: 45 },
-    { name: 'Кето-лазанья с цукини', calories: 480, fats: 32, proteins: 35, carbs: 10, prepTime: 50 },
-    { name: 'Жареные креветки с чесноком', calories: 350, fats: 22, proteins: 32, carbs: 4, prepTime: 15 },
+    { 
+      name: 'Стейк из лосося с зеленым салатом', 
+      calories: 520, fats: 38, proteins: 40, carbs: 4, prepTime: 15,
+      image: '/img/recipes/grilled-salmon-vegetables.jpg',
+      ingredients: ['250г филе лосося', '100г зеленого салата', 'Оливковое масло', 'Лимон', 'Соль, перец'],
+      instructions: ['Посолите и поперчите лосось', 'Обжарьте на сковороде', 'Подавайте с салатом']
+    },
+    { 
+      name: 'Куриные котлетки с сыром', 
+      calories: 450, fats: 32, proteins: 32, carbs: 5, prepTime: 15,
+      image: '/img/recipes/salmon-broccoli.jpg',
+      ingredients: ['200г куриного фарша', '50г сыра', 'Яйцо', 'Специи', 'Масло для жарки'],
+      instructions: ['Смешайте фарш с яйцом и специями', 'Добавьте сыр', 'Сформируйте котлеты', 'Обжарьте']
+    },
+    { 
+      name: 'Говядина с овощами', 
+      calories: 580, fats: 42, proteins: 38, carbs: 6, prepTime: 25,
+      image: '/img/recipes/beef-steak-green-salad.jpg',
+      ingredients: ['250г говядины', 'Овощи', 'Оливковое масло', 'Чеснок', 'Специи'],
+      instructions: ['Обжарьте говядину', 'Добавьте овощи', 'Тушите до готовности']
+    },
+    { 
+      name: 'Индейка с брокколи', 
+      calories: 420, fats: 24, proteins: 35, carbs: 4, prepTime: 20,
+      image: '/img/recipes/salmon-broccoli.jpg',
+      ingredients: ['200г филе индейки', '200г брокколи', 'Сливочное масло', 'Соль, перец'],
+      instructions: ['Обжарьте индейку', 'Приготовьте брокколи', 'Подавайте вместе']
+    },
+    { 
+      name: 'Кето-пицца на миндальной муке', 
+      calories: 480, fats: 36, proteins: 22, carbs: 8, prepTime: 30,
+      image: '/img/recipes/avocado-cheese-omlet.jpg',
+      ingredients: ['Миндальная мука', 'Яйца', 'Сыр моцарелла', 'Томаты', 'Базилик'],
+      instructions: ['Приготовьте тесто из муки и яиц', 'Выложите начинку', 'Запеките в духовке']
+    },
+    { 
+      name: 'Стейк из говядины с салатом', 
+      calories: 580, fats: 42, proteins: 45, carbs: 6, prepTime: 25,
+      image: '/img/recipes/beef-steak-green-salad.jpg',
+      ingredients: ['300г говяжьего стейка', 'Салат', 'Оливковое масло', 'Соль, перец'],
+      instructions: ['Обжарьте стейк', 'Подавайте с салатом']
+    },
+    { 
+      name: 'Запеченная курица с овощами', 
+      calories: 520, fats: 35, proteins: 40, carbs: 8, prepTime: 45,
+      image: '/img/recipes/baked-chicken-vegetables.jpg',
+      ingredients: ['300г курицы', 'Овощи', 'Оливковое масло', 'Специи', 'Чеснок'],
+      instructions: ['Замаринуйте курицу', 'Выложите на противень с овощами', 'Запекайте 40 минут при 200°C']
+    },
+    { 
+      name: 'Кето-лазанья с цукини', 
+      calories: 480, fats: 32, proteins: 35, carbs: 10, prepTime: 50,
+      image: '/img/recipes/baked-chicken-vegetables.jpg',
+      ingredients: ['Цукини', 'Фарш', 'Сыр', 'Томатный соус', 'Специи'],
+      instructions: ['Нарежьте цукини пластинами', 'Соберите лазанью слоями', 'Запекайте 40 минут']
+    },
+    { 
+      name: 'Жареные креветки с чесноком', 
+      calories: 350, fats: 22, proteins: 32, carbs: 4, prepTime: 15,
+      image: '/img/recipes/shrimp-garlic-butter.jpg',
+      ingredients: ['300г креветок', 'Чеснок', 'Сливочное масло', 'Лимон', 'Петрушка'],
+      instructions: ['Очистите креветки', 'Обжарьте с чесноком и маслом', 'Добавьте лимон и петрушку']
+    },
   ],
   snack: [
     { name: 'Орехи макадамия 30г', calories: 200, fats: 21, proteins: 2, carbs: 2, prepTime: 0 },
@@ -100,6 +265,7 @@ export function MenuGenerator() {
   const [targetCalories, setTargetCalories] = useState('2000')
   const [generatedMenu, setGeneratedMenu] = useState<DayMenu[]>([])
   const [downloading, setDownloading] = useState(false)
+  const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null)
 
   // Фильтрация блюд по исключенным продуктам
   const filterMeals = (meals: Meal[]): Meal[] => {
@@ -545,16 +711,16 @@ export function MenuGenerator() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                   {day.breakfast && (
-                    <MealCard meal={day.breakfast} label="Завтрак" />
+                    <MealCard meal={day.breakfast} label="Завтрак" onImageClick={() => setSelectedMeal(day.breakfast!)} />
                   )}
                   {day.lunch && (
-                    <MealCard meal={day.lunch} label="Обед" />
+                    <MealCard meal={day.lunch} label="Обед" onImageClick={() => setSelectedMeal(day.lunch!)} />
                   )}
                   {day.dinner && (
-                    <MealCard meal={day.dinner} label="Ужин" />
+                    <MealCard meal={day.dinner} label="Ужин" onImageClick={() => setSelectedMeal(day.dinner!)} />
                   )}
                   {day.snack && (
-                    <MealCard meal={day.snack} label="Перекус" />
+                    <MealCard meal={day.snack} label="Перекус" onImageClick={() => setSelectedMeal(day.snack!)} />
                   )}
                 </div>
 
@@ -592,11 +758,18 @@ export function MenuGenerator() {
           </button>
         </motion.div>
       )}
+
+      {/* Модальное окно с рецептом */}
+      <AnimatePresence>
+        {selectedMeal && (
+          <MealModal meal={selectedMeal} onClose={() => setSelectedMeal(null)} />
+        )}
+      </AnimatePresence>
     </motion.div>
   )
 }
 
-function MealCard({ meal, label }: { meal: Meal; label: string }) {
+function MealCard({ meal, label, onImageClick }: { meal: Meal; label: string; onImageClick: () => void }) {
   return (
     <div className="p-3 rounded-lg bg-white/5 border border-white/5">
       <div className="flex items-start justify-between mb-2 gap-2">
@@ -604,8 +777,27 @@ function MealCard({ meal, label }: { meal: Meal; label: string }) {
           <div className="text-xs text-white/60 mb-1">{label}</div>
           <div className="text-white font-medium text-sm break-words leading-tight">{meal.name}</div>
         </div>
-        <div className="flex items-center gap-1 text-white/40 text-xs flex-shrink-0">
-          <span className="whitespace-nowrap">{meal.prepTime}мин</span>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {meal.image && (
+            <button
+              onClick={onImageClick}
+              className="relative w-12 h-12 rounded-lg overflow-hidden border-2 border-white/20 hover:border-accent-mint/50 transition-all cursor-pointer flex-shrink-0"
+            >
+              <Image
+                src={meal.image}
+                alt={meal.name}
+                fill
+                className="object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement
+                  target.style.display = 'none'
+                }}
+              />
+            </button>
+          )}
+          <div className="flex items-center gap-1 text-white/40 text-xs">
+            <span className="whitespace-nowrap">{meal.prepTime}мин</span>
+          </div>
         </div>
       </div>
       <div className="flex items-center flex-wrap gap-2 text-xs">
@@ -615,6 +807,130 @@ function MealCard({ meal, label }: { meal: Meal; label: string }) {
         <span className="text-green-400 whitespace-nowrap">{meal.carbs}г У</span>
       </div>
     </div>
+  )
+}
+
+function MealModal({ meal, onClose }: { meal: Meal; onClose: () => void }) {
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', handleEscape)
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', handleEscape)
+      document.body.style.overflow = 'unset'
+    }
+  }, [onClose])
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        onClick={(e) => e.stopPropagation()}
+        className="relative max-w-2xl w-full max-h-[90vh] overflow-y-auto rounded-2xl bg-gradient-to-br from-dark-800 via-dark-800/95 to-dark-900 border-2 border-white/10 shadow-2xl"
+      >
+        {/* Кнопка закрытия */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-all"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        {/* Изображение */}
+        {meal.image && (
+          <div className="relative w-full h-64 sm:h-80 rounded-t-2xl overflow-hidden">
+            <Image
+              src={meal.image}
+              alt={meal.name}
+              fill
+              className="object-cover"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement
+                target.style.display = 'none'
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-dark-900 via-dark-900/50 to-transparent" />
+          </div>
+        )}
+
+        {/* Контент */}
+        <div className="p-6">
+          <h3 className="text-2xl font-bold text-white mb-4">{meal.name}</h3>
+
+          {/* Макросы */}
+          <div className="flex items-center flex-wrap gap-4 mb-6 p-4 rounded-xl bg-white/5">
+            <div className="flex items-center gap-2">
+              <span className="text-white/60">Калории:</span>
+              <span className="text-white font-semibold">{meal.calories} ккал</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-white/60">Жиры:</span>
+              <span className="text-yellow-400 font-semibold">{meal.fats}г</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-white/60">Белки:</span>
+              <span className="text-blue-400 font-semibold">{meal.proteins}г</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-white/60">Углеводы:</span>
+              <span className="text-green-400 font-semibold">{meal.carbs}г</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-white/60">Время:</span>
+              <span className="text-white font-semibold">{meal.prepTime} мин</span>
+            </div>
+          </div>
+
+          {/* Ингредиенты */}
+          {meal.ingredients && meal.ingredients.length > 0 && (
+            <div className="mb-6">
+              <h4 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                <UtensilsCrossed className="w-5 h-5 text-accent-mint" />
+                Ингредиенты:
+              </h4>
+              <ul className="space-y-2">
+                {meal.ingredients.map((ingredient, index) => (
+                  <li key={index} className="flex items-start gap-2 text-white/80">
+                    <span className="text-accent-mint mt-1">•</span>
+                    <span>{ingredient}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Инструкции */}
+          {meal.instructions && meal.instructions.length > 0 && (
+            <div>
+              <h4 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                <ChefHat className="w-5 h-5 text-accent-mint" />
+                Способ приготовления:
+              </h4>
+              <ol className="space-y-3">
+                {meal.instructions.map((instruction, index) => (
+                  <li key={index} className="flex items-start gap-3 text-white/80">
+                    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-accent-mint text-dark-900 font-bold flex items-center justify-center text-sm">
+                      {index + 1}
+                    </span>
+                    <span>{instruction}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
+        </div>
+      </motion.div>
+    </motion.div>
   )
 }
 
