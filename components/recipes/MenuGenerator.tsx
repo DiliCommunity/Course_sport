@@ -828,7 +828,7 @@ function MealModal({ meal, onClose }: { meal: Meal; onClose: () => void }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
       onClick={onClose}
     >
       <motion.div
@@ -841,9 +841,9 @@ function MealModal({ meal, onClose }: { meal: Meal; onClose: () => void }) {
         {/* Кнопка закрытия */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-all"
+          className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-red-500/90 hover:bg-red-600 flex items-center justify-center text-white transition-all shadow-lg hover:shadow-red-500/50"
         >
-          <X className="w-5 h-5" />
+          <X className="w-6 h-6" />
         </button>
 
         {/* Изображение */}
