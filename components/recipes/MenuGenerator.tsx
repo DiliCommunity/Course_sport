@@ -46,7 +46,7 @@ const MEALS_DATABASE: Record<string, Meal[]> = {
     { 
       name: 'Яйца Бенедикт на кето-булочке', 
       calories: 520, fats: 38, proteins: 25, carbs: 8, prepTime: 15,
-      image: '/img/recipes/scrambled-eggs-salmon.jpg',
+      image: '/img/recipes/eggs-benedict-keto.jpg',
       ingredients: ['2 яйца', '2 ломтика бекона', '1 кето-булочка', 'Голландский соус', 'Укроп'],
       instructions: ['Приготовьте яйца пашот', 'Обжарьте бекон', 'Поджарьте булочку', 'Соберите блюдо с соусом']
     },
@@ -60,14 +60,14 @@ const MEALS_DATABASE: Record<string, Meal[]> = {
     { 
       name: 'Чиа-пудинг с кокосовым молоком', 
       calories: 280, fats: 22, proteins: 8, carbs: 6, prepTime: 5,
-      image: '/img/recipes/smoothie-mct-berries.jpg',
+      image: '/img/recipes/chia-coconut-pudding.jpg',
       ingredients: ['3 ст.л. семян чиа', '100мл кокосового молока', '1 ст.л. эритрита', 'Ягоды для украшения'],
       instructions: ['Смешайте чиа с кокосовым молоком', 'Добавьте эритрит', 'Оставьте на ночь в холодильнике', 'Украсьте ягодами']
     },
     { 
       name: 'Кето-гранола с греческим йогуртом', 
       calories: 350, fats: 28, proteins: 15, carbs: 5, prepTime: 5,
-      image: '/img/recipes/smoothie-mct-berries.jpg',
+      image: '/img/recipes/keto-granola-yogurt.jpg',
       ingredients: ['50г кето-гранолы', '100г греческого йогурта', 'Орехи', 'Кокосовая стружка'],
       instructions: ['Выложите йогурт в миску', 'Добавьте гранолу', 'Посыпьте орехами и кокосом']
     },
@@ -81,7 +81,7 @@ const MEALS_DATABASE: Record<string, Meal[]> = {
     { 
       name: 'Яичница с грибами и сыром', 
       calories: 440, fats: 34, proteins: 26, carbs: 5, prepTime: 15,
-      image: '/img/recipes/bacon-eggs-spinach.jpg',
+      image: '/img/recipes/scrambled-mushrooms-cheese.jpg',
       ingredients: ['3 яйца', '100г грибов', '50г сыра', '1 ст.л. оливкового масла', 'Соль, перец'],
       instructions: ['Обжарьте грибы до золотистого цвета', 'Разбейте яйца', 'Добавьте сыр', 'Готовьте до готовности']
     },
@@ -95,7 +95,7 @@ const MEALS_DATABASE: Record<string, Meal[]> = {
     { 
       name: 'Творожные кето-оладьи', 
       calories: 420, fats: 32, proteins: 24, carbs: 6, prepTime: 15,
-      image: '/img/recipes/smoothie-mct-berries.jpg',
+      image: '/img/recipes/keto-cottage-pancakes.jpg',
       ingredients: ['200г творога', '2 яйца', '3 ст.л. миндальной муки', '1 ч.л. разрыхлителя', 'Соль'],
       instructions: ['Смешайте все ингредиенты', 'Жарьте оладьи на сковороде', 'Подавайте со сметаной']
     },
@@ -104,21 +104,21 @@ const MEALS_DATABASE: Record<string, Meal[]> = {
     { 
       name: 'Салат с тунцом и оливковым маслом', 
       calories: 380, fats: 28, proteins: 25, carbs: 4, prepTime: 10,
-      image: '/img/recipes/avocado-tuna.jpg',
+      image: '/img/recipes/tuna-lettuce-boats.jpg',
       ingredients: ['1 банка тунца', '100г салата', 'Оливковое масло', 'Лимонный сок', 'Соль, перец'],
       instructions: ['Смешайте тунец с салатом', 'Заправьте маслом и лимонным соком', 'Приправьте солью и перцем']
     },
     { 
       name: 'Кето-бургер с сыром и авокадо', 
       calories: 550, fats: 42, proteins: 30, carbs: 6, prepTime: 15,
-      image: '/img/recipes/avocado-cheese-omlet.jpg',
+      image: '/img/recipes/keto-burger.jpg',
       ingredients: ['150г говяжьего фарша', 'Кето-булочка', '50г сыра', '1/2 авокадо', 'Салат'],
       instructions: ['Сформируйте котлету из фарша', 'Обжарьте котлету', 'Соберите бургер с сыром и авокадо']
     },
     { 
       name: 'Куриная грудка с овощами гриль', 
       calories: 420, fats: 22, proteins: 38, carbs: 5, prepTime: 20,
-      image: '/img/recipes/salmon-broccoli.jpg',
+      image: '/img/recipes/baked-chicken-vegetables.jpg',
       ingredients: ['200г куриной грудки', 'Овощи для гриля', 'Оливковое масло', 'Специи'],
       instructions: ['Замаринуйте курицу', 'Обжарьте на гриле', 'Приготовьте овощи', 'Подавайте вместе']
     },
@@ -132,28 +132,28 @@ const MEALS_DATABASE: Record<string, Meal[]> = {
     { 
       name: 'Овощной салат с орехами и сыром', 
       calories: 350, fats: 28, proteins: 15, carbs: 7, prepTime: 12,
-      image: '/img/recipes/avocado-tuna.jpg',
+      image: '/img/recipes/keto-caesar-salad.jpg',
       ingredients: ['Смесь овощей', '30г орехов', '50г сыра', 'Оливковое масло', 'Бальзамический уксус'],
       instructions: ['Нарежьте овощи', 'Добавьте орехи и сыр', 'Заправьте маслом и уксусом']
     },
     { 
       name: 'Кето-бургер с говядиной', 
       calories: 520, fats: 38, proteins: 35, carbs: 5, prepTime: 20,
-      image: '/img/recipes/beef-steak-green-salad.jpg',
+      image: '/img/recipes/keto-burger.jpg',
       ingredients: ['150г говяжьего фарша', 'Кето-булочка', 'Сыр', 'Салат', 'Помидор'],
       instructions: ['Сформируйте котлету', 'Обжарьте на сковороде', 'Соберите бургер']
     },
     { 
       name: 'Куриная грудка с брокколи', 
       calories: 450, fats: 32, proteins: 30, carbs: 6, prepTime: 25,
-      image: '/img/recipes/salmon-broccoli.jpg',
+      image: '/img/recipes/baked-chicken-vegetables.jpg',
       ingredients: ['200г куриной грудки', '200г брокколи', 'Сливочное масло', 'Чеснок', 'Соль, перец'],
       instructions: ['Обжарьте курицу', 'Приготовьте брокколи на пару', 'Подавайте вместе с маслом и чесноком']
     },
     { 
       name: 'Лосось с овощами на пару', 
       calories: 420, fats: 26, proteins: 38, carbs: 7, prepTime: 20,
-      image: '/img/recipes/grilled-salmon-vegetables.jpg',
+      image: '/img/recipes/salmon-broccoli.jpg',
       ingredients: ['200г филе лосося', 'Овощи для пара', 'Лимон', 'Укроп', 'Соль, перец'],
       instructions: ['Приготовьте лосось на пару', 'Приготовьте овощи', 'Подавайте с лимоном и укропом']
     },
@@ -169,7 +169,7 @@ const MEALS_DATABASE: Record<string, Meal[]> = {
     { 
       name: 'Куриные котлетки с сыром', 
       calories: 450, fats: 32, proteins: 32, carbs: 5, prepTime: 15,
-      image: '/img/recipes/salmon-broccoli.jpg',
+      image: '/img/recipes/baked-chicken-vegetables.jpg',
       ingredients: ['200г куриного фарша', '50г сыра', 'Яйцо', 'Специи', 'Масло для жарки'],
       instructions: ['Смешайте фарш с яйцом и специями', 'Добавьте сыр', 'Сформируйте котлеты', 'Обжарьте']
     },
@@ -183,14 +183,14 @@ const MEALS_DATABASE: Record<string, Meal[]> = {
     { 
       name: 'Индейка с брокколи', 
       calories: 420, fats: 24, proteins: 35, carbs: 4, prepTime: 20,
-      image: '/img/recipes/salmon-broccoli.jpg',
+      image: '/img/recipes/baked-chicken-vegetables.jpg',
       ingredients: ['200г филе индейки', '200г брокколи', 'Сливочное масло', 'Соль, перец'],
       instructions: ['Обжарьте индейку', 'Приготовьте брокколи', 'Подавайте вместе']
     },
     { 
       name: 'Кето-пицца на миндальной муке', 
       calories: 480, fats: 36, proteins: 22, carbs: 8, prepTime: 30,
-      image: '/img/recipes/avocado-cheese-omlet.jpg',
+      image: '/img/recipes/keto-almond-pizza.jpg',
       ingredients: ['Миндальная мука', 'Яйца', 'Сыр моцарелла', 'Томаты', 'Базилик'],
       instructions: ['Приготовьте тесто из муки и яиц', 'Выложите начинку', 'Запеките в духовке']
     },
@@ -211,7 +211,7 @@ const MEALS_DATABASE: Record<string, Meal[]> = {
     { 
       name: 'Кето-лазанья с цукини', 
       calories: 480, fats: 32, proteins: 35, carbs: 10, prepTime: 50,
-      image: '/img/recipes/baked-chicken-vegetables.jpg',
+      image: '/img/recipes/keto-zucchini-lasagna.jpg',
       ingredients: ['Цукини', 'Фарш', 'Сыр', 'Томатный соус', 'Специи'],
       instructions: ['Нарежьте цукини пластинами', 'Соберите лазанью слоями', 'Запекайте 40 минут']
     },
