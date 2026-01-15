@@ -16,6 +16,8 @@ interface Meal {
   image?: string
   ingredients?: string[]
   instructions?: string[]
+  description?: string
+  estimatedCost?: number
 }
 
 interface DayMenu {
@@ -608,12 +610,13 @@ function MealModal({ meal, onClose }: { meal: Meal; onClose: () => void }) {
         onClick={(e) => e.stopPropagation()}
         className="relative max-w-2xl w-full max-h-[90vh] overflow-y-auto rounded-2xl bg-gradient-to-br from-dark-800 via-dark-800/95 to-dark-900 border-2 border-white/10 shadow-2xl"
       >
-        {/* Кнопка закрытия */}
+        {/* Кнопка закрытия - поверх всего */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-red-500/90 hover:bg-red-600 flex items-center justify-center text-white transition-all shadow-lg hover:shadow-red-500/50"
+          className="fixed top-4 right-4 z-[10000] w-12 h-12 sm:w-10 sm:h-10 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center text-white transition-all shadow-lg hover:shadow-red-500/50 border-2 border-white/20"
+          aria-label="Закрыть"
         >
-          <X className="w-6 h-6" />
+          <X className="w-6 h-6 sm:w-5 sm:h-5" />
         </button>
 
         {/* Изображение */}
@@ -635,7 +638,19 @@ function MealModal({ meal, onClose }: { meal: Meal; onClose: () => void }) {
 
         {/* Контент */}
         <div className="p-6">
-          <h3 className="text-2xl font-bold text-white mb-4">{meal.name}</h3>
+          <div className="flex items-start justify-between gap-4 mb-4">
+            <h3 className="text-2xl font-bold text-white flex-1">{meal.name}</h3>
+            {meal.estimatedCost && (
+              <div className="flex-shrink-0 px-4 py-2 rounded-full bg-gradient-to-r from-accent-gold/20 to-amber-400/20 border border-accent-gold/40 backdrop-blur-sm">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-accent-gold text-lg font-bold">💰</span>
+                  <span className="text-accent-gold font-bold text-lg">{meal.estimatedCost}</span>
+                  <span className="text-accent-gold/80 text-sm">₽</span>
+                </div>
+                <div className="text-xs text-accent-gold/60 text-center mt-0.5">примерная стоимость</div>
+              </div>
+            )}
+          </div>
 
           {/* Макросы */}
           <div className="flex items-center flex-wrap gap-4 mb-6 p-4 rounded-xl bg-white/5">
