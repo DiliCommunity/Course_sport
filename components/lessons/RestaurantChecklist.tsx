@@ -409,92 +409,193 @@ export function RestaurantChecklist() {
     try {
       setDownloading(true)
 
-      const canvas = document.createElement('canvas')
-      const ctx = canvas.getContext('2d')
-      if (!ctx) throw new Error('Could not get canvas context')
-
-      const dpi = 300
-      const mmToPx = dpi / 25.4
-      const pageWidthMm = 210
-      const pageHeightMm = 297
-      const pageWidthPx = pageWidthMm * mmToPx
-      const pageHeightPx = pageHeightMm * mmToPx
-
-      canvas.width = pageWidthPx
-      canvas.height = pageHeightPx
-
-      ctx.fillStyle = '#ffffff'
-      ctx.fillRect(0, 0, canvas.width, canvas.height)
-
-      const marginPx = 20 * mmToPx
-      let yPosPx = 25 * mmToPx
-
       const lang = selectedLanguage
       const phrases = selectedType.phrases[lang]
       const dishes = selectedType.dishes[lang]
       const restaurantName = selectedType.nameTranslations[lang]
-      
-      // Заголовок
-      ctx.fillStyle = '#3b82f6'
-      ctx.font = 'bold 32px Arial, sans-serif'
-      ctx.textAlign = 'center'
+
+      // Создаем красивый HTML элемент с темными стилями
+      const printContent = document.createElement('div')
+      printContent.style.position = 'absolute'
+      printContent.style.left = '-9999px'
+      printContent.style.width = '800px'
+      printContent.style.padding = '50px'
+      printContent.style.background = 'linear-gradient(135deg, #0a0a0b 0%, #1a1a1a 50%, #0a0a0b 100%)'
+      printContent.style.fontFamily = 'system-ui, -apple-system, sans-serif'
+      printContent.style.color = '#ffffff'
+      printContent.style.borderRadius = '20px'
+
       const titleText = lang === 'ru' ? `Чек-лист для ресторана: ${restaurantName}` : 
                        lang === 'en' ? `Restaurant Checklist: ${restaurantName}` :
                        lang === 'fr' ? `Liste de vérification restaurant: ${restaurantName}` :
                        lang === 'it' ? `Lista di controllo ristorante: ${restaurantName}` :
                        `Lista de verificación restaurante: ${restaurantName}`
-      ctx.fillText(titleText, pageWidthPx / 2, yPosPx)
-      yPosPx += 50
-
-      // Готовые фразы
-      ctx.fillStyle = '#3b82f6'
-      ctx.font = 'bold 22px Arial, sans-serif'
-      ctx.textAlign = 'left'
       const phrasesTitle = lang === 'ru' ? 'Готовые фразы:' :
                           lang === 'en' ? 'Ready Phrases:' :
                           lang === 'fr' ? 'Phrases prêtes:' :
                           lang === 'it' ? 'Frasi pronte:' :
                           'Frases listas:'
-      ctx.fillText(phrasesTitle, marginPx, yPosPx)
-      yPosPx += 35
-
-      ctx.fillStyle = '#000000'
-      ctx.font = '18px Arial, sans-serif'
-      phrases.forEach((phrase, index) => {
-        if (yPosPx > pageHeightPx - 100) return
-        ctx.fillText(`${index + 1}. ${phrase}`, marginPx + 10, yPosPx)
-        yPosPx += 30
-      })
-      yPosPx += 30
-
-      // Блюда
-      ctx.fillStyle = '#3b82f6'
-      ctx.font = 'bold 22px Arial, sans-serif'
       const dishesTitle = lang === 'ru' ? 'Кето-дружелюбные блюда:' :
                          lang === 'en' ? 'Keto-Friendly Dishes:' :
                          lang === 'fr' ? 'Plats Keto:' :
                          lang === 'it' ? 'Piatti Keto:' :
                          'Platos Keto:'
-      ctx.fillText(dishesTitle, marginPx, yPosPx)
-      yPosPx += 35
 
-      ctx.fillStyle = '#000000'
-      ctx.font = '18px Arial, sans-serif'
-      dishes.forEach((dish, index) => {
-        if (yPosPx > pageHeightPx - 50) return
-        ctx.fillText(`${index + 1}. ${dish}`, marginPx + 10, yPosPx)
-        yPosPx += 30
+      printContent.innerHTML = `
+        <div style="
+          background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(0, 212, 255, 0.1) 100%);
+          border: 2px solid rgba(255, 215, 0, 0.3);
+          border-radius: 20px;
+          padding: 40px;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 40px rgba(255, 215, 0, 0.1);
+        ">
+          <h1 style="
+            font-size: 38px;
+            font-weight: bold;
+            text-align: center;
+            margin: 0 0 10px 0;
+            background: linear-gradient(135deg, #ffd700 0%, #00d4ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+          ">
+            ${titleText}
+          </h1>
+          <p style="text-align: center; color: rgba(255, 255, 255, 0.6); font-size: 16px; margin: 0 0 40px 0; text-transform: uppercase; letter-spacing: 2px;">
+            ${new Date().toLocaleDateString('ru-RU')}
+          </p>
+          
+          <div style="margin-bottom: 35px;">
+            <h2 style="
+              font-size: 24px;
+              font-weight: bold;
+              color: #ffd700;
+              margin: 0 0 20px 0;
+              display: flex;
+              align-items: center;
+              gap: 10px;
+            ">
+              <span style="font-size: 28px;">💬</span>
+              ${phrasesTitle}
+            </h2>
+            <div style="
+              background: rgba(255, 255, 255, 0.05);
+              border: 1px solid rgba(255, 255, 255, 0.1);
+              border-radius: 12px;
+              padding: 20px;
+              backdrop-filter: blur(10px);
+            ">
+              <ul style="margin: 0; padding-left: 25px; list-style: none; line-height: 2.2;">
+                ${phrases.map((phrase, idx) => `
+                  <li style="
+                    color: rgba(255, 255, 255, 0.9);
+                    font-size: 16px;
+                    margin-bottom: 12px;
+                    padding-left: 30px;
+                    position: relative;
+                  ">
+                    <span style="
+                      position: absolute;
+                      left: 0;
+                      width: 24px;
+                      height: 24px;
+                      background: linear-gradient(135deg, #ffd700 0%, #00d4ff 100%);
+                      border-radius: 50%;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      color: #000;
+                      font-weight: bold;
+                      font-size: 12px;
+                      box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
+                    ">${idx + 1}</span>
+                    ${phrase}
+                  </li>
+                `).join('')}
+              </ul>
+            </div>
+          </div>
+          
+          <div>
+            <h2 style="
+              font-size: 24px;
+              font-weight: bold;
+              color: #00d4ff;
+              margin: 0 0 20px 0;
+              display: flex;
+              align-items: center;
+              gap: 10px;
+            ">
+              <span style="font-size: 28px;">🍽️</span>
+              ${dishesTitle}
+            </h2>
+            <div style="
+              background: rgba(255, 255, 255, 0.05);
+              border: 1px solid rgba(255, 255, 255, 0.1);
+              border-radius: 12px;
+              padding: 20px;
+              backdrop-filter: blur(10px);
+            ">
+              <ul style="margin: 0; padding-left: 25px; list-style: none; line-height: 2.2;">
+                ${dishes.map((dish, idx) => `
+                  <li style="
+                    color: rgba(255, 255, 255, 0.9);
+                    font-size: 16px;
+                    margin-bottom: 12px;
+                    padding-left: 30px;
+                    position: relative;
+                  ">
+                    <span style="
+                      position: absolute;
+                      left: 0;
+                      width: 24px;
+                      height: 24px;
+                      background: linear-gradient(135deg, #00d4ff 0%, #10b981 100%);
+                      border-radius: 50%;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      color: #000;
+                      font-weight: bold;
+                      font-size: 12px;
+                      box-shadow: 0 0 12px rgba(0, 212, 255, 0.4);
+                    ">${idx + 1}</span>
+                    ${dish}
+                  </li>
+                `).join('')}
+              </ul>
+            </div>
+          </div>
+        </div>
+      `
+
+      document.body.appendChild(printContent)
+
+      // Используем html2canvas для создания изображения
+      const html2canvas = (await import('html2canvas')).default
+      const canvas = await html2canvas(printContent, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#0a0a0b',
+        allowTaint: true
       })
 
+      document.body.removeChild(printContent)
+
       const { jsPDF } = await import('jspdf')
-      const imgData = canvas.toDataURL('image/png', 1.0)
+      const imgData = canvas.toDataURL('image/png')
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4'
       })
 
-      pdf.addImage(imgData, 'PNG', 0, 0, pageWidthMm, pageHeightMm)
+      const imgWidth = 210
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight)
+      
       const fileName = lang === 'ru' ? `Чек-лист-${restaurantName}-${new Date().toLocaleDateString('ru-RU').replace(/\//g, '-')}.pdf` :
                      `Checklist-${restaurantName}-${new Date().toLocaleDateString().replace(/\//g, '-')}.pdf`
       pdf.save(fileName)

@@ -133,54 +133,163 @@ TDEE (расход калорий): ${results.tdee} ккал/день
       
       const goalText = goal === 'cut' ? 'Сброс веса' : goal === 'maintain' ? 'Поддержание' : 'Набор массы'
       
-      // Создаем временный HTML элемент для рендеринга
+      // Создаем красивый HTML элемент с темными стилями
       const printContent = document.createElement('div')
       printContent.style.position = 'absolute'
       printContent.style.left = '-9999px'
-      printContent.style.width = '210mm' // A4 width
-      printContent.style.padding = '20mm'
-      printContent.style.backgroundColor = '#ffffff'
-      printContent.style.fontFamily = 'Arial, sans-serif'
-      printContent.style.color = '#000000'
+      printContent.style.width = '800px'
+      printContent.style.padding = '50px'
+      printContent.style.background = 'linear-gradient(135deg, #0a0a0b 0%, #1a1a1a 50%, #0a0a0b 100%)'
+      printContent.style.fontFamily = 'system-ui, -apple-system, sans-serif'
+      printContent.style.color = '#ffffff'
+      printContent.style.borderRadius = '20px'
       
       printContent.innerHTML = `
-        <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="font-size: 24px; margin: 0 0 10px 0; color: #f59e0b;">Расчет калорий и макросов (Кето)</h1>
-          <p style="font-size: 12px; color: #999;">Сгенерировано: ${new Date().toLocaleDateString('ru-RU')}</p>
-        </div>
-        
-        <div style="margin-bottom: 25px;">
-          <h2 style="font-size: 16px; color: #10b981; margin: 0 0 15px 0; border-bottom: 2px solid #10b981; padding-bottom: 5px;">Параметры:</h2>
-          <div style="margin-left: 15px;">
-            <p style="margin: 8px 0;"><strong>Пол:</strong> ${gender === 'male' ? 'Мужской' : 'Женский'}</p>
-            <p style="margin: 8px 0;"><strong>Возраст:</strong> ${age} лет</p>
-            <p style="margin: 8px 0;"><strong>Вес:</strong> ${weight} кг</p>
-            <p style="margin: 8px 0;"><strong>Рост:</strong> ${height} см</p>
-            <p style="margin: 8px 0;"><strong>Уровень активности:</strong> ${ACTIVITY_MULTIPLIERS[activityLevel].label}</p>
-            <p style="margin: 8px 0;"><strong>Цель:</strong> ${goalText}</p>
+        <div style="
+          background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
+          border: 2px solid rgba(245, 158, 11, 0.3);
+          border-radius: 20px;
+          padding: 40px;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 40px rgba(245, 158, 11, 0.1);
+        ">
+          <div style="text-align: center; margin-bottom: 40px;">
+            <h1 style="
+              font-size: 38px;
+              font-weight: bold;
+              margin: 0 0 10px 0;
+              background: linear-gradient(135deg, #f59e0b 0%, #10b981 100%);
+              -webkit-background-clip: text;
+              -webkit-text-fill-color: transparent;
+              background-clip: text;
+              text-shadow: 0 0 30px rgba(245, 158, 11, 0.3);
+            ">Расчет калорий и макросов (Кето)</h1>
+            <p style="font-size: 14px; color: rgba(255, 255, 255, 0.6);">Сгенерировано: ${new Date().toLocaleDateString('ru-RU')}</p>
           </div>
-        </div>
-        
-        <div style="margin-bottom: 25px;">
-          <h2 style="font-size: 16px; color: #f59e0b; margin: 0 0 15px 0; border-bottom: 2px solid #f59e0b; padding-bottom: 5px;">Основные показатели:</h2>
-          <div style="margin-left: 15px;">
-            <p style="margin: 8px 0;">BMR (базовый метаболизм): <strong>${results.bmr} ккал/день</strong></p>
-            <p style="margin: 8px 0;">TDEE (расход калорий): <strong>${results.tdee} ккал/день</strong></p>
-            <p style="margin: 8px 0; color: #10b981; font-size: 16px; font-weight: bold;">Целевые калории: ${results.targetCalories} ккал/день</p>
+          
+          <div style="
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+          ">
+            <h2 style="
+              font-size: 20px;
+              color: #10b981;
+              margin: 0 0 15px 0;
+              font-weight: bold;
+            ">👤 Параметры:</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+              <div style="color: rgba(255, 255, 255, 0.9); font-size: 15px;">
+                <strong style="color: #10b981;">Пол:</strong> ${gender === 'male' ? 'Мужской' : 'Женский'}
+              </div>
+              <div style="color: rgba(255, 255, 255, 0.9); font-size: 15px;">
+                <strong style="color: #10b981;">Возраст:</strong> ${age} лет
+              </div>
+              <div style="color: rgba(255, 255, 255, 0.9); font-size: 15px;">
+                <strong style="color: #10b981;">Вес:</strong> ${weight} кг
+              </div>
+              <div style="color: rgba(255, 255, 255, 0.9); font-size: 15px;">
+                <strong style="color: #10b981;">Рост:</strong> ${height} см
+              </div>
+              <div style="color: rgba(255, 255, 255, 0.9); font-size: 15px;">
+                <strong style="color: #10b981;">Уровень активности:</strong> ${ACTIVITY_MULTIPLIERS[activityLevel].label}
+              </div>
+              <div style="color: rgba(255, 255, 255, 0.9); font-size: 15px;">
+                <strong style="color: #10b981;">Цель:</strong> ${goalText}
+              </div>
+            </div>
           </div>
-        </div>
-        
-        <div style="margin-bottom: 25px;">
-          <h2 style="font-size: 16px; color: #f59e0b; margin: 0 0 15px 0; border-bottom: 2px solid #f59e0b; padding-bottom: 5px;">Распределение макросов (Кето):</h2>
-          <div style="margin-left: 15px;">
-            <p style="margin: 8px 0;">Жиры: <strong>${results.fats}г</strong> / ${results.fatsCal} ккал (70-75%)</p>
-            <p style="margin: 8px 0;">Белки: <strong>${results.proteins}г</strong> / ${results.proteinsCal} ккал (20-25%)</p>
-            <p style="margin: 8px 0;">Углеводы: <strong>${results.carbs}г</strong> / ${results.carbsCal} ккал (5-10%)</p>
+          
+          <div style="
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 30px;
+          ">
+            <h2 style="
+              font-size: 20px;
+              color: #f59e0b;
+              margin: 0 0 15px 0;
+              font-weight: bold;
+            ">📊 Основные показатели:</h2>
+            <div style="margin-left: 20px;">
+              <p style="margin: 8px 0; color: rgba(255, 255, 255, 0.9); font-size: 15px;">
+                BMR (базовый метаболизм): <strong style="color: #f59e0b;">${results.bmr} ккал/день</strong>
+              </p>
+              <p style="margin: 8px 0; color: rgba(255, 255, 255, 0.9); font-size: 15px;">
+                TDEE (расход калорий): <strong style="color: #f59e0b;">${results.tdee} ккал/день</strong>
+              </p>
+              <p style="margin: 15px 0 0 0; color: #10b981; font-size: 20px; font-weight: bold;">
+                🎯 Целевые калории: ${results.targetCalories} ккал/день
+              </p>
+            </div>
           </div>
-        </div>
-        
-        <div style="margin-top: 20px; padding: 15px; background-color: #fef3c7; border-left: 4px solid #f59e0b; font-style: italic; color: #666;">
-          Рекомендация: Следуйте этим показателям для достижения кетоза
+          
+          <div style="
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 30px;
+          ">
+            <h2 style="
+              font-size: 20px;
+              color: #10b981;
+              margin: 0 0 15px 0;
+              font-weight: bold;
+            ">🥑 Распределение макросов (Кето):</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-left: 20px;">
+              <div style="
+                background: rgba(255, 107, 53, 0.15);
+                border: 1px solid rgba(255, 107, 53, 0.3);
+                border-radius: 12px;
+                padding: 15px;
+                text-align: center;
+              ">
+                <div style="font-size: 14px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">Жиры</div>
+                <div style="font-size: 20px; font-weight: bold; color: #ff6b35;">${results.fats}г</div>
+                <div style="font-size: 12px; color: rgba(255, 255, 255, 0.6);">${results.fatsCal} ккал (70-75%)</div>
+              </div>
+              <div style="
+                background: rgba(59, 130, 246, 0.15);
+                border: 1px solid rgba(59, 130, 246, 0.3);
+                border-radius: 12px;
+                padding: 15px;
+                text-align: center;
+              ">
+                <div style="font-size: 14px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">Белки</div>
+                <div style="font-size: 20px; font-weight: bold; color: #3b82f6;">${results.proteins}г</div>
+                <div style="font-size: 12px; color: rgba(255, 255, 255, 0.6);">${results.proteinsCal} ккал (20-25%)</div>
+              </div>
+              <div style="
+                background: rgba(16, 185, 129, 0.15);
+                border: 1px solid rgba(16, 185, 129, 0.3);
+                border-radius: 12px;
+                padding: 15px;
+                text-align: center;
+              ">
+                <div style="font-size: 14px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">Углеводы</div>
+                <div style="font-size: 20px; font-weight: bold; color: #10b981;">${results.carbs}г</div>
+                <div style="font-size: 12px; color: rgba(255, 255, 255, 0.6);">${results.carbsCal} ккал (5-10%)</div>
+              </div>
+            </div>
+          </div>
+          
+          <div style="
+            background: rgba(245, 158, 11, 0.15);
+            border: 2px solid rgba(245, 158, 11, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            font-style: italic;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 15px;
+          ">
+            💡 Рекомендация: Следуйте этим показателям для достижения кетоза
+          </div>
         </div>
       `
       
@@ -192,7 +301,8 @@ TDEE (расход калорий): ${results.tdee} ккал/день
         scale: 2,
         useCORS: true,
         logging: false,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#0a0a0b',
+        allowTaint: true
       })
       
       // Удаляем временный элемент

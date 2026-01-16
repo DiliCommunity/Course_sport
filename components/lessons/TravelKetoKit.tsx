@@ -122,88 +122,179 @@ export function TravelKetoKit() {
     try {
       setDownloading(true)
 
-      const canvas = document.createElement('canvas')
-      const ctx = canvas.getContext('2d')
-      if (!ctx) throw new Error('Could not get canvas context')
-
-      const dpi = 300
-      const mmToPx = dpi / 25.4
-      const pageWidthMm = 210
-      const pageHeightMm = 297
-      const pageWidthPx = pageWidthMm * mmToPx
-      const pageHeightPx = pageHeightMm * mmToPx
-
-      canvas.width = pageWidthPx
-      canvas.height = pageHeightPx
-
-      ctx.fillStyle = '#ffffff'
-      ctx.fillRect(0, 0, canvas.width, canvas.height)
-
-      const marginPx = 20 * mmToPx
-      let yPosPx = 25 * mmToPx
-
-      // Заголовок
-      ctx.fillStyle = '#3b82f6'
-      ctx.font = 'bold 32px Arial, sans-serif'
-      ctx.textAlign = 'center'
-      ctx.fillText('Кето-набор для путешествий', pageWidthPx / 2, yPosPx)
-      yPosPx += 50
-
-      // Список продуктов
       const checkedItems = items.filter(item => item.checked)
       const categories = Object.keys(CATEGORY_LABELS) as TravelItem['category'][]
-      
-      ctx.textAlign = 'left'
-      ctx.fillStyle = '#3b82f6'
-      ctx.font = 'bold 22px Arial, sans-serif'
-      ctx.fillText('Взять с собой:', marginPx, yPosPx)
-      yPosPx += 35
 
-      ctx.fillStyle = '#000000'
-      ctx.font = '18px Arial, sans-serif'
-      
-      categories.forEach(category => {
+      // Создаем красивый HTML элемент с темными стилями
+      const printContent = document.createElement('div')
+      printContent.style.position = 'absolute'
+      printContent.style.left = '-9999px'
+      printContent.style.width = '800px'
+      printContent.style.padding = '50px'
+      printContent.style.background = 'linear-gradient(135deg, #0a0a0b 0%, #1a1a1a 50%, #0a0a0b 100%)'
+      printContent.style.fontFamily = 'system-ui, -apple-system, sans-serif'
+      printContent.style.color = '#ffffff'
+      printContent.style.borderRadius = '20px'
+
+      const itemsHtml = categories.map(category => {
         const categoryItems = checkedItems.filter(item => item.category === category)
-        if (categoryItems.length > 0) {
-          ctx.fillStyle = '#3b82f6'
-          ctx.font = 'bold 20px Arial, sans-serif'
-          ctx.fillText(CATEGORY_LABELS[category], marginPx, yPosPx)
-          yPosPx += 30
+        if (categoryItems.length === 0) return ''
+        return `
+          <div style="margin-bottom: 30px;">
+            <h3 style="
+              font-size: 20px;
+              color: #00d4ff;
+              margin: 0 0 15px 0;
+              font-weight: bold;
+            ">${CATEGORY_LABELS[category]}:</h3>
+            <div style="
+              background: rgba(255, 255, 255, 0.05);
+              border: 1px solid rgba(255, 255, 255, 0.1);
+              border-radius: 12px;
+              padding: 20px;
+              backdrop-filter: blur(10px);
+            ">
+              <ul style="margin: 0; padding-left: 25px; list-style: none; line-height: 2;">
+                ${categoryItems.map(item => `
+                  <li style="
+                    color: rgba(255, 255, 255, 0.9);
+                    font-size: 16px;
+                    margin-bottom: 8px;
+                    padding-left: 25px;
+                    position: relative;
+                  ">
+                    <span style="position: absolute; left: 0; color: #10b981; font-weight: bold; font-size: 18px;">✓</span>
+                    ${item.name}
+                  </li>
+                `).join('')}
+              </ul>
+            </div>
+          </div>
+        `
+      }).join('')
 
-          ctx.fillStyle = '#000000'
-          ctx.font = '18px Arial, sans-serif'
-          categoryItems.forEach(item => {
-            if (yPosPx > pageHeightPx - 100) return
-            ctx.fillText(`✓ ${item.name}`, marginPx + 10, yPosPx)
-            yPosPx += 28
-          })
-          yPosPx += 10
-        }
+      const tipsHtml = TRAVEL_TIPS.map((tip, idx) => `
+        <li style="
+          color: rgba(255, 255, 255, 0.9);
+          font-size: 16px;
+          margin-bottom: 12px;
+          padding-left: 35px;
+          position: relative;
+          line-height: 1.6;
+        ">
+          <span style="
+            position: absolute;
+            left: 0;
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, #00d4ff 0%, #10b981 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-weight: bold;
+            font-size: 13px;
+            box-shadow: 0 0 12px rgba(0, 212, 255, 0.4);
+          ">${idx + 1}</span>
+          ${tip}
+        </li>
+      `).join('')
+
+      printContent.innerHTML = `
+        <div style="
+          background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
+          border: 2px solid rgba(0, 212, 255, 0.3);
+          border-radius: 20px;
+          padding: 40px;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 40px rgba(0, 212, 255, 0.1);
+        ">
+          <h1 style="
+            font-size: 38px;
+            font-weight: bold;
+            text-align: center;
+            margin: 0 0 10px 0;
+            background: linear-gradient(135deg, #00d4ff 0%, #10b981 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+          ">
+            Кето-набор для путешествий
+          </h1>
+          <p style="text-align: center; color: rgba(255, 255, 255, 0.6); font-size: 16px; margin: 0 0 40px 0; text-transform: uppercase; letter-spacing: 2px;">
+            ${new Date().toLocaleDateString('ru-RU')}
+          </p>
+          
+          <div style="margin-bottom: 35px;">
+            <h2 style="
+              font-size: 24px;
+              font-weight: bold;
+              color: #00d4ff;
+              margin: 0 0 20px 0;
+              display: flex;
+              align-items: center;
+              gap: 10px;
+            ">
+              <span style="font-size: 28px;">🎒</span>
+              Взять с собой:
+            </h2>
+            ${itemsHtml}
+          </div>
+          
+          <div>
+            <h2 style="
+              font-size: 24px;
+              font-weight: bold;
+              color: #10b981;
+              margin: 0 0 20px 0;
+              display: flex;
+              align-items: center;
+              gap: 10px;
+            ">
+              <span style="font-size: 28px;">💡</span>
+              Советы:
+            </h2>
+            <div style="
+              background: rgba(255, 255, 255, 0.05);
+              border: 1px solid rgba(255, 255, 255, 0.1);
+              border-radius: 12px;
+              padding: 20px;
+              backdrop-filter: blur(10px);
+            ">
+              <ul style="margin: 0; padding-left: 0; list-style: none;">
+                ${tipsHtml}
+              </ul>
+            </div>
+          </div>
+        </div>
+      `
+
+      document.body.appendChild(printContent)
+
+      // Используем html2canvas для создания изображения
+      const html2canvas = (await import('html2canvas')).default
+      const canvas = await html2canvas(printContent, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#0a0a0b',
+        allowTaint: true
       })
 
-      yPosPx += 20
-      ctx.fillStyle = '#3b82f6'
-      ctx.font = 'bold 22px Arial, sans-serif'
-      ctx.fillText('Советы:', marginPx, yPosPx)
-      yPosPx += 35
-
-      ctx.fillStyle = '#000000'
-      ctx.font = '18px Arial, sans-serif'
-      TRAVEL_TIPS.forEach((tip, index) => {
-        if (yPosPx > pageHeightPx - 50) return
-        ctx.fillText(`${index + 1}. ${tip}`, marginPx + 10, yPosPx)
-        yPosPx += 30
-      })
+      document.body.removeChild(printContent)
 
       const { jsPDF } = await import('jspdf')
-      const imgData = canvas.toDataURL('image/png', 1.0)
+      const imgData = canvas.toDataURL('image/png')
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4'
       })
 
-      pdf.addImage(imgData, 'PNG', 0, 0, pageWidthMm, pageHeightMm)
+      const imgWidth = 210
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight)
       pdf.save(`Кето-набор-путешествие-${new Date().toLocaleDateString('ru-RU').replace(/\//g, '-')}.pdf`)
 
       setDownloading(false)

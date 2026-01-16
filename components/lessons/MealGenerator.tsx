@@ -263,118 +263,216 @@ export function MealGenerator() {
     try {
       setDownloading(true)
 
-      // Создаем canvas для правильного рендеринга кириллицы
-      const canvas = document.createElement('canvas')
-      const ctx = canvas.getContext('2d')
-      if (!ctx) {
-        throw new Error('Could not get canvas context')
-      }
-
-      const dpi = 300
-      const mmToPx = dpi / 25.4
-      const pageWidthMm = 210
-      const pageHeightMm = 297
-      const pageWidthPx = pageWidthMm * mmToPx
-      const pageHeightPx = pageHeightMm * mmToPx
-
-      canvas.width = pageWidthPx
-      canvas.height = pageHeightPx
-
-      // Белый фон
-      ctx.fillStyle = '#ffffff'
-      ctx.fillRect(0, 0, canvas.width, canvas.height)
-
-      const marginPx = 20 * mmToPx
-      let yPosPx = 25 * mmToPx
-
-      // Заголовок
-      ctx.fillStyle = '#3b82f6'
-      ctx.font = 'bold 36px Arial, sans-serif'
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'top'
-      ctx.fillText(currentMeal.name, pageWidthPx / 2, yPosPx)
-      yPosPx += 50
-
-      // Тип блюда
-      ctx.fillStyle = '#666666'
-      ctx.font = '20px Arial, sans-serif'
       const mealTypeText = mealType === 'lunch' ? 'Обед' : 'Ужин'
-      ctx.fillText(mealTypeText, pageWidthPx / 2, yPosPx)
-      yPosPx += 35
-
-      // Описание
-      ctx.fillStyle = '#333333'
-      ctx.font = '18px Arial, sans-serif'
-      ctx.textAlign = 'left'
-      const descriptionLines = currentMeal.description.match(/.{1,55}/g) || [currentMeal.description]
-      descriptionLines.forEach((line: string) => {
-        ctx.fillText(line, marginPx, yPosPx)
-        yPosPx += 25
-      })
-      yPosPx += 20
-
-      // Макросы
-      ctx.fillStyle = '#3b82f6'
-      ctx.font = 'bold 20px Arial, sans-serif'
-      ctx.fillText('Пищевая ценность:', marginPx, yPosPx)
-      yPosPx += 30
-
-      ctx.fillStyle = '#000000'
-      ctx.font = '18px Arial, sans-serif'
-      ctx.fillText(`Калории: ${currentMeal.calories} ккал`, marginPx + 10, yPosPx)
-      yPosPx += 25
-      ctx.fillText(`Жиры: ${currentMeal.fats}г | Белки: ${currentMeal.proteins}г | Углеводы: ${currentMeal.carbs}г`, marginPx + 10, yPosPx)
-      yPosPx += 25
-      ctx.fillText(`Время приготовления: ${currentMeal.prepTime} мин | Сложность: ${currentMeal.difficulty}`, marginPx + 10, yPosPx)
-      yPosPx += 35
-
-      // Ингредиенты - только выбранные
       const selectedIngredients = currentMeal.ingredients.filter(ing => ing.checked)
-      if (selectedIngredients.length > 0) {
-        ctx.fillStyle = '#3b82f6'
-        ctx.font = 'bold 22px Arial, sans-serif'
-        ctx.fillText('Ингредиенты:', marginPx, yPosPx)
-        yPosPx += 30
 
-        ctx.fillStyle = '#000000'
-        ctx.font = '18px Arial, sans-serif'
-        selectedIngredients.forEach((ing, index) => {
-          if (yPosPx > pageHeightPx - 100) {
-            return
-          }
-          const itemText = `✓ ${ing.name} - ${ing.quantity}`
-          ctx.fillText(itemText, marginPx + 10, yPosPx)
-          yPosPx += 28
-        })
-        yPosPx += 20
-      }
+      // Создаем красивый HTML элемент с темными стилями
+      const printContent = document.createElement('div')
+      printContent.style.position = 'absolute'
+      printContent.style.left = '-9999px'
+      printContent.style.width = '800px'
+      printContent.style.padding = '50px'
+      printContent.style.background = 'linear-gradient(135deg, #0a0a0b 0%, #1a1a1a 50%, #0a0a0b 100%)'
+      printContent.style.fontFamily = 'system-ui, -apple-system, sans-serif'
+      printContent.style.color = '#ffffff'
+      printContent.style.borderRadius = '20px'
 
-      // Инструкции
-      ctx.fillStyle = '#3b82f6'
-      ctx.font = 'bold 22px Arial, sans-serif'
-      ctx.fillText('Инструкция по приготовлению:', marginPx, yPosPx)
-      yPosPx += 25
+      const ingredientsHtml = selectedIngredients.length > 0 ? `
+        <div style="margin-bottom: 35px;">
+          <h2 style="
+            font-size: 24px;
+            font-weight: bold;
+            color: #3b82f6;
+            margin: 0 0 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+          ">
+            <span style="font-size: 28px;">🍽️</span>
+            Ингредиенты:
+          </h2>
+          <div style="
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+          ">
+            <ul style="margin: 0; padding-left: 25px; list-style: none; line-height: 2.2;">
+              ${selectedIngredients.map(ing => `
+                <li style="
+                  color: rgba(255, 255, 255, 0.9);
+                  font-size: 16px;
+                  margin-bottom: 8px;
+                  padding-left: 25px;
+                  position: relative;
+                ">
+                  <span style="position: absolute; left: 0; color: #10b981; font-weight: bold;">✓</span>
+                  ${ing.name} - ${ing.quantity}
+                </li>
+              `).join('')}
+            </ul>
+          </div>
+        </div>
+      ` : ''
 
-      ctx.fillStyle = '#000000'
-      ctx.font = '18px Arial, sans-serif'
-      currentMeal.instructions.forEach((step, index) => {
-        if (yPosPx > pageHeightPx - 50) {
-          return
-        }
-        ctx.fillText(`${index + 1}. ${step}`, marginPx + 10, yPosPx)
-        yPosPx += 30
+      const instructionsHtml = currentMeal.instructions.map((step, idx) => `
+        <li style="
+          color: rgba(255, 255, 255, 0.9);
+          font-size: 16px;
+          margin-bottom: 15px;
+          padding-left: 50px;
+          position: relative;
+          line-height: 1.6;
+        ">
+          <span style="
+            position: absolute;
+            left: 0;
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-weight: bold;
+            font-size: 14px;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+          ">${idx + 1}</span>
+          ${step}
+        </li>
+      `).join('')
+
+      printContent.innerHTML = `
+        <div style="
+          background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
+          border: 2px solid rgba(59, 130, 246, 0.3);
+          border-radius: 20px;
+          padding: 40px;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 40px rgba(59, 130, 246, 0.1);
+        ">
+          <h1 style="
+            font-size: 42px;
+            font-weight: bold;
+            text-align: center;
+            margin: 0 0 10px 0;
+            background: linear-gradient(135deg, #3b82f6 0%, #10b981 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
+          ">
+            ${currentMeal.name}
+          </h1>
+          <p style="text-align: center; color: rgba(255, 255, 255, 0.6); font-size: 16px; margin: 0 0 40px 0; text-transform: uppercase; letter-spacing: 2px;">
+            ${mealTypeText}
+          </p>
+          
+          <div style="
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+          ">
+            <p style="color: rgba(255, 255, 255, 0.9); font-size: 16px; line-height: 1.8; margin: 0;">
+              ${currentMeal.description}
+            </p>
+          </div>
+          
+          <div style="
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 35px;
+            backdrop-filter: blur(10px);
+          ">
+            <h2 style="
+              font-size: 20px;
+              color: #3b82f6;
+              margin: 0 0 15px 0;
+              font-weight: bold;
+            ">📊 Пищевая ценность:</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+              <div style="background: rgba(255, 107, 53, 0.15); border: 1px solid rgba(255, 107, 53, 0.3); border-radius: 12px; padding: 15px; text-align: center;">
+                <div style="font-size: 14px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">🔥 Калории</div>
+                <div style="font-size: 20px; font-weight: bold; color: #ff6b35;">${currentMeal.calories} ккал</div>
+              </div>
+              <div style="background: rgba(0, 212, 255, 0.15); border: 1px solid rgba(0, 212, 255, 0.3); border-radius: 12px; padding: 15px; text-align: center;">
+                <div style="font-size: 14px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">⏱ Время</div>
+                <div style="font-size: 20px; font-weight: bold; color: #00d4ff;">${currentMeal.prepTime} мин</div>
+              </div>
+            </div>
+            <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 15px; margin-top: 15px; text-align: center;">
+              <div style="font-size: 14px; color: rgba(255, 255, 255, 0.7); margin-bottom: 8px;">📊 БЖУ</div>
+              <div style="font-size: 18px; font-weight: bold; color: #10b981;">
+                ${currentMeal.fats}г Ж / ${currentMeal.proteins}г Б / ${currentMeal.carbs}г У
+              </div>
+            </div>
+            <div style="margin-top: 15px; text-align: center; color: rgba(255, 255, 255, 0.7); font-size: 14px;">
+              Сложность: ${currentMeal.difficulty}
+            </div>
+          </div>
+          
+          ${ingredientsHtml}
+          
+          <div>
+            <h2 style="
+              font-size: 24px;
+              font-weight: bold;
+              color: #3b82f6;
+              margin: 0 0 20px 0;
+              display: flex;
+              align-items: center;
+              gap: 10px;
+            ">
+              <span style="font-size: 28px;">👨‍🍳</span>
+              Инструкция по приготовлению:
+            </h2>
+            <div style="
+              background: rgba(255, 255, 255, 0.05);
+              border: 1px solid rgba(255, 255, 255, 0.1);
+              border-radius: 12px;
+              padding: 20px;
+              backdrop-filter: blur(10px);
+            ">
+              <ol style="margin: 0; padding-left: 0; list-style: none; counter-reset: step-counter;">
+                ${instructionsHtml}
+              </ol>
+            </div>
+          </div>
+        </div>
+      `
+
+      document.body.appendChild(printContent)
+
+      // Используем html2canvas для создания изображения
+      const html2canvas = (await import('html2canvas')).default
+      const canvas = await html2canvas(printContent, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#0a0a0b',
+        allowTaint: true
       })
+
+      document.body.removeChild(printContent)
 
       // Конвертируем canvas в PDF
       const { jsPDF } = await import('jspdf')
-      const imgData = canvas.toDataURL('image/png', 1.0)
+      const imgData = canvas.toDataURL('image/png')
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4'
       })
 
-      pdf.addImage(imgData, 'PNG', 0, 0, pageWidthMm, pageHeightMm)
+      const imgWidth = 210
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight)
 
       const fileName = `Кето-${mealType === 'lunch' ? 'обед' : 'ужин'}-${currentMeal.name.replace(/\s+/g, '-')}-${new Date().toLocaleDateString('ru-RU').replace(/\//g, '-')}.pdf`
       pdf.save(fileName)

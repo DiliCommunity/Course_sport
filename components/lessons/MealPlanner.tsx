@@ -123,25 +123,38 @@ export function MealPlanner() {
     try {
       setDownloading(true)
       
-      // Создаем временный HTML элемент для рендеринга
+      // Создаем красивый HTML элемент с темными стилями
       const printContent = document.createElement('div')
       printContent.style.position = 'absolute'
       printContent.style.left = '-9999px'
-      printContent.style.width = '210mm' // A4 width
-      printContent.style.padding = '20mm'
-      printContent.style.backgroundColor = '#ffffff'
-      printContent.style.fontFamily = 'Arial, sans-serif'
-      printContent.style.color = '#000000'
+      printContent.style.width = '800px'
+      printContent.style.padding = '50px'
+      printContent.style.background = 'linear-gradient(135deg, #0a0a0b 0%, #1a1a1a 50%, #0a0a0b 100%)'
+      printContent.style.fontFamily = 'system-ui, -apple-system, sans-serif'
+      printContent.style.color = '#ffffff'
+      printContent.style.borderRadius = '20px'
       
       // Заголовок
       const header = document.createElement('div')
       header.style.textAlign = 'center'
-      header.style.marginBottom = '20px'
-      header.style.color = '#10b981'
+      header.style.marginBottom = '40px'
       header.innerHTML = `
-        <h1 style="font-size: 24px; margin: 0 0 10px 0; color: #10b981;">План питания на неделю (Кето)</h1>
-        <p style="font-size: 14px; color: #666;">Целевые калории: ${targetCalories} ккал/день</p>
-        <p style="font-size: 12px; color: #999;">Сгенерировано: ${new Date().toLocaleDateString('ru-RU')}</p>
+        <h1 style="
+          font-size: 38px;
+          font-weight: bold;
+          margin: 0 0 10px 0;
+          background: linear-gradient(135deg, #10b981 0%, #00d4ff 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          text-shadow: 0 0 30px rgba(16, 185, 129, 0.3);
+        ">План питания на неделю (Кето)</h1>
+        <p style="font-size: 16px; color: rgba(255, 255, 255, 0.8); margin: 5px 0;">
+          Целевые калории: <strong style="color: #10b981;">${targetCalories} ккал/день</strong>
+        </p>
+        <p style="font-size: 14px; color: rgba(255, 255, 255, 0.6); margin: 5px 0;">
+          Сгенерировано: ${new Date().toLocaleDateString('ru-RU')}
+        </p>
       `
       printContent.appendChild(header)
       
@@ -153,40 +166,66 @@ export function MealPlanner() {
         dayDiv.style.marginBottom = '30px'
         dayDiv.style.pageBreakInside = 'avoid'
         
+        const mealCard = (meal: any, mealType: string) => {
+          const mealTypeEmoji = mealType === 'Завтрак' ? '🌅' : mealType === 'Обед' ? '🍽️' : mealType === 'Ужин' ? '🌙' : '🥜'
+          return `
+            <div style="
+              background: rgba(255, 255, 255, 0.05);
+              border: 1px solid rgba(255, 255, 255, 0.1);
+              border-radius: 12px;
+              padding: 15px;
+              margin-bottom: 12px;
+              backdrop-filter: blur(10px);
+            ">
+              <div style="font-weight: bold; margin-bottom: 8px; color: #10b981; font-size: 16px;">
+                ${mealTypeEmoji} ${mealType}:
+              </div>
+              <div style="margin-left: 20px; margin-bottom: 5px; color: rgba(255, 255, 255, 0.9); font-size: 15px;">
+                ${meal.name}
+              </div>
+              <div style="margin-left: 20px; font-size: 13px; color: rgba(255, 255, 255, 0.7);">
+                ${meal.calories} ккал | ${meal.fats}г Ж | ${meal.proteins}г Б | ${meal.carbs}г У | ⏱ ${meal.prepTime} мин
+              </div>
+            </div>
+          `
+        }
+        
         dayDiv.innerHTML = `
-          <h2 style="font-size: 18px; color: #10b981; margin: 0 0 15px 0; border-bottom: 2px solid #10b981; padding-bottom: 5px;">${day.day}</h2>
-          
-          <div style="margin-bottom: 15px;">
-            <div style="font-weight: bold; margin-bottom: 5px; color: #333;">Завтрак:</div>
-            <div style="margin-left: 15px; margin-bottom: 5px;">${day.breakfast.name}</div>
-            <div style="margin-left: 15px; font-size: 12px; color: #666;">${day.breakfast.calories} ккал | ${day.breakfast.fats}г Ж | ${day.breakfast.proteins}г Б | ${day.breakfast.carbs}г У | ${day.breakfast.prepTime} мин</div>
+          <div style="
+            background: rgba(16, 185, 129, 0.1);
+            border: 2px solid rgba(16, 185, 129, 0.3);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 25px;
+          ">
+            <h2 style="
+              font-size: 24px;
+              color: #10b981;
+              margin: 0 0 20px 0;
+              font-weight: bold;
+              border-bottom: 2px solid rgba(16, 185, 129, 0.3);
+              padding-bottom: 10px;
+            ">${day.day}</h2>
+            
+            ${mealCard(day.breakfast, 'Завтрак')}
+            ${mealCard(day.lunch, 'Обед')}
+            ${mealCard(day.dinner, 'Ужин')}
+            ${day.snack ? mealCard(day.snack, 'Перекус') : ''}
+            
+            <div style="
+              margin-top: 15px;
+              padding: 15px;
+              background: rgba(16, 185, 129, 0.15);
+              border: 1px solid rgba(16, 185, 129, 0.3);
+              border-radius: 12px;
+              font-weight: bold;
+              color: #10b981;
+              text-align: center;
+              font-size: 16px;
+            ">
+              📊 Итого: ${totals.calories} ккал | ${totals.fats}г жиров | ${totals.proteins}г белков | ${totals.carbs}г углеводов
+            </div>
           </div>
-          
-          <div style="margin-bottom: 15px;">
-            <div style="font-weight: bold; margin-bottom: 5px; color: #333;">Обед:</div>
-            <div style="margin-left: 15px; margin-bottom: 5px;">${day.lunch.name}</div>
-            <div style="margin-left: 15px; font-size: 12px; color: #666;">${day.lunch.calories} ккал | ${day.lunch.fats}г Ж | ${day.lunch.proteins}г Б | ${day.lunch.carbs}г У | ${day.lunch.prepTime} мин</div>
-          </div>
-          
-          <div style="margin-bottom: 15px;">
-            <div style="font-weight: bold; margin-bottom: 5px; color: #333;">Ужин:</div>
-            <div style="margin-left: 15px; margin-bottom: 5px;">${day.dinner.name}</div>
-            <div style="margin-left: 15px; font-size: 12px; color: #666;">${day.dinner.calories} ккал | ${day.dinner.fats}г Ж | ${day.dinner.proteins}г Б | ${day.dinner.carbs}г У | ${day.dinner.prepTime} мин</div>
-          </div>
-          
-          ${day.snack ? `
-          <div style="margin-bottom: 15px;">
-            <div style="font-weight: bold; margin-bottom: 5px; color: #333;">Перекус:</div>
-            <div style="margin-left: 15px; margin-bottom: 5px;">${day.snack.name}</div>
-            <div style="margin-left: 15px; font-size: 12px; color: #666;">${day.snack.calories} ккал | ${day.snack.fats}г Ж | ${day.snack.proteins}г Б | ${day.snack.carbs}г У | ${day.snack.prepTime} мин</div>
-          </div>
-          ` : ''}
-          
-          <div style="margin-top: 15px; padding: 10px; background-color: #f0fdf4; border-left: 4px solid #10b981; font-weight: bold; color: #10b981;">
-            Итого: ${totals.calories} ккал | ${totals.fats}г жиров | ${totals.proteins}г белков | ${totals.carbs}г углеводов
-          </div>
-          
-          ${dayIndex < weekPlan.length - 1 ? '<hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;">' : ''}
         `
         
         printContent.appendChild(dayDiv)
@@ -200,7 +239,8 @@ export function MealPlanner() {
         scale: 2,
         useCORS: true,
         logging: false,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#0a0a0b',
+        allowTaint: true
       })
       
       // Удаляем временный элемент

@@ -269,57 +269,133 @@ ${getRecommendations().map(r => `• ${r}`).join('\n')}
               try {
                 setDownloading(true)
                 
-                // Создаем временный HTML элемент для рендеринга
+                // Создаем красивый HTML элемент с темными стилями
                 const printContent = document.createElement('div')
                 printContent.style.position = 'absolute'
                 printContent.style.left = '-9999px'
-                printContent.style.width = '210mm' // A4 width
-                printContent.style.padding = '20mm'
-                printContent.style.backgroundColor = '#ffffff'
-                printContent.style.fontFamily = 'Arial, sans-serif'
-                printContent.style.color = '#000000'
+                printContent.style.width = '800px'
+                printContent.style.padding = '50px'
+                printContent.style.background = 'linear-gradient(135deg, #0a0a0b 0%, #1a1a1a 50%, #0a0a0b 100%)'
+                printContent.style.fontFamily = 'system-ui, -apple-system, sans-serif'
+                printContent.style.color = '#ffffff'
+                printContent.style.borderRadius = '20px'
                 
                 const scheduleHtml = schedule.map((window, index) => {
                   const typeText = window.type === 'eating' ? 'Окно питания' : 'Период голодания'
                   const descText = window.type === 'eating' 
                     ? 'В этот период вы можете есть'
                     : 'Только вода, чай, кофе без сахара'
+                  const bgColor = window.type === 'eating' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(107, 114, 128, 0.15)'
+                  const borderColor = window.type === 'eating' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(107, 114, 128, 0.3)'
+                  const textColor = window.type === 'eating' ? '#10b981' : '#6b7280'
                   return `
-                    <div style="margin-bottom: 15px; padding: 10px; background-color: ${window.type === 'eating' ? '#f0fdf4' : '#f3f4f6'}; border-left: 4px solid ${window.type === 'eating' ? '#10b981' : '#6b7280'};">
-                      <p style="margin: 5px 0; font-weight: bold;">${index + 1}. ${typeText}: ${window.start} - ${window.end}</p>
-                      <p style="margin: 5px 0; font-size: 12px; color: #666;">${descText}</p>
+                    <div style="
+                      margin-bottom: 15px;
+                      padding: 15px;
+                      background: ${bgColor};
+                      border: 1px solid ${borderColor};
+                      border-radius: 12px;
+                      backdrop-filter: blur(10px);
+                    ">
+                      <p style="margin: 5px 0; font-weight: bold; color: ${textColor}; font-size: 16px;">
+                        ${index + 1}. ${typeText}: ${window.start} - ${window.end}
+                      </p>
+                      <p style="margin: 5px 0; font-size: 14px; color: rgba(255, 255, 255, 0.7);">${descText}</p>
                     </div>
                   `
                 }).join('')
                 
                 printContent.innerHTML = `
-                  <div style="text-align: center; margin-bottom: 30px;">
-                    <h1 style="font-size: 24px; margin: 0 0 10px 0; color: #a855f7;">Расписание интервального голодания</h1>
-                    <p style="font-size: 12px; color: #999;">Сгенерировано: ${new Date().toLocaleDateString('ru-RU')}</p>
-                  </div>
-                  
-                  <div style="margin-bottom: 25px;">
-                    <h2 style="font-size: 16px; color: #a855f7; margin: 0 0 15px 0; border-bottom: 2px solid #a855f7; padding-bottom: 5px;">Паттерн: ${pattern}</h2>
-                    <p style="margin: 8px 0; color: #666;">${IF_PATTERNS[pattern].description}</p>
-                    <p style="margin: 8px 0;"><strong>Время пробуждения:</strong> ${wakeUpTime}</p>
-                  </div>
-                  
-                  <div style="margin-bottom: 25px;">
-                    <h2 style="font-size: 16px; color: #a855f7; margin: 0 0 15px 0; border-bottom: 2px solid #a855f7; padding-bottom: 5px;">Расписание на день:</h2>
-                    ${scheduleHtml}
-                  </div>
-                  
-                  <div style="margin-bottom: 25px;">
-                    <h2 style="font-size: 16px; color: #10b981; margin: 0 0 15px 0; border-bottom: 2px solid #10b981; padding-bottom: 5px;">Преимущества паттерна ${pattern}:</h2>
-                    <div style="margin-left: 15px;">
-                      ${getBenefits().map(b => `<p style="margin: 8px 0;">• ${b}</p>`).join('')}
+                  <div style="
+                    background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
+                    border: 2px solid rgba(168, 85, 247, 0.3);
+                    border-radius: 20px;
+                    padding: 40px;
+                    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 40px rgba(168, 85, 247, 0.1);
+                  ">
+                    <div style="text-align: center; margin-bottom: 40px;">
+                      <h1 style="
+                        font-size: 38px;
+                        font-weight: bold;
+                        margin: 0 0 10px 0;
+                        background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+                        -webkit-background-clip: text;
+                        -webkit-text-fill-color: transparent;
+                        background-clip: text;
+                        text-shadow: 0 0 30px rgba(168, 85, 247, 0.3);
+                      ">Расписание интервального голодания</h1>
+                      <p style="font-size: 14px; color: rgba(255, 255, 255, 0.6);">Сгенерировано: ${new Date().toLocaleDateString('ru-RU')}</p>
                     </div>
-                  </div>
-                  
-                  <div style="margin-top: 20px;">
-                    <h2 style="font-size: 16px; color: #666; margin: 0 0 15px 0; border-bottom: 2px solid #666; padding-bottom: 5px;">Рекомендации:</h2>
-                    <div style="margin-left: 15px;">
-                      ${getRecommendations().map(r => `<p style="margin: 8px 0;">• ${r}</p>`).join('')}
+                    
+                    <div style="
+                      background: rgba(255, 255, 255, 0.05);
+                      border: 1px solid rgba(255, 255, 255, 0.1);
+                      border-radius: 16px;
+                      padding: 25px;
+                      margin-bottom: 30px;
+                      backdrop-filter: blur(10px);
+                    ">
+                      <h2 style="
+                        font-size: 20px;
+                        color: #a855f7;
+                        margin: 0 0 15px 0;
+                        font-weight: bold;
+                      ">📋 Паттерн: ${pattern}</h2>
+                      <p style="margin: 8px 0; color: rgba(255, 255, 255, 0.8); line-height: 1.6;">${IF_PATTERNS[pattern].description}</p>
+                      <p style="margin: 8px 0; color: rgba(255, 255, 255, 0.9);"><strong>⏰ Время пробуждения:</strong> ${wakeUpTime}</p>
+                    </div>
+                    
+                    <div style="margin-bottom: 30px;">
+                      <h2 style="
+                        font-size: 20px;
+                        color: #a855f7;
+                        margin: 0 0 20px 0;
+                        font-weight: bold;
+                      ">📅 Расписание на день:</h2>
+                      ${scheduleHtml}
+                    </div>
+                    
+                    <div style="
+                      background: rgba(16, 185, 129, 0.15);
+                      border: 1px solid rgba(16, 185, 129, 0.3);
+                      border-radius: 16px;
+                      padding: 25px;
+                      margin-bottom: 30px;
+                    ">
+                      <h2 style="
+                        font-size: 20px;
+                        color: #10b981;
+                        margin: 0 0 15px 0;
+                        font-weight: bold;
+                      ">✨ Преимущества паттерна ${pattern}:</h2>
+                      <div style="margin-left: 20px;">
+                        ${getBenefits().map(b => `
+                          <p style="margin: 8px 0; color: rgba(255, 255, 255, 0.9); font-size: 15px; line-height: 1.6;">
+                            <span style="color: #10b981; font-weight: bold;">•</span> ${b}
+                          </p>
+                        `).join('')}
+                      </div>
+                    </div>
+                    
+                    <div style="
+                      background: rgba(255, 255, 255, 0.05);
+                      border: 1px solid rgba(255, 255, 255, 0.1);
+                      border-radius: 16px;
+                      padding: 25px;
+                    ">
+                      <h2 style="
+                        font-size: 20px;
+                        color: #a855f7;
+                        margin: 0 0 15px 0;
+                        font-weight: bold;
+                      ">💡 Рекомендации:</h2>
+                      <div style="margin-left: 20px;">
+                        ${getRecommendations().map(r => `
+                          <p style="margin: 8px 0; color: rgba(255, 255, 255, 0.9); font-size: 15px; line-height: 1.6;">
+                            <span style="color: #a855f7; font-weight: bold;">•</span> ${r}
+                          </p>
+                        `).join('')}
+                      </div>
                     </div>
                   </div>
                 `
@@ -332,7 +408,8 @@ ${getRecommendations().map(r => `• ${r}`).join('\n')}
                   scale: 2,
                   useCORS: true,
                   logging: false,
-                  backgroundColor: '#ffffff'
+                  backgroundColor: '#0a0a0b',
+                  allowTaint: true
                 })
                 
                 // Удаляем временный элемент

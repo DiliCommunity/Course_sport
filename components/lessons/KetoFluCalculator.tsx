@@ -276,25 +276,44 @@ ${recipe.salt} ч.л. соли
               
               const checkedSymptoms = symptoms.filter(s => s.checked)
               
-              // Создаем временный HTML элемент для рендеринга
+              // Создаем красивый HTML элемент с темными стилями
               const printContent = document.createElement('div')
               printContent.style.position = 'absolute'
               printContent.style.left = '-9999px'
-              printContent.style.width = '210mm' // A4 width
-              printContent.style.padding = '20mm'
-              printContent.style.backgroundColor = '#ffffff'
-              printContent.style.fontFamily = 'Arial, sans-serif'
-              printContent.style.color = '#000000'
+              printContent.style.width = '800px'
+              printContent.style.padding = '50px'
+              printContent.style.background = 'linear-gradient(135deg, #0a0a0b 0%, #1a1a1a 50%, #0a0a0b 100%)'
+              printContent.style.fontFamily = 'system-ui, -apple-system, sans-serif'
+              printContent.style.color = '#ffffff'
+              printContent.style.borderRadius = '20px'
               
               let symptomsHtml = ''
               if (checkedSymptoms.length > 0) {
                 symptomsHtml = `
-                  <div style="margin-bottom: 20px;">
-                    <h2 style="font-size: 16px; color: #f59e0b; margin: 0 0 15px 0; border-bottom: 2px solid #f59e0b; padding-bottom: 5px;">Ваши симптомы:</h2>
-                    <div style="margin-left: 15px;">
+                  <div style="
+                    background: rgba(255, 255, 255, 0.05);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 16px;
+                    padding: 25px;
+                    margin-bottom: 30px;
+                    backdrop-filter: blur(10px);
+                  ">
+                    <h2 style="
+                      font-size: 20px;
+                      color: #f59e0b;
+                      margin: 0 0 15px 0;
+                      font-weight: bold;
+                    ">🔍 Ваши симптомы:</h2>
+                    <div style="margin-left: 20px;">
                       ${checkedSymptoms.map(s => {
                         const severityText = s.severity === 'severe' ? 'Серьезный' : s.severity === 'moderate' ? 'Умеренный' : 'Легкий'
-                        return `<p style="margin: 8px 0;">• ${s.name} <span style="color: #666;">(${severityText})</span></p>`
+                        const severityColor = s.severity === 'severe' ? '#ff6b35' : s.severity === 'moderate' ? '#f59e0b' : '#10b981'
+                        return `
+                          <p style="margin: 8px 0; color: rgba(255, 255, 255, 0.9); font-size: 15px;">
+                            <span style="color: #f59e0b; font-weight: bold;">•</span> ${s.name} 
+                            <span style="color: ${severityColor};">(${severityText})</span>
+                          </p>
+                        `
                       }).join('')}
                     </div>
                   </div>
@@ -304,10 +323,26 @@ ${recipe.salt} ч.л. соли
               let statsHtml = ''
               if (severityCount.total > 0) {
                 statsHtml = `
-                  <div style="margin-bottom: 20px; padding: 15px; background-color: #fef3c7; border-left: 4px solid #f59e0b;">
-                    <p style="margin: 5px 0;"><strong>Всего симптомов:</strong> ${severityCount.total}</p>
-                    ${severityCount.severe > 0 ? `<p style="margin: 5px 0; color: #dc2626;"><strong>Серьезных:</strong> ${severityCount.severe}</p>` : ''}
-                    ${severityCount.moderate > 0 ? `<p style="margin: 5px 0; color: #f59e0b;"><strong>Умеренных:</strong> ${severityCount.moderate}</p>` : ''}
+                  <div style="
+                    background: rgba(245, 158, 11, 0.15);
+                    border: 2px solid rgba(245, 158, 11, 0.3);
+                    border-radius: 16px;
+                    padding: 25px;
+                    margin-bottom: 30px;
+                  ">
+                    <p style="margin: 5px 0; color: rgba(255, 255, 255, 0.9); font-size: 16px;">
+                      <strong style="color: #f59e0b;">Всего симптомов:</strong> ${severityCount.total}
+                    </p>
+                    ${severityCount.severe > 0 ? `
+                      <p style="margin: 5px 0; color: #ff6b35; font-size: 16px;">
+                        <strong>Серьезных:</strong> ${severityCount.severe}
+                      </p>
+                    ` : ''}
+                    ${severityCount.moderate > 0 ? `
+                      <p style="margin: 5px 0; color: #f59e0b; font-size: 16px;">
+                        <strong>Умеренных:</strong> ${severityCount.moderate}
+                      </p>
+                    ` : ''}
                   </div>
                 `
               }
@@ -315,31 +350,75 @@ ${recipe.salt} ч.л. соли
               let recommendationsHtml = ''
               if (recommendations.length > 0) {
                 recommendationsHtml = `
-                  <div style="margin-bottom: 20px;">
-                    <h2 style="font-size: 16px; color: #10b981; margin: 0 0 15px 0; border-bottom: 2px solid #10b981; padding-bottom: 5px;">Рекомендации:</h2>
-                    <div style="margin-left: 15px;">
-                      ${recommendations.map(rec => `<p style="margin: 8px 0;">• ${rec}</p>`).join('')}
+                  <div style="
+                    background: rgba(16, 185, 129, 0.15);
+                    border: 1px solid rgba(16, 185, 129, 0.3);
+                    border-radius: 16px;
+                    padding: 25px;
+                    margin-bottom: 30px;
+                  ">
+                    <h2 style="
+                      font-size: 20px;
+                      color: #10b981;
+                      margin: 0 0 15px 0;
+                      font-weight: bold;
+                    ">💡 Рекомендации:</h2>
+                    <div style="margin-left: 20px;">
+                      ${recommendations.map(rec => `
+                        <p style="margin: 8px 0; color: rgba(255, 255, 255, 0.9); font-size: 15px; line-height: 1.6;">
+                          <span style="color: #10b981; font-weight: bold;">•</span> ${rec}
+                        </p>
+                      `).join('')}
                     </div>
                   </div>
                 `
               }
               
               printContent.innerHTML = `
-                <div style="text-align: center; margin-bottom: 30px;">
-                  <h1 style="font-size: 24px; margin: 0 0 10px 0; color: #f59e0b;">Трекер кетогриппа</h1>
-                  <p style="font-size: 12px; color: #999;">Сгенерировано: ${new Date().toLocaleDateString('ru-RU')}</p>
-                </div>
-                ${symptomsHtml}
-                ${statsHtml}
-                ${recommendationsHtml}
-                <div style="margin-top: 20px;">
-                  <h2 style="font-size: 16px; color: #3b82f6; margin: 0 0 15px 0; border-bottom: 2px solid #3b82f6; padding-bottom: 5px;">Рецепт кето-электролита:</h2>
-                  <div style="margin-left: 15px;">
-                    <p style="margin: 8px 0;">${electrolyte.water}л воды</p>
-                    <p style="margin: 8px 0;">${electrolyte.salt} ч.л. соли (~${electrolyte.saltGrams}г)</p>
-                    <p style="margin: 8px 0;">Сок 1/2 лимона</p>
-                    <p style="margin: 8px 0;">Стевия по вкусу</p>
-                    <p style="margin: 15px 0 0 0; font-size: 12px; color: #666;">Натрий: ~${electrolyte.sodium}мг | Рекомендуется: ${electrolyte.servings} порций в день</p>
+                <div style="
+                  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(255, 107, 53, 0.1) 100%);
+                  border: 2px solid rgba(245, 158, 11, 0.3);
+                  border-radius: 20px;
+                  padding: 40px;
+                  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 40px rgba(245, 158, 11, 0.1);
+                ">
+                  <div style="text-align: center; margin-bottom: 40px;">
+                    <h1 style="
+                      font-size: 38px;
+                      font-weight: bold;
+                      margin: 0 0 10px 0;
+                      background: linear-gradient(135deg, #f59e0b 0%, #ff6b35 100%);
+                      -webkit-background-clip: text;
+                      -webkit-text-fill-color: transparent;
+                      background-clip: text;
+                      text-shadow: 0 0 30px rgba(245, 158, 11, 0.3);
+                    ">Трекер кетогриппа</h1>
+                    <p style="font-size: 14px; color: rgba(255, 255, 255, 0.6);">Сгенерировано: ${new Date().toLocaleDateString('ru-RU')}</p>
+                  </div>
+                  ${symptomsHtml}
+                  ${statsHtml}
+                  ${recommendationsHtml}
+                  <div style="
+                    background: rgba(59, 130, 246, 0.15);
+                    border: 1px solid rgba(59, 130, 246, 0.3);
+                    border-radius: 16px;
+                    padding: 25px;
+                  ">
+                    <h2 style="
+                      font-size: 20px;
+                      color: #3b82f6;
+                      margin: 0 0 15px 0;
+                      font-weight: bold;
+                    ">🧪 Рецепт кето-электролита:</h2>
+                    <div style="margin-left: 20px;">
+                      <p style="margin: 8px 0; color: rgba(255, 255, 255, 0.9); font-size: 15px;">💧 ${electrolyte.water}л воды</p>
+                      <p style="margin: 8px 0; color: rgba(255, 255, 255, 0.9); font-size: 15px;">🧂 ${electrolyte.salt} ч.л. соли (~${electrolyte.saltGrams}г)</p>
+                      <p style="margin: 8px 0; color: rgba(255, 255, 255, 0.9); font-size: 15px;">🍋 Сок 1/2 лимона</p>
+                      <p style="margin: 8px 0; color: rgba(255, 255, 255, 0.9); font-size: 15px;">🍯 Стевия по вкусу</p>
+                      <p style="margin: 15px 0 0 0; font-size: 14px; color: rgba(255, 255, 255, 0.7);">
+                        Натрий: ~${electrolyte.sodium}мг | Рекомендуется: ${electrolyte.servings} порций в день
+                      </p>
+                    </div>
                   </div>
                 </div>
               `
@@ -352,7 +431,8 @@ ${recipe.salt} ч.л. соли
                 scale: 2,
                 useCORS: true,
                 logging: false,
-                backgroundColor: '#ffffff'
+                backgroundColor: '#0a0a0b',
+                allowTaint: true
               })
               
               // Удаляем временный элемент

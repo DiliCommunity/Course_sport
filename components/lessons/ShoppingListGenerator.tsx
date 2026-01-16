@@ -280,110 +280,126 @@ export function ShoppingListGenerator() {
               try {
                 setDownloading(true)
                 
-                // Создаем canvas для правильного рендеринга кириллицы
-                const canvas = document.createElement('canvas')
-                const ctx = canvas.getContext('2d')
-                if (!ctx) {
-                  throw new Error('Could not get canvas context')
-                }
+                // Создаем красивый HTML элемент с темными стилями
+                const printContent = document.createElement('div')
+                printContent.style.position = 'absolute'
+                printContent.style.left = '-9999px'
+                printContent.style.width = '800px'
+                printContent.style.padding = '50px'
+                printContent.style.background = 'linear-gradient(135deg, #0a0a0b 0%, #1a1a1a 50%, #0a0a0b 100%)'
+                printContent.style.fontFamily = 'system-ui, -apple-system, sans-serif'
+                printContent.style.color = '#ffffff'
+                printContent.style.borderRadius = '20px'
 
-                // Устанавливаем размеры для A4 (300 DPI для качества)
-                const dpi = 300
-                const mmToPx = dpi / 25.4
-                const pageWidthMm = 210
-                const pageHeightMm = 297
-                const pageWidthPx = pageWidthMm * mmToPx
-                const pageHeightPx = pageHeightMm * mmToPx
-                
-                canvas.width = pageWidthPx
-                canvas.height = pageHeightPx
-
-                // Белый фон
-                ctx.fillStyle = '#ffffff'
-                ctx.fillRect(0, 0, canvas.width, canvas.height)
-
-                // Настройки текста
-                const marginPx = 15 * mmToPx
-                let yPosPx = 20 * mmToPx
-
-                // Заголовок
-                ctx.fillStyle = '#3b82f6'
-                ctx.font = 'bold 32px Arial, sans-serif'
-                ctx.textAlign = 'center'
-                ctx.textBaseline = 'top'
-                ctx.fillText('Список покупок (Кето)', pageWidthPx / 2, yPosPx)
-                yPosPx += 40
-
-                ctx.fillStyle = '#999999'
-                ctx.font = '16px Arial, sans-serif'
-                ctx.fillText(`Сгенерировано: ${new Date().toLocaleDateString('ru-RU')}`, pageWidthPx / 2, yPosPx)
-                yPosPx += 50
-
-                // Группируем по категориям - только выбранные ингредиенты
                 const categories = Object.keys(CATEGORY_LABELS) as Ingredient['category'][]
-                categories.forEach(category => {
+                const categoriesHtml = categories.map(category => {
                   const categoryIngredients = ingredients.filter(ing => ing.category === category && ing.checked)
-                  if (categoryIngredients.length > 0) {
-                    // Проверяем, нужна ли новая страница
-                    if (yPosPx > pageHeightPx - 100) {
-                      // Добавим новую страницу позже через jsPDF
-                      yPosPx = 20 * mmToPx
-                    }
+                  if (categoryIngredients.length === 0) return ''
+                  return `
+                    <div style="margin-bottom: 30px;">
+                      <h3 style="
+                        font-size: 20px;
+                        color: #00d4ff;
+                        margin: 0 0 15px 0;
+                        font-weight: bold;
+                      ">${CATEGORY_LABELS[category]}:</h3>
+                      <div style="
+                        background: rgba(255, 255, 255, 0.05);
+                        border: 1px solid rgba(255, 255, 255, 0.1);
+                        border-radius: 12px;
+                        padding: 20px;
+                        backdrop-filter: blur(10px);
+                      ">
+                        <ul style="margin: 0; padding-left: 25px; list-style: none; line-height: 2;">
+                          ${categoryIngredients.map(ing => `
+                            <li style="
+                              color: rgba(255, 255, 255, 0.9);
+                              font-size: 16px;
+                              margin-bottom: 8px;
+                              padding-left: 25px;
+                              position: relative;
+                            ">
+                              <span style="position: absolute; left: 0; color: #10b981; font-weight: bold; font-size: 18px;">✓</span>
+                              ${ing.name} - ${ing.quantity}
+                            </li>
+                          `).join('')}
+                        </ul>
+                      </div>
+                    </div>
+                  `
+                }).join('')
 
-                    // Заголовок категории
-                    ctx.fillStyle = '#3b82f6'
-                    ctx.font = 'bold 20px Arial, sans-serif'
-                    ctx.textAlign = 'left'
-                    const categoryTitle = CATEGORY_LABELS[category]
-                    ctx.fillText(categoryTitle, marginPx, yPosPx)
-                    yPosPx += 30
+                printContent.innerHTML = `
+                  <div style="
+                    background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%);
+                    border: 2px solid rgba(0, 212, 255, 0.3);
+                    border-radius: 20px;
+                    padding: 40px;
+                    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 40px rgba(0, 212, 255, 0.1);
+                  ">
+                    <h1 style="
+                      font-size: 38px;
+                      font-weight: bold;
+                      text-align: center;
+                      margin: 0 0 10px 0;
+                      background: linear-gradient(135deg, #00d4ff 0%, #10b981 100%);
+                      -webkit-background-clip: text;
+                      -webkit-text-fill-color: transparent;
+                      background-clip: text;
+                      text-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+                    ">
+                      Список покупок (Кето)
+                    </h1>
+                    <p style="text-align: center; color: rgba(255, 255, 255, 0.6); font-size: 16px; margin: 0 0 40px 0; text-transform: uppercase; letter-spacing: 2px;">
+                      Сгенерировано: ${new Date().toLocaleDateString('ru-RU')}
+                    </p>
+                    ${categoriesHtml}
+                    <div style="
+                      background: rgba(0, 212, 255, 0.15);
+                      border: 1px solid rgba(0, 212, 255, 0.3);
+                      border-radius: 12px;
+                      padding: 20px;
+                      margin-top: 30px;
+                      text-align: center;
+                    ">
+                      <p style="
+                        color: #00d4ff;
+                        font-size: 18px;
+                        font-weight: bold;
+                        margin: 0;
+                      ">
+                        Выбрано: ${checkedCount} / ${ingredients.length}
+                      </p>
+                    </div>
+                  </div>
+                `
 
-                    // Линия под заголовком
-                    ctx.strokeStyle = '#3b82f6'
-                    ctx.lineWidth = 2
-                    ctx.beginPath()
-                    ctx.moveTo(marginPx, yPosPx - 5)
-                    ctx.lineTo(pageWidthPx - marginPx, yPosPx - 5)
-                    ctx.stroke()
-                    yPosPx += 10
+                document.body.appendChild(printContent)
 
-                    // Элементы категории - только выбранные
-                    ctx.font = '18px Arial, sans-serif'
-                    categoryIngredients.forEach(ing => {
-                      if (yPosPx > pageHeightPx - 50) {
-                        yPosPx = 20 * mmToPx
-                      }
-
-                      const itemText = `✓ ${ing.name} - ${ing.quantity}`
-                      ctx.fillStyle = '#000000'
-                      ctx.fillText(itemText, marginPx + 20, yPosPx)
-                      yPosPx += 28
-                    })
-                    yPosPx += 15
-                  }
+                // Используем html2canvas для создания изображения
+                const html2canvas = (await import('html2canvas')).default
+                const canvas = await html2canvas(printContent, {
+                  scale: 2,
+                  useCORS: true,
+                  logging: false,
+                  backgroundColor: '#0a0a0b',
+                  allowTaint: true
                 })
 
-                // Статистика
-                if (yPosPx > pageHeightPx - 80) {
-                  yPosPx = 20 * mmToPx
-                }
-                yPosPx += 20
-                ctx.fillStyle = '#3b82f6'
-                ctx.fillRect(marginPx, yPosPx, pageWidthPx - marginPx * 2, 50)
-                ctx.fillStyle = '#ffffff'
-                ctx.font = 'bold 18px Arial, sans-serif'
-                ctx.fillText(`Выбрано: ${checkedCount} / ${ingredients.length}`, marginPx + 15, yPosPx + 30)
+                document.body.removeChild(printContent)
 
                 // Конвертируем canvas в PDF
                 const { jsPDF } = await import('jspdf')
-                const imgData = canvas.toDataURL('image/png', 1.0)
+                const imgData = canvas.toDataURL('image/png')
                 const pdf = new jsPDF({
                   orientation: 'portrait',
                   unit: 'mm',
                   format: 'a4'
                 })
 
-                pdf.addImage(imgData, 'PNG', 0, 0, pageWidthMm, pageHeightMm)
+                const imgWidth = 210
+                const imgHeight = (canvas.height * imgWidth) / canvas.width
+                pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight)
 
                 const fileName = `Кето-список-покупок-${new Date().toLocaleDateString('ru-RU').replace(/\//g, '-')}.pdf`
                 pdf.save(fileName)
