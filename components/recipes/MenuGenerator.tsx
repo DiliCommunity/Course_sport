@@ -26,6 +26,8 @@ interface DayMenu {
   breakfast?: Meal
   lunch?: Meal
   dinner?: Meal
+  snack?: Meal
+  dessert?: Meal
 }
 
 // База данных блюд - используем все рецепты из кето-рецептов
@@ -95,6 +97,8 @@ export function MenuGenerator() {
       let breakfast: Meal | undefined
       let lunch: Meal | undefined
       let dinner: Meal | undefined
+      let snack: Meal | undefined
+      let dessert: Meal | undefined
 
       // Генерируем блюда в зависимости от выбранного типа
       if (mealType === 'full' || mealType === 'breakfast') {
@@ -118,7 +122,20 @@ export function MenuGenerator() {
         }
       }
 
-      // Корректируем калории под целевое значение
+      // Добавляем snack и dessert только для полного меню
+      if (mealType === 'full') {
+        const availableSnacks = filterMeals(MEALS_DATABASE.snacks)
+        if (availableSnacks && availableSnacks.length > 0) {
+          snack = { ...availableSnacks[Math.floor(Math.random() * availableSnacks.length)] }
+        }
+
+        const availableDesserts = filterMeals(MEALS_DATABASE.desserts)
+        if (availableDesserts && availableDesserts.length > 0) {
+          dessert = { ...availableDesserts[Math.floor(Math.random() * availableDesserts.length)] }
+        }
+      }
+
+      // Корректируем калории под целевое значение (snack и dessert не учитываются в целевых калориях)
       const totalCalories = (breakfast?.calories || 0) + (lunch?.calories || 0) + 
                            (dinner?.calories || 0)
       
@@ -139,6 +156,7 @@ export function MenuGenerator() {
         breakfast = adjustMeal(breakfast)
         lunch = adjustMeal(lunch)
         dinner = adjustMeal(dinner)
+        // snack и dessert не корректируются по калориям, они остаются как есть
       }
 
       menu.push({
@@ -147,6 +165,8 @@ export function MenuGenerator() {
         breakfast,
         lunch,
         dinner,
+        snack,
+        dessert,
       })
     }
 
@@ -164,13 +184,17 @@ export function MenuGenerator() {
   const getTotalForDay = (day: DayMenu) => {
     return {
       calories: (day.breakfast?.calories || 0) + (day.lunch?.calories || 0) + 
-               (day.dinner?.calories || 0),
+               (day.dinner?.calories || 0) + (day.snack?.calories || 0) + 
+               (day.dessert?.calories || 0),
       fats: (day.breakfast?.fats || 0) + (day.lunch?.fats || 0) + 
-            (day.dinner?.fats || 0),
+            (day.dinner?.fats || 0) + (day.snack?.fats || 0) + 
+            (day.dessert?.fats || 0),
       proteins: (day.breakfast?.proteins || 0) + (day.lunch?.proteins || 0) + 
-                (day.dinner?.proteins || 0),
+                (day.dinner?.proteins || 0) + (day.snack?.proteins || 0) + 
+                (day.dessert?.proteins || 0),
       carbs: (day.breakfast?.carbs || 0) + (day.lunch?.carbs || 0) + 
-             (day.dinner?.carbs || 0),
+             (day.dinner?.carbs || 0) + (day.snack?.carbs || 0) + 
+             (day.dessert?.carbs || 0),
     }
   }
 
@@ -280,6 +304,31 @@ export function MenuGenerator() {
           ctx.fillStyle = '#000000'
         }
 
+        if (day.snack) {
+          ctx.font = 'bold 16px Arial, sans-serif'
+          ctx.fillText('Перекус:', marginPx + 10, yPosPx)
+          ctx.font = '16px Arial, sans-serif'
+          ctx.fillText(day.snack.name, marginPx + 80, yPosPx)
+          yPosPx += 25
+          ctx.font = '14px Arial, sans-serif'
+          ctx.fillStyle = '#666666'
+          ctx.fillText(`  ${day.snack.calories} ккал | ${day.snack.fats}г Ж | ${day.snack.proteins}г Б | ${day.snack.carbs}г У`, marginPx + 10, yPosPx)
+          yPosPx += 30
+          ctx.fillStyle = '#000000'
+        }
+
+        if (day.dessert) {
+          ctx.font = 'bold 16px Arial, sans-serif'
+          ctx.fillText('Десерт:', marginPx + 10, yPosPx)
+          ctx.font = '16px Arial, sans-serif'
+          ctx.fillText(day.dessert.name, marginPx + 80, yPosPx)
+          yPosPx += 25
+          ctx.font = '14px Arial, sans-serif'
+          ctx.fillStyle = '#666666'
+          ctx.fillText(`  ${day.dessert.calories} ккал | ${day.dessert.fats}г Ж | ${day.dessert.proteins}г Б | ${day.dessert.carbs}г У`, marginPx + 10, yPosPx)
+          yPosPx += 30
+          ctx.fillStyle = '#000000'
+        }
 
         // Итого
         ctx.font = 'bold 16px Arial, sans-serif'
@@ -495,6 +544,21 @@ export function MenuGenerator() {
                     <MealCard meal={day.dinner} label="Ужин" onImageClick={() => setSelectedMeal(day.dinner!)} />
                   )}
                 </div>
+
+                {/* Дополнения (snack и dessert) только для полного меню */}
+                {(day.snack || day.dessert) && (
+                  <div className="mb-3 pt-3 border-t border-white/10">
+                    <div className="text-xs text-white/60 mb-2 font-medium">Дополнения:</div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {day.snack && (
+                        <MealCard meal={day.snack} label="Перекус" onImageClick={() => setSelectedMeal(day.snack!)} />
+                      )}
+                      {day.dessert && (
+                        <MealCard meal={day.dessert} label="Десерт" onImageClick={() => setSelectedMeal(day.dessert!)} />
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 <div className="mt-3 pt-3 border-t border-white/10">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm">
