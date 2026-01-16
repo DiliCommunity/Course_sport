@@ -179,28 +179,37 @@ export function IFProtocolPlanner() {
         item.hours > max.hours ? item : max
       )
 
-      // Создаем временный HTML элемент для PDF
+      // Создаем красивый HTML элемент с темными стилями
       const printContent = document.createElement('div')
       printContent.style.position = 'absolute'
       printContent.style.left = '-9999px'
       printContent.style.width = '800px'
-      printContent.style.padding = '40px'
-      printContent.style.backgroundColor = '#ffffff'
-      printContent.style.fontFamily = 'Arial, sans-serif'
-      printContent.style.color = '#000000'
+      printContent.style.padding = '50px'
+      printContent.style.background = 'linear-gradient(135deg, #0a0a0b 0%, #1a1a1a 50%, #0a0a0b 100%)'
+      printContent.style.fontFamily = 'system-ui, -apple-system, sans-serif'
+      printContent.style.color = '#ffffff'
+      printContent.style.borderRadius = '20px'
 
       const timelineItems = timeline
         .filter((item, index) => index % 2 === 0 || item.phase.intensity === 'high' || item.phase.intensity === 'maximum')
         .map(item => {
+          const intensityColor = item.phase.intensity === 'maximum' ? '#ff6b35' : item.phase.intensity === 'high' ? '#00d4ff' : item.phase.intensity === 'medium' ? '#10b981' : '#666666'
           const benefits = item.phase.benefits.length > 0 
-            ? `<ul style="margin-left: 20px; margin-top: 5px; font-size: 12px; color: #666666;">${item.phase.benefits.map(b => `<li>${b}</li>`).join('')}</ul>`
+            ? `<ul style="margin-left: 25px; margin-top: 8px; font-size: 14px; color: rgba(255, 255, 255, 0.7);">${item.phase.benefits.map(b => `<li style="margin-bottom: 4px;">${b}</li>`).join('')}</ul>`
             : ''
           return `
-            <div style="margin-bottom: 15px;">
-              <p style="font-size: 14px; color: #000000; font-weight: bold; margin-bottom: 3px;">
+            <div style="
+              margin-bottom: 20px;
+              padding: 15px;
+              background: rgba(255, 255, 255, 0.05);
+              border: 1px solid ${intensityColor}40;
+              border-radius: 12px;
+              backdrop-filter: blur(10px);
+            ">
+              <p style="font-size: 16px; color: ${intensityColor}; font-weight: bold; margin-bottom: 5px;">
                 ${item.time} (${item.hours}ч) - ${item.phase.phase}
               </p>
-              <p style="font-size: 13px; color: #666666; margin-bottom: 5px;">
+              <p style="font-size: 14px; color: rgba(255, 255, 255, 0.8); margin-bottom: 8px;">
                 ${item.phase.description}
               </p>
               ${benefits}
@@ -208,41 +217,92 @@ export function IFProtocolPlanner() {
           `
         }).join('')
 
-      const maxPhaseBenefits = maxPhase.phase.benefits.map(b => `<li style="margin-bottom: 5px;">${b}</li>`).join('')
+      const maxPhaseBenefits = maxPhase.phase.benefits.map(b => `<li style="margin-bottom: 8px; color: rgba(255, 255, 255, 0.9); font-size: 15px;">${b}</li>`).join('')
 
       printContent.innerHTML = `
-        <h1 style="font-size: 32px; color: #a855f7; text-align: center; margin-bottom: 10px; border-bottom: 2px solid #a855f7; padding-bottom: 10px;">
-          План протокола IF
-        </h1>
-        <p style="text-align: center; color: #666666; font-size: 14px; margin-bottom: 30px;">
-          Протокол: ${selectedProtocol}
-        </p>
-        
-        <div style="margin-bottom: 25px; padding: 15px; background-color: #f5f5f5; border-radius: 8px;">
-          <p style="margin: 5px 0; font-size: 13px; color: #000000;">
-            Окно питания: ${windowStart} - ${windowEnd}
+        <div style="
+          background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
+          border: 2px solid rgba(168, 85, 247, 0.3);
+          border-radius: 20px;
+          padding: 40px;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 40px rgba(168, 85, 247, 0.1);
+        ">
+          <h1 style="
+            font-size: 42px;
+            font-weight: bold;
+            text-align: center;
+            margin: 0 0 10px 0;
+            background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(168, 85, 247, 0.3);
+          ">
+            План протокола IF
+          </h1>
+          <p style="text-align: center; color: rgba(255, 255, 255, 0.6); font-size: 16px; margin: 0 0 40px 0; text-transform: uppercase; letter-spacing: 2px;">
+            Протокол: ${selectedProtocol}
           </p>
-          <p style="margin: 5px 0; font-size: 13px; color: #000000;">
-            Голодание: ${protocol.fast} часов | Питание: ${protocol.eat} часов
-          </p>
-          <p style="margin: 5px 0; font-size: 13px; color: #000000;">
-            Описание: ${protocol.description}
-          </p>
+          
+          <div style="
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 35px;
+            backdrop-filter: blur(10px);
+          ">
+            <p style="margin: 8px 0; font-size: 15px; color: rgba(255, 255, 255, 0.9);">
+              <span style="color: #a855f7;">⏰</span> Окно питания: <strong>${windowStart} - ${windowEnd}</strong>
+            </p>
+            <p style="margin: 8px 0; font-size: 15px; color: rgba(255, 255, 255, 0.9);">
+              <span style="color: #ec4899;">⏳</span> Голодание: <strong>${protocol.fast} часов</strong> | Питание: <strong>${protocol.eat} часов</strong>
+            </p>
+            <p style="margin: 8px 0; font-size: 15px; color: rgba(255, 255, 255, 0.8); line-height: 1.6;">
+              ${protocol.description}
+            </p>
+          </div>
+          
+          <h2 style="
+            font-size: 24px;
+            font-weight: bold;
+            color: #a855f7;
+            margin: 0 0 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+          ">
+            <span style="font-size: 28px;">⚡</span>
+            Фазы автофагии:
+          </h2>
+          <div style="margin-bottom: 35px;">
+            ${timelineItems}
+          </div>
+          
+          <div style="
+            background: rgba(255, 107, 53, 0.15);
+            border: 2px solid rgba(255, 107, 53, 0.3);
+            border-radius: 16px;
+            padding: 25px;
+            margin-top: 30px;
+          ">
+            <h2 style="
+              font-size: 24px;
+              font-weight: bold;
+              color: #ff6b35;
+              margin: 0 0 15px 0;
+              display: flex;
+              align-items: center;
+              gap: 10px;
+            ">
+              <span style="font-size: 28px;">🔥</span>
+              Максимальная автофагия: ${maxPhase.time} (${maxPhase.hours}ч)
+            </h2>
+            <ul style="margin: 0; padding-left: 25px; line-height: 2; font-size: 15px;">
+              ${maxPhaseBenefits}
+            </ul>
+          </div>
         </div>
-        
-        <h2 style="font-size: 18px; color: #a855f7; margin-bottom: 12px; margin-top: 25px; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px;">
-          Фазы автофагии:
-        </h2>
-        <div style="margin-bottom: 25px;">
-          ${timelineItems}
-        </div>
-        
-        <h2 style="font-size: 18px; color: #dc2626; margin-bottom: 12px; margin-top: 25px; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px;">
-          Максимальная автофагия: ${maxPhase.time} (${maxPhase.hours}ч)
-        </h2>
-        <ul style="margin-left: 25px; line-height: 2; font-size: 13px;">
-          ${maxPhaseBenefits}
-        </ul>
       `
 
       // Добавляем элемент в DOM
@@ -253,7 +313,8 @@ export function IFProtocolPlanner() {
         scale: 2,
         useCORS: true,
         logging: false,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#0a0a0b',
+        allowTaint: true
       })
 
       // Удаляем временный элемент

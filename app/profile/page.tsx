@@ -13,8 +13,9 @@ import { TransactionsHistory } from '@/components/profile/TransactionsHistory'
 import { MyCoursesModal } from '@/components/profile/MyCoursesModal'
 import { WalletModal } from '@/components/profile/WalletModal'
 import { ReferralModal } from '@/components/profile/ReferralModal'
-import { Loader2, Settings, ArrowLeft, Mail, Phone, Save, BookOpen, Wallet, Gift } from 'lucide-react'
+import { Loader2, Settings, ArrowLeft, Mail, Phone, Save, BookOpen, Wallet, Gift, Bot } from 'lucide-react'
 import Link from 'next/link'
+import { Button } from '@/components/ui/Button'
 
 interface ProfileData {
   user: {
@@ -479,6 +480,36 @@ export default function ProfilePage() {
           </div>
           <CoursesList enrollments={profileData.enrollments || []} />
         </motion.div>
+
+        {/* AI Instructor Section */}
+        {profileData.hasPurchasedCourse && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="mb-8"
+          >
+            <div className="rounded-xl glass border border-white/10 p-6 bg-gradient-to-r from-accent-teal/10 to-accent-mint/10">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-r from-accent-teal to-accent-mint flex items-center justify-center">
+                  <Bot className="w-6 h-6 text-dark-900" />
+                </div>
+                <div>
+                  <h2 className="font-display font-bold text-xl text-white">Мой инструктор</h2>
+                  <p className="text-white/60 text-sm">AI-помощник по кето-диете и интервальному голоданию</p>
+                </div>
+              </div>
+              <p className="text-white/70 mb-4 text-sm">
+                Получите персональные рекомендации, ответы на вопросы и поддержку от вашего AI-инструктора
+              </p>
+              <Link href="/instructor">
+                <Button className="w-full sm:w-auto">
+                  Открыть чат с инструктором
+                </Button>
+              </Link>
+            </div>
+          </motion.div>
+        )}
 
         {/* Transactions Section */}
         <motion.div

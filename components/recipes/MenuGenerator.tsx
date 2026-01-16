@@ -182,20 +182,39 @@ export function MenuGenerator() {
   }
 
   const getTotalForDay = (day: DayMenu) => {
-    return {
-      calories: (day.breakfast?.calories || 0) + (day.lunch?.calories || 0) + 
-               (day.dinner?.calories || 0) + (day.snack?.calories || 0) + 
-               (day.dessert?.calories || 0),
-      fats: (day.breakfast?.fats || 0) + (day.lunch?.fats || 0) + 
-            (day.dinner?.fats || 0) + (day.snack?.fats || 0) + 
-            (day.dessert?.fats || 0),
-      proteins: (day.breakfast?.proteins || 0) + (day.lunch?.proteins || 0) + 
-                (day.dinner?.proteins || 0) + (day.snack?.proteins || 0) + 
-                (day.dessert?.proteins || 0),
-      carbs: (day.breakfast?.carbs || 0) + (day.lunch?.carbs || 0) + 
-             (day.dinner?.carbs || 0) + (day.snack?.carbs || 0) + 
-             (day.dessert?.carbs || 0),
+    const mainMeals = {
+      calories: (day.breakfast?.calories || 0) + (day.lunch?.calories || 0) + (day.dinner?.calories || 0),
+      fats: (day.breakfast?.fats || 0) + (day.lunch?.fats || 0) + (day.dinner?.fats || 0),
+      proteins: (day.breakfast?.proteins || 0) + (day.lunch?.proteins || 0) + (day.dinner?.proteins || 0),
+      carbs: (day.breakfast?.carbs || 0) + (day.lunch?.carbs || 0) + (day.dinner?.carbs || 0),
     }
+    
+    const additions = {
+      calories: (day.snack?.calories || 0) + (day.dessert?.calories || 0),
+      fats: (day.snack?.fats || 0) + (day.dessert?.fats || 0),
+      proteins: (day.snack?.proteins || 0) + (day.dessert?.proteins || 0),
+      carbs: (day.snack?.carbs || 0) + (day.dessert?.carbs || 0),
+    }
+
+    return {
+      mainMeals,
+      additions,
+      total: {
+        calories: mainMeals.calories + additions.calories,
+        fats: mainMeals.fats + additions.fats,
+        proteins: mainMeals.proteins + additions.proteins,
+        carbs: mainMeals.carbs + additions.carbs,
+      }
+    }
+  }
+
+  const removeSnackOrDessert = (dayIndex: number, type: 'snack' | 'dessert') => {
+    setGeneratedMenu(prev => prev.map((day, index) => {
+      if (index === dayIndex) {
+        return { ...day, [type]: undefined }
+      }
+      return day
+    }))
   }
 
   const downloadPDF = async () => {
@@ -239,7 +258,15 @@ export function MenuGenerator() {
       // Период и калории
       ctx.fillStyle = '#666666'
       ctx.font = '20px Arial, sans-serif'
-      const periodText = period === 'day' ? 'На день' : period === 'week' ? 'На неделю' : 'На месяц'
+      // Определяем текст периода на основе выбранного периода
+      let periodText = 'На день'
+      if (period === 'week') {
+        periodText = 'На неделю'
+      } else if (period === 'month') {
+        periodText = 'На месяц'
+      } else {
+        periodText = 'На день'
+      }
       ctx.fillText(periodText, pageWidthPx / 2, yPosPx)
       yPosPx += 30
       ctx.fillText(`Целевые калории: ${targetCalories} ккал/день`, pageWidthPx / 2, yPosPx)
@@ -337,8 +364,18 @@ export function MenuGenerator() {
         // Итого
         ctx.font = 'bold 16px Arial, sans-serif'
         ctx.fillStyle = '#10b981'
-        ctx.fillText(`Итого: ${totals.calories} ккал | ${totals.fats}г жиров | ${totals.proteins}г белков | ${totals.carbs}г углеводов`, marginPx, yPosPx)
-        yPosPx += 40
+        const targetCal = parseInt(targetCalories) || 2000
+        ctx.fillText(`Основные блюда: ${targetCal} ккал | ${totals.mainMeals.fats}г жиров | ${totals.mainMeals.proteins}г белков | ${totals.mainMeals.carbs}г углеводов`, marginPx, yPosPx)
+        yPosPx += 25
+        
+        if (day.snack || day.dessert) {
+          ctx.font = 'bold 16px Arial, sans-serif'
+          ctx.fillStyle = '#10b981'
+          ctx.fillText(`Всего с дополнениями: ${totals.total.calories} ккал | ${totals.total.fats}г жиров | ${totals.total.proteins}г белков | ${totals.total.carbs}г углеводов`, marginPx, yPosPx)
+          yPosPx += 15
+        }
+        
+        yPosPx += 15
 
         if (dayIndex < generatedMenu.length - 1) {
           ctx.strokeStyle = '#dddddd'
@@ -563,25 +600,63 @@ export function MenuGenerator() {
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {day.snack && (
-                        <MealCard meal={day.snack} label="Перекус" onImageClick={() => setSelectedMeal(day.snack!)} />
+                        <div className="relative group">
+                          <MealCard meal={day.snack} label="Перекус" onImageClick={() => setSelectedMeal(day.snack!)} />
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              removeSnackOrDessert(index, 'snack')
+                            }}
+                            className="absolute top-2 right-2 w-7 h-7 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center transition-all z-20 shadow-lg hover:shadow-red-500/50 border-2 border-white/30"
+                            title="Удалить перекус"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
                       )}
                       {day.dessert && (
-                        <MealCard meal={day.dessert} label="Десерт" onImageClick={() => setSelectedMeal(day.dessert!)} />
+                        <div className="relative group">
+                          <MealCard meal={day.dessert} label="Десерт" onImageClick={() => setSelectedMeal(day.dessert!)} />
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              removeSnackOrDessert(index, 'dessert')
+                            }}
+                            className="absolute top-2 right-2 w-7 h-7 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center transition-all z-20 shadow-lg hover:shadow-red-500/50 border-2 border-white/30"
+                            title="Удалить десерт"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
                       )}
                     </div>
                   </div>
                 )}
 
-                <div className="mt-3 pt-3 border-t border-white/10">
+                <div className="mt-3 pt-3 border-t border-white/10 space-y-2">
+                  {/* Основные блюда (целевые калории) */}
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm">
-                    <span className="text-white/60 font-medium">Всего за день:</span>
+                    <span className="text-white/60 font-medium">Основные блюда (завтрак, обед, ужин):</span>
                     <div className="flex items-center flex-wrap gap-3 sm:gap-4">
-                      <span className="text-white font-semibold whitespace-nowrap">{totals.calories} ккал</span>
-                      <span className="text-yellow-400 whitespace-nowrap">{totals.fats}г жиров</span>
-                      <span className="text-blue-400 whitespace-nowrap">{totals.proteins}г белков</span>
-                      <span className="text-green-400 whitespace-nowrap">{totals.carbs}г углеводов</span>
+                      <span className="text-white font-semibold whitespace-nowrap">{parseInt(targetCalories)} ккал</span>
+                      <span className="text-yellow-400 whitespace-nowrap">{totals.mainMeals.fats}г жиров</span>
+                      <span className="text-blue-400 whitespace-nowrap">{totals.mainMeals.proteins}г белков</span>
+                      <span className="text-green-400 whitespace-nowrap">{totals.mainMeals.carbs}г углеводов</span>
                     </div>
                   </div>
+                  
+                  {/* Всего с дополнениями */}
+                  {(day.snack || day.dessert) && (
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm pt-2 border-t border-white/5">
+                      <span className="text-white/60 font-medium">Всего за день (с дополнениями):</span>
+                      <div className="flex items-center flex-wrap gap-3 sm:gap-4">
+                        <span className="text-white font-semibold whitespace-nowrap">{totals.total.calories} ккал</span>
+                        <span className="text-yellow-400 whitespace-nowrap">{totals.total.fats}г жиров</span>
+                        <span className="text-blue-400 whitespace-nowrap">{totals.total.proteins}г белков</span>
+                        <span className="text-green-400 whitespace-nowrap">{totals.total.carbs}г углеводов</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </motion.div>
             )
@@ -684,15 +759,18 @@ function MealModal({ meal, onClose }: { meal: Meal; onClose: () => void }) {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
-        className="relative max-w-2xl w-full max-h-[90vh] overflow-y-auto rounded-2xl bg-gradient-to-br from-dark-800 via-dark-800/95 to-dark-900 border-2 border-white/10 shadow-2xl"
+        className="relative max-w-3xl w-full max-h-[85vh] overflow-y-auto rounded-2xl bg-gradient-to-br from-dark-800 via-dark-800/95 to-dark-900 border-2 border-white/10 shadow-2xl"
       >
-        {/* Кнопка закрытия - поверх всего */}
+        {/* Кнопка закрытия - внутри модалки, поверх всего */}
         <button
-          onClick={onClose}
-          className="fixed top-4 right-4 z-[10000] w-12 h-12 sm:w-10 sm:h-10 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center text-white transition-all shadow-lg hover:shadow-red-500/50 border-2 border-white/20"
+          onClick={(e) => {
+            e.stopPropagation()
+            onClose()
+          }}
+          className="absolute top-4 right-4 z-50 w-10 h-10 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center text-white transition-all shadow-lg hover:shadow-red-500/50 border-2 border-white/30"
           aria-label="Закрыть"
         >
-          <X className="w-6 h-6 sm:w-5 sm:h-5" />
+          <X className="w-5 h-5" />
         </button>
 
         {/* Изображение */}

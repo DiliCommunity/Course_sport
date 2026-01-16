@@ -113,59 +113,120 @@ export function HungerTracker() {
     try {
       setDownloading(true)
 
-      // Создаем временный HTML элемент для PDF
+      // Создаем красивый HTML элемент с темными стилями
       const printContent = document.createElement('div')
       printContent.style.position = 'absolute'
       printContent.style.left = '-9999px'
       printContent.style.width = '800px'
-      printContent.style.padding = '40px'
-      printContent.style.backgroundColor = '#ffffff'
-      printContent.style.fontFamily = 'Arial, sans-serif'
-      printContent.style.color = '#000000'
+      printContent.style.padding = '50px'
+      printContent.style.background = 'linear-gradient(135deg, #0a0a0b 0%, #1a1a1a 50%, #0a0a0b 100%)'
+      printContent.style.fontFamily = 'system-ui, -apple-system, sans-serif'
+      printContent.style.color = '#ffffff'
+      printContent.style.borderRadius = '20px'
 
       const topTriggerHtml = stats.topTrigger 
-        ? `<p style="margin: 5px 0; font-size: 13px; color: #000000;">Частый триггер: ${stats.topTrigger[0]} (${stats.topTrigger[1]} раз)</p>`
+        ? `<p style="margin: 8px 0; font-size: 15px; color: rgba(255, 255, 255, 0.9);">🎯 Частый триггер: <strong style="color: #3b82f6">${stats.topTrigger[0]}</strong> (${stats.topTrigger[1]} раз)</p>`
         : ''
 
       const entriesHtml = entries.map((entry, index) => {
         const typeLabel = entry.type === 'physical' ? 'Физический' : 'Психологический'
-        const triggerHtml = entry.trigger ? `<p style="margin: 3px 0; font-size: 12px; color: #666666;">Триггер: ${entry.trigger}</p>` : ''
-        const notesHtml = entry.notes ? `<p style="margin: 3px 0; font-size: 12px; color: #666666;">Заметки: ${entry.notes}</p>` : ''
-        const handledColor = entry.handled ? '#22c55e' : '#ef4444'
+        const typeColor = entry.type === 'physical' ? '#10b981' : '#ec4899'
+        const triggerHtml = entry.trigger ? `<p style="margin: 5px 0; font-size: 14px; color: rgba(255, 255, 255, 0.7);">💡 Триггер: ${entry.trigger}</p>` : ''
+        const notesHtml = entry.notes ? `<p style="margin: 5px 0; font-size: 14px; color: rgba(255, 255, 255, 0.7);">📝 ${entry.notes}</p>` : ''
+        const handledColor = entry.handled ? '#10b981' : '#ff6b35'
         const handledText = entry.handled ? '✓ Справлено' : '✗ Не справлено'
         return `
-          <div style="margin-bottom: 15px; padding: 10px; border-bottom: 1px solid #e0e0e0;">
-            <p style="font-size: 14px; color: #000000; font-weight: bold; margin-bottom: 5px;">${index + 1}. ${entry.time} - ${typeLabel} (${entry.intensity}/10)</p>
+          <div style="
+            margin-bottom: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid ${typeColor}40;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+          ">
+            <p style="font-size: 16px; color: ${typeColor}; font-weight: bold; margin-bottom: 8px;">
+              ${index + 1}. ${entry.time} - ${typeLabel} (${entry.intensity}/10)
+            </p>
             ${triggerHtml}
             ${notesHtml}
-            <p style="margin: 3px 0; font-size: 12px; color: ${handledColor}; font-weight: bold;">${handledText}</p>
+            <p style="margin: 5px 0; font-size: 14px; color: ${handledColor}; font-weight: bold;">${handledText}</p>
           </div>
         `
       }).join('')
 
       printContent.innerHTML = `
-        <h1 style="font-size: 32px; color: #3b82f6; text-align: center; margin-bottom: 10px; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">
-          Трекер голода
-        </h1>
-        <p style="text-align: center; color: #666666; font-size: 14px; margin-bottom: 30px;">
-          Период: ${new Date().toLocaleDateString('ru-RU')}
-        </p>
-        
-        <div style="margin-bottom: 25px; padding: 15px; background-color: #f5f5f5; border-radius: 8px;">
-          <h3 style="font-size: 16px; color: #3b82f6; margin-bottom: 10px;">Статистика:</h3>
-          <p style="margin: 5px 0; font-size: 13px; color: #000000;">Всего записей: ${stats.total}</p>
-          <p style="margin: 5px 0; font-size: 13px; color: #000000;">Физический голод: ${stats.physical} (${Math.round(stats.physical / stats.total * 100)}%)</p>
-          <p style="margin: 5px 0; font-size: 13px; color: #000000;">Психологический голод: ${stats.psychological} (${Math.round(stats.psychological / stats.total * 100)}%)</p>
-          <p style="margin: 5px 0; font-size: 13px; color: #000000;">Успешно справлено: ${stats.handled}</p>
-          <p style="margin: 5px 0; font-size: 13px; color: #000000;">Средняя интенсивность: ${stats.avgIntensity}/10</p>
-          ${topTriggerHtml}
-        </div>
-        
-        <h2 style="font-size: 18px; color: #3b82f6; margin-bottom: 12px; margin-top: 25px; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px;">
-          Записи:
-        </h2>
-        <div>
-          ${entriesHtml}
+        <div style="
+          background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+          border: 2px solid rgba(59, 130, 246, 0.3);
+          border-radius: 20px;
+          padding: 40px;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 40px rgba(59, 130, 246, 0.1);
+        ">
+          <h1 style="
+            font-size: 42px;
+            font-weight: bold;
+            text-align: center;
+            margin: 0 0 10px 0;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
+          ">
+            Трекер голода
+          </h1>
+          <p style="text-align: center; color: rgba(255, 255, 255, 0.6); font-size: 16px; margin: 0 0 40px 0; text-transform: uppercase; letter-spacing: 2px;">
+            Период: ${new Date().toLocaleDateString('ru-RU')}
+          </p>
+          
+          <div style="
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 35px;
+            backdrop-filter: blur(10px);
+          ">
+            <h3 style="font-size: 20px; color: #3b82f6; margin-bottom: 15px; font-weight: bold;">📊 Статистика:</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+              <div style="background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 15px; text-align: center;">
+                <div style="font-size: 14px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">Всего записей</div>
+                <div style="font-size: 24px; font-weight: bold; color: #3b82f6;">${stats.total}</div>
+              </div>
+              <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 15px; text-align: center;">
+                <div style="font-size: 14px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">Физический</div>
+                <div style="font-size: 24px; font-weight: bold; color: #10b981;">${stats.physical} (${Math.round(stats.physical / stats.total * 100)}%)</div>
+              </div>
+              <div style="background: rgba(236, 72, 153, 0.15); border: 1px solid rgba(236, 72, 153, 0.3); border-radius: 12px; padding: 15px; text-align: center;">
+                <div style="font-size: 14px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">Психологический</div>
+                <div style="font-size: 24px; font-weight: bold; color: #ec4899;">${stats.psychological} (${Math.round(stats.psychological / stats.total * 100)}%)</div>
+              </div>
+              <div style="background: rgba(255, 107, 53, 0.15); border: 1px solid rgba(255, 107, 53, 0.3); border-radius: 12px; padding: 15px; text-align: center;">
+                <div style="font-size: 14px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">Справлено</div>
+                <div style="font-size: 24px; font-weight: bold; color: #ff6b35;">${stats.handled}</div>
+              </div>
+            </div>
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+              <p style="margin: 5px 0; font-size: 15px; color: rgba(255, 255, 255, 0.9);">Средняя интенсивность: <strong style="color: #3b82f6">${stats.avgIntensity}/10</strong></p>
+              ${topTriggerHtml}
+            </div>
+          </div>
+          
+          <h2 style="
+            font-size: 24px;
+            font-weight: bold;
+            color: #3b82f6;
+            margin: 0 0 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+          ">
+            <span style="font-size: 28px;">📋</span>
+            Записи:
+          </h2>
+          <div>
+            ${entriesHtml}
+          </div>
         </div>
       `
 
@@ -177,7 +238,8 @@ export function HungerTracker() {
         scale: 2,
         useCORS: true,
         logging: false,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#0a0a0b',
+        allowTaint: true
       })
 
       // Удаляем временный элемент

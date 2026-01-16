@@ -531,6 +531,31 @@ export default function LearnCoursePage({ params }: { params: { id: string } }) 
         >
           <ProgressNotesTracker courseId={params.id} />
         </motion.div>
+
+        {/* AI Instructor Button */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="mt-8"
+        >
+          <Link href="/instructor">
+            <div className="rounded-2xl glass border border-white/10 p-6 bg-gradient-to-r from-accent-teal/10 to-accent-mint/10 hover:from-accent-teal/20 hover:to-accent-mint/20 transition-all cursor-pointer">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-r from-accent-teal to-accent-mint flex items-center justify-center flex-shrink-0">
+                  <Sparkles className="w-8 h-8 text-dark-900" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-display font-bold text-white mb-1">Мой инструктор</h3>
+                  <p className="text-white/70 text-sm">
+                    Получите персональные рекомендации и ответы на вопросы от AI-инструктора по кето-диете и интервальному голоданию
+                  </p>
+                </div>
+                <ChevronRight className="w-6 h-6 text-accent-teal flex-shrink-0" />
+              </div>
+            </div>
+          </Link>
+        </motion.div>
       </div>
       
       {/* Lesson Modal */}

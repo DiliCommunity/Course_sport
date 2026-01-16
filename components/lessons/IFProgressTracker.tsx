@@ -110,39 +110,73 @@ export function IFProgressTracker() {
         ? `${entries[0].date} - ${entries[entries.length - 1].date}`
         : new Date().toLocaleDateString('ru-RU')
 
-      // Создаем временный HTML элемент для PDF
+      // Создаем красивый HTML элемент с темными стилями
       const printContent = document.createElement('div')
       printContent.style.position = 'absolute'
       printContent.style.left = '-9999px'
       printContent.style.width = '800px'
-      printContent.style.padding = '40px'
-      printContent.style.backgroundColor = '#ffffff'
-      printContent.style.fontFamily = 'Arial, sans-serif'
-      printContent.style.color = '#000000'
+      printContent.style.padding = '50px'
+      printContent.style.background = 'linear-gradient(135deg, #0a0a0b 0%, #1a1a1a 50%, #0a0a0b 100%)'
+      printContent.style.fontFamily = 'system-ui, -apple-system, sans-serif'
+      printContent.style.color = '#ffffff'
+      printContent.style.borderRadius = '20px'
 
       const statsHtml = stats ? `
-        <div style="margin-bottom: 25px; padding: 15px; background-color: #f5f5f5; border-radius: 8px;">
-          <h3 style="font-size: 16px; color: #a855f7; margin-bottom: 10px;">Статистика:</h3>
-          <p style="margin: 5px 0; font-size: 13px; color: #000000;">Всего записей: ${stats.total}</p>
-          <p style="margin: 5px 0; font-size: 13px; color: #000000;">Средняя энергия: ${stats.avgEnergy}/10</p>
-          <p style="margin: 5px 0; font-size: 13px; color: #000000;">Средний сон: ${stats.avgSleep}/10</p>
-          <p style="margin: 5px 0; font-size: 13px; color: #000000;">Средний фокус: ${stats.avgFocus}/10</p>
+        <div style="
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 16px;
+          padding: 25px;
+          margin-bottom: 35px;
+          backdrop-filter: blur(10px);
+        ">
+          <h3 style="font-size: 20px; color: #a855f7; margin-bottom: 15px; font-weight: bold;">📊 Статистика:</h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div style="background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 12px; padding: 15px; text-align: center;">
+              <div style="font-size: 14px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">Всего записей</div>
+              <div style="font-size: 24px; font-weight: bold; color: #a855f7;">${stats.total}</div>
+            </div>
+            <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 15px; text-align: center;">
+              <div style="font-size: 14px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">Средняя энергия</div>
+              <div style="font-size: 24px; font-weight: bold; color: #10b981;">${stats.avgEnergy}/10</div>
+            </div>
+            <div style="background: rgba(0, 212, 255, 0.15); border: 1px solid rgba(0, 212, 255, 0.3); border-radius: 12px; padding: 15px; text-align: center;">
+              <div style="font-size: 14px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">Средний сон</div>
+              <div style="font-size: 24px; font-weight: bold; color: #00d4ff;">${stats.avgSleep}/10</div>
+            </div>
+            <div style="background: rgba(236, 72, 153, 0.15); border: 1px solid rgba(236, 72, 153, 0.3); border-radius: 12px; padding: 15px; text-align: center;">
+              <div style="font-size: 14px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">Средний фокус</div>
+              <div style="font-size: 24px; font-weight: bold; color: #ec4899;">${stats.avgFocus}/10</div>
+            </div>
+          </div>
           ${stats.weightEntries >= 2 ? `
-            <p style="margin: 5px 0; font-size: 13px; color: #000000;">Изменение веса: ${stats.weightChange > 0 ? '+' : ''}${stats.weightChange.toFixed(1)} кг</p>
-            <p style="margin: 5px 0; font-size: 13px; color: #000000;">Начальный вес: ${stats.firstWeight} кг</p>
-            <p style="margin: 5px 0; font-size: 13px; color: #000000;">Текущий вес: ${stats.lastWeight} кг</p>
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+              <p style="margin: 5px 0; font-size: 15px; color: rgba(255, 255, 255, 0.9);">Изменение веса: <strong style="color: ${stats.weightChange > 0 ? '#10b981' : '#ff6b35'}">${stats.weightChange > 0 ? '+' : ''}${stats.weightChange.toFixed(1)} кг</strong></p>
+              <p style="margin: 5px 0; font-size: 15px; color: rgba(255, 255, 255, 0.8);">Начальный вес: ${stats.firstWeight} кг → Текущий вес: ${stats.lastWeight} кг</p>
+            </div>
           ` : ''}
         </div>
       ` : ''
 
       const entriesHtml = entries.map((entry, index) => {
         const date = new Date(entry.date).toLocaleDateString('ru-RU')
-        const weightHtml = entry.weight ? `<p style="margin: 3px 0; font-size: 12px; color: #666666;">Вес: ${entry.weight} кг</p>` : ''
-        const notesHtml = entry.notes ? `<p style="margin: 3px 0; font-size: 12px; color: #666666;">Заметки: ${entry.notes}</p>` : ''
+        const weightHtml = entry.weight ? `<p style="margin: 5px 0; font-size: 14px; color: rgba(255, 255, 255, 0.7);">⚖️ Вес: <strong>${entry.weight} кг</strong></p>` : ''
+        const notesHtml = entry.notes ? `<p style="margin: 5px 0; font-size: 14px; color: rgba(255, 255, 255, 0.7);">📝 ${entry.notes}</p>` : ''
         return `
-          <div style="margin-bottom: 15px; padding: 10px; border-bottom: 1px solid #e0e0e0;">
-            <p style="font-size: 14px; color: #000000; font-weight: bold; margin-bottom: 5px;">${index + 1}. ${date}</p>
-            <p style="margin: 3px 0; font-size: 12px; color: #666666;">Энергия: ${entry.energy}/10 | Сон: ${entry.sleep}/10 | Фокус: ${entry.focus}/10</p>
+          <div style="
+            margin-bottom: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+          ">
+            <p style="font-size: 16px; color: #a855f7; font-weight: bold; margin-bottom: 8px;">${index + 1}. ${date}</p>
+            <p style="margin: 5px 0; font-size: 14px; color: rgba(255, 255, 255, 0.9);">
+              ⚡ Энергия: <strong style="color: #10b981">${entry.energy}/10</strong> | 
+              😴 Сон: <strong style="color: #00d4ff">${entry.sleep}/10</strong> | 
+              🎯 Фокус: <strong style="color: #ec4899">${entry.focus}/10</strong>
+            </p>
             ${weightHtml}
             ${notesHtml}
           </div>
@@ -150,18 +184,45 @@ export function IFProgressTracker() {
       }).join('')
 
       printContent.innerHTML = `
-        <h1 style="font-size: 32px; color: #a855f7; text-align: center; margin-bottom: 10px; border-bottom: 2px solid #a855f7; padding-bottom: 10px;">
-          Трекер прогресса IF
-        </h1>
-        <p style="text-align: center; color: #666666; font-size: 14px; margin-bottom: 30px;">
-          Период: ${dateRange}
-        </p>
-        ${statsHtml}
-        <h2 style="font-size: 18px; color: #a855f7; margin-bottom: 12px; margin-top: 25px; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px;">
-          Записи:
-        </h2>
-        <div>
-          ${entriesHtml}
+        <div style="
+          background: linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
+          border: 2px solid rgba(168, 85, 247, 0.3);
+          border-radius: 20px;
+          padding: 40px;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 40px rgba(168, 85, 247, 0.1);
+        ">
+          <h1 style="
+            font-size: 42px;
+            font-weight: bold;
+            text-align: center;
+            margin: 0 0 10px 0;
+            background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(168, 85, 247, 0.3);
+          ">
+            Трекер прогресса IF
+          </h1>
+          <p style="text-align: center; color: rgba(255, 255, 255, 0.6); font-size: 16px; margin: 0 0 40px 0; text-transform: uppercase; letter-spacing: 2px;">
+            Период: ${dateRange}
+          </p>
+          ${statsHtml}
+          <h2 style="
+            font-size: 24px;
+            font-weight: bold;
+            color: #a855f7;
+            margin: 0 0 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+          ">
+            <span style="font-size: 28px;">📋</span>
+            Записи:
+          </h2>
+          <div>
+            ${entriesHtml}
+          </div>
         </div>
       `
 
@@ -173,7 +234,8 @@ export function IFProgressTracker() {
         scale: 2,
         useCORS: true,
         logging: false,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#0a0a0b',
+        allowTaint: true
       })
 
       // Удаляем временный элемент

@@ -703,29 +703,56 @@ export function AcneRecipeGenerator() {
     try {
       setDownloading(true)
 
-      // Создаем временный HTML элемент для PDF
+      // Создаем красивый HTML элемент с темными стилями
       const printContent = document.createElement('div')
       printContent.style.position = 'absolute'
       printContent.style.left = '-9999px'
       printContent.style.width = '800px'
-      printContent.style.padding = '40px'
-      printContent.style.backgroundColor = '#ffffff'
-      printContent.style.fontFamily = 'Arial, sans-serif'
-      printContent.style.color = '#000000'
+      printContent.style.padding = '50px'
+      printContent.style.background = 'linear-gradient(135deg, #0a0a0b 0%, #1a1a1a 50%, #0a0a0b 100%)'
+      printContent.style.fontFamily = 'system-ui, -apple-system, sans-serif'
+      printContent.style.color = '#ffffff'
+      printContent.style.borderRadius = '20px'
 
       // Заголовок документа
       printContent.innerHTML = `
-        <h1 style="font-size: 28px; color: #3b82f6; text-align: center; margin-bottom: 10px; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">
-          Рецепты для чистой кожи
-        </h1>
-        <p style="text-align: center; color: #666666; font-size: 14px; margin-bottom: 20px;">
-          Кето-рационы для борьбы с акне
-        </p>
-        ${excludedIngredients.length > 0 || customExclusions.length > 0 ? `
-        <div style="background-color: #ffe0e0; padding: 10px; border-left: 4px solid #c80000; margin-bottom: 20px; color: #c80000; font-size: 12px;">
-          <strong>Исключено:</strong> ${[...excludedIngredients, ...customExclusions].join(', ')}
+        <div style="
+          background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+          border: 2px solid rgba(59, 130, 246, 0.3);
+          border-radius: 20px;
+          padding: 40px;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 40px rgba(59, 130, 246, 0.1);
+        ">
+          <h1 style="
+            font-size: 38px;
+            font-weight: bold;
+            text-align: center;
+            margin: 0 0 10px 0;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
+          ">
+            Рецепты для чистой кожи
+          </h1>
+          <p style="text-align: center; color: rgba(255, 255, 255, 0.6); font-size: 16px; margin: 0 0 30px 0; text-transform: uppercase; letter-spacing: 2px;">
+            Кето-рационы для борьбы с акне
+          </p>
+          ${excludedIngredients.length > 0 || customExclusions.length > 0 ? `
+          <div style="
+            background: rgba(255, 107, 53, 0.15);
+            border: 2px solid rgba(255, 107, 53, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 30px;
+            color: #ff6b35;
+            font-size: 14px;
+          ">
+            <strong>🚫 Исключено:</strong> ${[...excludedIngredients, ...customExclusions].join(', ')}
+          </div>
+          ` : ''}
         </div>
-        ` : ''}
       `
 
       // Добавляем рецепты
@@ -738,32 +765,113 @@ export function AcneRecipeGenerator() {
         recipeDiv.style.marginBottom = '40px'
         recipeDiv.style.pageBreakInside = 'avoid'
         recipeDiv.innerHTML = `
-          <h2 style="font-size: 20px; color: #3b82f6; margin-bottom: 8px; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px;">
-            ${index + 1}. ${recipe.name}
-          </h2>
-          <p style="color: #666666; font-size: 12px; margin-bottom: 8px;">
-            ${mealTypeText} | ${recipe.prepTime} мин | ${recipe.difficulty}
-          </p>
-          <p style="color: #666666; font-size: 11px; margin-bottom: 10px; line-height: 1.5;">
-            ${recipe.description}
-          </p>
-          <p style="color: #000000; font-size: 12px; margin-bottom: 15px; font-weight: bold;">
-            БЖУ: ${recipe.proteins}Б / ${recipe.fats}Ж / ${recipe.carbs}У | ${recipe.calories} ккал
-          </p>
-          
-          <h3 style="font-size: 14px; color: #3b82f6; margin-bottom: 8px; margin-top: 15px;">
-            Ингредиенты:
-          </h3>
-          <ul style="margin-left: 20px; margin-bottom: 15px; line-height: 1.8; font-size: 11px;">
-            ${recipe.ingredients.map(ing => `<li>${ing.name} - ${ing.quantity}</li>`).join('')}
-          </ul>
-          
-          <h3 style="font-size: 14px; color: #3b82f6; margin-bottom: 8px; margin-top: 15px;">
-            Инструкция:
-          </h3>
-          <ol style="margin-left: 20px; line-height: 1.8; font-size: 11px;">
-            ${recipe.instructions.map(step => `<li>${step}</li>`).join('')}
-          </ol>
+          <div style="
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+          ">
+            <h2 style="
+              font-size: 24px;
+              color: #3b82f6;
+              margin: 0 0 12px 0;
+              font-weight: bold;
+            ">
+              ${index + 1}. ${recipe.name}
+            </h2>
+            <p style="color: rgba(255, 255, 255, 0.7); font-size: 14px; margin-bottom: 10px;">
+              ${mealTypeText} | ⏱ ${recipe.prepTime} мин | ${recipe.difficulty}
+            </p>
+            <p style="color: rgba(255, 255, 255, 0.8); font-size: 15px; margin-bottom: 15px; line-height: 1.6;">
+              ${recipe.description}
+            </p>
+            <div style="
+              background: rgba(59, 130, 246, 0.15);
+              border: 1px solid rgba(59, 130, 246, 0.3);
+              border-radius: 12px;
+              padding: 12px;
+              margin-bottom: 20px;
+              text-align: center;
+            ">
+              <p style="color: #3b82f6; font-size: 16px; font-weight: bold; margin: 0;">
+                📊 БЖУ: ${recipe.proteins}Б / ${recipe.fats}Ж / ${recipe.carbs}У | 🔥 ${recipe.calories} ккал
+              </p>
+            </div>
+            
+            <h3 style="
+              font-size: 18px;
+              color: #3b82f6;
+              margin: 20px 0 12px 0;
+              font-weight: bold;
+            ">
+              🍽️ Ингредиенты:
+            </h3>
+            <ul style="
+              margin: 0 0 20px 0;
+              padding-left: 25px;
+              line-height: 2;
+              font-size: 15px;
+              list-style: none;
+            ">
+              ${recipe.ingredients.map(ing => `
+                <li style="
+                  color: rgba(255, 255, 255, 0.9);
+                  margin-bottom: 6px;
+                  padding-left: 20px;
+                  position: relative;
+                ">
+                  <span style="position: absolute; left: 0; color: #3b82f6; font-weight: bold;">•</span>
+                  ${ing.name} - ${ing.quantity}
+                </li>
+              `).join('')}
+            </ul>
+            
+            <h3 style="
+              font-size: 18px;
+              color: #3b82f6;
+              margin: 20px 0 12px 0;
+              font-weight: bold;
+            ">
+              👨‍🍳 Инструкция:
+            </h3>
+            <ol style="
+              margin: 0;
+              padding-left: 0;
+              line-height: 1.8;
+              font-size: 15px;
+              list-style: none;
+              counter-reset: step-counter;
+            ">
+              ${recipe.instructions.map((step, idx) => `
+                <li style="
+                  color: rgba(255, 255, 255, 0.9);
+                  margin-bottom: 12px;
+                  padding-left: 45px;
+                  position: relative;
+                  line-height: 1.6;
+                ">
+                  <span style="
+                    position: absolute;
+                    left: 0;
+                    width: 28px;
+                    height: 28px;
+                    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: #fff;
+                    font-weight: bold;
+                    font-size: 13px;
+                    box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+                  ">${idx + 1}</span>
+                  ${step}
+                </li>
+              `).join('')}
+            </ol>
+          </div>
         `
         printContent.appendChild(recipeDiv)
       })
@@ -777,7 +885,8 @@ export function AcneRecipeGenerator() {
         scale: 2,
         useCORS: true,
         logging: false,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#0a0a0b',
+        allowTaint: true
       })
 
       // Удаляем временный элемент

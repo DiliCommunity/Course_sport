@@ -588,49 +588,157 @@ export function KetoRecipeGenerator({ type = 'breakfast' }: KetoRecipeGeneratorP
     try {
       setDownloading(true)
 
-      // Создаем временный HTML элемент для PDF
+      // Создаем красивый HTML элемент с темными стилями
       const printContent = document.createElement('div')
       printContent.style.position = 'absolute'
       printContent.style.left = '-9999px'
       printContent.style.width = '800px'
-      printContent.style.padding = '40px'
-      printContent.style.backgroundColor = '#ffffff'
-      printContent.style.fontFamily = 'Arial, sans-serif'
-      printContent.style.color = '#000000'
+      printContent.style.padding = '50px'
+      printContent.style.background = 'linear-gradient(135deg, #0a0a0b 0%, #1a1a1a 50%, #0a0a0b 100%)'
+      printContent.style.fontFamily = 'system-ui, -apple-system, sans-serif'
+      printContent.style.color = '#ffffff'
+      printContent.style.borderRadius = '20px'
 
       printContent.innerHTML = `
-        <h1 style="font-size: 32px; color: #3b82f6; text-align: center; margin-bottom: 10px; border-bottom: 2px solid #3b82f6; padding-bottom: 10px;">
-          ${selectedRecipe.name}
-        </h1>
-        <p style="text-align: center; color: #666666; font-size: 14px; margin-bottom: 30px;">
-          Кето-рецепт
-        </p>
-        
-        <div style="margin-bottom: 25px; padding: 15px; background-color: #f5f5f5; border-radius: 8px;">
-          <p style="margin: 5px 0; font-size: 13px; color: #000000;">
-            ⏱ Время приготовления: ${selectedRecipe.time} минут
+        <div style="
+          background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(0, 212, 255, 0.1) 100%);
+          border: 2px solid rgba(16, 185, 129, 0.3);
+          border-radius: 20px;
+          padding: 40px;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 40px rgba(16, 185, 129, 0.1);
+        ">
+          <h1 style="
+            font-size: 42px;
+            font-weight: bold;
+            text-align: center;
+            margin: 0 0 10px 0;
+            background: linear-gradient(135deg, #10b981 0%, #00d4ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(16, 185, 129, 0.3);
+          ">
+            ${selectedRecipe.name}
+          </h1>
+          <p style="text-align: center; color: rgba(255, 255, 255, 0.6); font-size: 16px; margin: 0 0 40px 0; text-transform: uppercase; letter-spacing: 2px;">
+            Кето-рецепт
           </p>
-          <p style="margin: 5px 0; font-size: 13px; color: #000000;">
-            🔥 Калории: ${selectedRecipe.calories} ккал
-          </p>
-          <p style="margin: 5px 0; font-size: 13px; color: #000000; font-weight: bold;">
-            📊 БЖУ: ${selectedRecipe.protein}Б / ${selectedRecipe.fat}Ж / ${selectedRecipe.carbs}У
-          </p>
+          
+          <div style="
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 35px;
+            backdrop-filter: blur(10px);
+          ">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+              <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 15px; text-align: center;">
+                <div style="font-size: 14px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">⏱ Время</div>
+                <div style="font-size: 20px; font-weight: bold; color: #10b981;">${selectedRecipe.time} мин</div>
+              </div>
+              <div style="background: rgba(255, 107, 53, 0.15); border: 1px solid rgba(255, 107, 53, 0.3); border-radius: 12px; padding: 15px; text-align: center;">
+                <div style="font-size: 14px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">🔥 Калории</div>
+                <div style="font-size: 20px; font-weight: bold; color: #ff6b35;">${selectedRecipe.calories} ккал</div>
+              </div>
+            </div>
+            <div style="background: rgba(0, 212, 255, 0.15); border: 1px solid rgba(0, 212, 255, 0.3); border-radius: 12px; padding: 15px; margin-top: 15px; text-align: center;">
+              <div style="font-size: 14px; color: rgba(255, 255, 255, 0.7); margin-bottom: 8px;">📊 БЖУ</div>
+              <div style="font-size: 18px; font-weight: bold; color: #00d4ff;">
+                ${selectedRecipe.protein}Б / ${selectedRecipe.fat}Ж / ${selectedRecipe.carbs}У
+              </div>
+            </div>
+          </div>
+          
+          <div style="margin-bottom: 35px;">
+            <h2 style="
+              font-size: 24px;
+              font-weight: bold;
+              color: #10b981;
+              margin: 0 0 20px 0;
+              display: flex;
+              align-items: center;
+              gap: 10px;
+            ">
+              <span style="font-size: 28px;">🍽️</span>
+              Ингредиенты:
+            </h2>
+            <div style="
+              background: rgba(255, 255, 255, 0.05);
+              border: 1px solid rgba(255, 255, 255, 0.1);
+              border-radius: 12px;
+              padding: 20px;
+              backdrop-filter: blur(10px);
+            ">
+              <ul style="margin: 0; padding-left: 25px; list-style: none; line-height: 2.2;">
+                ${selectedRecipe.ingredients.map((ing, idx) => `
+                  <li style="
+                    color: rgba(255, 255, 255, 0.9);
+                    font-size: 16px;
+                    margin-bottom: 8px;
+                    padding-left: 25px;
+                    position: relative;
+                  ">
+                    <span style="position: absolute; left: 0; color: #10b981; font-weight: bold;">•</span>
+                    ${ing}
+                  </li>
+                `).join('')}
+              </ul>
+            </div>
+          </div>
+          
+          <div>
+            <h2 style="
+              font-size: 24px;
+              font-weight: bold;
+              color: #10b981;
+              margin: 0 0 20px 0;
+              display: flex;
+              align-items: center;
+              gap: 10px;
+            ">
+              <span style="font-size: 28px;">👨‍🍳</span>
+              Приготовление:
+            </h2>
+            <div style="
+              background: rgba(255, 255, 255, 0.05);
+              border: 1px solid rgba(255, 255, 255, 0.1);
+              border-radius: 12px;
+              padding: 20px;
+              backdrop-filter: blur(10px);
+            ">
+              <ol style="margin: 0; padding-left: 0; list-style: none; counter-reset: step-counter;">
+                ${selectedRecipe.instructions.map((step, idx) => `
+                  <li style="
+                    color: rgba(255, 255, 255, 0.9);
+                    font-size: 16px;
+                    margin-bottom: 15px;
+                    padding-left: 50px;
+                    position: relative;
+                    line-height: 1.6;
+                  ">
+                    <span style="
+                      position: absolute;
+                      left: 0;
+                      width: 32px;
+                      height: 32px;
+                      background: linear-gradient(135deg, #10b981 0%, #00d4ff 100%);
+                      border-radius: 50%;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      color: #000;
+                      font-weight: bold;
+                      font-size: 14px;
+                      box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+                    ">${idx + 1}</span>
+                    ${step}
+                  </li>
+                `).join('')}
+              </ol>
+            </div>
+          </div>
         </div>
-        
-        <h2 style="font-size: 18px; color: #3b82f6; margin-bottom: 12px; margin-top: 25px; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px;">
-          Ингредиенты:
-        </h2>
-        <ul style="margin-left: 25px; margin-bottom: 25px; line-height: 2; font-size: 13px;">
-          ${selectedRecipe.ingredients.map(ing => `<li>${ing}</li>`).join('')}
-        </ul>
-        
-        <h2 style="font-size: 18px; color: #3b82f6; margin-bottom: 12px; margin-top: 25px; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px;">
-          Приготовление:
-        </h2>
-        <ol style="margin-left: 25px; line-height: 2; font-size: 13px;">
-          ${selectedRecipe.instructions.map(step => `<li>${step}</li>`).join('')}
-        </ol>
       `
 
       // Добавляем элемент в DOM
@@ -642,7 +750,8 @@ export function KetoRecipeGenerator({ type = 'breakfast' }: KetoRecipeGeneratorP
         scale: 2,
         useCORS: true,
         logging: false,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#0a0a0b',
+        allowTaint: true
       })
 
       // Удаляем временный элемент
