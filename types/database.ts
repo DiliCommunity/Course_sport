@@ -277,6 +277,50 @@ export interface Database {
           updated_at?: string
         }
       }
+      tracker_entries: {
+        Row: {
+          id: string
+          created_at: string
+          updated_at: string
+          user_id: string
+          course_id: string | null
+          date: string
+          goals: string | null
+          results: string | null
+          successes: string | null
+          calculations: string | null
+          notes: string | null
+          module_data: Json
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          updated_at?: string
+          user_id: string
+          course_id?: string | null
+          date: string
+          goals?: string | null
+          results?: string | null
+          successes?: string | null
+          calculations?: string | null
+          notes?: string | null
+          module_data?: Json
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          updated_at?: string
+          user_id?: string
+          course_id?: string | null
+          date?: string
+          goals?: string | null
+          results?: string | null
+          successes?: string | null
+          calculations?: string | null
+          notes?: string | null
+          module_data?: Json
+        }
+      }
       referrals: {
         Row: {
           id: string
@@ -415,6 +459,7 @@ export type User = Database['public']['Tables']['users']['Row']
 export type Enrollment = Database['public']['Tables']['enrollments']['Row']
 export type LessonProgress = Database['public']['Tables']['lesson_progress']['Row']
 export type UserBalance = Database['public']['Tables']['user_balance']['Row']
+export type TrackerEntry = Database['public']['Tables']['tracker_entries']['Row']
 export type Referral = Database['public']['Tables']['referrals']['Row']
 export type Transaction = Database['public']['Tables']['transactions']['Row']
 

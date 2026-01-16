@@ -25,6 +25,7 @@ import { HungerTracker } from '@/components/lessons/HungerTracker'
 import { IFProgressTracker } from '@/components/lessons/IFProgressTracker'
 import { FastingWorkoutGenerator } from '@/components/lessons/FastingWorkoutGenerator'
 import { KetoRecipeGenerator } from '@/components/lessons/KetoRecipeGenerator'
+import { ProgressNotesTracker } from '@/components/lessons/ProgressNotesTracker'
 
 interface Lesson {
   id: string
@@ -348,12 +349,12 @@ export default function LearnCoursePage({ params }: { params: { id: string } }) 
             <span>Назад к курсу</span>
           </Link>
           
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="font-display font-bold text-3xl text-white mb-2">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+            <div className="flex-1">
+              <h1 className="font-display font-bold text-2xl sm:text-3xl text-white mb-2">
                 Модули 2-4: Основная программа
               </h1>
-              <div className="flex items-center gap-4 text-white/60">
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-white/60 text-sm sm:text-base">
                 <div className="flex items-center gap-2">
                   <BookOpen className="w-4 h-4" />
                   <span>{lessons.length || 0} уроков</span>
@@ -366,7 +367,7 @@ export default function LearnCoursePage({ params }: { params: { id: string } }) 
             </div>
             
             {/* Progress Bar */}
-            <div className="text-right">
+            <div className="text-left sm:text-right w-full sm:w-auto">
               <div className="text-2xl font-bold text-white mb-1">
                 {(() => {
                   const completedInModules24 = progress.completedLessons?.filter(id => 
@@ -377,7 +378,7 @@ export default function LearnCoursePage({ params }: { params: { id: string } }) 
                     : 0
                 })()}%
               </div>
-              <div className="w-48 h-3 bg-white/10 rounded-full overflow-hidden">
+              <div className="w-full sm:w-48 h-3 bg-white/10 rounded-full overflow-hidden">
                 <motion.div
                   className="h-full bg-gradient-to-r from-accent-teal to-accent-mint"
                   initial={{ width: 0 }}
@@ -396,43 +397,6 @@ export default function LearnCoursePage({ params }: { params: { id: string } }) 
               </div>
             </div>
           </div>
-          
-          {/* CTA для финальных модулей если прогресс >= 70% */}
-          {(() => {
-            const completedInModules24 = progress.completedLessons?.filter(id => 
-              lessons.some(l => l.id === id)
-            ).length || 0
-            const progressPercent = lessons.length > 0 
-              ? Math.round((completedInModules24 / lessons.length) * 100)
-              : 0
-            
-            if (progressPercent >= 70) {
-              return (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mt-6 p-6 rounded-2xl bg-gradient-to-r from-accent-gold/20 to-accent-electric/20 border-2 border-accent-gold/40"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-xl font-bold text-white mb-1">
-                        🎉 Поздравляем! Вы прошли {progressPercent}% модулей 2-4
-                      </h3>
-                      <p className="text-white/70">
-                        Теперь вы можете получить доступ к финальным модулям 5-6
-                      </p>
-                    </div>
-                    <Link href={`/courses/${params.id}/final`}>
-                      <Button size="lg" className="ml-4">
-                        Перейти к финальным модулям
-                      </Button>
-                    </Link>
-                  </div>
-                </motion.div>
-              )
-            }
-            return null
-          })()}
         </motion.div>
 
         {/* Modules */}
@@ -520,6 +484,53 @@ export default function LearnCoursePage({ params }: { params: { id: string } }) 
             </motion.div>
           ))}
         </div>
+
+        {/* CTA для финальных модулей если прогресс >= 70% - в конце после всех уроков */}
+        {(() => {
+          const completedInModules24 = progress.completedLessons?.filter(id => 
+            lessons.some(l => l.id === id)
+          ).length || 0
+          const progressPercent = lessons.length > 0 
+            ? Math.round((completedInModules24 / lessons.length) * 100)
+            : 0
+          
+          if (progressPercent >= 70) {
+            return (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-8 p-6 rounded-2xl bg-gradient-to-r from-accent-gold/20 to-accent-electric/20 border-2 border-accent-gold/40"
+              >
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold text-white mb-1">
+                      🎉 Поздравляем! Вы прошли {progressPercent}% модулей 2-4
+                    </h3>
+                    <p className="text-white/70">
+                      Теперь вы можете получить доступ к финальным модулям 5-6
+                    </p>
+                  </div>
+                  <Link href={`/courses/${params.id}/final`} className="w-full sm:w-auto">
+                    <Button size="lg" className="w-full sm:w-auto">
+                      Перейти к финальным модулям
+                    </Button>
+                  </Link>
+                </div>
+              </motion.div>
+            )
+          }
+          return null
+        })()}
+
+        {/* Трекер с заметками и мотивациями */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="mt-12"
+        >
+          <ProgressNotesTracker courseId={params.id} />
+        </motion.div>
       </div>
       
       {/* Lesson Modal */}
