@@ -237,10 +237,8 @@ export function FastingWorkoutGenerator() {
             text-align: center;
             margin: 0 0 10px 0;
             background: linear-gradient(135deg, #ff6b35 0%, #ffa500 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow: 0 0 30px rgba(255, 107, 53, 0.3);
+            color: #ff6b35;
+            text-shadow: 0 0 30px rgba(255, 107, 53, 0.5), 0 2px 10px rgba(0, 0, 0, 0.5);
           ">
             План тренировок натощак
           </h1>

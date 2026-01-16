@@ -455,10 +455,8 @@ export function RestaurantChecklist() {
             text-align: center;
             margin: 0 0 10px 0;
             background: linear-gradient(135deg, #ffd700 0%, #00d4ff 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+            color: #ffd700;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.5), 0 2px 10px rgba(0, 0, 0, 0.5);
           ">
             ${titleText}
           </h1>

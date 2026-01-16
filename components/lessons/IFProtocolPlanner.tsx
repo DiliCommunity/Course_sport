@@ -233,10 +233,8 @@ export function IFProtocolPlanner() {
             text-align: center;
             margin: 0 0 10px 0;
             background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow: 0 0 30px rgba(168, 85, 247, 0.3);
+            color: #a855f7;
+            text-shadow: 0 0 30px rgba(168, 85, 247, 0.5), 0 2px 10px rgba(0, 0, 0, 0.5);
           ">
             План протокола IF
           </h1>

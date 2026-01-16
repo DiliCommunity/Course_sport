@@ -144,10 +144,8 @@ export function MealPlanner() {
           font-weight: bold;
           margin: 0 0 10px 0;
           background: linear-gradient(135deg, #10b981 0%, #00d4ff 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-          text-shadow: 0 0 30px rgba(16, 185, 129, 0.3);
+          color: #10b981;
+          text-shadow: 0 0 30px rgba(16, 185, 129, 0.5), 0 2px 10px rgba(0, 0, 0, 0.5);
         ">План питания на неделю (Кето)</h1>
         <p style="font-size: 16px; color: rgba(255, 255, 255, 0.8); margin: 5px 0;">
           Целевые калории: <strong style="color: #10b981;">${targetCalories} ккал/день</strong>

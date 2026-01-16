@@ -158,10 +158,8 @@ TDEE (расход калорий): ${results.tdee} ккал/день
               font-weight: bold;
               margin: 0 0 10px 0;
               background: linear-gradient(135deg, #f59e0b 0%, #10b981 100%);
-              -webkit-background-clip: text;
-              -webkit-text-fill-color: transparent;
-              background-clip: text;
-              text-shadow: 0 0 30px rgba(245, 158, 11, 0.3);
+              color: #f59e0b;
+              text-shadow: 0 0 30px rgba(245, 158, 11, 0.5), 0 2px 10px rgba(0, 0, 0, 0.5);
             ">Расчет калорий и макросов (Кето)</h1>
             <p style="font-size: 14px; color: rgba(255, 255, 255, 0.6);">Сгенерировано: ${new Date().toLocaleDateString('ru-RU')}</p>
           </div>
