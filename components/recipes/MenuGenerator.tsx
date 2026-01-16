@@ -243,6 +243,10 @@ export function MenuGenerator() {
       ctx.fillText(periodText, pageWidthPx / 2, yPosPx)
       yPosPx += 30
       ctx.fillText(`Целевые калории: ${targetCalories} ккал/день`, pageWidthPx / 2, yPosPx)
+      yPosPx += 20
+      ctx.font = '12px Arial, sans-serif'
+      ctx.fillStyle = '#999999'
+      ctx.fillText('* Целевые калории применяются только к основным приемам пищи. Перекусы и десерты не корректируются.', pageWidthPx / 2, yPosPx)
       yPosPx += 40
 
       // Меню для каждого дня
@@ -499,6 +503,11 @@ export function MenuGenerator() {
             placeholder="2000"
             className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-accent-mint/50 focus:ring-2 focus:ring-accent-mint/20 transition-all"
           />
+          {mealType === 'full' && (
+            <p className="mt-2 text-xs text-white/60">
+              * Целевые калории применяются только к основным приемам пищи (завтрак, обед, ужин). Перекусы и десерты не корректируются.
+            </p>
+          )}
         </div>
       </div>
 
@@ -548,7 +557,10 @@ export function MenuGenerator() {
                 {/* Дополнения (snack и dessert) только для полного меню */}
                 {(day.snack || day.dessert) && (
                   <div className="mb-3 pt-3 border-t border-white/10">
-                    <div className="text-xs text-white/60 mb-2 font-medium">Дополнения:</div>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="text-xs text-white/60 font-medium">Дополнения:</div>
+                      <div className="text-xs text-white/40 italic">* Не корректируются под целевые калории</div>
+                    </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {day.snack && (
                         <MealCard meal={day.snack} label="Перекус" onImageClick={() => setSelectedMeal(day.snack!)} />
