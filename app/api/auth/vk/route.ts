@@ -37,6 +37,8 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient()
     const body = await request.json()
     
+    console.log('[VK Auth] Request body:', JSON.stringify(body, null, 2))
+    
     // Данные из VK
     const vkData = body.vkUser || body
     const { 
@@ -57,9 +59,12 @@ export async function POST(request: NextRequest) {
       access_token?: string
     }
 
+    console.log('[VK Auth] Parsed VK data:', { id, first_name, last_name, domain })
+
     if (!id || !first_name) {
+      console.error('[VK Auth] Missing required fields:', { id, first_name })
       return NextResponse.json(
-        { error: 'VK user data is required' },
+        { error: 'VK user data is required: id and first_name are mandatory' },
         { status: 400 }
       )
     }
@@ -68,6 +73,8 @@ export async function POST(request: NextRequest) {
     const name = `${first_name} ${last_name || ''}`.trim()
     const photoUrl = photo_200 || photo_100 || null
     const username = domain || `vk_${vkId}`
+    
+    console.log('[VK Auth] Processing user:', { vkId, name, username })
 
     // Проверяем, есть ли пользователь с таким vk_id
     const { data: existingUser, error: findError } = await supabase
@@ -76,14 +83,21 @@ export async function POST(request: NextRequest) {
       .eq('vk_id', vkId)
       .single()
 
+    console.log('[VK Auth] Existing user check:', { 
+      found: !!existingUser, 
+      error: findError?.code || null,
+      errorMessage: findError?.message || null 
+    })
+
     if (findError && findError.code !== 'PGRST116') {
-      console.error('Find user error:', findError)
+      console.error('[VK Auth] Find user error:', findError)
     }
 
     let userId: string
     let isNewUser = false
 
     if (existingUser) {
+      console.log('[VK Auth] Existing user found:', existingUser.id)
       // Пользователь существует - обновляем данные
       userId = existingUser.id
       
@@ -179,28 +193,45 @@ export async function POST(request: NextRequest) {
       
       const userUsername = `vk_${username}_${vkId.slice(-4)}`
       
-      const { error: insertError } = await supabase
+      const newUserData = {
+        id: userId,
+        username: userUsername,
+        password_hash: 'vk_auth_only', // Специальный маркер - вход только через VK
+        name,
+        vk_id: vkId,
+        avatar_url: photoUrl || null,
+        vk_verified: true,
+        registration_method: 'vk',
+      }
+      
+      console.log('[VK Auth] Creating new user with data:', {
+        id: newUserData.id,
+        username: newUserData.username,
+        name: newUserData.name,
+        vk_id: newUserData.vk_id,
+        has_avatar: !!newUserData.avatar_url
+      })
+      
+      const { data: insertedUser, error: insertError } = await supabase
         .from('users')
-        .insert({
-          id: userId,
-          username: userUsername,
-          password_hash: 'vk_auth_only', // Специальный маркер - вход только через VK
-          name,
-          vk_id: vkId,
-          avatar_url: photoUrl || null,
-          vk_verified: true,
-          registration_method: 'vk',
-        })
+        .insert(newUserData)
+        .select()
+        .single()
 
       if (insertError) {
-        console.error('Create VK user error:', insertError)
+        console.error('[VK Auth] Create VK user error:', {
+          code: insertError.code,
+          message: insertError.message,
+          details: insertError.details,
+          hint: insertError.hint
+        })
         return NextResponse.json(
-          { error: 'Failed to create user: ' + insertError.message },
+          { error: 'Failed to create user: ' + insertError.message + (insertError.hint ? ' Hint: ' + insertError.hint : '') },
           { status: 500 }
         )
       }
 
-      console.log('New VK user created:', userId)
+      console.log('[VK Auth] ✅ New VK user created successfully:', userId, insertedUser?.username)
       
       // Обрабатываем реферальный код для нового пользователя
       const referralCode = body.referralCode || body.referral_code

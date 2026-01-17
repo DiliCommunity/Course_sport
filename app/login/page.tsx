@@ -25,6 +25,11 @@ export default function LoginPage() {
   const { user, loading: authLoading, refreshUser } = useAuth()
   const router = useRouter()
 
+  // Логируем состояние VK для отладки
+  useEffect(() => {
+    console.log('[LoginPage] VK state:', { isVKMiniApp, vkUser: vkUser?.id, isReady: vkReady })
+  }, [isVKMiniApp, vkUser, vkReady])
+
   // Если пользователь уже авторизован - редирект на курсы
   useEffect(() => {
     if (!authLoading && user) {
@@ -34,8 +39,30 @@ export default function LoginPage() {
 
   // Авторизация через VK
   const handleVKAuth = async () => {
-    if (!vkUser) return
+    // Если vkUser еще не загружен, пытаемся получить из URL
+    let userToAuth = vkUser
+    if (!userToAuth && isVKMiniApp) {
+      const urlParams = new URLSearchParams(window.location.search)
+      const userId = urlParams.get('vk_user_id')
+      if (userId) {
+        userToAuth = {
+          id: Number(userId),
+          first_name: urlParams.get('vk_user_first_name') || 'Пользователь',
+          last_name: urlParams.get('vk_user_last_name') || '',
+          photo_200: urlParams.get('vk_user_photo_200') || undefined,
+          photo_100: urlParams.get('vk_user_photo_100') || undefined,
+          domain: urlParams.get('vk_user_domain') || undefined,
+        }
+      }
+    }
     
+    if (!userToAuth) {
+      setError('Не удалось получить данные пользователя VK')
+      console.error('[LoginPage] handleVKAuth: No vkUser available')
+      return
+    }
+    
+    console.log('[LoginPage] handleVKAuth: Starting auth with user:', userToAuth.id)
     setIsVKLoading(true)
     setError(null)
 
@@ -47,12 +74,12 @@ export default function LoginPage() {
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          id: vkUser.id,
-          first_name: vkUser.first_name,
-          last_name: vkUser.last_name,
-          photo_200: vkUser.photo_200,
-          photo_100: vkUser.photo_100,
-          domain: vkUser.domain,
+          id: userToAuth.id,
+          first_name: userToAuth.first_name,
+          last_name: userToAuth.last_name,
+          photo_200: userToAuth.photo_200,
+          photo_100: userToAuth.photo_100,
+          domain: userToAuth.domain,
           referralCode: referralCode || null,
         }),
       })
@@ -63,15 +90,26 @@ export default function LoginPage() {
 
       const data = await response.json()
 
+      console.log('[LoginPage] VK Auth response:', {
+        status: response.status,
+        ok: response.ok,
+        isNewUser: data.isNewUser,
+        userId: data.userId,
+        error: data.error
+      })
+
       if (!response.ok) {
+        console.error('[LoginPage] VK Auth failed:', data.error)
         throw new Error(data.error || 'Ошибка авторизации через VK')
       }
 
+      console.log('[LoginPage] ✅ VK Auth successful:', data.isNewUser ? 'New user registered' : 'Existing user logged in')
       setSuccess(data.isNewUser ? 'Регистрация успешна!' : 'Вход выполнен!')
       
       await new Promise(resolve => setTimeout(resolve, 800))
       window.location.href = '/profile'
     } catch (err: any) {
+      console.error('[LoginPage] VK Auth error:', err)
       setError(err.message || 'Ошибка авторизации через VK')
       setIsVKLoading(false)
     }
@@ -282,17 +320,18 @@ export default function LoginPage() {
                   </motion.a>
                 )}
 
-                {/* Кнопка "Войти через VK" - показываем всегда */}
-                {isVKMiniApp && vkUser ? (
+                {/* Кнопка "Войти через VK" - показываем если в VK Mini App */}
+                {isVKMiniApp ? (
                   <Button 
                     className="w-full" 
                     size="lg"
                     onClick={handleVKAuth}
                     isLoading={isVKLoading}
+                    disabled={!vkReady}
                     style={{ backgroundColor: '#0077FF', borderColor: '#0077FF' }}
                   >
                     <MessageCircle className="w-5 h-5 mr-2" />
-                    Войти через VK
+                    {vkUser ? 'Войти через VK' : 'Загрузка данных VK...'}
                   </Button>
                 ) : (
                   <motion.a

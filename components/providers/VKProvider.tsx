@@ -164,5 +164,16 @@ export function VKProvider({ children }: VKProviderProps) {
     initData,
   }
 
+  // Логируем финальное значение для отладки
+  useEffect(() => {
+    if (isReady) {
+      console.log('[VKProvider] Context value updated:', {
+        isVKMiniApp,
+        vkUser: vkUser?.id || null,
+        isReady
+      })
+    }
+  }, [isReady, isVKMiniApp, vkUser])
+
   return <VKContext.Provider value={value}>{children}</VKContext.Provider>
 }
