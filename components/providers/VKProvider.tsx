@@ -48,42 +48,83 @@ export function VKProvider({ children }: VKProviderProps) {
 
     const initVK = async () => {
       try {
-        // Получаем VK Bridge из window (загружается через Script в layout)
-        const vkBridge = (window as any).vkBridge || (window as any).bridge
-        
-        // Проверяем URL параметры для определения VK окружения
+        // Проверяем VK окружение более надежным способом
         const urlParams = new URLSearchParams(window.location.search)
-        const userId = urlParams.get('vk_user_id')
-        const isVKEnv = window.location.hostname.includes('vk.com') || 
-                       window.location.hostname.includes('vk.ru') ||
-                       userId !== null ||
-                       document.referrer.includes('vk.com') ||
-                       document.referrer.includes('vk.ru')
+        const fullUrl = window.location.href
+        const hostname = window.location.hostname
+        const referrer = document.referrer
+        
+        // Множественные способы определения VK окружения
+        const isVKEnv = 
+          hostname.includes('vk.com') || 
+          hostname.includes('vk.ru') ||
+          fullUrl.includes('vk.com') ||
+          fullUrl.includes('vk.ru') ||
+          referrer.includes('vk.com') ||
+          referrer.includes('vk.ru') ||
+          urlParams.has('vk_user_id') ||
+          urlParams.has('vk_access_token_settings') ||
+          urlParams.has('vk_platform') ||
+          (window as any).vkBridge !== undefined ||
+          (window as any).bridge !== undefined ||
+          typeof (window as any).vkBridge !== 'undefined'
+        
+        console.log('[VKProvider] VK environment check:', {
+          hostname,
+          hasVkUserId: urlParams.has('vk_user_id'),
+          hasVkAccessToken: urlParams.has('vk_access_token_settings'),
+          hasVkPlatform: urlParams.has('vk_platform'),
+          referrer,
+          isVKEnv
+        })
         
         if (isVKEnv) {
           setIsVKMiniApp(true)
           setInitData(window.location.search)
           
+          // Пытаемся получить VK Bridge разными способами
+          let vkBridge = null
+          
+          // Способ 1: из window.vkBridge (если загружен через наш скрипт)
+          if ((window as any).vkBridge) {
+            vkBridge = (window as any).vkBridge
+          }
+          // Способ 2: из window.bridge (стандартный способ VK)
+          else if ((window as any).bridge) {
+            vkBridge = (window as any).bridge
+          }
+          // Способ 3: из глобального объекта VK
+          else if ((window as any).VK && (window as any).VK.Bridge) {
+            vkBridge = (window as any).VK.Bridge
+          }
+          
+          console.log('[VKProvider] VK Bridge found:', !!vkBridge)
+          
           // Если есть VK Bridge, используем его
           if (vkBridge && typeof vkBridge.send === 'function') {
             try {
+              console.log('[VKProvider] Initializing VK Bridge...')
               await vkBridge.send('VKWebAppInit')
+              console.log('[VKProvider] VK Bridge initialized')
               
               try {
                 const userResult = await vkBridge.send('VKWebAppGetUserInfo')
+                console.log('[VKProvider] User info from bridge:', userResult)
                 if (userResult && userResult.id) {
                   setVkUser(userResult as UserInfo)
                 }
               } catch (userError) {
-                console.log('Could not get user info via bridge, using URL params')
+                console.log('[VKProvider] Could not get user info via bridge, using URL params:', userError)
               }
             } catch (initError) {
-              console.log('VKWebAppInit error, using URL params:', initError)
+              console.log('[VKProvider] VKWebAppInit error, using URL params:', initError)
             }
           }
           
           // Получаем данные из URL параметров (fallback или основной способ)
+          const userId = urlParams.get('vk_user_id')
           if (userId) {
+            console.log('[VKProvider] Setting user from URL params, userId:', userId)
             setVkUser({
               id: Number(userId),
               first_name: urlParams.get('vk_user_first_name') || 'Пользователь',
@@ -92,12 +133,17 @@ export function VKProvider({ children }: VKProviderProps) {
               photo_100: urlParams.get('vk_user_photo_100') || undefined,
               domain: urlParams.get('vk_user_domain') || undefined,
             } as UserInfo)
+          } else {
+            console.log('[VKProvider] No vk_user_id in URL params')
           }
+        } else {
+          console.log('[VKProvider] Not in VK environment')
         }
       } catch (error) {
-        console.error('VK Mini App initialization error:', error)
+        console.error('[VKProvider] VK Mini App initialization error:', error)
       } finally {
         setIsReady(true)
+        console.log('[VKProvider] Initialization complete, isVKMiniApp:', isVKMiniApp, 'vkUser:', vkUser)
       }
     }
 

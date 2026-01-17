@@ -1,10 +1,23 @@
 'use client'
 
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/components/providers/AuthProvider'
+import { useVK } from '@/components/providers/VKProvider'
 
 export default function HomePage() {
   const { user, loading } = useAuth()
+  const { isVKMiniApp, isReady: vkReady } = useVK()
+  const router = useRouter()
+
+  // Если в VK Mini App и не авторизован - редирект на логин
+  useEffect(() => {
+    if (vkReady && isVKMiniApp && !loading && !user) {
+      console.log('[HomePage] Redirecting to login from VK Mini App')
+      router.push('/login')
+    }
+  }, [isVKMiniApp, vkReady, loading, user, router])
 
   return (
     <>

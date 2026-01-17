@@ -7075,7 +7075,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
                         </div>
                         <Link href={`/courses/${params.id}/final`}>
                           <Button size="lg" className="w-full sm:w-auto">
-                            Купить финальные модули — {formatPrice((finalAccessData?.finalPrice || 300) / 100)}
+                            Купить финальные модули — {formatPrice((finalAccessData?.finalPrice || 42475) / 100)}
                           </Button>
                         </Link>
                       </>

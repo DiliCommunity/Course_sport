@@ -242,7 +242,7 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
                     <div className="flex items-center gap-4">
                       <div className="flex-1">
                         <div className="text-3xl font-bold text-white mb-1">
-                          {formatPrice((accessData.finalPrice || 300) / 100)}
+                          {formatPrice((accessData.finalPrice || 42475) / 100)}
                         </div>
                         <div className="text-white/60 text-sm">
                           Единоразовая оплата • Доступ навсегда
@@ -873,7 +873,7 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
         courseTitle="Финальные модули (25% курса)"
-        coursePrice={accessData?.finalPrice || 300}
+        coursePrice={accessData?.finalPrice || 42475}
         courseId={params.id}
         type="final_modules"
         onPaymentSuccess={handlePaymentSuccess}

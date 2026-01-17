@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createAdminClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { getUserFromSession } from '@/lib/session-utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,30 +17,69 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Promotion ID required' }, { status: 400 })
     }
 
-    const supabase = createAdminClient()
+    const supabase = await createClient()
+    const adminSupabase = createAdminClient()
 
-    if (!supabase) {
+    if (!adminSupabase) {
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
+    }
+
+    // Получаем текущего пользователя (опционально, для проверки его использования акции)
+    let currentUser = null
+    let userHasUsedPromotion = false
+    
+    try {
+      currentUser = await getUserFromSession(supabase)
+      
+      // Проверяем, использовал ли текущий пользователь уже эту акцию
+      if (currentUser && promotionId === 'first_100') {
+        const { data: userPayments, error: userPaymentError } = await adminSupabase
+          .from('payments')
+          .select('id, user_id')
+          .eq('user_id', currentUser.id)
+          .eq('status', 'completed')
+          .eq('type', 'promotion')
+          .eq('promotion_id', 'first_100')
+          .limit(1)
+
+        if (!userPaymentError && userPayments && userPayments.length > 0) {
+          userHasUsedPromotion = true
+        }
+      }
+    } catch (userError) {
+      // Пользователь не авторизован - это нормально, акция может быть доступна и без авторизации
+      console.log('User not authenticated or error getting user:', userError)
     }
 
     // Для акции "первым 100 студентам"
     if (promotionId === 'first_100') {
-      // Получаем количество студентов, которые уже воспользовались акцией
-      const { count, error } = await supabase
+      // Получаем количество УНИКАЛЬНЫХ пользователей, которые уже воспользовались акцией
+      // Используем distinct по user_id для подсчета уникальных студентов
+      const { data: payments, error } = await adminSupabase
         .from('payments')
-        .select('*', { count: 'exact', head: true })
+        .select('user_id')
         .eq('status', 'completed')
         .eq('type', 'promotion')
         .eq('promotion_id', 'first_100')
 
       if (error) {
         console.error('Error counting promotion users:', error)
-        return NextResponse.json({ error: 'Database error' }, { status: 500 })
+        return NextResponse.json({ error: 'Database error: ' + error.message }, { status: 500 })
       }
 
-      const usedSlots = count || 0
+      // Подсчитываем уникальных пользователей
+      const uniqueUserIds = new Set<string>()
+      if (payments) {
+        payments.forEach(payment => {
+          if (payment.user_id) {
+            uniqueUserIds.add(payment.user_id)
+          }
+        })
+      }
+
+      const usedSlots = uniqueUserIds.size
       const availableSlots = PROMOTION_LIMITS.first_100 - usedSlots
-      const isAvailable = availableSlots > 0
+      const isAvailable = availableSlots > 0 && !userHasUsedPromotion // Акция доступна только если места есть И пользователь еще не использовал
 
       return NextResponse.json({
         promotionId: 'first_100',
@@ -47,6 +87,7 @@ export async function GET(request: NextRequest) {
         usedSlots,
         totalSlots: PROMOTION_LIMITS.first_100,
         availableSlots: Math.max(0, availableSlots),
+        userHasUsed: userHasUsedPromotion, // Информация о том, использовал ли текущий пользователь акцию
       })
     }
 

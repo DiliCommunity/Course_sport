@@ -117,6 +117,69 @@ export async function POST(request: NextRequest) {
 
     const paymentMethodType = getPaymentMethodType(paymentMethod || 'card')
 
+    // Проверяем акцию "first_100" - один пользователь может использовать только один раз
+    const promotionId = metadata?.promotion_id
+    if (type === 'promotion' && promotionId === 'first_100') {
+      if (!userId || userId === 'guest') {
+        return NextResponse.json(
+          { error: 'Необходима авторизация для использования акции' },
+          { status: 401 }
+        )
+      }
+
+      const adminSupabase = createAdminClient()
+      if (adminSupabase) {
+        // Проверяем, использовал ли пользователь уже эту акцию
+        const { data: userPayments, error: checkError } = await adminSupabase
+          .from('payments')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('status', 'completed')
+          .eq('type', 'promotion')
+          .eq('promotion_id', 'first_100')
+          .limit(1)
+
+        if (checkError) {
+          console.error('Error checking user promotion usage:', checkError)
+          return NextResponse.json(
+            { error: 'Ошибка проверки акции' },
+            { status: 500 }
+          )
+        }
+
+        if (userPayments && userPayments.length > 0) {
+          return NextResponse.json(
+            { error: 'Вы уже использовали эту акцию. Каждый пользователь может использовать акцию только один раз.' },
+            { status: 400 }
+          )
+        }
+
+        // Проверяем, есть ли еще свободные места (максимум 100 уникальных пользователей)
+        const { data: allPromotionPayments, error: countError } = await adminSupabase
+          .from('payments')
+          .select('user_id')
+          .eq('status', 'completed')
+          .eq('type', 'promotion')
+          .eq('promotion_id', 'first_100')
+
+        if (!countError && allPromotionPayments) {
+          const uniqueUserIds = new Set<string>()
+          allPromotionPayments.forEach(payment => {
+            if (payment.user_id) {
+              uniqueUserIds.add(payment.user_id)
+            }
+          })
+
+          if (uniqueUserIds.size >= 100) {
+            return NextResponse.json(
+              { error: 'Акция закончилась. Все 100 мест заняты.' },
+              { status: 400 }
+            )
+          }
+        }
+      }
+    }
+
     // Получаем информацию о курсе и пользователе для чека
     let courseTitle: string | null = null
     let finalReceipt = receipt
