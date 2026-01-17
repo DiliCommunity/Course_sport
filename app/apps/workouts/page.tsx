@@ -34,8 +34,9 @@ interface WorkoutPlan {
   sport?: string
   dailyCalories: number
   weight: number
+  age: number
   workoutDuration: number
-  programDuration: number
+  programDurationType: 'day' | 'week' | 'month'
   workoutTypes: string[]
   workouts: DayWorkout[]
   totalCalories: number
@@ -162,8 +163,9 @@ export default function WorkoutGeneratorPage() {
   const [sport, setSport] = useState('')
   const [dailyCalories, setDailyCalories] = useState('2000')
   const [weight, setWeight] = useState('70')
+  const [age, setAge] = useState('30')
   const [workoutDuration, setWorkoutDuration] = useState('60')
-  const [programDuration, setProgramDuration] = useState('4')
+  const [programDurationType, setProgramDurationType] = useState<'day' | 'week' | 'month'>('week')
   const [selectedTypes, setSelectedTypes] = useState<string[]>(['strength', 'cardio'])
   const [workoutPlan, setWorkoutPlan] = useState<WorkoutPlan | null>(null)
   const [generating, setGenerating] = useState(false)
@@ -176,7 +178,7 @@ export default function WorkoutGeneratorPage() {
     )
   }
 
-  const calculateCaloriesPerWorkout = (level: 'amateur' | 'athlete', duration: number, type: string): number => {
+  const calculateCaloriesPerWorkout = (level: 'amateur' | 'athlete', duration: number, type: string, age: number): number => {
     const baseCalories = level === 'amateur' ? 5 : 8 // калорий в минуту
     const multipliers: Record<string, number> = {
       'strength': 0.8,
@@ -186,7 +188,9 @@ export default function WorkoutGeneratorPage() {
       'sport-specific': 1.3,
       'recovery': 0.4
     }
-    return Math.round(baseCalories * duration * (multipliers[type] || 1) * parseInt(weight) / 70)
+    // Учитываем возраст: с возрастом метаболизм замедляется
+    const ageMultiplier = age < 25 ? 1.1 : age < 35 ? 1.0 : age < 45 ? 0.95 : age < 55 ? 0.9 : 0.85
+    return Math.round(baseCalories * duration * (multipliers[type] || 1) * parseInt(weight) / 70 * ageMultiplier)
   }
 
   const generateWorkoutPlan = () => {
@@ -194,7 +198,18 @@ export default function WorkoutGeneratorPage() {
     
     setTimeout(() => {
       const workouts: DayWorkout[] = []
-      const days = parseInt(programDuration) * 7
+      const userAge = parseInt(age)
+      
+      // Определяем количество дней в зависимости от типа программы
+      let days = 0
+      if (programDurationType === 'day') {
+        days = 1
+      } else if (programDurationType === 'week') {
+        days = 7
+      } else if (programDurationType === 'month') {
+        days = 30
+      }
+      
       const workoutTypes = selectedTypes
       const weeklyFrequency = workoutTypes.length * 2 // 2 тренировки каждого типа в неделю
       
@@ -202,6 +217,9 @@ export default function WorkoutGeneratorPage() {
       
       let totalCalories = 0
       let workoutIndex = 0
+      
+      // Учитываем возраст при генерации тренировок
+      const ageAdjustment = userAge < 25 ? 1.0 : userAge < 35 ? 0.95 : userAge < 45 ? 0.9 : userAge < 55 ? 0.85 : 0.8
       
       for (let day = 1; day <= days; day++) {
         const dayOfWeek = (day - 1) % 7
@@ -215,14 +233,28 @@ export default function WorkoutGeneratorPage() {
         let intensity: 'low' | 'medium' | 'high' = 'medium'
         let notes = ''
         
-        // Генерируем упражнения в зависимости от типа
+        // Генерируем упражнения в зависимости от типа и возраста
         if (workoutType === 'strength') {
           const exercisePool = STRENGTH_EXERCISES[level]
-          exercises = exercisePool.slice(0, level === 'amateur' ? 5 : 6).map(ex => ({ ...ex }))
-          intensity = level === 'amateur' ? 'medium' : 'high'
-          notes = level === 'amateur' 
-            ? '💪 Фокус на технике выполнения. Отдых между подходами обязателен.'
-            : '💪 Тяжелые веса, фокус на силе. Обязательная разминка перед тренировкой.'
+          // С возрастом уменьшаем количество упражнений и интенсивность
+          const exerciseCount = userAge < 35 
+            ? (level === 'amateur' ? 5 : 6)
+            : userAge < 50
+            ? (level === 'amateur' ? 4 : 5)
+            : (level === 'amateur' ? 3 : 4)
+          exercises = exercisePool.slice(0, exerciseCount).map(ex => ({ ...ex }))
+          intensity = userAge < 35 
+            ? (level === 'amateur' ? 'medium' : 'high')
+            : userAge < 50
+            ? (level === 'amateur' ? 'medium' : 'medium')
+            : 'low'
+          notes = userAge < 35
+            ? (level === 'amateur' 
+              ? '💪 Фокус на технике выполнения. Отдых между подходами обязателен.'
+              : '💪 Тяжелые веса, фокус на силе. Обязательная разминка перед тренировкой.')
+            : userAge < 50
+            ? '💪 Умеренная нагрузка с акцентом на технику. Обязательная разминка и заминка.'
+            : '💪 Легкая-умеренная нагрузка. Приоритет безопасности и техники. Обязательная разминка 10-15 минут.'
         } else if (workoutType === 'cardio') {
           const exercisePool = CARDIO_EXERCISES[level]
           exercises = [exercisePool[Math.floor(Math.random() * exercisePool.length)]]
@@ -263,7 +295,7 @@ export default function WorkoutGeneratorPage() {
         }
         
         const duration = parseInt(workoutDuration)
-        const calories = calculateCaloriesPerWorkout(level, duration, workoutType)
+        const calories = calculateCaloriesPerWorkout(level, duration, workoutType, userAge)
         totalCalories += calories
         
         workouts.push({
@@ -285,8 +317,9 @@ export default function WorkoutGeneratorPage() {
         sport: level === 'athlete' ? sport : undefined,
         dailyCalories: parseInt(dailyCalories),
         weight: parseInt(weight),
+        age: userAge,
         workoutDuration: parseInt(workoutDuration),
-        programDuration: parseInt(programDuration),
+        programDurationType,
         workoutTypes: selectedTypes,
         workouts,
         totalCalories,
@@ -298,41 +331,173 @@ export default function WorkoutGeneratorPage() {
     }, 1500)
   }
 
-  const downloadPDF = () => {
+  const downloadPDF = async () => {
     if (!workoutPlan) return
     
-    // Простая реализация - можно улучшить с библиотекой jsPDF
-    const content = `
-ПЛАН ТРЕНИРОВОК
-Уровень: ${level === 'amateur' ? 'Любитель' : 'Спортсмен'}
-${sport ? `Вид спорта: ${sport}` : ''}
-Вес: ${weight} кг
-Калории в день: ${dailyCalories} ккал
-Длительность программы: ${programDuration} недель
-Длительность тренировки: ${workoutDuration} минут
+    try {
+      const { jsPDF } = await import('jspdf')
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      })
 
-${workoutPlan.workouts.map(w => `
-День ${w.day} (${w.dayName})
-Тип: ${w.type}
-Длительность: ${w.duration} мин
-Интенсивность: ${w.intensity}
-Калории: ${w.calories} ккал
+      // Заголовок
+      pdf.setFontSize(20)
+      pdf.setTextColor(0, 0, 0)
+      pdf.text('ПЛАН ТРЕНИРОВОК', 105, 20, { align: 'center' })
 
-Упражнения:
-${w.exercises.map(e => `- ${e.name}: ${e.sets} x ${e.reps} (отдых: ${e.rest})`).join('\n')}
+      // Основная информация
+      pdf.setFontSize(12)
+      let y = 30
+      
+      pdf.text(`Уровень: ${level === 'amateur' ? 'Любитель' : 'Спортсмен'}`, 20, y)
+      y += 7
+      
+      if (sport) {
+        pdf.text(`Вид спорта: ${sport}`, 20, y)
+        y += 7
+      }
+      
+      pdf.text(`Вес: ${weight} кг`, 20, y)
+      y += 7
+      pdf.text(`Калории в день: ${dailyCalories} ккал`, 20, y)
+      y += 7
+      pdf.text(`Возраст: ${workoutPlan.age} лет`, 20, y)
+      y += 7
+      const durationText = workoutPlan.programDurationType === 'day' 
+        ? '1 день' 
+        : workoutPlan.programDurationType === 'week'
+        ? '1 неделя'
+        : '1 месяц'
+      pdf.text(`Длительность программы: ${durationText}`, 20, y)
+      y += 7
+      pdf.text(`Длительность тренировки: ${workoutDuration} минут`, 20, y)
+      y += 10
 
-Заметки:
-${w.notes}
-`).join('\n---\n')}
-    `
-    
-    const blob = new Blob([content], { type: 'text/plain' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `workout-plan-${new Date().toISOString().split('T')[0]}.txt`
-    a.click()
-    URL.revokeObjectURL(url)
+      // Тренировки
+      const pageHeight = 297 // A4 height in mm
+      const margin = 20
+      const maxWidth = 170
+      let pageNum = 1
+
+      workoutPlan.workouts.forEach((w, index) => {
+        // Проверяем, нужно ли создать новую страницу
+        if (y > pageHeight - 60) {
+          pdf.addPage()
+          pageNum++
+          y = 20
+        }
+
+        // Заголовок дня
+        pdf.setFontSize(14)
+        pdf.setTextColor(0, 0, 0)
+        pdf.text(`День ${w.day} • ${w.dayName}`, 20, y)
+        y += 8
+
+        // Информация о тренировке
+        pdf.setFontSize(11)
+        const workoutInfo = [
+          `Тип: ${w.type}`,
+          `Длительность: ${w.duration} мин`,
+          `Интенсивность: ${w.intensity}`,
+          `Калории: ${w.calories} ккал`
+        ]
+
+        workoutInfo.forEach(info => {
+          if (y > pageHeight - 50) {
+            pdf.addPage()
+            pageNum++
+            y = 20
+          }
+          pdf.text(info, 25, y)
+          y += 6
+        })
+
+        y += 2
+
+        // Упражнения
+        if (y > pageHeight - 40) {
+          pdf.addPage()
+          pageNum++
+          y = 20
+        }
+
+        pdf.setFontSize(11)
+        pdf.text('Упражнения:', 25, y)
+        y += 7
+
+        pdf.setFontSize(10)
+        w.exercises.forEach(ex => {
+          if (y > pageHeight - 30) {
+            pdf.addPage()
+            pageNum++
+            y = 20
+          }
+          const exerciseText = `• ${ex.name}: ${ex.sets} x ${ex.reps} (отдых: ${ex.rest})`
+          const lines = pdf.splitTextToSize(exerciseText, maxWidth)
+          pdf.text(lines, 30, y)
+          y += lines.length * 5 + 2
+        })
+
+        y += 2
+
+        // Заметки
+        if (w.notes) {
+          if (y > pageHeight - 30) {
+            pdf.addPage()
+            pageNum++
+            y = 20
+          }
+          pdf.setFontSize(10)
+          pdf.text('Заметки:', 25, y)
+          y += 6
+          const notesLines = pdf.splitTextToSize(w.notes, maxWidth)
+          pdf.text(notesLines, 30, y)
+          y += notesLines.length * 5 + 5
+        }
+
+        // Разделитель между днями (если не последний)
+        if (index < workoutPlan.workouts.length - 1) {
+          if (y > pageHeight - 20) {
+            pdf.addPage()
+            pageNum++
+            y = 20
+          } else {
+            y += 5
+            pdf.setLineWidth(0.5)
+            pdf.line(20, y, 190, y)
+            y += 8
+          }
+        }
+      })
+
+      // Сохраняем PDF
+      const fileName = `План-тренировок-${new Date().toISOString().split('T')[0]}.pdf`
+      
+      // Используем blob URL для лучшей совместимости с мобильными устройствами
+      const pdfBlob = pdf.output('blob')
+      const blobUrl = URL.createObjectURL(pdfBlob)
+      
+      // Создаем ссылку для скачивания
+      const link = document.createElement('a')
+      link.href = blobUrl
+      link.download = fileName
+      link.style.display = 'none'
+      
+      // Добавляем ссылку в DOM и кликаем
+      document.body.appendChild(link)
+      link.click()
+      
+      // Удаляем ссылку и очищаем blob URL через небольшую задержку
+      setTimeout(() => {
+        document.body.removeChild(link)
+        URL.revokeObjectURL(blobUrl)
+      }, 100)
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+      alert('Ошибка при генерации PDF. Попробуйте еще раз.')
+    }
   }
 
   if (step === 'result' && workoutPlan) {
@@ -355,7 +520,7 @@ ${w.notes}
                   Ваш план тренировок
                 </h1>
                 <p className="text-white/60">
-                  Программа на {programDuration} недель • {workoutPlan.workouts.length} тренировок
+                  Программа на {workoutPlan.programDurationType === 'day' ? '1 день' : workoutPlan.programDurationType === 'week' ? '1 неделю' : '1 месяц'} • {workoutPlan.workouts.length} {workoutPlan.workouts.length === 1 ? 'тренировка' : workoutPlan.workouts.length < 5 ? 'тренировки' : 'тренировок'}
                 </p>
               </div>
               <Button onClick={downloadPDF} className="flex items-center gap-2">
@@ -610,16 +775,58 @@ ${w.notes}
             </div>
             <div>
               <label className="block text-white font-semibold mb-2">
-                Длительность программы (недели)
+                Возраст (лет)
               </label>
               <input
                 type="number"
-                value={programDuration}
-                onChange={(e) => setProgramDuration(e.target.value)}
+                value={age}
+                onChange={(e) => setAge(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl bg-dark-800 border border-white/10 text-white focus:border-accent-electric focus:outline-none"
-                min="1"
-                max="12"
+                min="12"
+                max="100"
               />
+            </div>
+          </div>
+
+          {/* Program Duration Type */}
+          <div>
+            <label className="block text-white font-semibold mb-4">
+              Длительность программы
+            </label>
+            <div className="grid grid-cols-3 gap-3">
+              <button
+                type="button"
+                onClick={() => setProgramDurationType('day')}
+                className={`px-6 py-4 rounded-xl font-semibold transition-all ${
+                  programDurationType === 'day'
+                    ? 'bg-gradient-to-r from-accent-electric to-accent-neon text-dark-900 shadow-lg'
+                    : 'bg-dark-800 border border-white/10 text-white hover:border-accent-electric/50'
+                }`}
+              >
+                День
+              </button>
+              <button
+                type="button"
+                onClick={() => setProgramDurationType('week')}
+                className={`px-6 py-4 rounded-xl font-semibold transition-all ${
+                  programDurationType === 'week'
+                    ? 'bg-gradient-to-r from-accent-electric to-accent-neon text-dark-900 shadow-lg'
+                    : 'bg-dark-800 border border-white/10 text-white hover:border-accent-electric/50'
+                }`}
+              >
+                Неделя
+              </button>
+              <button
+                type="button"
+                onClick={() => setProgramDurationType('month')}
+                className={`px-6 py-4 rounded-xl font-semibold transition-all ${
+                  programDurationType === 'month'
+                    ? 'bg-gradient-to-r from-accent-electric to-accent-neon text-dark-900 shadow-lg'
+                    : 'bg-dark-800 border border-white/10 text-white hover:border-accent-electric/50'
+                }`}
+              >
+                Месяц
+              </button>
             </div>
           </div>
 

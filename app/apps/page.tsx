@@ -31,7 +31,7 @@ const apps: App[] = [
     description: 'Рассчитайте оптимальное количество белков, жиров и углеводов для ваших целей',
     icon: <Calculator className="w-8 h-8" />,
     gradient: 'from-blue-500 to-cyan-500',
-    href: '/courses/00000000-0000-0000-0000-000000000001/learn#macro-calculator',
+    href: '/apps/macro-calculator',
     category: 'calculator'
   },
   {
@@ -40,7 +40,7 @@ const apps: App[] = [
     description: 'Оцените симптомы и получите рекомендации по преодолению кетогриппа',
     icon: <Heart className="w-8 h-8" />,
     gradient: 'from-purple-500 to-pink-500',
-    href: '/courses/00000000-0000-0000-0000-000000000001/learn#keto-flu-calculator',
+    href: '/apps/keto-flu-calculator',
     category: 'calculator'
   },
   {
@@ -49,7 +49,7 @@ const apps: App[] = [
     description: 'Рассчитайте оптимальные окна приема пищи для вашего режима IF',
     icon: <Calendar className="w-8 h-8" />,
     gradient: 'from-orange-500 to-red-500',
-    href: '/courses/00000000-0000-0000-0000-000000000002/learn#if-calculator',
+    href: '/apps/if-calculator',
     category: 'calculator'
   },
   
@@ -60,7 +60,7 @@ const apps: App[] = [
     description: 'Создайте персональное кето-меню на день, неделю или месяц',
     icon: <UtensilsCrossed className="w-8 h-8" />,
     gradient: 'from-emerald-500 to-teal-500',
-    href: '/keto-food',
+    href: '/recipes',
     category: 'generator'
   },
   {
@@ -69,7 +69,7 @@ const apps: App[] = [
     description: 'Автоматически создавайте списки продуктов для вашего меню',
     icon: <ShoppingCart className="w-8 h-8" />,
     gradient: 'from-yellow-500 to-orange-500',
-    href: '/courses/00000000-0000-0000-0000-000000000001/learn#shopping-list',
+    href: '/apps/shopping-list',
     category: 'generator'
   },
   {
@@ -78,7 +78,7 @@ const apps: App[] = [
     description: 'Создавайте уникальные кето-рецепты под ваши предпочтения',
     icon: <UtensilsCrossed className="w-8 h-8" />,
     gradient: 'from-green-500 to-emerald-500',
-    href: '/courses/00000000-0000-0000-0000-000000000001/learn#recipe-generator',
+    href: '/apps/recipe-generator',
     category: 'generator'
   },
   
@@ -89,7 +89,7 @@ const apps: App[] = [
     description: 'Отслеживайте уровень голода и связь с питанием',
     icon: <TrendingUp className="w-8 h-8" />,
     gradient: 'from-indigo-500 to-purple-500',
-    href: '/courses/00000000-0000-0000-0000-000000000002/learn#hunger-tracker',
+    href: '/apps/hunger-tracker',
     category: 'tracker'
   },
   {
@@ -98,7 +98,7 @@ const apps: App[] = [
     description: 'Мониторинг результатов интервального голодания',
     icon: <Target className="w-8 h-8" />,
     gradient: 'from-pink-500 to-rose-500',
-    href: '/courses/00000000-0000-0000-0000-000000000002/learn#if-progress-tracker',
+    href: '/apps/if-progress-tracker',
     category: 'tracker'
   },
   {
@@ -107,7 +107,7 @@ const apps: App[] = [
     description: 'Ведите дневник изменений в теле и самочувствии',
     icon: <Heart className="w-8 h-8" />,
     gradient: 'from-red-500 to-pink-500',
-    href: '/courses/00000000-0000-0000-0000-000000000001/learn#progress-notes',
+    href: '/apps/progress-notes',
     category: 'tracker'
   },
   
@@ -128,7 +128,7 @@ const apps: App[] = [
     description: 'Специальные программы для совмещения с интервальным голоданием',
     icon: <Zap className="w-8 h-8" />,
     gradient: 'from-amber-500 to-yellow-500',
-    href: '/courses/00000000-0000-0000-0000-000000000002/learn#fasting-workout',
+    href: '/apps/fasting-workout',
     category: 'workout'
   }
 ]
