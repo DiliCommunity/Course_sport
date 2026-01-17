@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { TrendingUp, TrendingDown, Download, Plus, X, Calendar, Target, BarChart3, Zap, Moon, Brain, Scale } from 'lucide-react'
 import html2canvas from 'html2canvas'
 import { jsPDF } from 'jspdf'
+import { useAuth } from '@/components/providers/AuthProvider'
 
 interface ProgressEntry {
   id: string
@@ -19,9 +20,12 @@ interface ProgressEntry {
 const DEFAULT_ENTRIES: ProgressEntry[] = []
 
 export function IFProgressTracker() {
+  const { user } = useAuth()
   const [entries, setEntries] = useState<ProgressEntry[]>(DEFAULT_ENTRIES)
   const [showAddForm, setShowAddForm] = useState(false)
   const [downloading, setDownloading] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
   
   const [newEntry, setNewEntry] = useState<ProgressEntry>({
     id: '',
@@ -31,34 +35,123 @@ export function IFProgressTracker() {
     focus: 5,
   })
 
-  const addEntry = () => {
+  // Загрузка записей из API
+  useEffect(() => {
+    if (user) {
+      loadEntries()
+    } else {
+      setLoading(false)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user])
+
+  const loadEntries = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/tracker/entries', {
+        credentials: 'include'
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        // Преобразуем записи из API в формат ProgressEntry
+        const transformedEntries: ProgressEntry[] = (data.entries || [])
+          .filter((e: any) => e.module_data && (e.module_data.energy !== undefined || e.module_data.sleep !== undefined || e.module_data.focus !== undefined))
+          .map((e: any) => ({
+            id: e.id,
+            date: e.date,
+            weight: e.module_data?.weight,
+            energy: e.module_data?.energy || 5,
+            sleep: e.module_data?.sleep || 5,
+            focus: e.module_data?.focus || 5,
+            notes: e.notes
+          }))
+          .sort((a: ProgressEntry, b: ProgressEntry) => new Date(a.date).getTime() - new Date(b.date).getTime())
+        setEntries(transformedEntries)
+      }
+    } catch (error) {
+      console.error('Error loading entries:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const saveEntry = async (entry: ProgressEntry) => {
+    if (!user) return
+
+    try {
+      setSaving(true)
+      const isEdit = entry.id && entries.some(e => e.id === entry.id)
+      
+      const response = await fetch('/api/tracker/entries', {
+        method: isEdit ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          id: entry.id,
+          date: entry.date,
+          notes: entry.notes || null,
+          module_data: {
+            energy: entry.energy,
+            sleep: entry.sleep,
+            focus: entry.focus,
+            weight: entry.weight
+          },
+          course_id: null // IF tracker не привязан к курсу
+        })
+      })
+
+      if (response.ok) {
+        await loadEntries()
+        setShowAddForm(false)
+        setNewEntry({
+          id: '',
+          date: new Date().toISOString().split('T')[0],
+          energy: 5,
+          sleep: 5,
+          focus: 5,
+        })
+      } else {
+        const error = await response.json()
+        alert(error.error || 'Ошибка при сохранении')
+      }
+    } catch (error) {
+      console.error('Error saving entry:', error)
+      alert('Ошибка при сохранении записи')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const addEntry = async () => {
     if (!newEntry.date) return
     
     const entry: ProgressEntry = {
       ...newEntry,
-      id: Date.now().toString(),
+      id: newEntry.id || Date.now().toString(),
     }
     
-    // Проверяем, есть ли уже запись на эту дату
-    const existingIndex = entries.findIndex(e => e.date === entry.date)
-    if (existingIndex >= 0) {
-      setEntries(entries.map((e, i) => i === existingIndex ? entry : e))
-    } else {
-      setEntries([...entries, entry].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()))
-    }
-    
-    setNewEntry({
-      id: '',
-      date: new Date().toISOString().split('T')[0],
-      energy: 5,
-      sleep: 5,
-      focus: 5,
-    })
-    setShowAddForm(false)
+    await saveEntry(entry)
   }
 
-  const removeEntry = (id: string) => {
-    setEntries(entries.filter(e => e.id !== id))
+  const removeEntry = async (id: string) => {
+    if (!confirm('Удалить эту запись?')) return
+
+    try {
+      const response = await fetch(`/api/tracker/entries/${id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      })
+
+      if (response.ok) {
+        await loadEntries()
+      } else {
+        alert('Ошибка при удалении записи')
+      }
+    } catch (error) {
+      console.error('Error deleting entry:', error)
+      alert('Ошибка при удалении записи')
+    }
   }
 
   const getStats = () => {
@@ -263,24 +356,6 @@ export function IFProgressTracker() {
     }
   }
 
-  // Загружаем сохраненные данные из localStorage
-  useEffect(() => {
-    const saved = localStorage.getItem('if-progress-tracker')
-    if (saved) {
-      try {
-        setEntries(JSON.parse(saved))
-      } catch (e) {
-        console.error('Error loading saved progress:', e)
-      }
-    }
-  }, [])
-
-  // Сохраняем данные в localStorage
-  useEffect(() => {
-    if (entries.length > 0) {
-      localStorage.setItem('if-progress-tracker', JSON.stringify(entries))
-    }
-  }, [entries])
 
   return (
     <motion.div

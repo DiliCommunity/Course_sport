@@ -36,7 +36,7 @@ interface TrackerEntry {
 }
 
 interface ProgressNotesTrackerProps {
-  courseId: string
+  courseId?: string
 }
 
 export function ProgressNotesTracker({ courseId }: ProgressNotesTrackerProps) {
@@ -66,13 +66,14 @@ export function ProgressNotesTracker({ courseId }: ProgressNotesTrackerProps) {
     if (user) {
       loadEntries()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, courseId, dateFilter])
 
   const loadEntries = async () => {
     try {
       setLoading(true)
       const params = new URLSearchParams({
-        course_id: courseId,
+        ...(courseId && { course_id: courseId }),
         ...(dateFilter.start && { start_date: dateFilter.start }),
         ...(dateFilter.end && { end_date: dateFilter.end })
       })
@@ -105,7 +106,7 @@ export function ProgressNotesTracker({ courseId }: ProgressNotesTrackerProps) {
         credentials: 'include',
         body: JSON.stringify({
           ...entry,
-          course_id: courseId
+          ...(courseId && { course_id: courseId })
         })
       })
 

@@ -335,144 +335,280 @@ export default function WorkoutGeneratorPage() {
     if (!workoutPlan) return
     
     try {
+      const durationText = workoutPlan.programDurationType === 'day' 
+        ? '1 день' 
+        : workoutPlan.programDurationType === 'week'
+        ? '1 неделя'
+        : '1 месяц'
+      
+      const workoutTypeNames: Record<string, string> = {
+        'strength': 'Силовые',
+        'cardio': 'Кардио',
+        'hiit': 'HIIT',
+        'yoga': 'Йога/Растяжка',
+        'sport-specific': 'Спортивная специфика',
+        'recovery': 'Восстановление'
+      }
+      
+      const intensityNames: Record<string, string> = {
+        'low': 'Низкая',
+        'medium': 'Средняя',
+        'high': 'Высокая'
+      }
+
+      // Создаем красивый HTML элемент с темными стилями
+      const printContent = document.createElement('div')
+      printContent.style.position = 'absolute'
+      printContent.style.left = '-9999px'
+      printContent.style.width = '800px'
+      printContent.style.padding = '50px'
+      printContent.style.background = 'linear-gradient(135deg, #0a0a0b 0%, #1a1a1a 50%, #0a0a0b 100%)'
+      printContent.style.fontFamily = 'system-ui, -apple-system, sans-serif'
+      printContent.style.color = '#ffffff'
+      printContent.style.borderRadius = '20px'
+
+      const workoutsHTML = workoutPlan.workouts.map(w => `
+        <div style="
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 16px;
+          padding: 25px;
+          margin-bottom: 30px;
+          backdrop-filter: blur(10px);
+        ">
+          <h2 style="
+            font-size: 28px;
+            font-weight: bold;
+            color: #10b981;
+            margin: 0 0 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+          ">
+            <span style="font-size: 32px;">💪</span>
+            День ${w.day} • ${w.dayName}
+          </h2>
+          
+          <div style="
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+          ">
+            <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 12px; text-align: center;">
+              <div style="font-size: 12px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">🎯 Тип</div>
+              <div style="font-size: 16px; font-weight: bold; color: #10b981;">${workoutTypeNames[w.type] || w.type}</div>
+            </div>
+            <div style="background: rgba(255, 107, 53, 0.15); border: 1px solid rgba(255, 107, 53, 0.3); border-radius: 12px; padding: 12px; text-align: center;">
+              <div style="font-size: 12px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">⏱ Длительность</div>
+              <div style="font-size: 16px; font-weight: bold; color: #ff6b35;">${w.duration} мин</div>
+            </div>
+            <div style="background: rgba(0, 212, 255, 0.15); border: 1px solid rgba(0, 212, 255, 0.3); border-radius: 12px; padding: 12px; text-align: center;">
+              <div style="font-size: 12px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">🔥 Интенсивность</div>
+              <div style="font-size: 16px; font-weight: bold; color: #00d4ff;">${intensityNames[w.intensity] || w.intensity}</div>
+            </div>
+            <div style="background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 12px; padding: 12px; text-align: center;">
+              <div style="font-size: 12px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">⚡ Калории</div>
+              <div style="font-size: 16px; font-weight: bold; color: #8b5cf6;">${w.calories || 0} ккал</div>
+            </div>
+          </div>
+          
+          <div style="margin-bottom: 15px;">
+            <h3 style="
+              font-size: 20px;
+              font-weight: bold;
+              color: #10b981;
+              margin: 0 0 12px 0;
+              display: flex;
+              align-items: center;
+              gap: 8px;
+            ">
+              <span style="font-size: 24px;">📋</span>
+              Упражнения:
+            </h3>
+            <div style="
+              background: rgba(255, 255, 255, 0.03);
+              border: 1px solid rgba(255, 255, 255, 0.1);
+              border-radius: 12px;
+              padding: 15px;
+            ">
+              <ul style="margin: 0; padding-left: 0; list-style: none;">
+                ${w.exercises.map((ex, idx) => `
+                  <li style="
+                    color: rgba(255, 255, 255, 0.9);
+                    font-size: 15px;
+                    margin-bottom: 12px;
+                    padding-left: 35px;
+                    position: relative;
+                    line-height: 1.6;
+                  ">
+                    <span style="
+                      position: absolute;
+                      left: 0;
+                      width: 24px;
+                      height: 24px;
+                      background: linear-gradient(135deg, #10b981 0%, #00d4ff 100%);
+                      border-radius: 50%;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      color: #000;
+                      font-weight: bold;
+                      font-size: 12px;
+                      box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+                    ">${idx + 1}</span>
+                    <strong style="color: #10b981;">${ex.name}</strong>: ${ex.sets} подходов x ${ex.reps} (отдых: ${ex.rest})
+                    ${ex.notes ? `<br/><span style="color: rgba(255, 255, 255, 0.6); font-size: 13px;">💡 ${ex.notes}</span>` : ''}
+                  </li>
+                `).join('')}
+              </ul>
+            </div>
+          </div>
+          
+          ${w.notes ? `
+            <div>
+              <h3 style="
+                font-size: 18px;
+                font-weight: bold;
+                color: #10b981;
+                margin: 0 0 10px 0;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+              ">
+                <span style="font-size: 22px;">📝</span>
+                Заметки:
+              </h3>
+              <div style="
+                background: rgba(255, 255, 255, 0.03);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                border-radius: 12px;
+                padding: 15px;
+                color: rgba(255, 255, 255, 0.8);
+                font-size: 14px;
+                line-height: 1.6;
+              ">
+                ${w.notes}
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      `).join('')
+
+      printContent.innerHTML = `
+        <div style="
+          background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(0, 212, 255, 0.1) 100%);
+          border: 2px solid rgba(16, 185, 129, 0.3);
+          border-radius: 20px;
+          padding: 40px;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 40px rgba(16, 185, 129, 0.1);
+        ">
+          <h1 style="
+            font-size: 48px;
+            font-weight: bold;
+            text-align: center;
+            margin: 0 0 10px 0;
+            background: linear-gradient(135deg, #10b981 0%, #00d4ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(16, 185, 129, 0.5);
+          ">
+            ПЛАН ТРЕНИРОВОК
+          </h1>
+          <p style="text-align: center; color: rgba(255, 255, 255, 0.6); font-size: 16px; margin: 0 0 40px 0; text-transform: uppercase; letter-spacing: 2px;">
+            Персональная программа
+          </p>
+          
+          <div style="
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 35px;
+            backdrop-filter: blur(10px);
+          ">
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 15px;">
+              <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 15px; text-align: center;">
+                <div style="font-size: 13px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">👤 Уровень</div>
+                <div style="font-size: 18px; font-weight: bold; color: #10b981;">${level === 'amateur' ? 'Любитель' : 'Спортсмен'}</div>
+              </div>
+              ${sport ? `
+              <div style="background: rgba(0, 212, 255, 0.15); border: 1px solid rgba(0, 212, 255, 0.3); border-radius: 12px; padding: 15px; text-align: center;">
+                <div style="font-size: 13px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">⚽ Вид спорта</div>
+                <div style="font-size: 18px; font-weight: bold; color: #00d4ff;">${sport}</div>
+              </div>
+              ` : ''}
+              <div style="background: rgba(255, 107, 53, 0.15); border: 1px solid rgba(255, 107, 53, 0.3); border-radius: 12px; padding: 15px; text-align: center;">
+                <div style="font-size: 13px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">⚖️ Вес</div>
+                <div style="font-size: 18px; font-weight: bold; color: #ff6b35;">${weight} кг</div>
+              </div>
+              <div style="background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.3); border-radius: 12px; padding: 15px; text-align: center;">
+                <div style="font-size: 13px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">🔥 Калории в день</div>
+                <div style="font-size: 18px; font-weight: bold; color: #8b5cf6;">${dailyCalories} ккал</div>
+              </div>
+              <div style="background: rgba(236, 72, 153, 0.15); border: 1px solid rgba(236, 72, 153, 0.3); border-radius: 12px; padding: 15px; text-align: center;">
+                <div style="font-size: 13px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">🎂 Возраст</div>
+                <div style="font-size: 18px; font-weight: bold; color: #ec4899;">${workoutPlan.age} лет</div>
+              </div>
+              <div style="background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 15px; text-align: center;">
+                <div style="font-size: 13px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">📅 Длительность программы</div>
+                <div style="font-size: 18px; font-weight: bold; color: #3b82f6;">${durationText}</div>
+              </div>
+            </div>
+            <div style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 12px; padding: 15px; text-align: center; margin-top: 15px;">
+              <div style="font-size: 13px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">⏱ Длительность тренировки</div>
+              <div style="font-size: 18px; font-weight: bold; color: #10b981;">${workoutDuration} минут</div>
+            </div>
+          </div>
+          
+          ${workoutsHTML}
+        </div>
+      `
+
+      // Добавляем элемент в DOM
+      document.body.appendChild(printContent)
+
+      // Используем html2canvas для создания изображения
+      const html2canvas = (await import('html2canvas')).default
+      const canvas = await html2canvas(printContent, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#0a0a0b',
+        allowTaint: true
+      })
+
+      // Удаляем временный элемент
+      document.body.removeChild(printContent)
+
+      // Конвертируем canvas в изображение и добавляем в PDF
       const { jsPDF } = await import('jspdf')
+      const imgData = canvas.toDataURL('image/png')
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4'
       })
 
-      // Заголовок
-      pdf.setFontSize(20)
-      pdf.setTextColor(0, 0, 0)
-      pdf.text('ПЛАН ТРЕНИРОВОК', 105, 20, { align: 'center' })
-
-      // Основная информация
-      pdf.setFontSize(12)
-      let y = 30
-      
-      pdf.text(`Уровень: ${level === 'amateur' ? 'Любитель' : 'Спортсмен'}`, 20, y)
-      y += 7
-      
-      if (sport) {
-        pdf.text(`Вид спорта: ${sport}`, 20, y)
-        y += 7
-      }
-      
-      pdf.text(`Вес: ${weight} кг`, 20, y)
-      y += 7
-      pdf.text(`Калории в день: ${dailyCalories} ккал`, 20, y)
-      y += 7
-      pdf.text(`Возраст: ${workoutPlan.age} лет`, 20, y)
-      y += 7
-      const durationText = workoutPlan.programDurationType === 'day' 
-        ? '1 день' 
-        : workoutPlan.programDurationType === 'week'
-        ? '1 неделя'
-        : '1 месяц'
-      pdf.text(`Длительность программы: ${durationText}`, 20, y)
-      y += 7
-      pdf.text(`Длительность тренировки: ${workoutDuration} минут`, 20, y)
-      y += 10
-
-      // Тренировки
+      const imgWidth = 210 // A4 width in mm
       const pageHeight = 297 // A4 height in mm
-      const margin = 20
-      const maxWidth = 170
-      let pageNum = 1
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
 
-      workoutPlan.workouts.forEach((w, index) => {
-        // Проверяем, нужно ли создать новую страницу
-        if (y > pageHeight - 60) {
-          pdf.addPage()
-          pageNum++
-          y = 20
-        }
+      // Если изображение больше одной страницы, разбиваем на несколько страниц
+      let heightLeft = imgHeight
+      let position = 0
 
-        // Заголовок дня
-        pdf.setFontSize(14)
-        pdf.setTextColor(0, 0, 0)
-        pdf.text(`День ${w.day} • ${w.dayName}`, 20, y)
-        y += 8
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
+      heightLeft -= pageHeight
 
-        // Информация о тренировке
-        pdf.setFontSize(11)
-        const workoutInfo = [
-          `Тип: ${w.type}`,
-          `Длительность: ${w.duration} мин`,
-          `Интенсивность: ${w.intensity}`,
-          `Калории: ${w.calories} ккал`
-        ]
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight
+        pdf.addPage()
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
+        heightLeft -= pageHeight
+      }
 
-        workoutInfo.forEach(info => {
-          if (y > pageHeight - 50) {
-            pdf.addPage()
-            pageNum++
-            y = 20
-          }
-          pdf.text(info, 25, y)
-          y += 6
-        })
-
-        y += 2
-
-        // Упражнения
-        if (y > pageHeight - 40) {
-          pdf.addPage()
-          pageNum++
-          y = 20
-        }
-
-        pdf.setFontSize(11)
-        pdf.text('Упражнения:', 25, y)
-        y += 7
-
-        pdf.setFontSize(10)
-        w.exercises.forEach(ex => {
-          if (y > pageHeight - 30) {
-            pdf.addPage()
-            pageNum++
-            y = 20
-          }
-          const exerciseText = `• ${ex.name}: ${ex.sets} x ${ex.reps} (отдых: ${ex.rest})`
-          const lines = pdf.splitTextToSize(exerciseText, maxWidth)
-          pdf.text(lines, 30, y)
-          y += lines.length * 5 + 2
-        })
-
-        y += 2
-
-        // Заметки
-        if (w.notes) {
-          if (y > pageHeight - 30) {
-            pdf.addPage()
-            pageNum++
-            y = 20
-          }
-          pdf.setFontSize(10)
-          pdf.text('Заметки:', 25, y)
-          y += 6
-          const notesLines = pdf.splitTextToSize(w.notes, maxWidth)
-          pdf.text(notesLines, 30, y)
-          y += notesLines.length * 5 + 5
-        }
-
-        // Разделитель между днями (если не последний)
-        if (index < workoutPlan.workouts.length - 1) {
-          if (y > pageHeight - 20) {
-            pdf.addPage()
-            pageNum++
-            y = 20
-          } else {
-            y += 5
-            pdf.setLineWidth(0.5)
-            pdf.line(20, y, 190, y)
-            y += 8
-          }
-        }
-      })
-
-      // Сохраняем PDF
       const fileName = `План-тренировок-${new Date().toISOString().split('T')[0]}.pdf`
       
       // Используем blob URL для лучшей совместимости с мобильными устройствами

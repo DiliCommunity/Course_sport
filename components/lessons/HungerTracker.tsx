@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { Heart, Brain, Clock, TrendingUp, Download, X, Plus, AlertCircle, CheckCircle2 } from 'lucide-react'
 import html2canvas from 'html2canvas'
 import { jsPDF } from 'jspdf'
+import { useAuth } from '@/components/providers/AuthProvider'
 
 interface HungerEntry {
   id: string
@@ -47,6 +48,7 @@ const COMMON_TRIGGERS = [
 ]
 
 export function HungerTracker() {
+  const { user } = useAuth()
   const [entries, setEntries] = useState<HungerEntry[]>([])
   const [currentType, setCurrentType] = useState<'physical' | 'psychological'>('physical')
   const [currentIntensity, setCurrentIntensity] = useState(5)
@@ -55,8 +57,104 @@ export function HungerTracker() {
   const [notes, setNotes] = useState('')
   const [downloading, setDownloading] = useState(false)
   const [showAddForm, setShowAddForm] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
 
-  const addEntry = () => {
+  // Загрузка записей из API
+  useEffect(() => {
+    if (user) {
+      loadEntries()
+    } else {
+      setLoading(false)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user])
+
+  const loadEntries = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/tracker/entries', {
+        credentials: 'include'
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        // Преобразуем записи из API в формат HungerEntry
+        const transformedEntries: HungerEntry[] = (data.entries || [])
+          .filter((e: any) => e.module_data && e.module_data.hungerType)
+          .map((e: any) => ({
+            id: e.id,
+            time: e.module_data.time || new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+            type: e.module_data.hungerType,
+            intensity: e.module_data.intensity || 5,
+            trigger: e.module_data.trigger,
+            notes: e.notes,
+            handled: e.module_data.handled || false
+          }))
+          .sort((a: HungerEntry, b: HungerEntry) => {
+            // Сортируем по времени (строки HH:MM)
+            const timeA = a.time.split(':').map(Number)
+            const timeB = b.time.split(':').map(Number)
+            const dateA = timeA[0] * 60 + timeA[1]
+            const dateB = timeB[0] * 60 + timeB[1]
+            return dateB - dateA
+          })
+        setEntries(transformedEntries)
+      }
+    } catch (error) {
+      console.error('Error loading entries:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const saveEntry = async (entry: HungerEntry) => {
+    if (!user) return
+
+    try {
+      setSaving(true)
+      const isEdit = entry.id && entries.some(e => e.id === entry.id)
+      const currentDate = new Date().toISOString().split('T')[0]
+      
+      const response = await fetch('/api/tracker/entries', {
+        method: isEdit ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          id: entry.id,
+          date: currentDate,
+          notes: entry.notes || null,
+          module_data: {
+            hungerType: entry.type,
+            intensity: entry.intensity,
+            trigger: entry.trigger,
+            time: entry.time,
+            handled: entry.handled
+          },
+          course_id: null // Hunger tracker не привязан к курсу
+        })
+      })
+
+      if (response.ok) {
+        await loadEntries()
+        setShowAddForm(false)
+        setCurrentIntensity(5)
+        setCurrentTrigger('')
+        setCustomTrigger('')
+        setNotes('')
+      } else {
+        const error = await response.json()
+        alert(error.error || 'Ошибка при сохранении')
+      }
+    } catch (error) {
+      console.error('Error saving entry:', error)
+      alert('Ошибка при сохранении записи')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const addEntry = async () => {
     const newEntry: HungerEntry = {
       id: Date.now().toString(),
       time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
@@ -66,20 +164,35 @@ export function HungerTracker() {
       notes: notes || undefined,
       handled: false
     }
-    setEntries([...entries, newEntry])
-    setCurrentIntensity(5)
-    setCurrentTrigger('')
-    setCustomTrigger('')
-    setNotes('')
-    setShowAddForm(false)
+    await saveEntry(newEntry)
   }
 
-  const toggleHandled = (id: string) => {
-    setEntries(entries.map(e => e.id === id ? { ...e, handled: !e.handled } : e))
+  const toggleHandled = async (id: string) => {
+    const entry = entries.find(e => e.id === id)
+    if (!entry) return
+    
+    const updatedEntry = { ...entry, handled: !entry.handled }
+    await saveEntry(updatedEntry)
   }
 
-  const removeEntry = (id: string) => {
-    setEntries(entries.filter(e => e.id !== id))
+  const removeEntry = async (id: string) => {
+    if (!confirm('Удалить эту запись?')) return
+
+    try {
+      const response = await fetch(`/api/tracker/entries/${id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      })
+
+      if (response.ok) {
+        await loadEntries()
+      } else {
+        alert('Ошибка при удалении записи')
+      }
+    } catch (error) {
+      console.error('Error deleting entry:', error)
+      alert('Ошибка при удалении записи')
+    }
   }
 
   const getStats = () => {

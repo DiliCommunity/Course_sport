@@ -751,7 +751,7 @@ function LessonModal({
             lesson.title.toLowerCase().includes('десерты') ||
             lesson.content?.toLowerCase().includes('кето-десерты') ||
             lesson.content?.toLowerCase().includes('сладкие кето-десерты')) && (
-            <KetoRecipeGenerator type="dessert" />
+            <KetoRecipeGenerator />
           )}
 
           {lesson.title.toLowerCase().includes('акне') ||

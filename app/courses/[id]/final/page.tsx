@@ -479,7 +479,7 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
                                   lesson.content?.toLowerCase().includes('кето-десерты') ||
                                   lesson.content?.toLowerCase().includes('сладкие кето-десерты')) && (
                                   <div className="mt-6">
-                                    <KetoRecipeGenerator type="dessert" />
+                                    <KetoRecipeGenerator />
                                   </div>
                                 )}
 
@@ -746,7 +746,7 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
                                   lesson.content?.toLowerCase().includes('кето-десерты') ||
                                   lesson.content?.toLowerCase().includes('сладкие кето-десерты')) && (
                                   <div className="mt-6">
-                                    <KetoRecipeGenerator type="dessert" />
+                                    <KetoRecipeGenerator />
                                   </div>
                                 )}
 

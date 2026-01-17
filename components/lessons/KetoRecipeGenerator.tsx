@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { ChefHat, Shuffle, Download, Clock, Flame, Image as ImageIcon } from 'lucide-react'
+import { ChefHat, Shuffle, Download, Clock, Flame, Image as ImageIcon, X } from 'lucide-react'
 import Image from 'next/image'
+import { ketoRecipesData } from '@/components/recipes/ketoRecipesData'
 
 interface Recipe {
   id: string
@@ -18,8 +19,40 @@ interface Recipe {
   instructions: string[]
 }
 
-// Рецепты завтраков (15 штук)
-const BREAKFAST_RECIPES: Recipe[] = [
+// Список продуктов для исключения
+const COMMON_PRODUCTS = [
+  'Яйца', 'Рыба', 'Морепродукты', 'Орехи', 'Молочные продукты',
+  'Помидоры', 'Перец', 'Грибы', 'Авокадо', 'Сыр', 'Бекон',
+  'Лосось', 'Тунец', 'Курица', 'Говядина', 'Индейка', 'Креветки',
+  'Шпинат', 'Брокколи', 'Цветная капуста', 'Миндаль', 'Грецкий орех',
+  'Творог', 'Йогурт', 'Молоко', 'Масло', 'Масло сливочное'
+]
+
+// Преобразование рецептов из ketoRecipesData в формат Recipe
+const convertRecipe = (recipe: any): Recipe => ({
+  id: recipe.name.toLowerCase().replace(/\s+/g, '-'),
+  name: recipe.name,
+  image: recipe.image || '/img/recipes/default.jpg',
+  time: recipe.prepTime || 15,
+  calories: recipe.calories || 0,
+  protein: recipe.proteins || 0,
+  fat: recipe.fats || 0,
+  carbs: recipe.carbs || 0,
+  ingredients: recipe.ingredients || [],
+  instructions: recipe.instructions || []
+})
+
+// Рецепты завтраков (из ketoRecipesData)
+const BREAKFAST_RECIPES_RAW: Recipe[] = (ketoRecipesData.breakfast || []).map(convertRecipe)
+
+// Рецепты обедов (из ketoRecipesData)
+const LUNCH_RECIPES_RAW: Recipe[] = (ketoRecipesData.lunch || []).map(convertRecipe)
+
+// Рецепты ужинов (из ketoRecipesData)
+const DINNER_RECIPES_RAW: Recipe[] = (ketoRecipesData.dinner || []).map(convertRecipe)
+
+// Рецепты десертов (оставляем старые, пока нет в ketoRecipesData)
+const DESSERT_RECIPES_OLD: Recipe[] = [
   {
     id: 'b1',
     name: 'Омлет с авокадо и сыром',
@@ -557,25 +590,79 @@ const DESSERT_RECIPES: Recipe[] = [
   },
 ]
 
-type RecipeType = 'breakfast' | 'dessert'
+type RecipeType = 'breakfast' | 'lunch' | 'dinner'
 
 interface KetoRecipeGeneratorProps {
   type?: RecipeType
 }
 
-export function KetoRecipeGenerator({ type = 'breakfast' }: KetoRecipeGeneratorProps) {
+export function KetoRecipeGenerator({ type: initialType }: KetoRecipeGeneratorProps = {}) {
+  const [mealType, setMealType] = useState<RecipeType>(initialType || 'breakfast')
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null)
   const [downloading, setDownloading] = useState(false)
+  const [excludedProducts, setExcludedProducts] = useState<string[]>([])
+  const [newExclusion, setNewExclusion] = useState('')
 
-  const recipes = type === 'breakfast' ? BREAKFAST_RECIPES : DESSERT_RECIPES
-  const title = type === 'breakfast' ? 'Генератор завтраков' : 'Генератор десертов'
-  const description = type === 'breakfast' 
-    ? 'Случайный завтрак из 15 кето-рецептов' 
-    : 'Случайный десерт из 15 кето-рецептов'
+  // Фильтрация рецептов по типу приема пищи и исключенным продуктам
+  const availableRecipes = useMemo(() => {
+    let recipes: Recipe[] = []
+    
+    if (mealType === 'breakfast') {
+      recipes = [...BREAKFAST_RECIPES_RAW]
+    } else if (mealType === 'lunch') {
+      recipes = [...LUNCH_RECIPES_RAW]
+    } else if (mealType === 'dinner') {
+      recipes = [...DINNER_RECIPES_RAW]
+    }
+    
+    // Фильтрация по исключенным продуктам
+    if (excludedProducts.length > 0) {
+      recipes = recipes.filter(recipe => {
+        const allIngredients = recipe.ingredients.join(' ').toLowerCase()
+        return !excludedProducts.some(excluded => 
+          allIngredients.includes(excluded.toLowerCase())
+        )
+      })
+    }
+    
+    return recipes
+  }, [mealType, excludedProducts])
+
+  const title = mealType === 'breakfast' 
+    ? 'Генератор завтраков' 
+    : mealType === 'lunch'
+    ? 'Генератор обедов'
+    : 'Генератор ужинов'
+    
+  const description = `Случайный ${mealType === 'breakfast' ? 'завтрак' : mealType === 'lunch' ? 'обед' : 'ужин'} из ${availableRecipes.length} кето-рецептов`
+
+  const toggleExclusion = (product: string) => {
+    setExcludedProducts(prev => 
+      prev.includes(product)
+        ? prev.filter(p => p !== product)
+        : [...prev, product]
+    )
+  }
+
+  const addCustomExclusion = () => {
+    if (newExclusion.trim() && !excludedProducts.includes(newExclusion.trim())) {
+      setExcludedProducts(prev => [...prev, newExclusion.trim()])
+      setNewExclusion('')
+    }
+  }
+
+  const removeExclusion = (product: string) => {
+    setExcludedProducts(prev => prev.filter(p => p !== product))
+  }
 
   const generateRandomRecipe = () => {
-    const randomIndex = Math.floor(Math.random() * recipes.length)
-    const randomRecipe = recipes[randomIndex]
+    if (availableRecipes.length === 0) {
+      alert(`Нет доступных рецептов для ${mealType === 'breakfast' ? 'завтрака' : mealType === 'lunch' ? 'обеда' : 'ужина'} с выбранными исключениями. Попробуйте убрать некоторые продукты из списка исключений.`)
+      return
+    }
+    
+    const randomIndex = Math.floor(Math.random() * availableRecipes.length)
+    const randomRecipe = availableRecipes[randomIndex]
     setSelectedRecipe(randomRecipe)
   }
 
@@ -797,13 +884,104 @@ export function KetoRecipeGenerator({ type = 'breakfast' }: KetoRecipeGeneratorP
         </div>
       </div>
 
+      {/* Выбор типа приема пищи */}
+      <div className="mb-4 flex flex-wrap gap-2">
+        <button
+          onClick={() => setMealType('breakfast')}
+          className={`px-4 py-2 rounded-xl font-medium transition-all ${
+            mealType === 'breakfast'
+              ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-dark-900'
+              : 'bg-white/10 text-white/70 hover:bg-white/20'
+          }`}
+        >
+          Завтрак
+        </button>
+        <button
+          onClick={() => setMealType('lunch')}
+          className={`px-4 py-2 rounded-xl font-medium transition-all ${
+            mealType === 'lunch'
+              ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-dark-900'
+              : 'bg-white/10 text-white/70 hover:bg-white/20'
+          }`}
+        >
+          Обед
+        </button>
+        <button
+          onClick={() => setMealType('dinner')}
+          className={`px-4 py-2 rounded-xl font-medium transition-all ${
+            mealType === 'dinner'
+              ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-dark-900'
+              : 'bg-white/10 text-white/70 hover:bg-white/20'
+          }`}
+        >
+          Ужин
+        </button>
+      </div>
+
+      {/* Исключение продуктов */}
+      <div className="mb-4 p-4 rounded-xl bg-white/5 border border-white/10">
+        <h4 className="text-white font-medium mb-3 text-sm">Исключить продукты:</h4>
+        <div className="flex flex-wrap gap-2 mb-3">
+          {COMMON_PRODUCTS.slice(0, 12).map(product => (
+            <button
+              key={product}
+              onClick={() => toggleExclusion(product)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                excludedProducts.includes(product)
+                  ? 'bg-emerald-500/30 text-emerald-300 border border-emerald-500/50'
+                  : 'bg-white/5 text-white/60 border border-white/10 hover:bg-white/10'
+              }`}
+            >
+              {product}
+            </button>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={newExclusion}
+            onChange={(e) => setNewExclusion(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && addCustomExclusion()}
+            placeholder="Добавить продукт..."
+            className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm placeholder-white/40 focus:outline-none focus:border-emerald-500/50"
+          />
+          <button
+            onClick={addCustomExclusion}
+            className="px-4 py-2 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30 text-sm font-medium transition-all"
+          >
+            Добавить
+          </button>
+        </div>
+        {excludedProducts.length > 0 && (
+          <div className="mt-3 pt-3 border-t border-white/10">
+            <div className="flex flex-wrap gap-2">
+              {excludedProducts.map(product => (
+                <span
+                  key={product}
+                  className="inline-flex items-center gap-1 px-2 py-1 rounded bg-emerald-500/20 text-emerald-300 text-xs"
+                >
+                  {product}
+                  <button
+                    onClick={() => removeExclusion(product)}
+                    className="hover:text-emerald-400"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Кнопка генерации */}
       <button
         onClick={generateRandomRecipe}
-        className="w-full mb-6 py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-dark-900 font-medium hover:shadow-lg hover:shadow-emerald-500/30 transition-all flex items-center justify-center gap-2"
+        disabled={availableRecipes.length === 0}
+        className="w-full mb-6 py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-dark-900 font-medium hover:shadow-lg hover:shadow-emerald-500/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <Shuffle className="w-5 h-5" />
-        <span>Сгенерировать {type === 'breakfast' ? 'завтрак' : 'десерт'}</span>
+        <span>Сгенерировать {mealType === 'breakfast' ? 'завтрак' : mealType === 'lunch' ? 'обед' : 'ужин'}</span>
       </button>
 
       {/* Сгенерированный рецепт */}
