@@ -58,12 +58,8 @@ export default function RootLayout({
       <body className="bg-dark-900 text-white font-body antialiased relative">
         {/* Telegram WebApp Script - загружается автоматически Telegram, но добавляем для надёжности */}
         <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" />
-        {/* VK Bridge Script - загружается автоматически VK, но добавляем для надёжности */}
-        <Script 
-          src="https://unpkg.com/@vkontakte/vk-bridge@2/dist/index.umd.js" 
-          strategy="lazyOnload"
-          id="vk-bridge-script"
-        />
+        {/* VK Bridge Script - VK загружает автоматически, но добавляем для совместимости */}
+        {/* НЕ используем strategy="beforeInteractive" - VK должен загрузить свой bridge первым */}
         <TelegramProvider>
           <VKProvider>
             <AuthProvider>

@@ -47,6 +47,9 @@ export function VKProvider({ children }: VKProviderProps) {
     }
 
     const initVK = async () => {
+      let detectedVKMiniApp = false
+      let detectedUser: UserInfo | null = null
+      
       try {
         // Проверяем VK окружение более надежным способом
         const urlParams = new URLSearchParams(window.location.search)
@@ -64,10 +67,7 @@ export function VKProvider({ children }: VKProviderProps) {
           referrer.includes('vk.ru') ||
           urlParams.has('vk_user_id') ||
           urlParams.has('vk_access_token_settings') ||
-          urlParams.has('vk_platform') ||
-          (window as any).vkBridge !== undefined ||
-          (window as any).bridge !== undefined ||
-          typeof (window as any).vkBridge !== 'undefined'
+          urlParams.has('vk_platform')
         
         console.log('[VKProvider] VK environment check:', {
           hostname,
@@ -79,26 +79,30 @@ export function VKProvider({ children }: VKProviderProps) {
         })
         
         if (isVKEnv) {
+          detectedVKMiniApp = true
           setIsVKMiniApp(true)
           setInitData(window.location.search)
+          
+          // Ждем немного и пытаемся найти VK Bridge (VK загружает его автоматически)
+          await new Promise(resolve => setTimeout(resolve, 500))
           
           // Пытаемся получить VK Bridge разными способами
           let vkBridge = null
           
-          // Способ 1: из window.vkBridge (если загружен через наш скрипт)
-          if ((window as any).vkBridge) {
-            vkBridge = (window as any).vkBridge
-          }
-          // Способ 2: из window.bridge (стандартный способ VK)
-          else if ((window as any).bridge) {
+          // Способ 1: VK автоматически загружает bridge как window.bridge или через @vkid/sdk
+          if ((window as any).bridge && typeof (window as any).bridge.send === 'function') {
             vkBridge = (window as any).bridge
           }
+          // Способ 2: из @vkontakte/vk-bridge (если загружен через наш скрипт)
+          else if ((window as any).vkBridge && typeof (window as any).vkBridge.send === 'function') {
+            vkBridge = (window as any).vkBridge
+          }
           // Способ 3: из глобального объекта VK
-          else if ((window as any).VK && (window as any).VK.Bridge) {
+          else if ((window as any).VK?.Bridge) {
             vkBridge = (window as any).VK.Bridge
           }
           
-          console.log('[VKProvider] VK Bridge found:', !!vkBridge)
+          console.log('[VKProvider] VK Bridge found:', !!vkBridge, 'bridge type:', vkBridge ? typeof vkBridge : 'none')
           
           // Если есть VK Bridge, используем его
           if (vkBridge && typeof vkBridge.send === 'function') {
@@ -111,6 +115,7 @@ export function VKProvider({ children }: VKProviderProps) {
                 const userResult = await vkBridge.send('VKWebAppGetUserInfo')
                 console.log('[VKProvider] User info from bridge:', userResult)
                 if (userResult && userResult.id) {
+                  detectedUser = userResult as UserInfo
                   setVkUser(userResult as UserInfo)
                 }
               } catch (userError) {
@@ -123,17 +128,18 @@ export function VKProvider({ children }: VKProviderProps) {
           
           // Получаем данные из URL параметров (fallback или основной способ)
           const userId = urlParams.get('vk_user_id')
-          if (userId) {
+          if (userId && !detectedUser) {
             console.log('[VKProvider] Setting user from URL params, userId:', userId)
-            setVkUser({
+            detectedUser = {
               id: Number(userId),
               first_name: urlParams.get('vk_user_first_name') || 'Пользователь',
               last_name: urlParams.get('vk_user_last_name') || '',
               photo_200: urlParams.get('vk_user_photo_200') || undefined,
               photo_100: urlParams.get('vk_user_photo_100') || undefined,
               domain: urlParams.get('vk_user_domain') || undefined,
-            } as UserInfo)
-          } else {
+            } as UserInfo
+            setVkUser(detectedUser)
+          } else if (!userId) {
             console.log('[VKProvider] No vk_user_id in URL params')
           }
         } else {
@@ -143,16 +149,12 @@ export function VKProvider({ children }: VKProviderProps) {
         console.error('[VKProvider] VK Mini App initialization error:', error)
       } finally {
         setIsReady(true)
-        console.log('[VKProvider] Initialization complete, isVKMiniApp:', isVKMiniApp, 'vkUser:', vkUser)
+        console.log('[VKProvider] Initialization complete, isVKMiniApp:', detectedVKMiniApp, 'vkUser:', detectedUser?.id || 'null')
       }
     }
 
-    // Небольшая задержка для загрузки скрипта VK Bridge
-    const timer = setTimeout(() => {
-      initVK()
-    }, 300)
-
-    return () => clearTimeout(timer)
+    // Начинаем инициализацию сразу, без задержки
+    initVK()
   }, [])
 
   const value: VKContextType = {
