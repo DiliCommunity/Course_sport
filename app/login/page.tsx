@@ -178,7 +178,7 @@ export default function LoginPage() {
 
   // Показываем загрузку пока проверяем авторизацию
   // В Telegram WebApp ждём инициализации только немного
-  if (authLoading || (isTelegramApp && !isReady)) {
+  if (authLoading || (isTelegramApp && !tgReady) || (isVKApp && !vkReady)) {
     return (
       <main className="min-h-screen flex items-center justify-center px-4 py-20">
         <div className="text-center">
