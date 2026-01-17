@@ -341,12 +341,50 @@ export function IFProgressTracker() {
       })
 
       const imgWidth = 210 // A4 width in mm
+      const pageHeight = 297 // A4 height in mm
       const imgHeight = (canvas.height * imgWidth) / canvas.width
 
-      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight)
+      // Если изображение больше одной страницы, разбиваем на несколько страниц
+      if (imgHeight <= pageHeight) {
+        pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight)
+      } else {
+        let heightLeft = imgHeight
+        let yPosition = 0
+        
+        while (heightLeft > 0) {
+          pdf.addImage(imgData, 'PNG', 0, yPosition, imgWidth, imgHeight)
+          heightLeft -= pageHeight
+          
+          if (heightLeft > 0) {
+            pdf.addPage()
+            yPosition -= pageHeight
+          }
+        }
+      }
 
       const fileName = `IF-Прогресс-${new Date().toLocaleDateString('ru-RU').replace(/\//g, '-')}.pdf`
-      pdf.save(fileName)
+      
+      // Используем blob URL для лучшей совместимости с мобильными устройствами
+      const pdfBlob = pdf.output('blob')
+      const blobUrl = URL.createObjectURL(pdfBlob)
+      
+      // Создаем ссылку для скачивания
+      const link = document.createElement('a')
+      link.href = blobUrl
+      link.download = fileName
+      link.style.display = 'none'
+      
+      // Добавляем ссылку в DOM и кликаем
+      document.body.appendChild(link)
+      link.click()
+      
+      // Удаляем ссылку и очищаем blob URL через задержку
+      setTimeout(() => {
+        if (document.body.contains(link)) {
+          document.body.removeChild(link)
+        }
+        URL.revokeObjectURL(blobUrl)
+      }, 1000)
 
       setDownloading(false)
     } catch (error) {

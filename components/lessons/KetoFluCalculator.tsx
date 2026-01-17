@@ -452,7 +452,22 @@ ${recipe.salt} ч.л. соли
               pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight)
               
               const fileName = `Кетогрипп-трекер-${new Date().toLocaleDateString('ru-RU').replace(/\//g, '-')}.pdf`
-              pdf.save(fileName)
+              
+              // Используем blob URL для мобильных устройств
+              const pdfBlob = pdf.output('blob')
+              const blobUrl = URL.createObjectURL(pdfBlob)
+              const link = document.createElement('a')
+              link.href = blobUrl
+              link.download = fileName
+              link.style.display = 'none'
+              document.body.appendChild(link)
+              link.click()
+              setTimeout(() => {
+                if (document.body.contains(link)) {
+                  document.body.removeChild(link)
+                }
+                URL.revokeObjectURL(blobUrl)
+              }, 1000)
               
               setDownloading(false)
             } catch (error) {

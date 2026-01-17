@@ -3451,11 +3451,14 @@ export default function KetoFoodPage() {
       document.body.appendChild(link)
       link.click()
       
-      // Удаляем ссылку и очищаем blob URL через небольшую задержку
+      // Удаляем ссылку и очищаем blob URL через задержку (увеличенная для мобильных)
+      // На мобильных устройствах нужно больше времени для начала загрузки
       setTimeout(() => {
-        document.body.removeChild(link)
+        if (document.body.contains(link)) {
+          document.body.removeChild(link)
+        }
         URL.revokeObjectURL(blobUrl)
-      }, 100)
+      }, 1000) // Увеличено с 100 до 1000 мс для мобильных устройств
 
       setPdfProgress(100)
       

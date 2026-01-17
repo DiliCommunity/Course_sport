@@ -178,10 +178,10 @@ export default function AppPage() {
           <div className="flex items-center justify-between mb-6 pb-6 border-b border-white/10">
             <button
               onClick={() => router.push('/apps')}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-medium transition-all hover:scale-105 active:scale-95"
+              className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white transition-all hover:scale-105 active:scale-95"
+              title="Назад к приложениям"
             >
               <ArrowLeft className="w-5 h-5" />
-              <span>Назад к приложениям</span>
             </button>
             
             <h1 className="font-display font-bold text-2xl text-white">

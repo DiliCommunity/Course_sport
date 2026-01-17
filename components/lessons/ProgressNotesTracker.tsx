@@ -212,7 +212,29 @@ export function ProgressNotesTracker({ courseId }: ProgressNotesTrackerProps) {
         heightLeft -= pageHeight
       }
 
-      pdf.save(`Трекер_прогресса_${new Date().toISOString().split('T')[0]}.pdf`)
+      const fileName = `Трекер_прогресса_${new Date().toISOString().split('T')[0]}.pdf`
+      
+      // Используем blob URL для лучшей совместимости с мобильными устройствами
+      const pdfBlob = pdf.output('blob')
+      const blobUrl = URL.createObjectURL(pdfBlob)
+      
+      // Создаем ссылку для скачивания
+      const link = document.createElement('a')
+      link.href = blobUrl
+      link.download = fileName
+      link.style.display = 'none'
+      
+      // Добавляем ссылку в DOM и кликаем
+      document.body.appendChild(link)
+      link.click()
+      
+      // Удаляем ссылку и очищаем blob URL через задержку
+      setTimeout(() => {
+        if (document.body.contains(link)) {
+          document.body.removeChild(link)
+        }
+        URL.revokeObjectURL(blobUrl)
+      }, 1000)
     } catch (error) {
       console.error('Error generating PDF:', error)
       alert('Ошибка при создании PDF')
@@ -320,14 +342,14 @@ export function ProgressNotesTracker({ courseId }: ProgressNotesTrackerProps) {
             type="date"
             value={dateFilter.start || ''}
             onChange={(e) => setDateFilter({ ...dateFilter, start: e.target.value })}
-            className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm"
+            className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:cursor-pointer [color-scheme:dark]"
             placeholder="От"
           />
           <input
             type="date"
             value={dateFilter.end || ''}
             onChange={(e) => setDateFilter({ ...dateFilter, end: e.target.value })}
-            className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm"
+            className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:cursor-pointer [color-scheme:dark]"
             placeholder="До"
           />
           {(dateFilter.start || dateFilter.end) && (
@@ -374,7 +396,7 @@ export function ProgressNotesTracker({ courseId }: ProgressNotesTrackerProps) {
                   type="date"
                   value={newEntry.date}
                   onChange={(e) => setNewEntry({ ...newEntry, date: e.target.value })}
-                  className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-xl text-white"
+                  className="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-xl text-white [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert [&::-webkit-calendar-picker-indicator]:cursor-pointer [color-scheme:dark]"
                 />
               </div>
 

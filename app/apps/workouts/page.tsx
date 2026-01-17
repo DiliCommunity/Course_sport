@@ -625,11 +625,14 @@ export default function WorkoutGeneratorPage() {
       document.body.appendChild(link)
       link.click()
       
-      // Удаляем ссылку и очищаем blob URL через небольшую задержку
+      // Удаляем ссылку и очищаем blob URL через задержку (увеличенная для мобильных)
+      // На мобильных устройствах нужно больше времени для начала загрузки
       setTimeout(() => {
-        document.body.removeChild(link)
+        if (document.body.contains(link)) {
+          document.body.removeChild(link)
+        }
         URL.revokeObjectURL(blobUrl)
-      }, 100)
+      }, 1000) // Увеличено с 100 до 1000 мс для мобильных устройств
     } catch (error) {
       console.error('Error generating PDF:', error)
       alert('Ошибка при генерации PDF. Попробуйте еще раз.')
@@ -646,9 +649,8 @@ export default function WorkoutGeneratorPage() {
             animate={{ opacity: 1, y: 0 }}
             className="mb-8"
           >
-            <Link href="/apps" className="inline-flex items-center gap-2 text-white/60 hover:text-accent-electric transition-colors mb-6">
-              <ArrowLeft className="w-4 h-4" />
-              Назад к приложениям
+            <Link href="/apps" className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white transition-all hover:scale-105 active:scale-95 mb-6" title="Назад к приложениям">
+              <ArrowLeft className="w-5 h-5" />
             </Link>
             <div className="flex items-center justify-between">
               <div>
@@ -787,9 +789,8 @@ export default function WorkoutGeneratorPage() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-12"
         >
-          <Link href="/apps" className="inline-flex items-center gap-2 text-white/60 hover:text-accent-electric transition-colors mb-6">
-            <ArrowLeft className="w-4 h-4" />
-            Назад к приложениям
+          <Link href="/apps" className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white transition-all hover:scale-105 active:scale-95 mb-6" title="Назад к приложениям">
+            <ArrowLeft className="w-5 h-5" />
           </Link>
           <div className="w-16 h-16 rounded-full bg-gradient-to-br from-accent-electric to-accent-neon flex items-center justify-center mx-auto mb-4">
             <Activity className="w-8 h-8 text-dark-900" />
