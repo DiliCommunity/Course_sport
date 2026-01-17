@@ -445,11 +445,31 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
     .maybeSingle()
 
   if (!existingTx) {
+    // Формируем описание транзакции с учетом типа платежа
+    let transactionDescription = ''
+    if (paymentType === 'balance_topup') {
+      transactionDescription = `Пополнение баланса на ${(amountInKopecks / 100).toLocaleString('ru-RU')} ₽`
+    } else if (paymentType === 'final_modules') {
+      transactionDescription = courseTitle 
+        ? `Оплата финальных модулей курса "${courseTitle}" - ${(amountInKopecks / 100).toLocaleString('ru-RU')} ₽`
+        : `Оплата финальных модулей курса - ${(amountInKopecks / 100).toLocaleString('ru-RU')} ₽`
+    } else if (paymentType === 'promotion' && metadata?.promotion_id === 'two_courses') {
+      transactionDescription = `Оплата 2 курсов по акции - ${(amountInKopecks / 100).toLocaleString('ru-RU')} ₽`
+    } else if (paymentType === 'promotion' && metadata?.promotion_id === 'first_100') {
+      transactionDescription = courseTitle
+        ? `Оплата курса "${courseTitle}" по акции "Первым 100 студентам" - ${(amountInKopecks / 100).toLocaleString('ru-RU')} ₽`
+        : `Оплата курса по акции "Первым 100 студентам" - ${(amountInKopecks / 100).toLocaleString('ru-RU')} ₽`
+    } else {
+      transactionDescription = courseTitle
+        ? `Оплата курса "${courseTitle}" - ${(amountInKopecks / 100).toLocaleString('ru-RU')} ₽`
+        : `Оплата курса - ${(amountInKopecks / 100).toLocaleString('ru-RU')} ₽`
+    }
+
     const transactionData: any = {
       user_id: userId,
       type: transactionType,
       amount: amountInKopecks,
-      description: courseId ? `Оплата курса` : `Пополнение баланса`,
+      description: transactionDescription,
       reference_type: paymentType
     }
 
@@ -515,14 +535,21 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
 
       console.log(`💰 Начисляем комиссию рефереру: ${referrerId}, сумма: ${commissionAmount} копеек (${commissionPercent}%)`)
 
+      // Формируем описание реферальной комиссии
+      const paymentDescription = paymentType === 'final_modules' 
+        ? (courseTitle ? `покупки финальных модулей курса "${courseTitle}"` : 'покупки финальных модулей')
+        : (courseTitle ? `покупки курса "${courseTitle}"` : 'покупки курса')
+      
+      const commissionDescription = `Реферальная комиссия: ${commissionPercent}% (${(commissionAmount / 100).toLocaleString('ru-RU')} ₽) с ${paymentDescription} за ${(amountInKopecks / 100).toLocaleString('ru-RU')} ₽`
+
       // Создаем транзакцию комиссии для реферера
       const { error: commissionTxError } = await supabase
         .from('transactions')
         .insert({
           user_id: referrerId,
-          type: 'earned',
+          type: 'referral_commission',
           amount: commissionAmount,
-          description: `Реферальная комиссия: ${commissionPercent}% с ${paymentType === 'final_modules' ? 'покупки финальных модулей' : 'покупки курса'}`,
+          description: commissionDescription,
           reference_type: 'referral_commission',
           reference_id: courseId
         })

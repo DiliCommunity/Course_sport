@@ -23,6 +23,7 @@ export async function POST(request: NextRequest) {
     // Удаляем cookies
     cookieStore.delete('session_token')
     cookieStore.delete('telegram_id')
+    cookieStore.delete('vk_id')
 
     return NextResponse.json({
       success: true,

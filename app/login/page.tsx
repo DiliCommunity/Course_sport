@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { Lock, Eye, EyeOff, Send, AlertCircle, User, CheckCircle2 } from 'lucide-react'
+import { Lock, Eye, EyeOff, Send, AlertCircle, User, CheckCircle2, MessageCircle } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { useTelegram } from '@/components/providers/TelegramProvider'
+import { useVK } from '@/components/providers/VKProvider'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { useRouter } from 'next/navigation'
 
@@ -15,10 +16,12 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isTelegramLoading, setIsTelegramLoading] = useState(false)
+  const [isVKLoading, setIsVKLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [showLoginForm, setShowLoginForm] = useState(false)
-  const { isTelegramApp, user: telegramUser, isReady } = useTelegram()
+  const { isTelegramApp, user: telegramUser, isReady: tgReady } = useTelegram()
+  const { isVKApp, user: vkUser, isReady: vkReady } = useVK()
   const { user, loading: authLoading, refreshUser } = useAuth()
   const router = useRouter()
 
@@ -29,7 +32,52 @@ export default function LoginPage() {
     }
   }, [authLoading, user, router])
 
-  // Автоматическая авторизация через Telegram (если не показываем форму логина)
+  // Авторизация через VK
+  const handleVKAuth = async () => {
+    if (!vkUser) return
+    
+    setIsVKLoading(true)
+    setError(null)
+
+    try {
+      const referralCode = typeof window !== 'undefined' ? sessionStorage.getItem('pending_referral') : null
+      
+      const response = await fetch('/api/auth/vk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          id: vkUser.id,
+          first_name: vkUser.first_name,
+          last_name: vkUser.last_name,
+          photo_200: vkUser.photo_200,
+          photo_100: vkUser.photo_100,
+          domain: vkUser.domain,
+          referralCode: referralCode || null,
+        }),
+      })
+      
+      if (referralCode && response.ok) {
+        sessionStorage.removeItem('pending_referral')
+      }
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Ошибка авторизации через VK')
+      }
+
+      setSuccess(data.isNewUser ? 'Регистрация успешна!' : 'Вход выполнен!')
+      
+      await new Promise(resolve => setTimeout(resolve, 800))
+      window.location.href = '/profile'
+    } catch (err: any) {
+      setError(err.message || 'Ошибка авторизации через VK')
+      setIsVKLoading(false)
+    }
+  }
+
+  // Авторизация через Telegram
   const handleTelegramAuth = async () => {
     if (!telegramUser) return
     
@@ -203,25 +251,13 @@ export default function LoginPage() {
             </motion.div>
           )}
 
-          {/* Показываем выбор способа входа - Telegram ИЛИ логин/пароль */}
+          {/* Показываем выбор способа входа */}
           {!showLoginForm ? (
-            <div className="space-y-6">
-              {/* Кнопка "Войти через Telegram" - если в Telegram WebApp */}
-              {isTelegramApp && telegramUser && (
-                <>
-                  {/* Telegram User Info */}
-                  <div className="p-4 rounded-xl bg-[#0088cc]/10 border border-[#0088cc]/30">
-                    <div className="flex items-center gap-3 mb-2">
-                      <Send className="w-5 h-5 text-[#0088cc]" />
-                      <span className="font-semibold text-white">Telegram аккаунт</span>
-                    </div>
-                    <p className="text-white/60 text-sm">
-                      {telegramUser.first_name} {telegramUser.last_name || ''}
-                      {telegramUser.username && ` (@${telegramUser.username})`}
-                    </p>
-                  </div>
-
-                  {/* Continue with Telegram */}
+            <div className="space-y-4">
+              {/* Кнопки авторизации через соцсети */}
+              <div className="space-y-3">
+                {/* Кнопка "Войти через Telegram" - если в Telegram WebApp */}
+                {isTelegramApp && telegramUser ? (
                   <Button 
                     className="w-full" 
                     size="lg"
@@ -231,39 +267,55 @@ export default function LoginPage() {
                     <Send className="w-5 h-5 mr-2" />
                     Войти через Telegram
                   </Button>
-
-                  {/* Divider */}
-                  <div className="flex items-center gap-4">
-                    <div className="flex-1 h-px bg-white/10" />
-                    <span className="text-white/40 text-sm">или</span>
-                    <div className="flex-1 h-px bg-white/10" />
-                  </div>
-                </>
-              )}
-
-              {/* Кнопка "Войти через Telegram" - если НЕ в Telegram (переход на бота) */}
-              {!isTelegramApp && (
-                <>
+                ) : (
+                  // Кнопка "Войти через Telegram" - если НЕ в Telegram (переход на бота)
                   <motion.a
                     href="https://t.me/Course_Sport_bot"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-3 w-full p-4 rounded-xl bg-[#0088cc] hover:bg-[#0077b5] transition-colors mb-6"
+                    className="flex items-center justify-center gap-3 w-full p-4 rounded-xl bg-[#0088cc] hover:bg-[#0077b5] transition-colors"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
                     <Send className="w-5 h-5 text-white" />
                     <span className="font-semibold text-white">Войти через Telegram</span>
                   </motion.a>
+                )}
 
-                  {/* Divider */}
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="flex-1 h-px bg-white/10" />
-                    <span className="text-white/40 text-sm">или</span>
-                    <div className="flex-1 h-px bg-white/10" />
-                  </div>
-                </>
-              )}
+                {/* Кнопка "Войти через VK" */}
+                {isVKApp && vkUser ? (
+                  <Button 
+                    className="w-full" 
+                    size="lg"
+                    onClick={handleVKAuth}
+                    isLoading={isVKLoading}
+                    style={{ backgroundColor: '#0077FF', borderColor: '#0077FF' }}
+                  >
+                    <MessageCircle className="w-5 h-5 mr-2" />
+                    Войти через VK
+                  </Button>
+                ) : (
+                  <motion.a
+                    href="https://vk.com/app54424350"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-3 w-full p-4 rounded-xl hover:opacity-90 transition-opacity"
+                    style={{ backgroundColor: '#0077FF', borderColor: '#0077FF' }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <MessageCircle className="w-5 h-5 text-white" />
+                    <span className="font-semibold text-white">Войти через VK</span>
+                  </motion.a>
+                )}
+              </div>
+
+              {/* Divider */}
+              <div className="flex items-center gap-4 my-6">
+                <div className="flex-1 h-px bg-white/10" />
+                <span className="text-white/40 text-sm">или</span>
+                <div className="flex-1 h-px bg-white/10" />
+              </div>
 
               {/* Кнопка для перехода на форму логина/пароля */}
               <button

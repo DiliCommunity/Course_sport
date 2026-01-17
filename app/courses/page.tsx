@@ -6,7 +6,7 @@ import { CourseCard } from '@/components/ui/CourseCard'
 import { ChefHat, Download, Star, ArrowRight, Gift, Zap, BookOpen } from 'lucide-react'
 import { COURSE_IDS } from '@/lib/constants'
 
-// Все курсы: 15% бесплатно, полный доступ за 19₽ (ТЕСТОВАЯ ЦЕНА!)
+// Все курсы: 15% бесплатно, полный доступ за 1699₽
 // Только 2 курса как в HTML версии
 const allCourses = [
   {
@@ -14,7 +14,7 @@ const allCourses = [
     title: 'Кето Диета: Наука Жиросжигания. От Мифов к Результатам',
     shortDescription: 'Изучи основы кето-диеты, научись правильно рассчитывать макросы и составлять меню. Начни свой путь к здоровью и стройности!',
     imageUrl: '/img/keto_course.png',
-    price: 10, // ТЕСТОВАЯ ЦЕНА (10 рублей)
+    price: 1699,
     originalPrice: 4999,
     duration: 1200,
     studentsCount: 12453,
@@ -29,7 +29,7 @@ const allCourses = [
     title: 'Интервальное Голодание: Ваш Режим Дня для Здоровья и Энергии. Ешьте Что Хотите (В Свое Время)',
     shortDescription: 'Освой метод интервального голодания 16/8. Узнай, как правильно голодать и получать максимальную пользу для здоровья и похудения.',
     imageUrl: '/img/interval_course.png',
-    price: 10, // ТЕСТОВАЯ ЦЕНА (10 рублей)
+    price: 1699,
     originalPrice: 4999,
     duration: 960,
     studentsCount: 8721,
@@ -59,7 +59,7 @@ export default function CoursesPage() {
             Все курсы
           </h1>
           <p className="text-white/60 text-lg max-w-2xl mx-auto">
-            Выбери курс и начни обучение. <span className="text-emerald-400 font-semibold">15% контента бесплатно</span>, полный доступ за <span className="text-emerald-400 font-bold">19₽</span>
+            Выбери курс и начни обучение. <span className="text-emerald-400 font-semibold">15% контента бесплатно</span>, полный доступ за <span className="text-emerald-400 font-bold">1699₽</span>
           </p>
         </motion.div>
 
@@ -176,7 +176,7 @@ export default function CoursesPage() {
               </p>
               <div className="inline-flex items-baseline gap-3 mb-6">
                 <span className="text-white/40 line-through text-2xl">4 999₽</span>
-                <span className="font-display font-black text-5xl bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">19₽</span>
+                <span className="font-display font-black text-5xl bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">1699₽</span>
               </div>
             </div>
           </div>

@@ -5,6 +5,7 @@ import './globals.css'
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { TelegramProvider } from '@/components/providers/TelegramProvider'
+import { VKProvider } from '@/components/providers/VKProvider'
 import { AuthProvider } from '@/components/providers/AuthProvider'
 import { ReferralTracker } from '@/components/providers/ReferralTracker'
 import React, { Suspense } from 'react'
@@ -57,8 +58,20 @@ export default function RootLayout({
       <body className="bg-dark-900 text-white font-body antialiased relative">
         {/* Telegram WebApp Script - загружается автоматически Telegram, но добавляем для надёжности */}
         <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" />
+        {/* VK Mini App Script - загружается автоматически VK, но добавляем для надёжности */}
+        <Script 
+          src="https://unpkg.com/@vkid/sdk@2/dist/umd/index.js" 
+          strategy="lazyOnload"
+          onLoad={() => {
+            // VK SDK загрузится автоматически при открытии в VK
+            if (typeof window !== 'undefined' && (window as any).vkid) {
+              console.log('VK ID SDK loaded')
+            }
+          }}
+        />
         <TelegramProvider>
-          <AuthProvider>
+          <VKProvider>
+            <AuthProvider>
             {/* Отслеживание реферальных ссылок */}
             <Suspense fallback={null}>
               <ReferralTracker />
@@ -70,7 +83,8 @@ export default function RootLayout({
               </main>
               <Footer />
             </div>
-          </AuthProvider>
+            </AuthProvider>
+          </VKProvider>
         </TelegramProvider>
       </body>
     </html>
