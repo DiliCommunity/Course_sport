@@ -7,15 +7,15 @@ import { CourseCard } from '@/components/ui/CourseCard'
 import { Button } from '@/components/ui/Button'
 import { COURSE_IDS } from '@/lib/constants'
 
-// Демо данные для курсов (15% бесплатно, полный доступ 19₽ - ТЕСТ)
+// Демо данные для курсов (15% бесплатно, полный доступ 1699₽)
 const featuredCourses = [
   {
     id: COURSE_IDS.KETO,
     title: 'Кето-диета: полное руководство для начинающих',
     shortDescription: 'Изучи основы кето-диеты, научись правильно рассчитывать макросы и составлять меню. Начни свой путь к здоровью!',
     imageUrl: '/img/keto_course.png',
-    price: 1, // ТЕСТОВАЯ ЦЕНА
-    originalPrice: null,
+    price: 1699,
+    originalPrice: 4999,
     duration: 1200,
     studentsCount: 12453,
     rating: 4.9,
@@ -29,8 +29,8 @@ const featuredCourses = [
     title: 'Интервальное голодание 16/8',
     shortDescription: 'Освой метод интервального голодания 16/8. Узнай, как правильно голодать и получать максимальную пользу для здоровья.',
     imageUrl: '/img/interval_course.png',
-    price: 1, // ТЕСТОВАЯ ЦЕНА
-    originalPrice: null,
+    price: 1699,
+    originalPrice: 4999,
     duration: 960,
     studentsCount: 8721,
     rating: 4.8,
@@ -44,8 +44,8 @@ const featuredCourses = [
     title: 'Кето-рецепты: готовим вкусно и полезно',
     shortDescription: 'Более 100 рецептов кето-блюд: от завтраков до десертов. Научись готовить низкоуглеводные блюда, которые понравятся всей семье.',
     imageUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800',
-    price: 1, // ТЕСТОВАЯ ЦЕНА
-    originalPrice: null,
+    price: 1699,
+    originalPrice: 4999,
     duration: 1800,
     studentsCount: 5432,
     rating: 4.9,
@@ -59,8 +59,8 @@ const featuredCourses = [
     title: 'Продвинутое интервальное голодание',
     shortDescription: 'Изучи продвинутые протоколы интервального голодания: 18/6, 20/4, OMAD и длительные голодания. Для опытных практиков.',
     imageUrl: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800',
-    price: 1, // ТЕСТОВАЯ ЦЕНА
-    originalPrice: null,
+    price: 1699,
+    originalPrice: 4999,
     duration: 1440,
     studentsCount: 7856,
     rating: 4.7,
@@ -74,8 +74,8 @@ const featuredCourses = [
     title: 'Кето + интервальное голодание: двойной эффект',
     shortDescription: 'Комбинируй кето-диету с интервальным голоданием для максимальных результатов. Программа трансформации на 30 дней.',
     imageUrl: 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?w=800',
-    price: 1, // ТЕСТОВАЯ ЦЕНА
-    originalPrice: null,
+    price: 1699,
+    originalPrice: 4999,
     duration: 2160,
     studentsCount: 9234,
     rating: 4.8,
@@ -89,8 +89,8 @@ const featuredCourses = [
     title: 'Кето-выпечка и десерты без сахара',
     shortDescription: 'Научись готовить вкусные кето-десерты и выпечку без сахара и муки. Более 50 рецептов сладостей для кето-диеты.',
     imageUrl: 'https://images.unsplash.com/photo-1551024506-0bccd828d307?w=800',
-    price: 1, // ТЕСТОВАЯ ЦЕНА
-    originalPrice: null,
+    price: 1699,
+    originalPrice: 4999,
     duration: 1080,
     studentsCount: 6543,
     rating: 4.9,

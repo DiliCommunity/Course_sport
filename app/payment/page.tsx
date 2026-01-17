@@ -42,7 +42,7 @@ function PaymentPageContent() {
   
   const courseId = searchParams.get('course')
   const courseTitle = searchParams.get('title') || 'Курс'
-  const coursePrice = parseInt(searchParams.get('price') || '19') // ТЕСТОВАЯ ЦЕНА
+  const coursePrice = parseInt(searchParams.get('price') || '169900') // 1699₽ = 169900 копеек
   const type = searchParams.get('type') || 'course_purchase' // course_purchase или balance_topup
   const amount = searchParams.get('amount') ? parseInt(searchParams.get('amount')!) : coursePrice
 

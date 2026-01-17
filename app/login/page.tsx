@@ -21,7 +21,7 @@ export default function LoginPage() {
   const [success, setSuccess] = useState<string | null>(null)
   const [showLoginForm, setShowLoginForm] = useState(false)
   const { isTelegramApp, user: telegramUser, isReady: tgReady } = useTelegram()
-  const { isVKApp, user: vkUser, isReady: vkReady } = useVK()
+  const { isVKMiniApp, vkUser, isReady: vkReady } = useVK()
   const { user, loading: authLoading, refreshUser } = useAuth()
   const router = useRouter()
 
@@ -178,7 +178,7 @@ export default function LoginPage() {
 
   // Показываем загрузку пока проверяем авторизацию
   // В Telegram WebApp ждём инициализации только немного
-  if (authLoading || (isTelegramApp && !tgReady) || (isVKApp && !vkReady)) {
+  if (authLoading || (isTelegramApp && !tgReady) || (isVKMiniApp && !vkReady)) {
     return (
       <main className="min-h-screen flex items-center justify-center px-4 py-20">
         <div className="text-center">
@@ -282,8 +282,8 @@ export default function LoginPage() {
                   </motion.a>
                 )}
 
-                {/* Кнопка "Войти через VK" */}
-                {isVKApp && vkUser ? (
+                {/* Кнопка "Войти через VK" - показываем всегда */}
+                {isVKMiniApp && vkUser ? (
                   <Button 
                     className="w-full" 
                     size="lg"
