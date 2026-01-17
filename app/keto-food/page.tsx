@@ -3014,6 +3014,8 @@ export default function KetoFoodPage() {
   const [hasPurchasedCourse, setHasPurchasedCourse] = useState(false)
   const [isCheckingAccess, setIsCheckingAccess] = useState(true)
   const [isImageFullscreen, setIsImageFullscreen] = useState(false)
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
+  const [pdfProgress, setPdfProgress] = useState(0)
   const { user } = useAuth()
   const router = useRouter()
 
@@ -3041,7 +3043,7 @@ export default function KetoFoodPage() {
 
   // Блокируем прокрутку body и добавляем класс modal-open для скрытия Header
   useEffect(() => {
-    if (selectedRecipe || isImageFullscreen) {
+    if (selectedRecipe || isImageFullscreen || isGeneratingPDF) {
       document.body.style.overflow = 'hidden'
       document.body.style.position = 'fixed'
       document.body.style.width = '100%'
@@ -3059,7 +3061,7 @@ export default function KetoFoodPage() {
       document.body.style.width = ''
       document.body.classList.remove('modal-open')
     }
-  }, [selectedRecipe, isImageFullscreen])
+  }, [selectedRecipe, isImageFullscreen, isGeneratingPDF])
 
   // Все рецепты доступны только после оплаты курса
   const getAvailableRecipes = (categoryRecipes: Recipe[]): Recipe[] => {
@@ -3096,6 +3098,9 @@ export default function KetoFoodPage() {
   }
 
   const downloadRecipePDF = async (recipe: Recipe, portionCount: number = 1) => {
+    setIsGeneratingPDF(true)
+    setPdfProgress(10)
+    
     try {
       // Пересчитываем ингредиенты на количество порций
       const adjustedIngredients = recipe.ingredients.map(i => multiplyIngredient(i, portionCount))
@@ -3108,6 +3113,8 @@ export default function KetoFoodPage() {
 
       const portionText = portionCount === 1 ? 'порцию' : portionCount < 5 ? 'порции' : 'порций'
 
+      setPdfProgress(20)
+      
       // Создаем красивый HTML элемент с темными стилями
       const printContent = document.createElement('div')
       printContent.id = 'recipe-pdf-content'
@@ -3357,9 +3364,13 @@ export default function KetoFoodPage() {
         </div>
       `
 
+      setPdfProgress(40)
+      
       // Добавляем элемент в DOM
       document.body.appendChild(printContent)
 
+      setPdfProgress(50)
+      
       // Используем html2canvas для создания изображения
       const html2canvas = (await import('html2canvas')).default
       const canvas = await html2canvas(printContent, {
@@ -3367,15 +3378,26 @@ export default function KetoFoodPage() {
         useCORS: true,
         logging: false,
         backgroundColor: '#0a0a0b',
-        allowTaint: true
+        allowTaint: true,
+        onclone: (clonedDoc) => {
+          // Улучшаем качество на мобильных устройствах
+          const clonedElement = clonedDoc.getElementById('recipe-pdf-content')
+          if (clonedElement) {
+            clonedElement.style.transform = 'scale(1)'
+          }
+        }
       })
+
+      setPdfProgress(70)
 
       // Удаляем временный элемент
       document.body.removeChild(printContent)
 
+      setPdfProgress(80)
+
       // Конвертируем canvas в изображение и добавляем в PDF
       const { jsPDF } = await import('jspdf')
-      const imgData = canvas.toDataURL('image/png')
+      const imgData = canvas.toDataURL('image/png', 0.95) // Небольшое сжатие для скорости
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
@@ -3386,12 +3408,66 @@ export default function KetoFoodPage() {
       const pageHeight = 297 // A4 height in mm
       const imgHeight = (canvas.height * imgWidth) / canvas.width
 
-      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight)
+      // Если изображение больше одной страницы, разбиваем на несколько страниц
+      if (imgHeight <= pageHeight) {
+        // Изображение помещается на одну страницу
+        pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight)
+      } else {
+        // Изображение нужно разбить на несколько страниц
+        let heightLeft = imgHeight
+        let yPosition = 0 // Позиция по Y для отрисовки части изображения
+        
+        while (heightLeft > 0) {
+          // Добавляем часть изображения на текущую страницу
+          pdf.addImage(imgData, 'PNG', 0, yPosition, imgWidth, imgHeight)
+          
+          // Вычитаем высоту страницы из оставшейся высоты
+          heightLeft -= pageHeight
+          
+          // Если еще есть что отрисовывать, создаем новую страницу
+          if (heightLeft > 0) {
+            pdf.addPage()
+            // Смещаем позицию вверх на высоту страницы, чтобы показать следующую часть
+            yPosition -= pageHeight
+          }
+        }
+      }
+
+      setPdfProgress(90)
 
       const fileName = `${recipe.name.replace(/[^\w\s-]/g, '').replace(/\s+/g, '_')}_${portionCount}_порций.pdf`
-      pdf.save(fileName)
+      
+      // Используем blob URL для лучшей совместимости с мобильными устройствами
+      const pdfBlob = pdf.output('blob')
+      const blobUrl = URL.createObjectURL(pdfBlob)
+      
+      // Создаем ссылку для скачивания
+      const link = document.createElement('a')
+      link.href = blobUrl
+      link.download = fileName
+      link.style.display = 'none'
+      
+      // Добавляем ссылку в DOM и кликаем
+      document.body.appendChild(link)
+      link.click()
+      
+      // Удаляем ссылку и очищаем blob URL через небольшую задержку
+      setTimeout(() => {
+        document.body.removeChild(link)
+        URL.revokeObjectURL(blobUrl)
+      }, 100)
+
+      setPdfProgress(100)
+      
+      // Небольшая задержка перед закрытием модалки, чтобы пользователь увидел прогресс
+      setTimeout(() => {
+        setIsGeneratingPDF(false)
+        setPdfProgress(0)
+      }, 500)
     } catch (error) {
       console.error('Error generating PDF:', error)
+      setIsGeneratingPDF(false)
+      setPdfProgress(0)
       alert('Ошибка при генерации PDF. Попробуйте еще раз.')
     }
   }
@@ -3890,6 +3966,66 @@ export default function KetoFoodPage() {
               {/* Recipe Title Overlay */}
               <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/60 backdrop-blur-md rounded-xl px-6 py-3 border border-white/20">
                 <h3 className="font-display font-bold text-xl text-white text-center">{selectedRecipe.name}</h3>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* PDF Generation Progress Modal */}
+      <AnimatePresence>
+        {isGeneratingPDF && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-dark-900/95 backdrop-blur-lg"
+            style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="relative w-full max-w-md glass rounded-2xl border border-accent-teal/30 p-8 z-[999999]"
+              style={{ position: 'relative', zIndex: 999999 }}
+            >
+              <div className="text-center">
+                {/* Icon */}
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                  className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-accent-teal to-accent-mint flex items-center justify-center shadow-[0_0_30px_rgba(16,185,129,0.4)]"
+                >
+                  <Download className="w-10 h-10 text-dark-900" />
+                </motion.div>
+
+                {/* Title */}
+                <h3 className="text-2xl font-bold text-white mb-4">
+                  Генерация PDF
+                </h3>
+
+                {/* Progress Text */}
+                <p className="text-white/70 mb-6">
+                  {pdfProgress < 30 && 'Подготовка данных...'}
+                  {pdfProgress >= 30 && pdfProgress < 60 && 'Создание изображения...'}
+                  {pdfProgress >= 60 && pdfProgress < 90 && 'Формирование PDF...'}
+                  {pdfProgress >= 90 && 'Завершение...'}
+                </p>
+
+                {/* Progress Bar */}
+                <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden mb-2">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${pdfProgress}%` }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                    className="h-full bg-gradient-to-r from-accent-teal via-accent-mint to-accent-teal rounded-full shadow-[0_0_20px_rgba(16,185,129,0.5)]"
+                  />
+                </div>
+
+                {/* Progress Percentage */}
+                <p className="text-accent-teal font-semibold text-sm">
+                  {pdfProgress}%
+                </p>
               </div>
             </motion.div>
           </motion.div>

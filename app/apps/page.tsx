@@ -150,13 +150,38 @@ export default function AppsPage() {
       }
 
       try {
-        // Проверяем, есть ли хотя бы один оплаченный курс
-        const response = await fetch('/api/courses/access?checkPurchased=true', {
+        // Проверяем доступ через /api/profile/data - там правильная логика проверки покупок
+        const response = await fetch('/api/profile/data', {
           credentials: 'include'
         })
         
+        if (!response.ok) {
+          console.error('[AppsPage] Profile data fetch failed:', response.status, response.statusText)
+          // Fallback: пробуем через /api/courses/access
+          const fallbackResponse = await fetch('/api/courses/access?check_purchased=true', {
+            credentials: 'include'
+          })
+          if (fallbackResponse.ok) {
+            const fallbackData = await fallbackResponse.json()
+            console.log('[AppsPage] Fallback access check:', fallbackData)
+            setHasAccess(fallbackData.hasPurchased === true)
+          } else {
+            setHasAccess(false)
+          }
+          setIsCheckingAccess(false)
+          return
+        }
+        
         const data = await response.json()
-        setHasAccess(data.hasPurchased || false)
+        console.log('[AppsPage] Profile data response:', {
+          enrollmentsCount: data.enrollments?.length || 0,
+          user: !!data.user
+        })
+        
+        // Проверяем, есть ли хотя бы один курс (enrollments)
+        const hasAccessToApps = (data.enrollments && data.enrollments.length > 0)
+        console.log('[AppsPage] User has access to apps:', hasAccessToApps)
+        setHasAccess(hasAccessToApps)
       } catch (error) {
         console.error('Error checking access:', error)
         setHasAccess(false)
