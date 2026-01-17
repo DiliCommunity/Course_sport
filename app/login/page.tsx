@@ -40,26 +40,37 @@ export default function LoginPage() {
 
   // Авторизация через VK
   const handleVKAuth = useCallback(async () => {
-    // Если vkUser еще не загружен, пытаемся получить из URL
+    console.log('[LoginPage] handleVKAuth called with vkUser:', vkUser, 'type:', typeof vkUser)
+    
+    // Если vkUser еще не загружен или это не объект, пытаемся получить из URL
     let userToAuth = vkUser
-    if (!userToAuth && isVKMiniApp) {
-      const urlParams = new URLSearchParams(window.location.search)
-      const userId = urlParams.get('vk_user_id')
-      if (userId) {
-        userToAuth = {
-          id: Number(userId),
-          first_name: urlParams.get('vk_user_first_name') || 'Пользователь',
-          last_name: urlParams.get('vk_user_last_name') || '',
-          photo_200: urlParams.get('vk_user_photo_200') || undefined,
-          photo_100: urlParams.get('vk_user_photo_100') || undefined,
-          domain: urlParams.get('vk_user_domain') || undefined,
+    
+    // Проверяем, что vkUser - это объект с id
+    if (!userToAuth || typeof userToAuth !== 'object' || !userToAuth.id) {
+      console.log('[LoginPage] vkUser is invalid, trying URL params')
+      if (isVKMiniApp) {
+        const urlParams = new URLSearchParams(window.location.search)
+        const userId = urlParams.get('vk_user_id')
+        console.log('[LoginPage] URL params vk_user_id:', userId)
+        if (userId) {
+          userToAuth = {
+            id: Number(userId),
+            first_name: urlParams.get('vk_user_first_name') || 'Пользователь',
+            last_name: urlParams.get('vk_user_last_name') || '',
+            photo_200: urlParams.get('vk_user_photo_200') || undefined,
+            photo_100: urlParams.get('vk_user_photo_100') || undefined,
+            domain: urlParams.get('vk_user_domain') || undefined,
+          }
+          console.log('[LoginPage] Created userToAuth from URL:', { id: userToAuth.id, first_name: userToAuth.first_name })
         }
       }
+    } else {
+      console.log('[LoginPage] Using vkUser from context:', { id: userToAuth.id, first_name: userToAuth.first_name })
     }
     
-    if (!userToAuth) {
+    if (!userToAuth || typeof userToAuth !== 'object' || !userToAuth.id) {
       setError('Не удалось получить данные пользователя VK')
-      console.error('[LoginPage] handleVKAuth: No vkUser available')
+      console.error('[LoginPage] handleVKAuth: No valid vkUser available', { userToAuth, vkUser })
       return
     }
     
@@ -119,6 +130,17 @@ export default function LoginPage() {
 
   // Автоматическая авторизация через VK при загрузке страницы в VK Mini App
   useEffect(() => {
+    console.log('[LoginPage] Auto auth check:', {
+      authLoading,
+      user: !!user,
+      isVKMiniApp,
+      isVKLoading,
+      vkReady,
+      vkAuthAttempted,
+      vkUserType: typeof vkUser,
+      vkUser: vkUser
+    })
+
     // Пропускаем если:
     // - еще идет проверка авторизации
     // - пользователь уже авторизован
@@ -127,12 +149,23 @@ export default function LoginPage() {
     // - VK Provider еще не готов
     // - уже была попытка авторизации
     if (authLoading || user || !isVKMiniApp || isVKLoading || !vkReady || vkAuthAttempted) {
+      console.log('[LoginPage] Auto auth skipped:', {
+        reason: !authLoading ? 'authLoading' : 
+                user ? 'user exists' :
+                !isVKMiniApp ? 'not VK Mini App' :
+                isVKLoading ? 'VK loading' :
+                !vkReady ? 'VK not ready' :
+                vkAuthAttempted ? 'auth attempted' : 'unknown'
+      })
       return
     }
 
     // Получаем данные пользователя из vkUser или из URL параметров
     let userToAuth = vkUser
-    if (!userToAuth) {
+    
+    // Проверяем, что vkUser - это объект с id, а не просто число
+    if (!userToAuth || typeof userToAuth !== 'object' || !userToAuth.id) {
+      console.log('[LoginPage] vkUser is not a valid object, trying URL params')
       const urlParams = new URLSearchParams(window.location.search)
       const userId = urlParams.get('vk_user_id')
       if (userId) {
@@ -144,14 +177,25 @@ export default function LoginPage() {
           photo_100: urlParams.get('vk_user_photo_100') || undefined,
           domain: urlParams.get('vk_user_domain') || undefined,
         }
+        console.log('[LoginPage] User data from URL params:', { id: userToAuth.id, first_name: userToAuth.first_name })
       }
+    } else {
+      console.log('[LoginPage] User data from vkUser:', { id: userToAuth.id, first_name: userToAuth.first_name })
     }
 
     // Если данные пользователя доступны - автоматически авторизуем
-    if (userToAuth && userToAuth.id) {
-      console.log('[LoginPage] Auto VK auth: User data available, starting automatic auth')
+    if (userToAuth && typeof userToAuth === 'object' && userToAuth.id) {
+      console.log('[LoginPage] ✅ Auto VK auth: User data available, starting automatic auth', {
+        userId: userToAuth.id,
+        firstName: userToAuth.first_name
+      })
       setVkAuthAttempted(true)
       handleVKAuth()
+    } else {
+      console.log('[LoginPage] ❌ Auto VK auth: No valid user data', {
+        userToAuth,
+        hasId: userToAuth?.id
+      })
     }
   }, [authLoading, user, isVKMiniApp, vkUser, vkReady, isVKLoading, vkAuthAttempted, handleVKAuth])
 
