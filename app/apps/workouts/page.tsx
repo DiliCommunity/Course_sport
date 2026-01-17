@@ -468,7 +468,7 @@ ${w.notes}
             transition={{ delay: 0.5 }}
             className="mt-8 text-center"
           >
-            <Button onClick={() => setStep('form')} variant="outline">
+            <Button onClick={() => setStep('form')} variant="secondary">
               Создать новый план
             </Button>
           </motion.div>
