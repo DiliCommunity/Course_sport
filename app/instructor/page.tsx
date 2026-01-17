@@ -57,7 +57,18 @@ export default function InstructorPage() {
   const [loading, setLoading] = useState(false)
   const [hasAccess, setHasAccess] = useState(false)
   const [checkingAccess, setCheckingAccess] = useState(true)
+  const [userName, setUserName] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  // Загружаем сохранённое имя из localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedName = localStorage.getItem('instructor_chat_user_name')
+      if (savedName) {
+        setUserName(savedName)
+      }
+    }
+  }, [])
 
   useEffect(() => {
     if (authLoading) return
@@ -92,10 +103,35 @@ export default function InstructorPage() {
   const sendMessage = async () => {
     if (!input.trim() || loading || !hasAccess || !selectedInstructor) return
 
+    const userMessageContent = input.trim()
+    
+    // Пытаемся извлечь имя из сообщения пользователя
+    let extractedName = userName
+    const namePatterns = [
+      /(?:меня|мене) зовут ([А-Яа-яЁёA-Za-z]+)/i,
+      /зовут ([А-Яа-яЁёA-Za-z]+)/i,
+      /я ([А-Яа-яЁёA-Za-z]+)/i,
+      /обращайся ([А-Яа-яЁёA-Za-z]+)/i,
+      /называй ([А-Яа-яЁёA-Za-z]+)/i,
+    ]
+    
+    for (const pattern of namePatterns) {
+      const match = userMessageContent.match(pattern)
+      if (match && match[1]) {
+        extractedName = match[1]
+        // Сохраняем имя в localStorage
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('instructor_chat_user_name', extractedName)
+        }
+        setUserName(extractedName)
+        break
+      }
+    }
+
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
-      content: input.trim(),
+      content: userMessageContent,
       timestamp: new Date()
     }
 
@@ -116,7 +152,8 @@ export default function InstructorPage() {
           conversationHistory: messages.map(m => ({
             role: m.role,
             content: m.content
-          }))
+          })),
+          userName: extractedName
         })
       })
 
@@ -134,6 +171,18 @@ export default function InstructorPage() {
       }
 
       setMessages(prev => [...prev, assistantMessage])
+      
+      // Пытаемся извлечь имя из ответа инструктора (если он подтвердил имя)
+      const responseContent = data.response || ''
+      const nameConfirmationPattern = /(?:отлично|хорошо|понял|поняла),?\s+([А-Яа-яЁёA-Za-z]+)!/i
+      const nameMatch = responseContent.match(nameConfirmationPattern)
+      if (nameMatch && nameMatch[1] && !extractedName) {
+        const confirmedName = nameMatch[1]
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('instructor_chat_user_name', confirmedName)
+        }
+        setUserName(confirmedName)
+      }
     } catch (error) {
       console.error('Error sending message:', error)
       const errorMessage: Message = {
@@ -281,6 +330,7 @@ export default function InstructorPage() {
                 onClick={() => {
                   setSelectedInstructor(null)
                   setMessages([])
+                  // Не очищаем имя при смене инструктора - оно остается сохранённым
                 }}
                 className="text-white/60 hover:text-white transition-colors text-sm"
               >
