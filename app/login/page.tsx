@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { Lock, Eye, EyeOff, Send, AlertCircle, User, CheckCircle2, MessageCircle } from 'lucide-react'
@@ -20,6 +20,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [showLoginForm, setShowLoginForm] = useState(false)
+  const [vkAuthAttempted, setVkAuthAttempted] = useState(false)
   const { isTelegramApp, user: telegramUser, isReady: tgReady } = useTelegram()
   const { isVKMiniApp, vkUser, isReady: vkReady } = useVK()
   const { user, loading: authLoading, refreshUser } = useAuth()
@@ -38,7 +39,7 @@ export default function LoginPage() {
   }, [authLoading, user, router])
 
   // Авторизация через VK
-  const handleVKAuth = async () => {
+  const handleVKAuth = useCallback(async () => {
     // Если vkUser еще не загружен, пытаемся получить из URL
     let userToAuth = vkUser
     if (!userToAuth && isVKMiniApp) {
@@ -65,6 +66,7 @@ export default function LoginPage() {
     console.log('[LoginPage] handleVKAuth: Starting auth with user:', userToAuth.id)
     setIsVKLoading(true)
     setError(null)
+    setVkAuthAttempted(true)
 
     try {
       const referralCode = typeof window !== 'undefined' ? sessionStorage.getItem('pending_referral') : null
@@ -113,7 +115,45 @@ export default function LoginPage() {
       setError(err.message || 'Ошибка авторизации через VK')
       setIsVKLoading(false)
     }
-  }
+  }, [isVKMiniApp, vkUser])
+
+  // Автоматическая авторизация через VK при загрузке страницы в VK Mini App
+  useEffect(() => {
+    // Пропускаем если:
+    // - еще идет проверка авторизации
+    // - пользователь уже авторизован
+    // - не в VK Mini App
+    // - уже идет процесс авторизации
+    // - VK Provider еще не готов
+    // - уже была попытка авторизации
+    if (authLoading || user || !isVKMiniApp || isVKLoading || !vkReady || vkAuthAttempted) {
+      return
+    }
+
+    // Получаем данные пользователя из vkUser или из URL параметров
+    let userToAuth = vkUser
+    if (!userToAuth) {
+      const urlParams = new URLSearchParams(window.location.search)
+      const userId = urlParams.get('vk_user_id')
+      if (userId) {
+        userToAuth = {
+          id: Number(userId),
+          first_name: urlParams.get('vk_user_first_name') || 'Пользователь',
+          last_name: urlParams.get('vk_user_last_name') || '',
+          photo_200: urlParams.get('vk_user_photo_200') || undefined,
+          photo_100: urlParams.get('vk_user_photo_100') || undefined,
+          domain: urlParams.get('vk_user_domain') || undefined,
+        }
+      }
+    }
+
+    // Если данные пользователя доступны - автоматически авторизуем
+    if (userToAuth && userToAuth.id) {
+      console.log('[LoginPage] Auto VK auth: User data available, starting automatic auth')
+      setVkAuthAttempted(true)
+      handleVKAuth()
+    }
+  }, [authLoading, user, isVKMiniApp, vkUser, vkReady, isVKLoading, vkAuthAttempted, handleVKAuth])
 
   // Авторизация через Telegram
   const handleTelegramAuth = async () => {

@@ -212,14 +212,20 @@ export async function POST(request: NextRequest) {
         has_avatar: !!newUserData.avatar_url
       })
       
-      const { data: insertedUser, error: insertError } = await supabase
+      // Используем admin client для создания пользователя, чтобы обойти RLS политики
+      // (если RLS не разрешает INSERT анонимным пользователям)
+      const adminSupabase = createAdminClient()
+      const clientToUse = adminSupabase || supabase
+      const clientType = adminSupabase ? 'admin' : 'regular'
+      
+      const { data: insertedUser, error: insertError } = await clientToUse
         .from('users')
         .insert(newUserData)
         .select()
         .single()
 
       if (insertError) {
-        console.error('[VK Auth] Create VK user error:', {
+        console.error(`[VK Auth] Create VK user error (${clientType} client):`, {
           code: insertError.code,
           message: insertError.message,
           details: insertError.details,
@@ -231,7 +237,7 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      console.log('[VK Auth] ✅ New VK user created successfully:', userId, insertedUser?.username)
+      console.log(`[VK Auth] ✅ New VK user created successfully (${clientType} client):`, userId, insertedUser?.username)
       
       // Обрабатываем реферальный код для нового пользователя
       const referralCode = body.referralCode || body.referral_code

@@ -176,6 +176,13 @@ export function Header() {
                         Мой профиль
                       </Link>
                       <Link
+                        href="/apps"
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-emerald-400/10 transition-colors text-sm text-white/80 hover:text-emerald-400"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        📱 Приложения
+                      </Link>
+                      <Link
                         href="/profile/courses"
                         className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-emerald-400/10 transition-colors text-sm text-white/80 hover:text-emerald-400"
                         onClick={() => setIsUserMenuOpen(false)}
