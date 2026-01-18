@@ -128,76 +128,8 @@ export default function LoginPage() {
     }
   }, [isVKMiniApp, vkUser])
 
-  // Автоматическая авторизация через VK при загрузке страницы в VK Mini App
-  useEffect(() => {
-    console.log('[LoginPage] Auto auth check:', {
-      authLoading,
-      user: !!user,
-      isVKMiniApp,
-      isVKLoading,
-      vkReady,
-      vkAuthAttempted,
-      vkUserType: typeof vkUser,
-      vkUser: vkUser
-    })
-
-    // Пропускаем если:
-    // - еще идет проверка авторизации
-    // - пользователь уже авторизован
-    // - не в VK Mini App
-    // - уже идет процесс авторизации
-    // - VK Provider еще не готов
-    // - уже была попытка авторизации
-    if (authLoading || user || !isVKMiniApp || isVKLoading || !vkReady || vkAuthAttempted) {
-      console.log('[LoginPage] Auto auth skipped:', {
-        reason: !authLoading ? 'authLoading' : 
-                user ? 'user exists' :
-                !isVKMiniApp ? 'not VK Mini App' :
-                isVKLoading ? 'VK loading' :
-                !vkReady ? 'VK not ready' :
-                vkAuthAttempted ? 'auth attempted' : 'unknown'
-      })
-      return
-    }
-
-    // Получаем данные пользователя из vkUser или из URL параметров
-    let userToAuth = vkUser
-    
-    // Проверяем, что vkUser - это объект с id, а не просто число
-    if (!userToAuth || typeof userToAuth !== 'object' || !userToAuth.id) {
-      console.log('[LoginPage] vkUser is not a valid object, trying URL params')
-      const urlParams = new URLSearchParams(window.location.search)
-      const userId = urlParams.get('vk_user_id')
-      if (userId) {
-        userToAuth = {
-          id: Number(userId),
-          first_name: urlParams.get('vk_user_first_name') || 'Пользователь',
-          last_name: urlParams.get('vk_user_last_name') || '',
-          photo_200: urlParams.get('vk_user_photo_200') || undefined,
-          photo_100: urlParams.get('vk_user_photo_100') || undefined,
-          domain: urlParams.get('vk_user_domain') || undefined,
-        }
-        console.log('[LoginPage] User data from URL params:', { id: userToAuth.id, first_name: userToAuth.first_name })
-      }
-    } else {
-      console.log('[LoginPage] User data from vkUser:', { id: userToAuth.id, first_name: userToAuth.first_name })
-    }
-
-    // Если данные пользователя доступны - автоматически авторизуем
-    if (userToAuth && typeof userToAuth === 'object' && userToAuth.id) {
-      console.log('[LoginPage] ✅ Auto VK auth: User data available, starting automatic auth', {
-        userId: userToAuth.id,
-        firstName: userToAuth.first_name
-      })
-      setVkAuthAttempted(true)
-      handleVKAuth()
-    } else {
-      console.log('[LoginPage] ❌ Auto VK auth: No valid user data', {
-        userToAuth,
-        hasId: userToAuth?.id
-      })
-    }
-  }, [authLoading, user, isVKMiniApp, vkUser, vkReady, isVKLoading, vkAuthAttempted, handleVKAuth])
+  // Автоматическая авторизация через VK отключена - пользователь должен нажать кнопку
+  // Автологин был отключен, чтобы пользователь мог выбрать способ входа
 
   // Авторизация через Telegram
   const handleTelegramAuth = async () => {
