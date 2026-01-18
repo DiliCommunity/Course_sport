@@ -13,15 +13,38 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const promotionId = searchParams.get('id')
 
+    console.log('[Promotions Check] Request received, promotionId:', promotionId)
+
     if (!promotionId) {
+      console.error('[Promotions Check] Promotion ID required')
       return NextResponse.json({ error: 'Promotion ID required' }, { status: 400 })
     }
 
-    const supabase = await createClient()
-    const adminSupabase = createAdminClient()
+    let supabase
+    try {
+      supabase = await createClient()
+    } catch (supabaseError: any) {
+      console.error('[Promotions Check] Error creating supabase client:', supabaseError)
+      return NextResponse.json(
+        { error: 'Failed to initialize database connection: ' + (supabaseError.message || 'Unknown error') },
+        { status: 500 }
+      )
+    }
+
+    let adminSupabase
+    try {
+      adminSupabase = createAdminClient()
+    } catch (adminError: any) {
+      console.error('[Promotions Check] Error creating admin client:', adminError)
+      return NextResponse.json(
+        { error: 'Server configuration error: ' + (adminError.message || 'Unknown error') },
+        { status: 500 }
+      )
+    }
 
     if (!adminSupabase) {
-      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
+      console.error('[Promotions Check] Admin client is null')
+      return NextResponse.json({ error: 'Server configuration error: Admin client not available' }, { status: 500 })
     }
 
     // Получаем текущего пользователя (опционально, для проверки его использования акции)
@@ -30,6 +53,7 @@ export async function GET(request: NextRequest) {
     
     try {
       currentUser = await getUserFromSession(supabase)
+      console.log('[Promotions Check] Current user:', currentUser ? currentUser.id : 'null')
       
       // Проверяем, использовал ли текущий пользователь уже эту акцию
       if (currentUser && promotionId === 'first_100') {
@@ -42,28 +66,47 @@ export async function GET(request: NextRequest) {
           .eq('promotion_id', 'first_100')
           .limit(1)
 
-        if (!userPaymentError && userPayments && userPayments.length > 0) {
+        if (userPaymentError) {
+          console.error('[Promotions Check] Error checking user payments:', userPaymentError)
+        } else if (userPayments && userPayments.length > 0) {
           userHasUsedPromotion = true
+          console.log('[Promotions Check] User has already used this promotion')
         }
       }
-    } catch (userError) {
+    } catch (userError: any) {
       // Пользователь не авторизован - это нормально, акция может быть доступна и без авторизации
-      console.log('User not authenticated or error getting user:', userError)
+      console.log('[Promotions Check] User not authenticated or error getting user:', userError?.message || userError)
     }
 
     // Для акции "первым 100 студентам"
     if (promotionId === 'first_100') {
+      console.log('[Promotions Check] Checking first_100 promotion')
+      
       // Получаем количество УНИКАЛЬНЫХ пользователей, которые уже воспользовались акцией
       // Используем distinct по user_id для подсчета уникальных студентов
-      const { data: payments, error } = await adminSupabase
-        .from('payments')
-        .select('user_id')
-        .eq('status', 'completed')
-        .eq('type', 'promotion')
-        .eq('promotion_id', 'first_100')
+      let payments
+      let error
+      
+      try {
+        const result = await adminSupabase
+          .from('payments')
+          .select('user_id')
+          .eq('status', 'completed')
+          .eq('type', 'promotion')
+          .eq('promotion_id', 'first_100')
+        
+        payments = result.data
+        error = result.error
+      } catch (queryError: any) {
+        console.error('[Promotions Check] Error executing query:', queryError)
+        return NextResponse.json(
+          { error: 'Database query error: ' + (queryError.message || 'Unknown error') },
+          { status: 500 }
+        )
+      }
 
       if (error) {
-        console.error('Error counting promotion users:', error)
+        console.error('[Promotions Check] Error counting promotion users:', error)
         return NextResponse.json({ error: 'Database error: ' + error.message }, { status: 500 })
       }
 
@@ -80,6 +123,13 @@ export async function GET(request: NextRequest) {
       const usedSlots = uniqueUserIds.size
       const availableSlots = PROMOTION_LIMITS.first_100 - usedSlots
       const isAvailable = availableSlots > 0 && !userHasUsedPromotion // Акция доступна только если места есть И пользователь еще не использовал
+
+      console.log('[Promotions Check] Promotion status:', {
+        usedSlots,
+        availableSlots,
+        isAvailable,
+        userHasUsedPromotion
+      })
 
       return NextResponse.json({
         promotionId: 'first_100',
@@ -101,9 +151,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ error: 'Unknown promotion' }, { status: 400 })
   } catch (error: any) {
-    console.error('Error checking promotion:', error)
+    console.error('[Promotions Check] Unexpected error:', error)
+    console.error('[Promotions Check] Error stack:', error?.stack)
     return NextResponse.json(
-      { error: error.message || 'Server error' },
+      { error: error?.message || 'Server error: ' + String(error) || 'Unknown error' },
       { status: 500 }
     )
   }

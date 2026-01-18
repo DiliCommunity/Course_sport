@@ -242,7 +242,7 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
                     <div className="flex items-center gap-4">
                       <div className="flex-1">
                         <div className="text-3xl font-bold text-white mb-1">
-                          {formatPrice((accessData.finalPrice || 42475) / 100)}
+                          {formatPrice((accessData.finalPrice || 42500) / 100)}
                         </div>
                         <div className="text-white/60 text-sm">
                           Единоразовая оплата • Доступ навсегда
@@ -321,7 +321,7 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
                         {finalModulesData.module4.moduleTitle}
                       </h2>
                       <p className="text-white/60 text-sm">
-                        {finalModulesData.module4.lessons.length} уроков
+                        {finalModulesData.module4.lessons.length} {finalModulesData.module4.lessons.length === 1 ? 'урок' : finalModulesData.module4.lessons.length < 5 ? 'урока' : 'уроков'}
                       </p>
                     </div>
                   </div>
@@ -591,7 +591,7 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
                         {finalModulesData.module5.moduleTitle}
                       </h2>
                       <p className="text-white/60 text-sm">
-                        {finalModulesData.module5.lessons.length} уроков
+                        {finalModulesData.module5.lessons.length} {finalModulesData.module5.lessons.length === 1 ? 'урок' : finalModulesData.module5.lessons.length < 5 ? 'урока' : 'уроков'}
                       </p>
                     </div>
                   </div>
@@ -873,7 +873,7 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
         courseTitle="Финальные модули (25% курса)"
-        coursePrice={accessData?.finalPrice || 42475}
+        coursePrice={accessData?.finalPrice || 42500}
         courseId={params.id}
         type="final_modules"
         onPaymentSuccess={handlePaymentSuccess}

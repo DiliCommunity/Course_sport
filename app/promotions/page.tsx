@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { Gift, Users, Share2, TrendingUp, ArrowRight, Flame, Star, Zap } from 'lucide-react'
 import { PaymentModal } from '@/components/ui/PaymentModal'
+import { ReferralModal } from '@/components/profile/ReferralModal'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { COURSE_IDS } from '@/lib/constants'
 
@@ -20,6 +21,26 @@ export default function PromotionsPage() {
   const [selectedPromotion, setSelectedPromotion] = useState<string | null>(null)
   const [selectedCourseForPromotion, setSelectedCourseForPromotion] = useState<string>(COURSE_IDS.KETO)
   const [promotionStatus, setPromotionStatus] = useState<Record<string, PromotionStatus>>({})
+  const [isReferralModalOpen, setIsReferralModalOpen] = useState(false)
+  const [referralData, setReferralData] = useState<{
+    referralCode: string
+    hasPurchasedCourse: boolean
+    stats: {
+      total_referred: number
+      total_earned: number
+      active_referrals: number
+      completed_referrals: number
+    }
+  }>({
+    referralCode: '',
+    hasPurchasedCourse: false,
+    stats: {
+      total_referred: 0,
+      total_earned: 0,
+      active_referrals: 0,
+      completed_referrals: 0
+    }
+  })
   
   // Загружаем статус акций
   useEffect(() => {
@@ -36,6 +57,33 @@ export default function PromotionsPage() {
     }
     checkPromotions()
   }, [])
+
+  // Загружаем данные реферальной программы
+  useEffect(() => {
+    if (user && isReferralModalOpen) {
+      const loadReferralData = async () => {
+        try {
+          const response = await fetch('/api/profile/data', { credentials: 'include' })
+          if (response.ok) {
+            const data = await response.json()
+            setReferralData({
+              referralCode: data.referralCode || '',
+              hasPurchasedCourse: data.hasPurchasedCourse || false,
+              stats: data.referralStats || {
+                total_referred: 0,
+                total_earned: 0,
+                active_referrals: 0,
+                completed_referrals: 0
+              }
+            })
+          }
+        } catch (error) {
+          console.error('Error loading referral data:', error)
+        }
+      }
+      loadReferralData()
+    }
+  }, [user, isReferralModalOpen])
   return (
     <main className="min-h-screen pt-28 pb-16">
       {/* Hero Section */}
@@ -160,6 +208,13 @@ export default function PromotionsPage() {
                 </div>
               </div>
               <button
+                onClick={() => {
+                  if (!user) {
+                    window.location.href = '/login?redirect=/promotions'
+                    return
+                  }
+                  setIsReferralModalOpen(true)
+                }}
                 className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-accent-teal to-accent-electric text-dark-900 font-medium hover:shadow-lg hover:shadow-accent-teal/30 transition-all flex items-center justify-center gap-2"
               >
                 <Share2 className="w-4 h-4" />
@@ -293,6 +348,15 @@ export default function PromotionsPage() {
           }}
         />
       )}
+
+      {/* Referral Modal */}
+      <ReferralModal
+        isOpen={isReferralModalOpen}
+        onClose={() => setIsReferralModalOpen(false)}
+        referralCode={referralData.referralCode}
+        hasPurchasedCourse={referralData.hasPurchasedCourse}
+        stats={referralData.stats}
+      />
     </main>
   )
 }
