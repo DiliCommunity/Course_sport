@@ -231,8 +231,26 @@ export async function POST(request: NextRequest) {
           details: insertError.details,
           hint: insertError.hint
         })
+        
+        // Проверяем, является ли ошибка проблемой с constraint
+        if (insertError.code === '23514' || insertError.message?.includes('registration_method_check') || insertError.message?.includes('vk')) {
+          console.error('[VK Auth] ❌ CONSTRAINT ERROR: registration_method check failed. SQL migration may not be executed.')
+          return NextResponse.json(
+            { 
+              error: 'Database constraint error: VK registration method not allowed. Please execute SQL migration: supabase_vk_registration_method_fix.sql',
+              code: 'CONSTRAINT_ERROR',
+              details: insertError.message
+            },
+            { status: 500 }
+          )
+        }
+        
         return NextResponse.json(
-          { error: 'Failed to create user: ' + insertError.message + (insertError.hint ? ' Hint: ' + insertError.hint : '') },
+          { 
+            error: 'Failed to create user: ' + insertError.message + (insertError.hint ? ' Hint: ' + insertError.hint : ''),
+            code: insertError.code,
+            details: insertError.details
+          },
           { status: 500 }
         )
       }

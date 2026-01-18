@@ -28,8 +28,8 @@ export async function GET(request: NextRequest) {
     if (checkPurchased) {
       const user = await getUserFromSession(supabase)
       if (!user) {
-        console.log('[Access Check] No user found in session')
-        return NextResponse.json({ hasPurchased: false })
+        console.log('[Access Check] No user found in session - access denied')
+        return NextResponse.json({ hasPurchased: false }, { status: 200 })
       }
 
       console.log('[Access Check] Checking purchases for user:', user.id)

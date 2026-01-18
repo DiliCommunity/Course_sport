@@ -6519,7 +6519,26 @@ export default function CoursePage({ params }: { params: { id: string } }) {
                     return (
                       <div
                         key={lesson.id}
-                        className="flex items-center gap-4 p-4 hover:bg-white/5 transition-colors"
+                        onClick={() => {
+                          // Скроллим к разделу с бесплатным модулем
+                          const freeModuleSection = document.getElementById('free-module')
+                          if (freeModuleSection) {
+                            freeModuleSection.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                            // Через небольшую задержку скроллим к конкретному уроку
+                            setTimeout(() => {
+                              const lessonElement = document.getElementById(`free-lesson-${lesson.id}`)
+                              if (lessonElement) {
+                                lessonElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                                // Добавляем эффект подсветки
+                                lessonElement.classList.add('ring-2', 'ring-accent-neon', 'ring-opacity-50')
+                                setTimeout(() => {
+                                  lessonElement.classList.remove('ring-2', 'ring-accent-neon', 'ring-opacity-50')
+                                }, 2000)
+                              }
+                            }, 500)
+                          }
+                        }}
+                        className="flex items-center gap-4 p-4 hover:bg-white/5 transition-colors cursor-pointer"
                       >
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
                           isCompleted
@@ -6872,6 +6891,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
             {freeModuleData.lessons.map((lesson, index) => (
               <motion.div
                 key={lesson.id}
+                id={`free-lesson-${lesson.id}`}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}

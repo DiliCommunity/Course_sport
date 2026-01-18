@@ -3022,12 +3022,14 @@ export default function KetoFoodPage() {
   // Проверяем, купил ли пользователь хотя бы один курс
   useEffect(() => {
     const checkAccess = async () => {
+      setIsCheckingAccess(true) // Убеждаемся, что показываем loader
       try {
         const response = await fetch('/api/courses/access?check_purchased=true', {
           credentials: 'include'
         })
         const data = await response.json()
-        setHasPurchasedCourse(data.hasPurchased || false)
+        // Если пользователь не авторизован или не купил курс - доступ запрещен
+        setHasPurchasedCourse(data.hasPurchased === true)
       } catch (error) {
         console.error('Error checking access:', error)
         setHasPurchasedCourse(false)
