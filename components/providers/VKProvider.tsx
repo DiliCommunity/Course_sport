@@ -53,9 +53,15 @@ export function VKProvider({ children }: VKProviderProps) {
       try {
         // Проверяем VK окружение более надежным способом
         const urlParams = new URLSearchParams(window.location.search)
+        const hashParams = new URLSearchParams(window.location.hash.substring(1)) // Параметры могут быть в hash
         const fullUrl = window.location.href
         const hostname = window.location.hostname
         const referrer = document.referrer
+        
+        // Проверяем все возможные источники vk_user_id
+        const userIdFromSearch = urlParams.get('vk_user_id')
+        const userIdFromHash = hashParams.get('vk_user_id')
+        const hasUserId = !!(userIdFromSearch || userIdFromHash)
         
         // Множественные способы определения VK окружения
         const isVKEnv = 
@@ -65,16 +71,25 @@ export function VKProvider({ children }: VKProviderProps) {
           fullUrl.includes('vk.ru') ||
           referrer.includes('vk.com') ||
           referrer.includes('vk.ru') ||
-          urlParams.has('vk_user_id') ||
+          hasUserId || // Основной признак - наличие vk_user_id
           urlParams.has('vk_access_token_settings') ||
-          urlParams.has('vk_platform')
+          urlParams.has('vk_platform') ||
+          urlParams.has('vk_is_app_user') ||
+          hashParams.has('vk_user_id') ||
+          (window as any).vkBridge || // Проверяем наличие VK Bridge в window
+          (window as any).bridge // Альтернативный способ доступа к bridge
         
         console.log('[VKProvider] VK environment check:', {
           hostname,
-          hasVkUserId: urlParams.has('vk_user_id'),
+          fullUrl: fullUrl.substring(0, 100), // Логируем только первые 100 символов
+          hasVkUserId: hasUserId,
+          userIdFromSearch,
+          userIdFromHash,
           hasVkAccessToken: urlParams.has('vk_access_token_settings'),
           hasVkPlatform: urlParams.has('vk_platform'),
-          referrer,
+          hasVkIsAppUser: urlParams.has('vk_is_app_user'),
+          referrer: referrer.substring(0, 100),
+          hasBridge: !!(window as any).vkBridge || !!(window as any).bridge,
           isVKEnv
         })
         
@@ -127,20 +142,28 @@ export function VKProvider({ children }: VKProviderProps) {
           }
           
           // Получаем данные из URL параметров (fallback или основной способ)
-          const userId = urlParams.get('vk_user_id')
+          // Проверяем как search params, так и hash params
+          const userId = userIdFromSearch || userIdFromHash || urlParams.get('vk_user_id') || hashParams.get('vk_user_id')
           if (userId && !detectedUser) {
             console.log('[VKProvider] Setting user from URL params, userId:', userId)
+            // Используем параметры из того источника, где нашли userId
+            const sourceParams = userIdFromSearch || urlParams.get('vk_user_id') ? urlParams : hashParams
             detectedUser = {
               id: Number(userId),
-              first_name: urlParams.get('vk_user_first_name') || 'Пользователь',
-              last_name: urlParams.get('vk_user_last_name') || '',
-              photo_200: urlParams.get('vk_user_photo_200') || undefined,
-              photo_100: urlParams.get('vk_user_photo_100') || undefined,
-              domain: urlParams.get('vk_user_domain') || undefined,
+              first_name: sourceParams.get('vk_user_first_name') || urlParams.get('vk_user_first_name') || hashParams.get('vk_user_first_name') || 'Пользователь',
+              last_name: sourceParams.get('vk_user_last_name') || urlParams.get('vk_user_last_name') || hashParams.get('vk_user_last_name') || '',
+              photo_200: sourceParams.get('vk_user_photo_200') || urlParams.get('vk_user_photo_200') || hashParams.get('vk_user_photo_200') || undefined,
+              photo_100: sourceParams.get('vk_user_photo_100') || urlParams.get('vk_user_photo_100') || hashParams.get('vk_user_photo_100') || undefined,
+              domain: sourceParams.get('vk_user_domain') || urlParams.get('vk_user_domain') || hashParams.get('vk_user_domain') || undefined,
             } as UserInfo
             setVkUser(detectedUser)
+            // Если нашли пользователя через URL - это точно VK Mini App
+            if (!detectedVKMiniApp) {
+              detectedVKMiniApp = true
+              setIsVKMiniApp(true)
+            }
           } else if (!userId) {
-            console.log('[VKProvider] No vk_user_id in URL params')
+            console.log('[VKProvider] No vk_user_id in URL params or hash')
           }
         } else {
           console.log('[VKProvider] Not in VK environment')
@@ -155,6 +178,32 @@ export function VKProvider({ children }: VKProviderProps) {
 
     // Начинаем инициализацию сразу, без задержки
     initVK()
+    
+    // Дополнительная проверка через 1 секунду - иногда данные приходят с задержкой
+    const delayedCheck = setTimeout(() => {
+      const urlParams = new URLSearchParams(window.location.search)
+      const hashParams = new URLSearchParams(window.location.hash.substring(1))
+      const userId = urlParams.get('vk_user_id') || hashParams.get('vk_user_id')
+      
+      if (userId && !isVKMiniApp) {
+        console.log('[VKProvider] Delayed check: Found vk_user_id, setting isVKMiniApp to true')
+        setIsVKMiniApp(true)
+        
+        if (!vkUser) {
+          const detectedUser: UserInfo = {
+            id: Number(userId),
+            first_name: urlParams.get('vk_user_first_name') || hashParams.get('vk_user_first_name') || 'Пользователь',
+            last_name: urlParams.get('vk_user_last_name') || hashParams.get('vk_user_last_name') || '',
+            photo_200: urlParams.get('vk_user_photo_200') || hashParams.get('vk_user_photo_200') || undefined,
+            photo_100: urlParams.get('vk_user_photo_100') || hashParams.get('vk_user_photo_100') || undefined,
+            domain: urlParams.get('vk_user_domain') || hashParams.get('vk_user_domain') || undefined,
+          }
+          setVkUser(detectedUser)
+        }
+      }
+    }, 1000)
+    
+    return () => clearTimeout(delayedCheck)
   }, [])
 
   const value: VKContextType = {
