@@ -69,12 +69,37 @@ const WORKOUT_TYPES = {
 
 const DAYS_OF_WEEK = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье']
 
+interface WorkSchedule {
+  [key: string]: { start: string; end: string; enabled: boolean }
+}
+
 export function FastingWorkoutGenerator() {
   const [chronotype, setChronotype] = useState<Chronotype>('normal')
   const [ifWeek, setIfWeek] = useState<IFWeek>(1)
   const [ifProtocol, setIfProtocol] = useState<IFProtocol>('16/8')
   const [generatedWorkouts, setGeneratedWorkouts] = useState<Workout[]>([])
   const [downloading, setDownloading] = useState(false)
+  
+  // Рабочий график для каждого дня недели
+  const [workSchedule, setWorkSchedule] = useState<WorkSchedule>({
+    'Понедельник': { start: '09:00', end: '18:00', enabled: false },
+    'Вторник': { start: '09:00', end: '18:00', enabled: false },
+    'Среда': { start: '09:00', end: '18:00', enabled: false },
+    'Четверг': { start: '09:00', end: '18:00', enabled: false },
+    'Пятница': { start: '09:00', end: '18:00', enabled: false },
+    'Суббота': { start: '09:00', end: '18:00', enabled: false },
+    'Воскресенье': { start: '09:00', end: '18:00', enabled: false },
+  })
+  
+  // Свободное время для тренировок (до работы, после работы, обеденный перерыв)
+  const [freeTimeSlots, setFreeTimeSlots] = useState({
+    beforeWork: { enabled: true, start: '06:00', end: '08:00' },
+    lunchBreak: { enabled: false, start: '12:00', end: '13:00' },
+    afterWork: { enabled: true, start: '18:00', end: '22:00' },
+  })
+  
+  // Минимальное время на отдых между тренировками (в часах)
+  const [restTimeHours, setRestTimeHours] = useState(24)
 
   const getIFWindow = (protocol: IFProtocol) => {
     switch (protocol) {
@@ -129,6 +154,101 @@ export function FastingWorkoutGenerator() {
     return 30
   }
 
+  // Функция для проверки, свободно ли время для тренировки
+  const isTimeAvailable = (day: string, timeSlot: string): boolean => {
+    const daySchedule = workSchedule[day]
+    
+    // Если рабочий график не включен для этого дня, время доступно
+    if (!daySchedule?.enabled) {
+      return true
+    }
+    
+    const [workStartHour, workStartMin] = daySchedule.start.split(':').map(Number)
+    const [workEndHour, workEndMin] = daySchedule.end.split(':').map(Number)
+    const [slotStartHour, slotStartMin] = timeSlot.split('-')[0].split(':').map(Number)
+    const [slotEndHour, slotEndMin] = timeSlot.split('-')[1].split(':').map(Number)
+    
+    const workStart = workStartHour * 60 + workStartMin
+    const workEnd = workEndHour * 60 + workEndMin
+    const slotStart = slotStartHour * 60 + slotStartMin
+    const slotEnd = slotEndHour * 60 + slotEndMin
+    
+    // Проверяем, не пересекается ли время тренировки с рабочим временем
+    // Тренировка должна быть полностью до или после работы
+    return slotEnd <= workStart || slotStart >= workEnd
+  }
+
+  // Функция для получения доступных временных слотов для тренировки
+  const getAvailableTimeSlots = (day: string): string[] => {
+    const daySchedule = workSchedule[day]
+    const availableSlots: string[] = []
+    
+    // Если рабочий график не включен, используем стандартные времена из хронотипа
+    if (!daySchedule?.enabled) {
+      return CHRONOTYPE_INFO[chronotype].workoutTimes
+    }
+    
+    // Проверяем свободное время до работы
+    if (freeTimeSlots.beforeWork.enabled) {
+      const beforeWorkStart = freeTimeSlots.beforeWork.start
+      const beforeWorkEnd = freeTimeSlots.beforeWork.end
+      const [startHour, startMin] = beforeWorkStart.split(':').map(Number)
+      const [endHour, endMin] = beforeWorkEnd.split(':').map(Number)
+      
+      // Создаем слоты по 1 часу в свободное время до работы
+      let currentHour = startHour
+      while (currentHour < endHour) {
+        const slotStart = `${currentHour.toString().padStart(2, '0')}:00`
+        const slotEnd = `${(currentHour + 1).toString().padStart(2, '0')}:00`
+        const slot = `${slotStart}-${slotEnd}`
+        
+        if (isTimeAvailable(day, slot)) {
+          availableSlots.push(slot)
+        }
+        currentHour++
+      }
+    }
+    
+    // Проверяем обеденный перерыв
+    if (freeTimeSlots.lunchBreak.enabled) {
+      const lunchStart = freeTimeSlots.lunchBreak.start
+      const lunchEnd = freeTimeSlots.lunchBreak.end
+      const slot = `${lunchStart}-${lunchEnd}`
+      
+      if (isTimeAvailable(day, slot)) {
+        availableSlots.push(slot)
+      }
+    }
+    
+    // Проверяем свободное время после работы
+    if (freeTimeSlots.afterWork.enabled) {
+      const afterWorkStart = freeTimeSlots.afterWork.start
+      const afterWorkEnd = freeTimeSlots.afterWork.end
+      const [startHour, startMin] = afterWorkStart.split(':').map(Number)
+      const [endHour, endMin] = afterWorkEnd.split(':').map(Number)
+      
+      // Создаем слоты по 1 часу в свободное время после работы
+      let currentHour = startHour
+      while (currentHour < endHour) {
+        const slotStart = `${currentHour.toString().padStart(2, '0')}:00`
+        const slotEnd = `${(currentHour + 1).toString().padStart(2, '0')}:00`
+        const slot = `${slotStart}-${slotEnd}`
+        
+        if (isTimeAvailable(day, slot)) {
+          availableSlots.push(slot)
+        }
+        currentHour++
+      }
+    }
+    
+    // Если нет доступных слотов, используем стандартные времена из хронотипа
+    if (availableSlots.length === 0) {
+      return CHRONOTYPE_INFO[chronotype].workoutTimes
+    }
+    
+    return availableSlots
+  }
+
   const generateWorkoutPlan = () => {
     const workouts: Workout[] = []
     const ifWindow = getIFWindow(ifProtocol)
@@ -136,18 +256,53 @@ export function FastingWorkoutGenerator() {
     
     // Определяем типы тренировок на неделю
     const weekPlan = [
-      { day: 'Понедельник', type: 'cardio', time: chronoInfo.workoutTimes[0] },
-      { day: 'Вторник', type: 'strength', time: chronoInfo.workoutTimes[0] },
-      { day: 'Среда', type: 'yoga', time: chronoInfo.workoutTimes[1] },
-      { day: 'Четверг', type: 'mixed', time: chronoInfo.workoutTimes[0] },
-      { day: 'Пятница', type: 'cardio', time: chronoInfo.workoutTimes[1] },
-      { day: 'Суббота', type: ifWeek >= 3 ? 'hiit' : 'strength', time: chronoInfo.workoutTimes[0] },
-      { day: 'Воскресенье', type: 'yoga', time: chronoInfo.workoutTimes[2] || chronoInfo.workoutTimes[0] },
+      { day: 'Понедельник', type: 'cardio' },
+      { day: 'Вторник', type: 'strength' },
+      { day: 'Среда', type: 'yoga' },
+      { day: 'Четверг', type: 'mixed' },
+      { day: 'Пятница', type: 'cardio' },
+      { day: 'Суббота', type: ifWeek >= 3 ? 'hiit' : 'strength' },
+      { day: 'Воскресенье', type: 'yoga' },
     ]
+
+    let lastWorkoutDayIndex: number | null = null
+    let lastWorkoutTimeMinutes: number | null = null
 
     weekPlan.forEach((dayPlan, index) => {
       const workoutType = WORKOUT_TYPES[dayPlan.type as keyof typeof WORKOUT_TYPES]
-      const timeHour = parseInt(dayPlan.time.split('-')[0].split(':')[0])
+      
+      // Получаем доступные временные слоты для этого дня
+      const availableSlots = getAvailableTimeSlots(dayPlan.day)
+      
+      // Выбираем время тренировки с учетом времени на отдых
+      let selectedTime = availableSlots[0] || chronoInfo.workoutTimes[0]
+      
+      // Проверяем, прошло ли достаточно времени с последней тренировки
+      if (lastWorkoutDayIndex !== null && lastWorkoutTimeMinutes !== null) {
+        const daysSinceLastWorkout = index - lastWorkoutDayIndex
+        const hoursSinceLastWorkout = (daysSinceLastWorkout * 24) + 
+          ((parseInt(selectedTime.split('-')[0].split(':')[0]) * 60 + 
+            parseInt(selectedTime.split('-')[0].split(':')[1] || '0')) - lastWorkoutTimeMinutes) / 60
+        
+        // Если прошло недостаточно времени, ищем другой слот или пропускаем тренировку в этот день
+        if (hoursSinceLastWorkout < restTimeHours && availableSlots.length > 1) {
+          // Пробуем найти более поздний слот в этот же день
+          for (const slot of availableSlots) {
+            const [slotStartHour, slotStartMin] = slot.split('-')[0].split(':').map(Number)
+            const slotStartMinutes = slotStartHour * 60 + slotStartMin
+            const hoursFromLast = (daysSinceLastWorkout * 24) + 
+              (slotStartMinutes - lastWorkoutTimeMinutes) / 60
+            
+            if (hoursFromLast >= restTimeHours) {
+              selectedTime = slot
+              break
+            }
+          }
+        }
+      }
+      
+      const timeHour = parseInt(selectedTime.split('-')[0].split(':')[0])
+      const timeMinutes = parseInt(selectedTime.split('-')[0].split(':')[1] || '0')
       const isFasting = isFastingTime(`${timeHour}:00`, ifProtocol, chronotype)
       const intensity = getWorkoutIntensity(ifWeek, dayPlan.type)
       const duration = getWorkoutDuration(ifWeek, dayPlan.type)
@@ -174,10 +329,16 @@ export function FastingWorkoutGenerator() {
         notes += ' Высокая интенсивность только при хорошем самочувствии.'
       }
 
+      // Добавляем информацию о рабочем графике, если он включен
+      const daySchedule = workSchedule[dayPlan.day]
+      if (daySchedule?.enabled) {
+        notes += ` Рабочее время: ${daySchedule.start}-${daySchedule.end}.`
+      }
+
       workouts.push({
         id: `workout-${index}`,
         day: dayPlan.day,
-        time: dayPlan.time,
+        time: selectedTime,
         type: workoutType.name,
         duration,
         intensity,
@@ -185,6 +346,10 @@ export function FastingWorkoutGenerator() {
         notes,
         ifStatus: isFasting ? 'fasting' : 'fed',
       })
+      
+      // Обновляем время последней тренировки
+      lastWorkoutDayIndex = index
+      lastWorkoutTimeMinutes = timeHour * 60 + timeMinutes
     })
 
     setGeneratedWorkouts(workouts)
@@ -559,6 +724,233 @@ export function FastingWorkoutGenerator() {
               )
             })}
           </div>
+        </div>
+
+        {/* Рабочий график */}
+        <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+          <label className="text-white/80 text-xs sm:text-sm font-medium mb-3 block flex items-center gap-2">
+            <Clock className="w-4 h-4" />
+            Рабочий график (укажите время работы для каждого дня)
+          </label>
+          <div className="space-y-3">
+            {DAYS_OF_WEEK.map(day => {
+              const daySchedule = workSchedule[day]
+              return (
+                <div key={day} className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                  <div className="flex items-center gap-2 min-w-[140px]">
+                    <input
+                      type="checkbox"
+                      checked={daySchedule?.enabled || false}
+                      onChange={(e) => {
+                        setWorkSchedule(prev => ({
+                          ...prev,
+                          [day]: { ...prev[day], enabled: e.target.checked }
+                        }))
+                      }}
+                      className="w-4 h-4 rounded border-white/20 bg-white/5 text-orange-500 focus:ring-orange-500"
+                    />
+                    <span className="text-white/70 text-xs sm:text-sm font-medium">{day}</span>
+                  </div>
+                  {daySchedule?.enabled && (
+                    <div className="flex items-center gap-2 flex-1">
+                      <input
+                        type="time"
+                        value={daySchedule.start}
+                        onChange={(e) => {
+                          setWorkSchedule(prev => ({
+                            ...prev,
+                            [day]: { ...prev[day], start: e.target.value }
+                          }))
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white text-xs sm:text-sm focus:outline-none focus:border-orange-500/50"
+                      />
+                      <span className="text-white/50 text-xs">—</span>
+                      <input
+                        type="time"
+                        value={daySchedule.end}
+                        onChange={(e) => {
+                          setWorkSchedule(prev => ({
+                            ...prev,
+                            [day]: { ...prev[day], end: e.target.value }
+                          }))
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white text-xs sm:text-sm focus:outline-none focus:border-orange-500/50"
+                      />
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Свободное время для тренировок */}
+        <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+          <label className="text-white/80 text-xs sm:text-sm font-medium mb-3 block flex items-center gap-2">
+            <Activity className="w-4 h-4" />
+            Свободное время для тренировок
+          </label>
+          <div className="space-y-3">
+            {/* До работы */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+              <div className="flex items-center gap-2 min-w-[140px]">
+                <input
+                  type="checkbox"
+                  checked={freeTimeSlots.beforeWork.enabled}
+                  onChange={(e) => {
+                    setFreeTimeSlots(prev => ({
+                      ...prev,
+                      beforeWork: { ...prev.beforeWork, enabled: e.target.checked }
+                    }))
+                  }}
+                  className="w-4 h-4 rounded border-white/20 bg-white/5 text-orange-500 focus:ring-orange-500"
+                />
+                <span className="text-white/70 text-xs sm:text-sm">До работы</span>
+              </div>
+              {freeTimeSlots.beforeWork.enabled && (
+                <div className="flex items-center gap-2 flex-1">
+                  <input
+                    type="time"
+                    value={freeTimeSlots.beforeWork.start}
+                    onChange={(e) => {
+                      setFreeTimeSlots(prev => ({
+                        ...prev,
+                        beforeWork: { ...prev.beforeWork, start: e.target.value }
+                      }))
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white text-xs sm:text-sm focus:outline-none focus:border-orange-500/50"
+                  />
+                  <span className="text-white/50 text-xs">—</span>
+                  <input
+                    type="time"
+                    value={freeTimeSlots.beforeWork.end}
+                    onChange={(e) => {
+                      setFreeTimeSlots(prev => ({
+                        ...prev,
+                        beforeWork: { ...prev.beforeWork, end: e.target.value }
+                      }))
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white text-xs sm:text-sm focus:outline-none focus:border-orange-500/50"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Обеденный перерыв */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+              <div className="flex items-center gap-2 min-w-[140px]">
+                <input
+                  type="checkbox"
+                  checked={freeTimeSlots.lunchBreak.enabled}
+                  onChange={(e) => {
+                    setFreeTimeSlots(prev => ({
+                      ...prev,
+                      lunchBreak: { ...prev.lunchBreak, enabled: e.target.checked }
+                    }))
+                  }}
+                  className="w-4 h-4 rounded border-white/20 bg-white/5 text-orange-500 focus:ring-orange-500"
+                />
+                <span className="text-white/70 text-xs sm:text-sm">Обеденный перерыв</span>
+              </div>
+              {freeTimeSlots.lunchBreak.enabled && (
+                <div className="flex items-center gap-2 flex-1">
+                  <input
+                    type="time"
+                    value={freeTimeSlots.lunchBreak.start}
+                    onChange={(e) => {
+                      setFreeTimeSlots(prev => ({
+                        ...prev,
+                        lunchBreak: { ...prev.lunchBreak, start: e.target.value }
+                      }))
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white text-xs sm:text-sm focus:outline-none focus:border-orange-500/50"
+                  />
+                  <span className="text-white/50 text-xs">—</span>
+                  <input
+                    type="time"
+                    value={freeTimeSlots.lunchBreak.end}
+                    onChange={(e) => {
+                      setFreeTimeSlots(prev => ({
+                        ...prev,
+                        lunchBreak: { ...prev.lunchBreak, end: e.target.value }
+                      }))
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white text-xs sm:text-sm focus:outline-none focus:border-orange-500/50"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* После работы */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+              <div className="flex items-center gap-2 min-w-[140px]">
+                <input
+                  type="checkbox"
+                  checked={freeTimeSlots.afterWork.enabled}
+                  onChange={(e) => {
+                    setFreeTimeSlots(prev => ({
+                      ...prev,
+                      afterWork: { ...prev.afterWork, enabled: e.target.checked }
+                    }))
+                  }}
+                  className="w-4 h-4 rounded border-white/20 bg-white/5 text-orange-500 focus:ring-orange-500"
+                />
+                <span className="text-white/70 text-xs sm:text-sm">После работы</span>
+              </div>
+              {freeTimeSlots.afterWork.enabled && (
+                <div className="flex items-center gap-2 flex-1">
+                  <input
+                    type="time"
+                    value={freeTimeSlots.afterWork.start}
+                    onChange={(e) => {
+                      setFreeTimeSlots(prev => ({
+                        ...prev,
+                        afterWork: { ...prev.afterWork, start: e.target.value }
+                      }))
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white text-xs sm:text-sm focus:outline-none focus:border-orange-500/50"
+                  />
+                  <span className="text-white/50 text-xs">—</span>
+                  <input
+                    type="time"
+                    value={freeTimeSlots.afterWork.end}
+                    onChange={(e) => {
+                      setFreeTimeSlots(prev => ({
+                        ...prev,
+                        afterWork: { ...prev.afterWork, end: e.target.value }
+                      }))
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white text-xs sm:text-sm focus:outline-none focus:border-orange-500/50"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Время на отдых */}
+        <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+          <label className="text-white/80 text-xs sm:text-sm font-medium mb-2 block flex items-center gap-2">
+            <Heart className="w-4 h-4" />
+            Минимальное время на отдых между тренировками
+          </label>
+          <div className="flex items-center gap-3">
+            <input
+              type="range"
+              min="12"
+              max="48"
+              step="6"
+              value={restTimeHours}
+              onChange={(e) => setRestTimeHours(Number(e.target.value))}
+              className="flex-1 h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-orange-500"
+            />
+            <span className="text-white font-medium text-sm min-w-[80px] text-right">
+              {restTimeHours} {restTimeHours === 24 ? 'час' : restTimeHours < 24 ? 'часов' : 'часов'}
+            </span>
+          </div>
+          <p className="text-white/50 text-xs mt-2">
+            Рекомендуется минимум 24 часа между интенсивными тренировками для восстановления
+          </p>
         </div>
       </div>
 
