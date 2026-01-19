@@ -57,6 +57,9 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
   const [tonWalletAddress, setTonWalletAddress] = useState<string | null>(null)
   const [isConnectingTon, setIsConnectingTon] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [showTonInput, setShowTonInput] = useState(false)
+  const [tonInputAddress, setTonInputAddress] = useState('')
+  const [tonTopUpAmount, setTonTopUpAmount] = useState('')
   const { user } = useAuth()
   const { isTelegramApp, webApp } = useTelegram()
 
@@ -182,47 +185,44 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
     }
   }
 
-  const handleConnectTonWallet = async () => {
+  const handleConnectTonWallet = () => {
+    // Показываем инпут для ввода адреса
+    setShowTonInput(true)
+  }
+
+  const handleSubmitTonAddress = async () => {
+    if (!tonInputAddress || !tonInputAddress.trim()) {
+      alert('Введите адрес TON кошелька')
+      return
+    }
+
+    // Валидация адреса TON (базовая)
+    const trimmedAddress = tonInputAddress.trim()
+    if (!trimmedAddress.match(/^(EQ|UQ)[a-zA-Z0-9_-]{46}$/)) {
+      alert('Неверный формат адреса TON кошелька. Адрес должен начинаться с EQ или UQ и содержать 48 символов.')
+      return
+    }
+
     setIsConnectingTon(true)
     
     try {
-      // Открываем диалог подключения TON кошелька
-      if (isTelegramApp && webApp) {
-        // В Telegram показываем инструкцию
-        webApp.showPopup({
-          title: 'Подключение TON кошелька',
-          message: 'Для подключения кошелька:\n\n1. Откройте Tonkeeper или TON Space\n2. Скопируйте адрес вашего кошелька\n3. Вставьте его в поле ниже',
-          buttons: [
-            { id: 'ok', type: 'ok', text: 'Понятно' }
-          ]
-        })
-      }
+      // Сохраняем адрес
+      const response = await fetch('/api/profile/wallet/connect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ wallet_address: trimmedAddress })
+      })
 
-      // Показываем поле для ввода адреса
-      const address = prompt('Введите адрес вашего TON кошелька:')
-      
-      if (address && address.trim()) {
-        // Валидация адреса TON (базовая)
-        if (!address.match(/^(EQ|UQ)[a-zA-Z0-9_-]{46}$/)) {
-          alert('Неверный формат адреса TON кошелька')
-          return
-        }
-
-        // Сохраняем адрес
-        const response = await fetch('/api/profile/wallet/connect', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ wallet_address: address.trim() })
-        })
-
-        if (response.ok) {
-          setTonWalletAddress(address.trim())
-          webApp?.HapticFeedback?.notificationOccurred('success')
-          alert('TON кошелек успешно подключен!')
-        } else {
-          throw new Error('Не удалось сохранить адрес')
-        }
+      if (response.ok) {
+        setTonWalletAddress(trimmedAddress)
+        setShowTonInput(false)
+        setTonInputAddress('')
+        webApp?.HapticFeedback?.notificationOccurred('success')
+        alert('TON кошелек успешно подключен!')
+      } else {
+        const data = await response.json()
+        throw new Error(data.error || 'Не удалось сохранить адрес')
       }
     } catch (err: any) {
       console.error('TON connect error:', err)
@@ -243,10 +243,44 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
 
       if (response.ok) {
         setTonWalletAddress(null)
+        setShowTonInput(false)
+        setTonInputAddress('')
+        webApp?.HapticFeedback?.notificationOccurred('success')
         alert('TON кошелек отключен')
+        // Обновляем данные кошелька
+        await fetchTonWallet()
+      } else {
+        const data = await response.json()
+        throw new Error(data.error || 'Не удалось отключить кошелек')
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error disconnecting wallet:', err)
+      alert(err.message || 'Ошибка при отключении кошелька')
+    }
+  }
+
+  const handleTonTopUp = async () => {
+    const amountNum = parseFloat(tonTopUpAmount)
+    if (!amountNum || amountNum < 100) {
+      alert('Минимальная сумма пополнения: 100₽')
+      return
+    }
+
+    if (!tonWalletAddress) {
+      alert('Сначала подключите TON кошелек')
+      return
+    }
+
+    setIsProcessing(true)
+    try {
+      // Здесь можно добавить логику для пополнения через TON
+      // Пока что просто показываем сообщение
+      alert('Функция пополнения через TON кошелек будет доступна в ближайшее время')
+    } catch (err: any) {
+      console.error('TON top up error:', err)
+      alert(err.message || 'Ошибка при пополнении')
+    } finally {
+      setIsProcessing(false)
     }
   }
 
@@ -705,10 +739,13 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
                         {/* Connected Wallet */}
                         <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/30">
                           <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs text-blue-400 font-semibold">✓ Кошелек подключен</span>
+                            <span className="text-xs text-blue-400 font-semibold flex items-center gap-1">
+                              <Check className="w-3 h-3" />
+                              Кошелек подключен
+                            </span>
                             <button
                               onClick={handleDisconnectTonWallet}
-                              className="text-xs text-red-400 hover:text-red-300"
+                              className="text-xs text-red-400 hover:text-red-300 transition-colors"
                             >
                               Отключить
                             </button>
@@ -736,6 +773,106 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
                           <p className="text-2xl font-bold text-white">— TON</p>
                           <p className="text-xs text-white/40 mt-1">Проверьте баланс в вашем кошельке</p>
                         </div>
+
+                        {/* Top Up TON */}
+                        <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                          <h4 className="text-sm font-semibold text-white mb-3">Пополнить через TON</h4>
+                          <div className="mb-3">
+                            <label className="block text-xs text-white/70 mb-2">Сумма пополнения</label>
+                            <div className="relative">
+                              <input
+                                type="number"
+                                value={tonTopUpAmount}
+                                onChange={(e) => setTonTopUpAmount(e.target.value)}
+                                placeholder="1000"
+                                min="100"
+                                step="100"
+                                className="w-full px-4 py-3 pl-12 rounded-xl bg-white/5 border border-white/10 text-white text-lg font-semibold focus:outline-none focus:border-blue-400 transition-colors"
+                              />
+                              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/60">₽</span>
+                            </div>
+                            <p className="mt-1 text-xs text-white/50">Минимальная сумма: 100₽</p>
+                          </div>
+                          <button
+                            onClick={handleTonTopUp}
+                            disabled={!tonTopUpAmount || parseFloat(tonTopUpAmount) < 100 || isProcessing}
+                            className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                          >
+                            {isProcessing ? (
+                              <>
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                                Обработка...
+                              </>
+                            ) : (
+                              <>
+                                <CreditCard className="w-5 h-5" />
+                                Пополнить через TON
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </>
+                    ) : showTonInput ? (
+                      <>
+                        {/* Input for TON Address */}
+                        <div className="p-6 rounded-xl bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20">
+                          <h4 className="text-lg font-bold text-white mb-2">Введите адрес TON кошелька</h4>
+                          <p className="text-sm text-white/60 mb-4">
+                            Откройте Tonkeeper или TON Space, скопируйте адрес вашего кошелька и вставьте его ниже
+                          </p>
+                          
+                          <div className="mb-4">
+                            <label className="block text-xs text-white/70 mb-2">Адрес кошелька</label>
+                            <input
+                              type="text"
+                              value={tonInputAddress}
+                              onChange={(e) => setTonInputAddress(e.target.value)}
+                              placeholder="EQ или UQ..."
+                              className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-mono text-sm focus:outline-none focus:border-blue-400 transition-colors"
+                            />
+                            <p className="mt-1 text-xs text-white/50">
+                              Адрес должен начинаться с EQ или UQ и содержать 48 символов
+                            </p>
+                          </div>
+
+                          <div className="flex gap-3">
+                            <button
+                              onClick={() => {
+                                setShowTonInput(false)
+                                setTonInputAddress('')
+                              }}
+                              className="flex-1 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-semibold hover:bg-white/10 transition-colors"
+                            >
+                              Отмена
+                            </button>
+                            <button
+                              onClick={handleSubmitTonAddress}
+                              disabled={isConnectingTon || !tonInputAddress.trim()}
+                              className="flex-1 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            >
+                              {isConnectingTon ? (
+                                <>
+                                  <Loader2 className="w-5 h-5 animate-spin" />
+                                  Подключение...
+                                </>
+                              ) : (
+                                'Подключить'
+                              )}
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Supported Wallets */}
+                        <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                          <p className="text-xs text-white/60 mb-3">Поддерживаемые кошельки:</p>
+                          <div className="flex flex-wrap gap-2">
+                            {['Tonkeeper', 'TON Space', 'MyTonWallet', 'OpenMask'].map((wallet) => (
+                              <span key={wallet} className="px-3 py-1 rounded-full bg-white/10 text-xs text-white/80">
+                                {wallet}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
                       </>
                     ) : (
                       <>
@@ -751,19 +888,11 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
                           
                           <motion.button
                             onClick={handleConnectTonWallet}
-                            disabled={isConnectingTon}
-                            className="w-full py-4 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold text-lg shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 transition-all disabled:opacity-50"
+                            className="w-full py-4 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold text-lg shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 transition-all"
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                           >
-                            {isConnectingTon ? (
-                              <>
-                                <Loader2 className="w-5 h-5 animate-spin inline mr-2" />
-                                Подключение...
-                              </>
-                            ) : (
-                              '🔗 Подключить кошелек'
-                            )}
+                            🔗 Подключить кошелек
                           </motion.button>
                         </div>
 
