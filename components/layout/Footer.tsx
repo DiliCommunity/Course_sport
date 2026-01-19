@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Heart, Instagram, Youtube, Send, Mail, Phone, MapPin } from 'lucide-react'
+import { Heart, Instagram, Youtube, Send, Mail, Phone, MapPin, MessageCircle } from 'lucide-react'
 
 const footerLinks = {
   courses: [
@@ -24,6 +24,7 @@ const socialLinks = [
   { icon: Instagram, href: 'https://instagram.com', label: 'Instagram' },
   { icon: Youtube, href: 'https://youtube.com', label: 'YouTube' },
   { icon: Send, href: 'https://t.me', label: 'Telegram' },
+  { icon: MessageCircle, href: 'https://vk.com/coursehealth', label: 'VK' },
 ]
 
 export function Footer() {

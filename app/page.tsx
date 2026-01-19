@@ -75,7 +75,7 @@ export default function HomePage() {
               </Link>
             </div>
             
-            <div className="flex justify-center gap-8 md:gap-16">
+            <div className="flex justify-center gap-8 md:gap-16 mb-8">
               <div className="text-center">
                 <div className="text-3xl md:text-4xl font-black text-accent-electric">50K+</div>
                 <div className="text-sm text-white/50">Студентов</div>
@@ -88,6 +88,21 @@ export default function HomePage() {
                 <div className="text-3xl md:text-4xl font-black text-accent-neon">200+</div>
                 <div className="text-sm text-white/50">Курсов</div>
               </div>
+            </div>
+            
+            {/* VK Group Link */}
+            <div className="flex justify-center">
+              <Link 
+                href="https://vk.com/coursehealth" 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#0077FF]/20 border border-[#0077FF]/40 text-white/80 hover:bg-[#0077FF]/30 hover:border-[#0077FF]/60 transition-all duration-300"
+              >
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12.785 16.241s.287-.033.435-.2c.136-.15.132-.432.132-.432s-.02-1.305.58-1.498c.594-.19 1.354.95 2.16 1.37.605.315 1.064.245 1.064.245l2.15-.031s1.123-.07.59-.955c-.044-.07-.31-.65-1.61-1.84-1.36-1.24-1.178-.52.45-1.59.99-.82 1.39-1.32 1.26-1.53-.118-.19-.85-.14-.85-.14l-2.19.014s-.162-.022-.282.05c-.118.07-.193.23-.193.23s-.35.93-.81 1.72c-.97 1.64-1.36 1.73-1.52 1.63-.37-.2-.28-.8-.28-1.23 0-1.34.21-1.9-.41-2.04-.2-.05-.35-.08-.86-.09-.66-.01-1.22.01-1.54.2-.21.12-.37.38-.27.4.12.02.39.07.53.26.18.24.18.78.18.78s.11 1.63-.26 1.83c-.26.13-.61-.14-1.37-1.63-.39-.75-.68-1.58-.68-1.58s-.06-.15-.16-.23c-.12-.09-.29-.12-.29-.12l-2.08.014s-.31.01-.43.15c-.1.12-.01.38-.01.38s1.58 3.74 3.37 5.63c1.64 1.72 3.51 1.61 3.51 1.61h.84z"/>
+                </svg>
+                <span className="text-sm font-medium">Наша группа ВКонтакте</span>
+              </Link>
             </div>
           </div>
         </div>
