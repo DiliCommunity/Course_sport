@@ -59,7 +59,7 @@ export default function RecipesPage() {
           </div>
           <h1 className="text-2xl font-bold text-white mb-4">Доступ ограничен</h1>
           <p className="text-white/70 mb-6">
-            Генератор меню доступен только для пользователей, которые оплатили хотя бы один курс.
+            Личный шеф доступен только для пользователей, которые оплатили хотя бы один курс.
           </p>
           <Button
             onClick={() => router.push('/courses')}
@@ -82,10 +82,14 @@ export default function RecipesPage() {
           className="mb-8 text-center"
         >
           <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-accent-mint to-accent-teal flex items-center justify-center">
+            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-accent-gold to-accent-electric flex items-center justify-center">
               <ChefHat className="w-8 h-8 text-dark-900" />
             </div>
-            <h1 className="text-4xl font-bold text-white">Генератор меню</h1>
+            <h1 className="text-4xl font-bold">
+              <span className="bg-gradient-to-r from-accent-gold via-accent-electric to-accent-gold bg-clip-text text-transparent">
+                Личный шеф
+              </span>
+            </h1>
           </div>
           <p className="text-white/60 text-lg">
             Создайте персональное меню на основе ваших предпочтений

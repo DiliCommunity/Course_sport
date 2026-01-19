@@ -56,10 +56,10 @@ const apps: App[] = [
   // Генераторы
   {
     id: 'menu-generator',
-    title: 'Генератор меню',
+    title: 'Личный шеф',
     description: 'Создайте персональное кето-меню на день, неделю или месяц',
     icon: <UtensilsCrossed className="w-8 h-8" />,
-    gradient: 'from-emerald-500 to-teal-500',
+    gradient: 'from-accent-gold to-accent-electric',
     href: '/recipes',
     category: 'generator'
   },

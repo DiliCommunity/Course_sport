@@ -3547,8 +3547,10 @@ export default function KetoFoodPage() {
           transition={{ delay: 0.1 }}
           className="text-center mb-8"
         >
-          <h2 className="font-display font-bold text-2xl sm:text-3xl text-white mb-2">
-            ✨ Генератор меню
+          <h2 className="font-display font-bold text-2xl sm:text-3xl mb-2">
+            <span className="bg-gradient-to-r from-accent-gold via-accent-electric to-accent-gold bg-clip-text text-transparent">
+              ✨ Личный шеф
+            </span>
           </h2>
           <p className="text-white/60">Создайте персональное меню на основе ваших предпочтений</p>
         </motion.div>
@@ -3559,23 +3561,25 @@ export default function KetoFoodPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
-              className="glass rounded-2xl p-8 md:p-10 border border-accent-mint/30 hover:border-accent-mint/50 hover:scale-[1.02] transition-all w-full max-w-2xl bg-gradient-to-br from-accent-mint/10 via-dark-800/50 to-accent-teal/10 relative overflow-hidden group cursor-pointer"
+              className="glass rounded-2xl p-8 md:p-10 border border-accent-gold/30 hover:border-accent-gold/50 hover:scale-[1.02] transition-all w-full max-w-2xl bg-gradient-to-br from-accent-gold/10 via-dark-800/50 to-accent-electric/10 relative overflow-hidden group cursor-pointer"
             >
               {/* Gradient background effect */}
-              <div className="absolute inset-0 bg-gradient-to-br from-accent-mint/5 via-transparent to-accent-teal/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute inset-0 bg-gradient-to-br from-accent-gold/5 via-transparent to-accent-electric/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               
               <div className="relative z-10">
                 <div className="text-5xl md:text-6xl mb-6 text-center">🍽️</div>
-                <div className="w-20 h-20 mx-auto mb-6 rounded-xl bg-gradient-to-br from-accent-mint to-accent-teal flex items-center justify-center shadow-[0_0_30px_rgba(16,185,129,0.3)]">
+                <div className="w-20 h-20 mx-auto mb-6 rounded-xl bg-gradient-to-br from-accent-gold to-accent-electric flex items-center justify-center shadow-[0_0_30px_rgba(255,215,0,0.3)]">
                   <ChefHat className="w-10 h-10 text-dark-900" />
                 </div>
-                <h3 className="font-bold text-2xl md:text-3xl text-accent-mint mb-4 text-center">
-                  Генератор персонального меню
+                <h3 className="font-bold text-2xl md:text-3xl mb-4 text-center">
+                  <span className="bg-gradient-to-r from-accent-gold via-accent-electric to-accent-gold bg-clip-text text-transparent">
+                    Личный шеф
+                  </span>
                 </h3>
                 <p className="text-white/60 text-base md:text-lg mb-6 text-center">
                   Выберите период, приём пищи, исключите нежелательные продукты и получите готовое меню с расчётом калорий и КБЖУ
                 </p>
-                <div className="w-full py-4 md:py-5 rounded-xl bg-gradient-to-r from-accent-mint to-accent-teal text-dark-900 font-bold flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(16,185,129,0.4),0_0_50px_rgba(45,212,191,0.2)] hover:shadow-[0_0_40px_rgba(16,185,129,0.6),0_0_80px_rgba(45,212,191,0.4)] hover:scale-105 transition-all duration-300 border-2 border-accent-mint/50 text-lg md:text-xl group-hover:from-accent-teal group-hover:to-accent-mint">
+                <div className="w-full py-4 md:py-5 rounded-xl bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900 font-bold flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(255,215,0,0.4),0_0_50px_rgba(0,217,255,0.2)] hover:shadow-[0_0_40px_rgba(255,215,0,0.6),0_0_80px_rgba(0,217,255,0.4)] hover:scale-105 transition-all duration-300 border-2 border-accent-gold/50 text-lg md:text-xl group-hover:from-accent-electric group-hover:to-accent-gold">
                   <Sparkles className="w-6 h-6" />
                   <span>Создать меню</span>
                   <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />

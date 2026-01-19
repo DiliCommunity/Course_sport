@@ -5,8 +5,13 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Calendar, UtensilsCrossed, ShoppingCart, Download, Check, X, Sparkles, ChefHat } from 'lucide-react'
 import Image from 'next/image'
 import { ketoRecipesData } from './ketoRecipesData'
+import { enhancedMealsDatabase, AVAILABLE_PRODUCTS_LIST } from './enhancedMealsData'
 
-interface Meal {
+export type CookingMethod = 'cold' | 'hot' // Холодные/горячие блюда
+export type DishType = 'first' | 'second' | 'dessert' // Первые, вторые, кондитерские
+export type ProcessingMethod = 'sous_vide' | 'frying' | 'baking' | 'boiling' | 'steaming' | 'grilling' | 'air_frying' // Способы обработки
+
+export interface Meal {
   name: string
   calories: number
   fats: number
@@ -18,6 +23,10 @@ interface Meal {
   instructions?: string[]
   description?: string
   estimatedCost?: number
+  cookingMethod?: CookingMethod // Холодное/горячее
+  dishType?: DishType // Первое/второе/кондитерское
+  processingMethod?: ProcessingMethod // Способ обработки
+  availableProducts?: string[] // Продукты, из которых можно приготовить это блюдо
 }
 
 interface DayMenu {
@@ -33,51 +42,114 @@ interface DayMenu {
 // База данных блюд - используем все рецепты из кето-рецептов
 const MEALS_DATABASE: Record<string, Meal[]> = ketoRecipesData
 
-// Список продуктов для исключения
-const COMMON_PRODUCTS = [
-  'Яйца',
-  'Рыба',
-  'Морепродукты',
-  'Орехи',
-  'Молочные продукты',
-  'Помидоры',
-  'Перец',
-  'Грибы',
-  'Авокадо',
-  'Сыр',
-  'Бекон',
-  'Лосось',
-  'Тунец',
-  'Курица',
-  'Говядина',
-  'Индейка',
-  'Креветки',
-  'Шпинат',
-  'Брокколи',
-  'Цветная капуста',
-]
+// Список продуктов для исключения (используется полный список из AVAILABLE_PRODUCTS_LIST)
+// Для удобства оставляем небольшой список популярных продуктов
+const COMMON_PRODUCTS = AVAILABLE_PRODUCTS_LIST.slice(0, 30) // Первые 30 продуктов для быстрого выбора
 
 export function MenuGenerator() {
+  const [generationMode, setGenerationMode] = useState<'full_menu' | 'single_dish'>('full_menu')
   const [period, setPeriod] = useState<'day' | 'week' | 'month'>('day')
   const [mealType, setMealType] = useState<'breakfast' | 'lunch' | 'dinner' | 'full'>('full')
-  const [productFilter, setProductFilter] = useState<'all' | 'exclude'>('all')
+  const [productFilter, setProductFilter] = useState<'all' | 'exclude' | 'include'>('all')
   const [excludedProducts, setExcludedProducts] = useState<string[]>([])
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([]) // Для режима "одно блюдо по продуктам"
   const [targetCalories, setTargetCalories] = useState('2000')
   const [generatedMenu, setGeneratedMenu] = useState<DayMenu[]>([])
+  const [generatedSingleDish, setGeneratedSingleDish] = useState<Meal | null>(null)
   const [downloading, setDownloading] = useState(false)
   const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null)
+  
+  // Фильтры для полного меню
+  const [cookingMethod, setCookingMethod] = useState<CookingMethod | 'all'>('all') // Холодные/горячие
+  const [dishType, setDishType] = useState<DishType | 'all'>('all') // Первые/вторые/кондитерские
+  const [processingMethod, setProcessingMethod] = useState<ProcessingMethod | 'all'>('all') // Способ обработки
 
-  // Фильтрация блюд по исключенным продуктам
+  // Фильтрация блюд по всем параметрам
   const filterMeals = (meals: Meal[]): Meal[] => {
-    if (productFilter === 'all') {
-      return meals
+    let filtered = meals
+
+    // Фильтр по способу приготовления (холодные/горячие)
+    if (cookingMethod !== 'all' && generationMode === 'full_menu') {
+      filtered = filtered.filter(meal => meal.cookingMethod === cookingMethod)
     }
-    return meals.filter((meal) => {
-      const mealIngredients = meal.ingredients?.join(' ') || ''
-      return !excludedProducts.some((excluded) =>
-        mealIngredients.toLowerCase().includes(excluded.toLowerCase())
-      )
+
+    // Фильтр по типу блюда (первые/вторые/кондитерские)
+    if (dishType !== 'all' && generationMode === 'full_menu') {
+      filtered = filtered.filter(meal => meal.dishType === dishType)
+    }
+
+    // Фильтр по способу обработки
+    if (processingMethod !== 'all' && generationMode === 'full_menu') {
+      filtered = filtered.filter(meal => meal.processingMethod === processingMethod)
+    }
+
+    // Фильтр по исключенным продуктам
+    if (productFilter === 'exclude' && excludedProducts.length > 0) {
+      filtered = filtered.filter((meal) => {
+        const mealIngredients = meal.ingredients?.join(' ') || ''
+        return !excludedProducts.some((excluded) =>
+          mealIngredients.toLowerCase().includes(excluded.toLowerCase())
+        )
+      })
+    }
+
+    // Фильтр по выбранным продуктам (для режима "одно блюдо")
+    if (generationMode === 'single_dish' && selectedProducts.length > 0) {
+      filtered = filtered.filter((meal) => {
+        // Используем availableProducts если есть, иначе ingredients
+        const mealProducts = meal.availableProducts || meal.ingredients || []
+        if (mealProducts.length === 0) return false
+        
+        // Создаем строку из всех продуктов блюда для поиска
+        const mealProductsStr = mealProducts.join(' ').toLowerCase()
+        
+        // Проверяем, содержит ли блюдо хотя бы несколько выбранных продуктов (минимум 1, предпочтительно 2+)
+        const matchingProducts = selectedProducts.filter(selected => {
+          const selectedLower = selected.toLowerCase()
+          // Проверяем точное совпадение или вхождение в название продукта
+          return mealProductsStr.includes(selectedLower) ||
+                 mealProducts.some(product => 
+                   product.toLowerCase().includes(selectedLower) ||
+                   selectedLower.includes(product.toLowerCase().split(' ')[0])
+                 )
+        })
+        
+        // Требуем минимум 1 совпадение
+        return matchingProducts.length >= 1
+      })
+    }
+
+    return filtered
+  }
+
+  // Генерация одного блюда по выбранным продуктам
+  const generateSingleDish = () => {
+    if (selectedProducts.length === 0) {
+      alert('Выберите хотя бы один продукт из вашего холодильника')
+      return
+    }
+
+    // Собираем все блюда из расширенной базы данных
+    const allMeals: Meal[] = []
+    Object.values(enhancedMealsDatabase).forEach(category => {
+      allMeals.push(...category)
     })
+    // Добавляем блюда из старой базы
+    Object.values(MEALS_DATABASE).forEach(category => {
+      if (Array.isArray(category)) {
+        allMeals.push(...category)
+      }
+    })
+
+    const filtered = filterMeals(allMeals)
+
+    if (filtered.length === 0) {
+      alert('Не найдено блюд, которые можно приготовить из выбранных продуктов. Попробуйте выбрать другие продукты.')
+      return
+    }
+
+    const randomDish = filtered[Math.floor(Math.random() * filtered.length)]
+    setGeneratedSingleDish(randomDish)
   }
 
   // Генерация меню
@@ -87,6 +159,31 @@ export function MenuGenerator() {
     const days = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье']
     
     const menu: DayMenu[] = []
+
+    // Собираем все доступные блюда из расширенной и старой базы
+    const allAvailableMeals: Meal[] = []
+    
+    // Добавляем блюда из расширенной базы (применяем фильтры)
+    Object.values(enhancedMealsDatabase).forEach(category => {
+      allAvailableMeals.push(...filterMeals(category))
+    })
+    
+    // Добавляем блюда из старой базы (для завтраков, обедов, ужинов)
+    if (MEALS_DATABASE.breakfast) {
+      allAvailableMeals.push(...filterMeals(MEALS_DATABASE.breakfast))
+    }
+    if (MEALS_DATABASE.lunch) {
+      allAvailableMeals.push(...filterMeals(MEALS_DATABASE.lunch))
+    }
+    if (MEALS_DATABASE.dinner) {
+      allAvailableMeals.push(...filterMeals(MEALS_DATABASE.dinner))
+    }
+    if (MEALS_DATABASE.snacks) {
+      allAvailableMeals.push(...filterMeals(MEALS_DATABASE.snacks))
+    }
+    if (MEALS_DATABASE.desserts) {
+      allAvailableMeals.push(...filterMeals(MEALS_DATABASE.desserts))
+    }
 
     for (let i = 0; i < daysCount; i++) {
       const dayName = period === 'day' ? 'Сегодня' : period === 'week' ? days[i % 7] : `День ${i + 1}`
@@ -102,36 +199,49 @@ export function MenuGenerator() {
 
       // Генерируем блюда в зависимости от выбранного типа
       if (mealType === 'full' || mealType === 'breakfast') {
-        const availableBreakfasts = filterMeals(MEALS_DATABASE.breakfast)
-        if (availableBreakfasts.length > 0) {
-          breakfast = { ...availableBreakfasts[Math.floor(Math.random() * availableBreakfasts.length)] }
+        // Фильтруем завтраки (холодные блюда или блюда без типа)
+        const breakfastMeals = allAvailableMeals.filter(meal => 
+          !meal.dishType || meal.dishType === 'second' || meal.cookingMethod === 'cold'
+        )
+        if (breakfastMeals.length > 0) {
+          breakfast = { ...breakfastMeals[Math.floor(Math.random() * breakfastMeals.length)] }
         }
       }
 
       if (mealType === 'full' || mealType === 'lunch') {
-        const availableLunches = filterMeals(MEALS_DATABASE.lunch)
-        if (availableLunches.length > 0) {
-          lunch = { ...availableLunches[Math.floor(Math.random() * availableLunches.length)] }
+        // Для обеда: первые или вторые блюда
+        const lunchMeals = allAvailableMeals.filter(meal => 
+          meal.dishType === 'first' || meal.dishType === 'second' || !meal.dishType
+        )
+        if (lunchMeals.length > 0) {
+          lunch = { ...lunchMeals[Math.floor(Math.random() * lunchMeals.length)] }
         }
       }
 
       if (mealType === 'full' || mealType === 'dinner') {
-        const availableDinners = filterMeals(MEALS_DATABASE.dinner)
-        if (availableDinners.length > 0) {
-          dinner = { ...availableDinners[Math.floor(Math.random() * availableDinners.length)] }
+        // Для ужина: вторые блюда
+        const dinnerMeals = allAvailableMeals.filter(meal => 
+          meal.dishType === 'second' || !meal.dishType
+        )
+        if (dinnerMeals.length > 0) {
+          dinner = { ...dinnerMeals[Math.floor(Math.random() * dinnerMeals.length)] }
         }
       }
 
       // Добавляем snack и dessert только для полного меню
       if (mealType === 'full') {
-        const availableSnacks = filterMeals(MEALS_DATABASE.snacks)
-        if (availableSnacks && availableSnacks.length > 0) {
-          snack = { ...availableSnacks[Math.floor(Math.random() * availableSnacks.length)] }
+        const snackMeals = allAvailableMeals.filter(meal => 
+          meal.cookingMethod === 'cold' || !meal.dishType
+        )
+        if (snackMeals.length > 0) {
+          snack = { ...snackMeals[Math.floor(Math.random() * snackMeals.length)] }
         }
 
-        const availableDesserts = filterMeals(MEALS_DATABASE.desserts)
-        if (availableDesserts && availableDesserts.length > 0) {
-          dessert = { ...availableDesserts[Math.floor(Math.random() * availableDesserts.length)] }
+        const dessertMeals = allAvailableMeals.filter(meal => 
+          meal.dishType === 'dessert'
+        )
+        if (dessertMeals.length > 0) {
+          dessert = { ...dessertMeals[Math.floor(Math.random() * dessertMeals.length)] }
         }
       }
 
@@ -248,11 +358,11 @@ export function MenuGenerator() {
       let yPosPx = 25 * mmToPx
 
       // Заголовок
-      ctx.fillStyle = '#10b981' // accent-mint
+      ctx.fillStyle = '#FFD700' // accent-gold (золотистый)
       ctx.font = 'bold 36px Arial, sans-serif'
       ctx.textAlign = 'center'
       ctx.textBaseline = 'top'
-      ctx.fillText('Персональное меню', pageWidthPx / 2, yPosPx)
+      ctx.fillText('Личный шеф', pageWidthPx / 2, yPosPx)
       yPosPx += 50
 
       // Период и калории
@@ -416,11 +526,82 @@ export function MenuGenerator() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="p-6 rounded-2xl bg-gradient-to-br from-accent-mint/10 via-dark-800/50 to-accent-teal/10 border-2 border-accent-mint/30 shadow-[0_0_30px_rgba(16,185,129,0.2)]"
+      className="p-6 rounded-2xl bg-gradient-to-br from-accent-gold/10 via-dark-800/50 to-accent-electric/10 border-2 border-accent-gold/30 shadow-[0_0_30px_rgba(255,215,0,0.2)]"
     >
       {/* Параметры */}
       <div className="space-y-6 mb-8">
-        {/* Период */}
+        {/* Режим генерации */}
+        <div>
+          <label className="block text-white/80 text-sm font-medium mb-3 flex items-center gap-2">
+            <ChefHat className="w-4 h-4" />
+            Режим генерации
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => setGenerationMode('full_menu')}
+              className={`py-3 px-4 rounded-xl font-medium transition-all ${
+                generationMode === 'full_menu'
+                  ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
+                  : 'bg-white/5 text-white hover:bg-white/10'
+              }`}
+            >
+              Полное меню
+            </button>
+            <button
+              onClick={() => setGenerationMode('single_dish')}
+              className={`py-3 px-4 rounded-xl font-medium transition-all ${
+                generationMode === 'single_dish'
+                  ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
+                  : 'bg-white/5 text-white hover:bg-white/10'
+              }`}
+            >
+              Одно блюдо по продуктам
+            </button>
+          </div>
+        </div>
+
+        {/* Для режима "одно блюдо по продуктам" */}
+        {generationMode === 'single_dish' && (
+          <>
+            <div>
+              <label className="block text-white/80 text-sm font-medium mb-3 flex items-center gap-2">
+                <ShoppingCart className="w-4 h-4" />
+                Выберите продукты из вашего холодильника
+              </label>
+              <div className="p-4 rounded-xl bg-white/5 border border-white/10 max-h-64 overflow-y-auto">
+                <div className="flex flex-wrap gap-2">
+                  {AVAILABLE_PRODUCTS_LIST.map((product) => (
+                    <button
+                      key={product}
+                      onClick={() => {
+                        if (selectedProducts.includes(product)) {
+                          setSelectedProducts(selectedProducts.filter(p => p !== product))
+                        } else {
+                          setSelectedProducts([...selectedProducts, product])
+                        }
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
+                        selectedProducts.includes(product)
+                          ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
+                          : 'bg-white/5 text-white hover:bg-white/10'
+                      }`}
+                    >
+                      {selectedProducts.includes(product) ? (
+                        <Check className="w-3 h-3" />
+                      ) : null}
+                      {product}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Для режима "полное меню" */}
+        {generationMode === 'full_menu' && (
+          <>
+            {/* Период */}
         <div>
           <label className="block text-white/80 text-sm font-medium mb-3 flex items-center gap-2">
             <Calendar className="w-4 h-4" />
@@ -433,7 +614,7 @@ export function MenuGenerator() {
                 onClick={() => setPeriod(p)}
                 className={`py-3 px-4 rounded-xl font-medium transition-all ${
                   period === p
-                    ? 'bg-gradient-to-r from-accent-mint to-accent-teal text-dark-900'
+                    ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
                     : 'bg-white/5 text-white hover:bg-white/10'
                 }`}
               >
@@ -461,7 +642,7 @@ export function MenuGenerator() {
                 onClick={() => setMealType(value)}
                 className={`py-3 px-4 rounded-xl font-medium transition-all text-sm ${
                   mealType === value
-                    ? 'bg-gradient-to-r from-accent-mint to-accent-teal text-dark-900'
+                    ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
                     : 'bg-white/5 text-white hover:bg-white/10'
                 }`}
               >
@@ -471,37 +652,217 @@ export function MenuGenerator() {
           </div>
         </div>
 
-        {/* Продукты */}
-        <div>
-          <label className="block text-white/80 text-sm font-medium mb-3 flex items-center gap-2">
-            <ShoppingCart className="w-4 h-4" />
-            Продукты
-          </label>
-          <div className="flex gap-3 mb-3">
-            <button
-              onClick={() => {
-                setProductFilter('all')
-                setExcludedProducts([])
-              }}
-              className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all ${
-                productFilter === 'all'
-                  ? 'bg-gradient-to-r from-accent-mint to-accent-teal text-dark-900'
-                  : 'bg-white/5 text-white hover:bg-white/10'
-              }`}
-            >
-              Все
-            </button>
-            <button
-              onClick={() => setProductFilter('exclude')}
-              className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all ${
-                productFilter === 'exclude'
-                  ? 'bg-gradient-to-r from-accent-mint to-accent-teal text-dark-900'
-                  : 'bg-white/5 text-white hover:bg-white/10'
-              }`}
-            >
-              Исключить
-            </button>
-          </div>
+            {/* Способ приготовления */}
+            <div>
+              <label className="block text-white/80 text-sm font-medium mb-3 flex items-center gap-2">
+                <UtensilsCrossed className="w-4 h-4" />
+                Способ приготовления
+              </label>
+              <div className="grid grid-cols-3 gap-3">
+                <button
+                  onClick={() => setCookingMethod('all')}
+                  className={`py-3 px-4 rounded-xl font-medium transition-all text-sm ${
+                    cookingMethod === 'all'
+                      ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
+                      : 'bg-white/5 text-white hover:bg-white/10'
+                  }`}
+                >
+                  Все
+                </button>
+                <button
+                  onClick={() => setCookingMethod('cold')}
+                  className={`py-3 px-4 rounded-xl font-medium transition-all text-sm ${
+                    cookingMethod === 'cold'
+                      ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
+                      : 'bg-white/5 text-white hover:bg-white/10'
+                  }`}
+                >
+                  Холодные
+                </button>
+                <button
+                  onClick={() => setCookingMethod('hot')}
+                  className={`py-3 px-4 rounded-xl font-medium transition-all text-sm ${
+                    cookingMethod === 'hot'
+                      ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
+                      : 'bg-white/5 text-white hover:bg-white/10'
+                  }`}
+                >
+                  Горячие
+                </button>
+              </div>
+            </div>
+
+            {/* Тип блюда */}
+            <div>
+              <label className="block text-white/80 text-sm font-medium mb-3 flex items-center gap-2">
+                <UtensilsCrossed className="w-4 h-4" />
+                Тип блюда
+              </label>
+              <div className="grid grid-cols-4 gap-3">
+                <button
+                  onClick={() => setDishType('all')}
+                  className={`py-3 px-4 rounded-xl font-medium transition-all text-sm ${
+                    dishType === 'all'
+                      ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
+                      : 'bg-white/5 text-white hover:bg-white/10'
+                  }`}
+                >
+                  Все
+                </button>
+                <button
+                  onClick={() => setDishType('first')}
+                  className={`py-3 px-4 rounded-xl font-medium transition-all text-sm ${
+                    dishType === 'first'
+                      ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
+                      : 'bg-white/5 text-white hover:bg-white/10'
+                  }`}
+                >
+                  Первые
+                </button>
+                <button
+                  onClick={() => setDishType('second')}
+                  className={`py-3 px-4 rounded-xl font-medium transition-all text-sm ${
+                    dishType === 'second'
+                      ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
+                      : 'bg-white/5 text-white hover:bg-white/10'
+                  }`}
+                >
+                  Вторые
+                </button>
+                <button
+                  onClick={() => setDishType('dessert')}
+                  className={`py-3 px-4 rounded-xl font-medium transition-all text-sm ${
+                    dishType === 'dessert'
+                      ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
+                      : 'bg-white/5 text-white hover:bg-white/10'
+                  }`}
+                >
+                  Кондитерские
+                </button>
+              </div>
+            </div>
+
+            {/* Способ обработки */}
+            <div>
+              <label className="block text-white/80 text-sm font-medium mb-3 flex items-center gap-2">
+                <UtensilsCrossed className="w-4 h-4" />
+                Способ обработки
+              </label>
+              <div className="grid grid-cols-4 gap-2">
+                <button
+                  onClick={() => setProcessingMethod('all')}
+                  className={`py-2 px-3 rounded-lg font-medium transition-all text-xs ${
+                    processingMethod === 'all'
+                      ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
+                      : 'bg-white/5 text-white hover:bg-white/10'
+                  }`}
+                >
+                  Все
+                </button>
+                <button
+                  onClick={() => setProcessingMethod('sous_vide')}
+                  className={`py-2 px-3 rounded-lg font-medium transition-all text-xs ${
+                    processingMethod === 'sous_vide'
+                      ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
+                      : 'bg-white/5 text-white hover:bg-white/10'
+                  }`}
+                >
+                  Су-вид
+                </button>
+                <button
+                  onClick={() => setProcessingMethod('frying')}
+                  className={`py-2 px-3 rounded-lg font-medium transition-all text-xs ${
+                    processingMethod === 'frying'
+                      ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
+                      : 'bg-white/5 text-white hover:bg-white/10'
+                  }`}
+                >
+                  Жарка
+                </button>
+                <button
+                  onClick={() => setProcessingMethod('baking')}
+                  className={`py-2 px-3 rounded-lg font-medium transition-all text-xs ${
+                    processingMethod === 'baking'
+                      ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
+                      : 'bg-white/5 text-white hover:bg-white/10'
+                  }`}
+                >
+                  Запекание
+                </button>
+                <button
+                  onClick={() => setProcessingMethod('boiling')}
+                  className={`py-2 px-3 rounded-lg font-medium transition-all text-xs ${
+                    processingMethod === 'boiling'
+                      ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
+                      : 'bg-white/5 text-white hover:bg-white/10'
+                  }`}
+                >
+                  Варка
+                </button>
+                <button
+                  onClick={() => setProcessingMethod('steaming')}
+                  className={`py-2 px-3 rounded-lg font-medium transition-all text-xs ${
+                    processingMethod === 'steaming'
+                      ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
+                      : 'bg-white/5 text-white hover:bg-white/10'
+                  }`}
+                >
+                  Паровая
+                </button>
+                <button
+                  onClick={() => setProcessingMethod('grilling')}
+                  className={`py-2 px-3 rounded-lg font-medium transition-all text-xs ${
+                    processingMethod === 'grilling'
+                      ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
+                      : 'bg-white/5 text-white hover:bg-white/10'
+                  }`}
+                >
+                  Гриль
+                </button>
+                <button
+                  onClick={() => setProcessingMethod('air_frying')}
+                  className={`py-2 px-3 rounded-lg font-medium transition-all text-xs ${
+                    processingMethod === 'air_frying'
+                      ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
+                      : 'bg-white/5 text-white hover:bg-white/10'
+                  }`}
+                >
+                  Аэрогриль
+                </button>
+              </div>
+            </div>
+
+            {/* Продукты */}
+            <div>
+              <label className="block text-white/80 text-sm font-medium mb-3 flex items-center gap-2">
+                <ShoppingCart className="w-4 h-4" />
+                Продукты (исключить)
+              </label>
+              <div className="flex gap-3 mb-3">
+                <button
+                  onClick={() => {
+                    setProductFilter('all')
+                    setExcludedProducts([])
+                  }}
+                  className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all ${
+                    productFilter === 'all'
+                      ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
+                      : 'bg-white/5 text-white hover:bg-white/10'
+                  }`}
+                >
+                  Все
+                </button>
+                <button
+                  onClick={() => setProductFilter('exclude')}
+                  className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all ${
+                    productFilter === 'exclude'
+                      ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
+                      : 'bg-white/5 text-white hover:bg-white/10'
+                  }`}
+                >
+                  Исключить
+                </button>
+              </div>
 
           {productFilter === 'exclude' && (
             <div className="p-4 rounded-xl bg-white/5 border border-white/10">
@@ -530,32 +891,82 @@ export function MenuGenerator() {
           )}
         </div>
 
-        {/* Калории */}
-        <div>
-          <label className="block text-white/80 text-sm font-medium mb-2">Калории</label>
-          <input
-            type="number"
-            value={targetCalories}
-            onChange={(e) => setTargetCalories(e.target.value)}
-            placeholder="2000"
-            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-accent-mint/50 focus:ring-2 focus:ring-accent-mint/20 transition-all"
-          />
-          {mealType === 'full' && (
-            <p className="mt-2 text-xs text-white/60">
-              * Целевые калории применяются только к основным приемам пищи (завтрак, обед, ужин). Перекусы и десерты не корректируются.
-            </p>
-          )}
-        </div>
+            {/* Калории */}
+            <div>
+              <label className="block text-white/80 text-sm font-medium mb-2">Калории</label>
+              <input
+                type="number"
+                value={targetCalories}
+                onChange={(e) => setTargetCalories(e.target.value)}
+                placeholder="2000"
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-accent-gold/50 focus:ring-2 focus:ring-accent-gold/20 transition-all"
+              />
+              {mealType === 'full' && (
+                <p className="mt-2 text-xs text-white/60">
+                  * Целевые калории применяются только к основным приемам пищи (завтрак, обед, ужин). Перекусы и десерты не корректируются.
+                </p>
+              )}
+            </div>
+          </>
+        )}
+
       </div>
 
       {/* Кнопка генерации */}
       <button
-        onClick={generateMenu}
-        className="w-full py-4 rounded-xl bg-gradient-to-r from-accent-mint to-accent-teal text-dark-900 font-bold text-lg hover:shadow-lg hover:shadow-accent-mint/30 transition-all mb-6 flex items-center justify-center gap-2"
+        onClick={() => {
+          if (generationMode === 'full_menu') {
+            generateMenu()
+          } else {
+            generateSingleDish()
+          }
+        }}
+        className="w-full py-4 rounded-xl bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900 font-bold text-lg hover:shadow-lg hover:shadow-accent-gold/30 transition-all mb-6 flex items-center justify-center gap-2"
       >
         <Sparkles className="w-5 h-5" />
-        Хочу меню
+        {generationMode === 'full_menu' ? 'Хочу меню' : 'Найти блюдо'}
       </button>
+
+      {/* Результат для режима "одно блюдо" */}
+      {generationMode === 'single_dish' && generatedSingleDish && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="mb-6"
+        >
+          <div className="p-6 rounded-xl bg-white/5 border border-white/10">
+            <div className="flex items-start justify-between mb-4">
+              <h3 className="text-xl font-bold text-white">{generatedSingleDish.name}</h3>
+              <button
+                onClick={() => setSelectedMeal(generatedSingleDish)}
+                className="px-4 py-2 rounded-lg bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900 font-medium hover:shadow-lg transition-all"
+              >
+                Подробнее
+              </button>
+            </div>
+            {generatedSingleDish.description && (
+              <p className="text-white/70 mb-4">{generatedSingleDish.description}</p>
+            )}
+            <div className="flex items-center flex-wrap gap-4 mb-4 p-4 rounded-xl bg-white/5">
+              <span className="text-white/60">Калории: <span className="text-white font-semibold">{generatedSingleDish.calories} ккал</span></span>
+              <span className="text-yellow-400">Жиры: <span className="font-semibold">{generatedSingleDish.fats}г</span></span>
+              <span className="text-blue-400">Белки: <span className="font-semibold">{generatedSingleDish.proteins}г</span></span>
+              <span className="text-green-400">Углеводы: <span className="font-semibold">{generatedSingleDish.carbs}г</span></span>
+              <span className="text-white/60">Время: <span className="text-white font-semibold">{generatedSingleDish.prepTime} мин</span></span>
+            </div>
+            {generatedSingleDish.ingredients && generatedSingleDish.ingredients.length > 0 && (
+              <div className="mb-4">
+                <h4 className="text-white font-semibold mb-2">Ингредиенты:</h4>
+                <ul className="list-disc list-inside text-white/70 space-y-1">
+                  {generatedSingleDish.ingredients.map((ingredient, idx) => (
+                    <li key={idx}>{ingredient}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </motion.div>
+      )}
 
       {/* Результат */}
       {generatedMenu.length > 0 && (
@@ -575,7 +986,7 @@ export function MenuGenerator() {
                 className="p-4 rounded-xl bg-white/5 border border-white/10"
               >
                 <h4 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
-                  <UtensilsCrossed className="w-5 h-5 text-accent-mint" />
+                  <UtensilsCrossed className="w-5 h-5 text-accent-gold" />
                   {day.day} {day.date && `(${day.date})`}
                 </h4>
 

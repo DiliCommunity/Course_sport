@@ -29,7 +29,7 @@ export default function HomePage() {
             <div className="flex-1">
               <p className="text-sm md:text-base font-bold text-white">
                 <span className="bg-gradient-to-r from-accent-gold via-accent-electric to-accent-gold bg-clip-text text-transparent">
-                  После оплаты первого курса — генератор меню в подарок!
+                  После оплаты первого курса — Личный шеф в подарок!
                 </span>
               </p>
               <p className="text-xs md:text-sm text-white/70 mt-1">
