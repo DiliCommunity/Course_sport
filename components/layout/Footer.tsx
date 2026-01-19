@@ -125,13 +125,13 @@ export function Footer() {
         {/* Contact Info */}
         <div className="mt-12 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 text-sm text-white/50">
-            <a href="mailto:info@coursehealth.ru" className="flex items-center gap-2 hover:text-accent-teal transition-colors">
+            <a href="mailto:coursehealth15@gmail.com" className="flex items-center gap-2 hover:text-accent-teal transition-colors">
               <Mail className="w-4 h-4" />
-              info@coursehealth.ru
+              coursehealth15@gmail.com
             </a>
-            <a href="tel:+79001234567" className="flex items-center gap-2 hover:text-accent-teal transition-colors">
+            <a href="tel:+79159650660" className="flex items-center gap-2 hover:text-accent-teal transition-colors">
               <Phone className="w-4 h-4" />
-              +7 (900) 123-45-67
+              +7 (915) 965 0660
             </a>
           </div>
           
