@@ -231,7 +231,20 @@ export function Header() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 top-20 bg-dark-900/95 backdrop-blur-lg z-40 md:hidden overflow-hidden"
-            onClick={() => setIsMobileMenuOpen(false)}
+            onClick={(e) => {
+              // Закрываем только при клике на overlay (темный фон), не при скролле
+              if (e.target === e.currentTarget) {
+                setIsMobileMenuOpen(false)
+              }
+            }}
+            onWheel={(e) => {
+              // Предотвращаем закрытие меню при скролле
+              e.stopPropagation()
+            }}
+            onTouchMove={(e) => {
+              // Предотвращаем закрытие меню при скролле на мобильных
+              e.stopPropagation()
+            }}
           >
             <motion.div
               initial={{ x: '-100%' }}
@@ -240,8 +253,37 @@ export function Header() {
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
               className="h-full w-80 bg-dark-800 border-r border-emerald-400/20 shadow-[5px_0_30px_rgba(0,0,0,0.5)] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
+              onWheel={(e) => {
+                // Останавливаем всплытие события скролла
+                e.stopPropagation()
+              }}
+              onTouchMove={(e) => {
+                // Останавливаем всплытие события скролла на мобильных
+                e.stopPropagation()
+              }}
             >
               <div className="flex flex-col h-full">
+                {/* Header с крестиком */}
+                <div className="flex items-center justify-between px-6 py-4 border-b border-emerald-400/20">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-teal to-accent-mint p-0.5">
+                      <div className="w-full h-full rounded-[10px] bg-dark-900 flex items-center justify-center">
+                        <span className="text-xl">💚</span>
+                      </div>
+                    </div>
+                    <span className="font-display font-bold text-lg">
+                      <span className="text-white">Course</span>
+                      <span className="gradient-text">Health</span>
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="w-10 h-10 rounded-xl bg-emerald-400/10 border border-emerald-400/20 hover:bg-emerald-400/20 flex items-center justify-center transition-colors"
+                  >
+                    <X className="w-5 h-5 text-emerald-400" />
+                  </button>
+                </div>
+                
                 {/* Навигационные ссылки - показываем всегда */}
                 <div className="px-6 py-8 space-y-2">
                   {navLinks.map((link, index) => (

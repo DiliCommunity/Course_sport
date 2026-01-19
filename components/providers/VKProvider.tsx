@@ -158,8 +158,8 @@ export function VKProvider({ children }: VKProviderProps) {
           }
           
           // Получаем данные из URL параметров (fallback или основной способ)
-          // Проверяем как search params, так и hash params, а также cookie и localStorage
-          const userId = userIdFromSearch || userIdFromHash || urlParams.get('vk_user_id') || hashParams.get('vk_user_id') || storedVkUserId || vkIdFromCookie
+          // Проверяем как search params, так и hash params, а также localStorage
+          const userId = userIdFromSearch || userIdFromHash || urlParams.get('vk_user_id') || hashParams.get('vk_user_id') || storedVkUserId
           if (userId && !detectedUser) {
             console.log('[VKProvider] Setting user from URL params/storage, userId:', userId)
             // Используем параметры из того источника, где нашли userId

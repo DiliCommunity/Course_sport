@@ -23,7 +23,7 @@ const footerLinks = {
 const socialLinks = [
   { icon: Instagram, href: 'https://instagram.com', label: 'Instagram' },
   { icon: Youtube, href: 'https://youtube.com', label: 'YouTube' },
-  { icon: Send, href: 'https://t.me', label: 'Telegram' },
+  { icon: Send, href: 'https://t.me/+K8r3s-HNmKAyMTFi', label: 'Telegram' },
   { icon: MessageCircle, href: 'https://vk.com/coursehealth', label: 'VK' },
 ]
 
