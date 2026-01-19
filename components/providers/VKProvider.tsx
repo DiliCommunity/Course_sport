@@ -64,30 +64,24 @@ export function VKProvider({ children }: VKProviderProps) {
         const hasUserId = !!(userIdFromSearch || userIdFromHash)
         
         // Проверяем localStorage/sessionStorage для сохранённых VK данных
-        const storedVkUserId = localStorage.getItem('vk_user_id') || sessionStorage.getItem('vk_user_id')
-        const storedVkApp = localStorage.getItem('is_vk_mini_app') === 'true' || sessionStorage.getItem('is_vk_mini_app') === 'true'
+        // НО только если мы действительно в VK (hostname содержит vk.com или vk.ru)
+        const isVKHostname = hostname.includes('vk.com') || hostname.includes('vk.ru')
+        const storedVkUserId = (isVKHostname) ? (localStorage.getItem('vk_user_id') || sessionStorage.getItem('vk_user_id')) : null
+        const storedVkApp = (isVKHostname) ? (localStorage.getItem('is_vk_mini_app') === 'true' || sessionStorage.getItem('is_vk_mini_app') === 'true') : false
         
-        // Проверяем cookie vk_id (устанавливается при VK авторизации)
-        const getCookie = (name: string) => {
-          const value = `; ${document.cookie}`
-          const parts = value.split(`; ${name}=`)
-          if (parts.length === 2) return parts.pop()?.split(';').shift()
-          return null
-        }
-        const vkIdFromCookie = getCookie('vk_id')
+        // НЕ используем cookie vk_id для определения VK Mini App
+        // Cookie может быть установлен в обычном браузере после VK авторизации
         
         // Множественные способы определения VK окружения
+        // VK Mini App определяется только по URL параметрам, hostname или VK Bridge
         const isVKEnv = 
-          hostname.includes('vk.com') || 
-          hostname.includes('vk.ru') ||
+          isVKHostname || // Основной признак - hostname содержит vk.com или vk.ru
           fullUrl.includes('vk.com') ||
           fullUrl.includes('vk.ru') ||
           referrer.includes('vk.com') ||
           referrer.includes('vk.ru') ||
-          hasUserId || // Основной признак - наличие vk_user_id
-          !!storedVkUserId || // Проверяем сохранённые данные
-          !!vkIdFromCookie || // Проверяем cookie vk_id (устанавливается при VK авторизации)
-          storedVkApp || // Проверяем сохранённый флаг
+          hasUserId || // Наличие vk_user_id в URL
+          (isVKHostname && storedVkApp) || // Сохранённый флаг, но только если мы в VK
           urlParams.has('vk_access_token_settings') ||
           urlParams.has('vk_platform') ||
           urlParams.has('vk_is_app_user') ||
@@ -101,9 +95,9 @@ export function VKProvider({ children }: VKProviderProps) {
           hasVkUserId: hasUserId,
           userIdFromSearch,
           userIdFromHash,
-          vkIdFromCookie,
           storedVkUserId,
           storedVkApp,
+          isVKHostname,
           hasVkAccessToken: urlParams.has('vk_access_token_settings'),
           hasVkPlatform: urlParams.has('vk_platform'),
           hasVkIsAppUser: urlParams.has('vk_is_app_user'),
@@ -224,11 +218,14 @@ export function VKProvider({ children }: VKProviderProps) {
       const hashParams = new URLSearchParams(window.location.hash.substring(1))
       const userIdFromUrl = urlParams.get('vk_user_id') || hashParams.get('vk_user_id')
       const userIdFromStorage = localStorage.getItem('vk_user_id') || sessionStorage.getItem('vk_user_id')
-      const userIdFromCookie = getCookie('vk_id')
-      const userId = userIdFromUrl || userIdFromStorage || userIdFromCookie
+      // НЕ используем cookie vk_id для определения VK Mini App - только URL или storage
+      // Cookie может быть установлен в обычном браузере после VK авторизации
+      const userId = userIdFromUrl || userIdFromStorage
       
-      // Если нашли vk_user_id из любого источника - это VK Mini App
-      if (userId && !isVKMiniApp) {
+      // Если нашли vk_user_id из URL или storage (но не из cookie) - это VK Mini App
+      // Также проверяем hostname, чтобы убедиться, что мы действительно в VK
+      const isVKHost = window.location.hostname.includes('vk.com') || window.location.hostname.includes('vk.ru')
+      if (userId && !isVKMiniApp && (isVKHost || userIdFromUrl)) {
         console.log('[VKProvider] Delayed check: Found vk_user_id, setting isVKMiniApp to true')
         setIsVKMiniApp(true)
         
