@@ -117,7 +117,7 @@ export async function POST(request: NextRequest) {
 
     const paymentMethodType = getPaymentMethodType(paymentMethod || 'card')
 
-    // Проверяем акцию "first_100" - один пользователь может использовать только один раз
+    // Проверяем акцию "first_100" - доступна только тем, кто еще не купил ни одного курса
     const promotionId = metadata?.promotion_id
     if (type === 'promotion' && promotionId === 'first_100') {
       if (!userId || userId === 'guest') {
@@ -129,44 +129,38 @@ export async function POST(request: NextRequest) {
 
       const adminSupabase = createAdminClient()
       if (adminSupabase) {
-        // Проверяем, использовал ли пользователь уже эту акцию
-        const { data: userPayments, error: checkError } = await adminSupabase
-          .from('payments')
+        // ВАЖНО: Проверяем, купил ли пользователь уже хотя бы один курс (не важно, по акции или нет)
+        const { data: userEnrollments, error: checkError } = await adminSupabase
+          .from('enrollments')
           .select('id')
           .eq('user_id', userId)
-          .eq('status', 'completed')
-          .eq('type', 'promotion')
-          .eq('promotion_id', 'first_100')
           .limit(1)
 
         if (checkError) {
-          console.error('Error checking user promotion usage:', checkError)
+          console.error('Error checking user enrollments:', checkError)
           return NextResponse.json(
             { error: 'Ошибка проверки акции' },
             { status: 500 }
           )
         }
 
-        if (userPayments && userPayments.length > 0) {
+        if (userEnrollments && userEnrollments.length > 0) {
           return NextResponse.json(
-            { error: 'Вы уже использовали эту акцию. Каждый пользователь может использовать акцию только один раз.' },
+            { error: 'Акция доступна только для новых студентов, которые еще не приобрели ни одного курса.' },
             { status: 400 }
           )
         }
 
-        // Проверяем, есть ли еще свободные места (максимум 100 уникальных пользователей)
-        const { data: allPromotionPayments, error: countError } = await adminSupabase
-          .from('payments')
+        // Проверяем, есть ли еще свободные места (максимум 100 уникальных пользователей, которые купили хотя бы один курс)
+        const { data: allEnrollments, error: countError } = await adminSupabase
+          .from('enrollments')
           .select('user_id')
-          .eq('status', 'completed')
-          .eq('type', 'promotion')
-          .eq('promotion_id', 'first_100')
 
-        if (!countError && allPromotionPayments) {
+        if (!countError && allEnrollments) {
           const uniqueUserIds = new Set<string>()
-          allPromotionPayments.forEach(payment => {
-            if (payment.user_id) {
-              uniqueUserIds.add(payment.user_id)
+          allEnrollments.forEach(enrollment => {
+            if (enrollment.user_id) {
+              uniqueUserIds.add(enrollment.user_id)
             }
           })
 

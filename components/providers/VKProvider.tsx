@@ -1,6 +1,7 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, useRef, ReactNode } from 'react'
+import bridge from '@vkontakte/vk-bridge'
 
 // Типы для VK Bridge
 interface UserInfo {
@@ -39,6 +40,7 @@ export function VKProvider({ children }: VKProviderProps) {
   const [isVKMiniApp, setIsVKMiniApp] = useState(false)
   const [isReady, setIsReady] = useState(false)
   const [initData, setInitData] = useState<string | null>(null)
+  const bridgeInitializedRef = useRef(false)
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -114,46 +116,38 @@ export function VKProvider({ children }: VKProviderProps) {
           // Сохраняем флаг VK Mini App в localStorage для использования после редиректов
           localStorage.setItem('is_vk_mini_app', 'true')
           
-          // Ждем немного и пытаемся найти VK Bridge (VK загружает его автоматически)
-          await new Promise(resolve => setTimeout(resolve, 500))
-          
-          // Пытаемся получить VK Bridge разными способами
-          let vkBridge = null
-          
-          // Способ 1: VK автоматически загружает bridge как window.bridge или через @vkid/sdk
-          if ((window as any).bridge && typeof (window as any).bridge.send === 'function') {
-            vkBridge = (window as any).bridge
-          }
-          // Способ 2: из @vkontakte/vk-bridge (если загружен через наш скрипт)
-          else if ((window as any).vkBridge && typeof (window as any).vkBridge.send === 'function') {
-            vkBridge = (window as any).vkBridge
-          }
-          // Способ 3: из глобального объекта VK
-          else if ((window as any).VK?.Bridge) {
-            vkBridge = (window as any).VK.Bridge
-          }
-          
-          console.log('[VKProvider] VK Bridge found:', !!vkBridge, 'bridge type:', vkBridge ? typeof vkBridge : 'none')
-          
-          // Если есть VK Bridge, используем его
-          if (vkBridge && typeof vkBridge.send === 'function') {
+          // ВАЖНО: Всегда вызываем VKWebAppInit при загрузке приложения в VK Mini App
+          // Это обязательное требование для прохождения модерации VK
+          // Согласно документации: https://dev.vk.com/bridge/getting-started
+          if (!bridgeInitializedRef.current) {
             try {
-              console.log('[VKProvider] Initializing VK Bridge...')
-              await vkBridge.send('VKWebAppInit')
-              console.log('[VKProvider] VK Bridge initialized')
+              console.log('[VKProvider] Initializing VK Bridge with @vkontakte/vk-bridge...')
               
-              try {
-                const userResult = await vkBridge.send('VKWebAppGetUserInfo')
-                console.log('[VKProvider] User info from bridge:', userResult)
-                if (userResult && userResult.id) {
-                  detectedUser = userResult as UserInfo
-                  setVkUser(userResult as UserInfo)
+              // Проверяем, что bridge доступен
+              if (bridge && typeof bridge.send === 'function') {
+                // Вызываем VKWebAppInit - это обязательный метод для инициализации приложения
+                // Должен вызываться при каждой загрузке приложения в VK Mini App
+                const initResult = await bridge.send('VKWebAppInit', {})
+                console.log('[VKProvider] VKWebAppInit result:', initResult)
+                bridgeInitializedRef.current = true
+                
+                // После успешной инициализации получаем информацию о пользователе
+                try {
+                  const userResult = await bridge.send('VKWebAppGetUserInfo', {})
+                  console.log('[VKProvider] User info from bridge:', userResult)
+                  if (userResult && (userResult as any).id) {
+                    detectedUser = userResult as UserInfo
+                    setVkUser(userResult as UserInfo)
+                  }
+                } catch (userError) {
+                  console.log('[VKProvider] Could not get user info via bridge, using URL params:', userError)
                 }
-              } catch (userError) {
-                console.log('[VKProvider] Could not get user info via bridge, using URL params:', userError)
+              } else {
+                console.warn('[VKProvider] VK Bridge is not available, but we are in VK environment')
               }
             } catch (initError) {
-              console.log('[VKProvider] VKWebAppInit error, using URL params:', initError)
+              console.error('[VKProvider] VKWebAppInit error:', initError)
+              // Даже если инициализация не удалась, продолжаем работу с URL параметрами
             }
           }
           
@@ -206,25 +200,32 @@ export function VKProvider({ children }: VKProviderProps) {
     initVK()
     
     // Дополнительная проверка через 1 секунду - иногда данные приходят с задержкой
-    const delayedCheck = setTimeout(() => {
-      const getCookie = (name: string) => {
-        const value = `; ${document.cookie}`
-        const parts = value.split(`; ${name}=`)
-        if (parts.length === 2) return parts.pop()?.split(';').shift()
-        return null
-      }
-      
+    // Также убеждаемся, что VKWebAppInit вызывается, если мы в VK Mini App
+    const delayedCheck = setTimeout(async () => {
       const urlParams = new URLSearchParams(window.location.search)
       const hashParams = new URLSearchParams(window.location.hash.substring(1))
       const userIdFromUrl = urlParams.get('vk_user_id') || hashParams.get('vk_user_id')
       const userIdFromStorage = localStorage.getItem('vk_user_id') || sessionStorage.getItem('vk_user_id')
-      // НЕ используем cookie vk_id для определения VK Mini App - только URL или storage
-      // Cookie может быть установлен в обычном браузере после VK авторизации
       const userId = userIdFromUrl || userIdFromStorage
       
-      // Если нашли vk_user_id из URL или storage (но не из cookie) - это VK Mini App
-      // Также проверяем hostname, чтобы убедиться, что мы действительно в VK
+      // Проверяем hostname, чтобы убедиться, что мы действительно в VK
       const isVKHost = window.location.hostname.includes('vk.com') || window.location.hostname.includes('vk.ru')
+      
+      // Если мы в VK (по hostname) и еще не инициализировали bridge - делаем это
+      // Это гарантирует, что VKWebAppInit будет вызван даже если основная проверка не сработала
+      if (isVKHost && bridge && typeof bridge.send === 'function' && !bridgeInitializedRef.current) {
+        try {
+          // ВАЖНО: VKWebAppInit должен вызываться при каждой загрузке приложения в VK Mini App
+          // Это обязательное требование для прохождения модерации
+          await bridge.send('VKWebAppInit', {})
+          bridgeInitializedRef.current = true
+          console.log('[VKProvider] Delayed check: VKWebAppInit called successfully')
+        } catch (error) {
+          console.log('[VKProvider] Delayed check: VKWebAppInit error (may be already initialized):', error)
+        }
+      }
+      
+      // Если нашли vk_user_id из URL или storage - это VK Mini App
       if (userId && !isVKMiniApp && (isVKHost || userIdFromUrl)) {
         console.log('[VKProvider] Delayed check: Found vk_user_id, setting isVKMiniApp to true')
         setIsVKMiniApp(true)

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { Gift, Users, Share2, TrendingUp, ArrowRight, Flame, Star, Zap } from 'lucide-react'
+import { Gift, Users, Share2, TrendingUp, ArrowRight, Flame, Star, Zap, X } from 'lucide-react'
 import { PaymentModal } from '@/components/ui/PaymentModal'
 import { ReferralModal } from '@/components/profile/ReferralModal'
 import { useAuth } from '@/components/providers/AuthProvider'
@@ -20,6 +20,7 @@ export default function PromotionsPage() {
   const { user } = useAuth()
   const [selectedPromotion, setSelectedPromotion] = useState<string | null>(null)
   const [selectedCourseForPromotion, setSelectedCourseForPromotion] = useState<string>(COURSE_IDS.KETO)
+  const [showCourseSelection, setShowCourseSelection] = useState(false)
   const [promotionStatus, setPromotionStatus] = useState<Record<string, PromotionStatus>>({})
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false)
   const [referralData, setReferralData] = useState<{
@@ -151,10 +152,8 @@ export default function PromotionsPage() {
                     alert('К сожалению, все места по этой акции уже заняты!')
                     return
                   }
-                  // Для акции first_100 нужно выбрать курс - пока используем KETO по умолчанию
-                  // Можно будет добавить выбор курса в модалке
-                  setSelectedPromotion('first_100')
-                  setSelectedCourseForPromotion(COURSE_IDS.KETO)
+                  // Показываем модалку выбора курса
+                  setShowCourseSelection(true)
                 }}
                 disabled={!promotionStatus.first_100?.available && promotionStatus.first_100 !== undefined}
                 className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900 font-medium hover:shadow-lg hover:shadow-accent-gold/30 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -310,6 +309,75 @@ export default function PromotionsPage() {
         </motion.div>
       </section>
 
+      {/* Course Selection Modal */}
+      {showCourseSelection && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="relative glass rounded-2xl p-6 lg:p-8 max-w-md w-full border-2 border-accent-gold/30"
+          >
+            <button
+              onClick={() => setShowCourseSelection(false)}
+              className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <h3 className="font-display font-bold text-2xl text-white mb-4">
+              Выберите курс
+            </h3>
+            <p className="text-white/60 mb-6 text-sm">
+              Выберите курс, который хотите приобрести по специальной цене 1099₽
+            </p>
+            <div className="space-y-3">
+              <button
+                onClick={() => {
+                  setSelectedCourseForPromotion(COURSE_IDS.KETO)
+                  setShowCourseSelection(false)
+                  setSelectedPromotion('first_100')
+                }}
+                className="w-full p-4 rounded-xl border-2 border-white/10 hover:border-accent-gold/50 transition-all text-left"
+              >
+                <div className="flex items-center gap-4">
+                  <img 
+                    src="/img/keto_course.png" 
+                    alt="Кето-диета" 
+                    className="w-20 h-20 object-cover rounded-lg"
+                  />
+                  <div className="flex-1">
+                    <div className="font-semibold text-white mb-1">Кето-диета</div>
+                    <div className="text-sm text-white/60">Всё о кето-диете</div>
+                    <div className="text-accent-gold font-bold mt-2">1099₽</div>
+                  </div>
+                </div>
+              </button>
+              <button
+                onClick={() => {
+                  setSelectedCourseForPromotion(COURSE_IDS.INTERVAL)
+                  setShowCourseSelection(false)
+                  setSelectedPromotion('first_100')
+                }}
+                className="w-full p-4 rounded-xl border-2 border-white/10 hover:border-accent-gold/50 transition-all text-left"
+              >
+                <div className="flex items-center gap-4">
+                  <img 
+                    src="/img/interval_course.png" 
+                    alt="Интервальное голодание" 
+                    className="w-20 h-20 object-cover rounded-lg"
+                  />
+                  <div className="flex-1">
+                    <div className="font-semibold text-white mb-1">Интервальное голодание</div>
+                    <div className="text-sm text-white/60">За/Против</div>
+                    <div className="text-accent-gold font-bold mt-2">1099₽</div>
+                  </div>
+                </div>
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
       {/* Payment Modals */}
       {selectedPromotion === 'first_100' && (
         <PaymentModal
@@ -322,7 +390,7 @@ export default function PromotionsPage() {
               .then(data => setPromotionStatus(prev => ({ ...prev, first_100: data })))
               .catch(console.error)
           }}
-          courseTitle={`Курс по акции (1099₽)`}
+          courseTitle={selectedCourseForPromotion === COURSE_IDS.KETO ? 'Кето-диета (по акции 1099₽)' : 'Интервальное голодание (по акции 1099₽)'}
           coursePrice={109900} // 1099₽ в копейках
           courseId={selectedCourseForPromotion}
           type="promotion"

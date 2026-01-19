@@ -47,32 +47,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Server configuration error: Admin client not available' }, { status: 500 })
     }
 
-    // Получаем текущего пользователя (опционально, для проверки его использования акции)
+    // Получаем текущего пользователя (опционально, для проверки его покупок)
     let currentUser = null
-    let userHasUsedPromotion = false
     
     try {
       currentUser = await getUserFromSession(supabase)
       console.log('[Promotions Check] Current user:', currentUser ? currentUser.id : 'null')
-      
-      // Проверяем, использовал ли текущий пользователь уже эту акцию
-      if (currentUser && promotionId === 'first_100') {
-        const { data: userPayments, error: userPaymentError } = await adminSupabase
-          .from('payments')
-          .select('id, user_id')
-          .eq('user_id', currentUser.id)
-          .eq('status', 'completed')
-          .eq('type', 'promotion')
-          .eq('promotion_id', 'first_100')
-          .limit(1)
-
-        if (userPaymentError) {
-          console.error('[Promotions Check] Error checking user payments:', userPaymentError)
-        } else if (userPayments && userPayments.length > 0) {
-          userHasUsedPromotion = true
-          console.log('[Promotions Check] User has already used this promotion')
-        }
-      }
     } catch (userError: any) {
       // Пользователь не авторизован - это нормально, акция может быть доступна и без авторизации
       console.log('[Promotions Check] User not authenticated or error getting user:', userError?.message || userError)
@@ -82,20 +62,19 @@ export async function GET(request: NextRequest) {
     if (promotionId === 'first_100') {
       console.log('[Promotions Check] Checking first_100 promotion')
       
-      // Получаем количество УНИКАЛЬНЫХ пользователей, которые уже воспользовались акцией
-      // Используем distinct по user_id для подсчета уникальных студентов
-      let payments
+      // ВАЖНО: Считаем всех пользователей, которые купили хотя бы 1 курс (не важно, по акции или нет)
+      // Используем таблицу enrollments для подсчета уникальных пользователей
+      let enrollments
       let error
       
       try {
+        // Получаем количество уникальных пользователей, у которых есть хотя бы один enrollment
+        // Это означает, что они купили хотя бы один курс
         const result = await adminSupabase
-          .from('payments')
+          .from('enrollments')
           .select('user_id')
-          .eq('status', 'completed')
-          .eq('type', 'promotion')
-          .eq('promotion_id', 'first_100')
         
-        payments = result.data
+        enrollments = result.data
         error = result.error
       } catch (queryError: any) {
         console.error('[Promotions Check] Error executing query:', queryError)
@@ -106,29 +85,35 @@ export async function GET(request: NextRequest) {
       }
 
       if (error) {
-        console.error('[Promotions Check] Error counting promotion users:', error)
+        console.error('[Promotions Check] Error counting enrolled users:', error)
         return NextResponse.json({ error: 'Database error: ' + error.message }, { status: 500 })
       }
 
-      // Подсчитываем уникальных пользователей
+      // Подсчитываем уникальных пользователей, которые купили хотя бы один курс
       const uniqueUserIds = new Set<string>()
-      if (payments) {
-        payments.forEach(payment => {
-          if (payment.user_id) {
-            uniqueUserIds.add(payment.user_id)
+      if (enrollments) {
+        enrollments.forEach(enrollment => {
+          if (enrollment.user_id) {
+            uniqueUserIds.add(enrollment.user_id)
           }
         })
       }
 
       const usedSlots = uniqueUserIds.size
       const availableSlots = PROMOTION_LIMITS.first_100 - usedSlots
-      const isAvailable = availableSlots > 0 && !userHasUsedPromotion // Акция доступна только если места есть И пользователь еще не использовал
+      
+      // Проверяем, купил ли текущий пользователь уже хотя бы один курс
+      const currentUserHasPurchased = currentUser ? uniqueUserIds.has(currentUser.id) : false
+      
+      // Акция доступна только если места есть И пользователь еще не купил ни одного курса
+      const isAvailable = availableSlots > 0 && !currentUserHasPurchased
 
       console.log('[Promotions Check] Promotion status:', {
         usedSlots,
         availableSlots,
         isAvailable,
-        userHasUsedPromotion
+        currentUserHasPurchased,
+        currentUserId: currentUser?.id || 'null'
       })
 
       return NextResponse.json({
@@ -137,7 +122,7 @@ export async function GET(request: NextRequest) {
         usedSlots,
         totalSlots: PROMOTION_LIMITS.first_100,
         availableSlots: Math.max(0, availableSlots),
-        userHasUsed: userHasUsedPromotion, // Информация о том, использовал ли текущий пользователь акцию
+        userHasUsed: currentUserHasPurchased, // Информация о том, купил ли текущий пользователь уже курс
       })
     }
 
