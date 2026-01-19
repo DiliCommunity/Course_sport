@@ -12,7 +12,7 @@ interface HungerEntry {
   time: string
   type: 'physical' | 'psychological'
   intensity: number // 1-10
-  trigger?: string
+  trigger?: string[] // Массив триггеров для множественного выбора
   notes?: string
   handled: boolean
 }
@@ -52,7 +52,7 @@ export function HungerTracker() {
   const [entries, setEntries] = useState<HungerEntry[]>([])
   const [currentType, setCurrentType] = useState<'physical' | 'psychological'>('physical')
   const [currentIntensity, setCurrentIntensity] = useState(5)
-  const [currentTrigger, setCurrentTrigger] = useState('')
+  const [currentTriggers, setCurrentTriggers] = useState<string[]>([]) // Массив выбранных триггеров
   const [customTrigger, setCustomTrigger] = useState('')
   const [notes, setNotes] = useState('')
   const [downloading, setDownloading] = useState(false)
@@ -87,7 +87,12 @@ export function HungerTracker() {
             time: e.module_data.time || new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
             type: e.module_data.hungerType,
             intensity: e.module_data.intensity || 5,
-            trigger: e.module_data.trigger,
+            // Поддерживаем как старый формат (строка), так и новый (массив)
+            trigger: Array.isArray(e.module_data.trigger) 
+              ? e.module_data.trigger 
+              : e.module_data.trigger 
+                ? [e.module_data.trigger] 
+                : undefined,
             notes: e.notes,
             handled: e.module_data.handled || false
           }))
@@ -139,7 +144,7 @@ export function HungerTracker() {
         await loadEntries()
         setShowAddForm(false)
         setCurrentIntensity(5)
-        setCurrentTrigger('')
+        setCurrentTriggers([])
         setCustomTrigger('')
         setNotes('')
       } else {
@@ -155,12 +160,18 @@ export function HungerTracker() {
   }
 
   const addEntry = async () => {
+    // Объединяем выбранные триггеры и кастомный триггер
+    const allTriggers: string[] = [...currentTriggers]
+    if (customTrigger.trim()) {
+      allTriggers.push(customTrigger.trim())
+    }
+    
     const newEntry: HungerEntry = {
       id: Date.now().toString(),
       time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
       type: currentType,
       intensity: currentIntensity,
-      trigger: currentTrigger || customTrigger || undefined,
+      trigger: allTriggers.length > 0 ? allTriggers : undefined,
       notes: notes || undefined,
       handled: false
     }
@@ -206,8 +217,10 @@ export function HungerTracker() {
     
     const triggers: Record<string, number> = {}
     entries.forEach(e => {
-      if (e.trigger) {
-        triggers[e.trigger] = (triggers[e.trigger] || 0) + 1
+      if (e.trigger && Array.isArray(e.trigger)) {
+        e.trigger.forEach(trigger => {
+          triggers[trigger] = (triggers[trigger] || 0) + 1
+        })
       }
     })
     const topTrigger = Object.entries(triggers).sort((a, b) => b[1] - a[1])[0]
@@ -244,7 +257,9 @@ export function HungerTracker() {
       const entriesHtml = entries.map((entry, index) => {
         const typeLabel = entry.type === 'physical' ? 'Физический' : 'Психологический'
         const typeColor = entry.type === 'physical' ? '#10b981' : '#ec4899'
-        const triggerHtml = entry.trigger ? `<p style="margin: 5px 0; font-size: 14px; color: rgba(255, 255, 255, 0.7);">💡 Триггер: ${entry.trigger}</p>` : ''
+        const triggerHtml = entry.trigger && entry.trigger.length > 0 
+          ? `<p style="margin: 5px 0; font-size: 14px; color: rgba(255, 255, 255, 0.7);">💡 Триггеры: ${Array.isArray(entry.trigger) ? entry.trigger.join(', ') : entry.trigger}</p>` 
+          : ''
         const notesHtml = entry.notes ? `<p style="margin: 5px 0; font-size: 14px; color: rgba(255, 255, 255, 0.7);">📝 ${entry.notes}</p>` : ''
         const handledColor = entry.handled ? '#10b981' : '#ff6b35'
         const handledText = entry.handled ? '✓ Справлено' : '✗ Не справлено'
@@ -483,7 +498,7 @@ export function HungerTracker() {
               onClick={() => {
                 setShowAddForm(false)
                 setCurrentIntensity(5)
-                setCurrentTrigger('')
+                setCurrentTriggers([])
                 setCustomTrigger('')
                 setNotes('')
               }}
@@ -543,17 +558,23 @@ export function HungerTracker() {
 
           {/* Триггер */}
           <div>
-            <label className="block text-white/80 text-xs sm:text-sm font-medium mb-2">Триггер (опционально):</label>
+            <label className="block text-white/80 text-xs sm:text-sm font-medium mb-2">
+              Триггер (опционально, можно выбрать несколько):
+            </label>
             <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-2">
               {COMMON_TRIGGERS.map(trigger => (
                 <button
                   key={trigger}
                   onClick={() => {
-                    setCurrentTrigger(currentTrigger === trigger ? '' : trigger)
-                    setCustomTrigger('')
+                    // Переключаем триггер: добавляем если нет, убираем если есть
+                    if (currentTriggers.includes(trigger)) {
+                      setCurrentTriggers(currentTriggers.filter(t => t !== trigger))
+                    } else {
+                      setCurrentTriggers([...currentTriggers, trigger])
+                    }
                   }}
                   className={`px-2 sm:px-3 py-1 rounded-lg text-xs font-medium transition-all ${
-                    currentTrigger === trigger
+                    currentTriggers.includes(trigger)
                       ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
                       : 'bg-white/5 text-white/70 hover:bg-white/10 border border-white/10'
                   }`}
@@ -565,13 +586,15 @@ export function HungerTracker() {
             <input
               type="text"
               value={customTrigger}
-              onChange={(e) => {
-                setCustomTrigger(e.target.value)
-                setCurrentTrigger('')
-              }}
+              onChange={(e) => setCustomTrigger(e.target.value)}
               placeholder="Или введите свой триггер..."
               className="w-full px-3 sm:px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-blue-500/50 text-xs sm:text-sm"
             />
+            {currentTriggers.length > 0 && (
+              <div className="mt-2 text-xs text-white/50">
+                Выбрано: {currentTriggers.join(', ')}
+              </div>
+            )}
           </div>
 
           {/* Заметки */}
@@ -627,9 +650,9 @@ export function HungerTracker() {
                           Интенсивность: {entry.intensity}/10
                         </span>
                       </div>
-                      {entry.trigger && (
+                      {entry.trigger && entry.trigger.length > 0 && (
                         <div className="text-xs sm:text-sm text-white/70 mb-1">
-                          Триггер: {entry.trigger}
+                          Триггеры: {Array.isArray(entry.trigger) ? entry.trigger.join(', ') : entry.trigger}
                         </div>
                       )}
                       {entry.notes && (

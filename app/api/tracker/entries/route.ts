@@ -112,19 +112,22 @@ export async function POST(request: NextRequest) {
     }
 
     // Проверяем, есть ли уже запись на эту дату для этого курса
-    const { data: existing } = await adminSupabase
-      .from('tracker_entries')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('date', date)
-      .eq('course_id', course_id || '')
-      .maybeSingle()
+    // Для hunger tracker (course_id = null) разрешаем несколько записей в день
+    if (course_id !== null) {
+      const { data: existing } = await adminSupabase
+        .from('tracker_entries')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('date', date)
+        .eq('course_id', course_id)
+        .maybeSingle()
 
-    if (existing) {
-      return NextResponse.json(
-        { error: 'Entry for this date already exists. Use PUT to update.' },
-        { status: 400 }
-      )
+      if (existing) {
+        return NextResponse.json(
+          { error: 'Entry for this date already exists. Use PUT to update.' },
+          { status: 400 }
+        )
+      }
     }
 
     const { data: entry, error } = await adminSupabase
