@@ -106,7 +106,7 @@ export const coldDishes: Meal[] = [
     carbs: 2,
     prepTime: 15,
     cookingMethod: 'cold',
-    dishType: 'second',
+    dishType: 'snack',
     description: 'Классический тартар из свежей говядины с сырым яичным желтком. Утонченное блюдо для истинных гурманов.',
     estimatedCost: 380,
     ingredients: ['250г говядины (вырезка)', '1 яичный желток', 'Каперсы', 'Красный лук', 'Петрушка', 'Оливковое масло', 'Ворчестерский соус', 'Табаско', 'Соль', 'Перец'],
@@ -150,7 +150,7 @@ export const coldDishes: Meal[] = [
     carbs: 2,
     prepTime: 20,
     cookingMethod: 'cold',
-    dishType: 'second',
+    dishType: 'snack',
     description: 'Тонкие ломтики сырой телятины с рукколой и пармезаном. Итальянская классика.',
     estimatedCost: 450,
     ingredients: ['200г телятины (вырезка)', 'Руккола', 'Сыр пармезан', 'Оливковое масло', 'Лимон', 'Соль', 'Перец'],
@@ -325,7 +325,7 @@ export const coldDishes: Meal[] = [
     carbs: 3,
     prepTime: 15,
     cookingMethod: 'cold',
-    dishType: 'second',
+    dishType: 'snack',
     description: 'Сытный салат с яйцами и хрустящим беконом. Идеален для завтрака или обеда.',
     estimatedCost: 240,
     ingredients: ['4 яйца', '100г бекона', 'Салат листовой', 'Майонез домашний', 'Горчица', 'Зеленый лук'],
@@ -347,7 +347,7 @@ export const coldDishes: Meal[] = [
     carbs: 8,
     prepTime: 10,
     cookingMethod: 'cold',
-    dishType: 'second',
+    dishType: 'snack',
     description: 'Свежий гуакамоле с овощными палочками. Мексиканская закуска с пользой для здоровья.',
     estimatedCost: 180,
     ingredients: ['2 авокадо', 'Лимонный сок', 'Чеснок', 'Помидоры черри', 'Перец болгарский', 'Сельдерей', 'Соль', 'Перец'],
@@ -2067,6 +2067,7 @@ export const dessertDishes: Meal[] = [
 
 // Объединяем все блюда
 export const enhancedMealsDatabase: Record<string, Meal[]> = {
+  snack: coldDishes.filter(meal => meal.dishType === 'snack'),
   cold: coldDishes,
   hot_first: hotFirstCourses,
   hot_second: hotSecondCourses,

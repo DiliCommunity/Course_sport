@@ -8,7 +8,7 @@ import { ketoRecipesData } from './ketoRecipesData'
 import { enhancedMealsDatabase, AVAILABLE_PRODUCTS_LIST } from './enhancedMealsData'
 
 export type CookingMethod = 'cold' | 'hot' // Холодные/горячие блюда
-export type DishType = 'first' | 'second' | 'dessert' // Первые, вторые, кондитерские
+export type DishType = 'snack' | 'first' | 'second' | 'dessert' // Закуски, первые, вторые, кондитерские
 export type ProcessingMethod = 'sous_vide' | 'frying' | 'baking' | 'boiling' | 'steaming' | 'grilling' | 'air_frying' // Способы обработки
 
 export interface Meal {
@@ -69,12 +69,12 @@ export function MenuGenerator() {
     let filtered = meals
 
     // Фильтр по способу приготовления (холодные/горячие)
-    if (cookingMethod !== 'all' && generationMode === 'full_menu') {
+    if (cookingMethod !== 'all') {
       filtered = filtered.filter(meal => meal.cookingMethod === cookingMethod)
     }
 
-    // Фильтр по типу блюда (первые/вторые/кондитерские)
-    if (dishType !== 'all' && generationMode === 'full_menu') {
+    // Фильтр по типу блюда (закуски/первые/вторые/кондитерские)
+    if (dishType !== 'all') {
       filtered = filtered.filter(meal => meal.dishType === dishType)
     }
 
@@ -563,6 +563,106 @@ export function MenuGenerator() {
         {/* Для режима "одно блюдо по продуктам" */}
         {generationMode === 'single_dish' && (
           <>
+            {/* Способ приготовления для режима "одно блюдо" */}
+            <div>
+              <label className="block text-white/80 text-sm font-medium mb-3 flex items-center gap-2">
+                <UtensilsCrossed className="w-4 h-4" />
+                Способ приготовления
+              </label>
+              <div className="grid grid-cols-3 gap-3">
+                <button
+                  onClick={() => setCookingMethod('all')}
+                  className={`py-3 px-4 rounded-xl font-medium transition-all text-sm ${
+                    cookingMethod === 'all'
+                      ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
+                      : 'bg-white/5 text-white hover:bg-white/10'
+                  }`}
+                >
+                  Все
+                </button>
+                <button
+                  onClick={() => setCookingMethod('cold')}
+                  className={`py-3 px-4 rounded-xl font-medium transition-all text-sm ${
+                    cookingMethod === 'cold'
+                      ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
+                      : 'bg-white/5 text-white hover:bg-white/10'
+                  }`}
+                >
+                  Холодные
+                </button>
+                <button
+                  onClick={() => setCookingMethod('hot')}
+                  className={`py-3 px-4 rounded-xl font-medium transition-all text-sm ${
+                    cookingMethod === 'hot'
+                      ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
+                      : 'bg-white/5 text-white hover:bg-white/10'
+                  }`}
+                >
+                  Горячие
+                </button>
+              </div>
+            </div>
+
+            {/* Тип блюда для режима "одно блюдо" */}
+            <div>
+              <label className="block text-white/80 text-sm font-medium mb-3 flex items-center gap-2">
+                <UtensilsCrossed className="w-4 h-4" />
+                Тип блюда
+              </label>
+              <div className="grid grid-cols-4 gap-3">
+                <button
+                  onClick={() => setDishType('all')}
+                  className={`py-3 px-4 rounded-xl font-medium transition-all text-sm ${
+                    dishType === 'all'
+                      ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
+                      : 'bg-white/5 text-white hover:bg-white/10'
+                  }`}
+                >
+                  Все
+                </button>
+                <button
+                  onClick={() => setDishType('snack')}
+                  className={`py-3 px-4 rounded-xl font-medium transition-all text-sm ${
+                    dishType === 'snack'
+                      ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
+                      : 'bg-white/5 text-white hover:bg-white/10'
+                  }`}
+                >
+                  Закуски
+                </button>
+                <button
+                  onClick={() => setDishType('first')}
+                  className={`py-3 px-4 rounded-xl font-medium transition-all text-sm ${
+                    dishType === 'first'
+                      ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
+                      : 'bg-white/5 text-white hover:bg-white/10'
+                  }`}
+                >
+                  Первые
+                </button>
+                <button
+                  onClick={() => setDishType('second')}
+                  className={`py-3 px-4 rounded-xl font-medium transition-all text-sm ${
+                    dishType === 'second'
+                      ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
+                      : 'bg-white/5 text-white hover:bg-white/10'
+                  }`}
+                >
+                  Вторые
+                </button>
+                <button
+                  onClick={() => setDishType('dessert')}
+                  className={`py-3 px-4 rounded-xl font-medium transition-all text-sm ${
+                    dishType === 'dessert'
+                      ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
+                      : 'bg-white/5 text-white hover:bg-white/10'
+                  }`}
+                >
+                  Десерт
+                </button>
+              </div>
+            </div>
+
             <div>
               <label className="block text-white/80 text-sm font-medium mb-3 flex items-center gap-2">
                 <ShoppingCart className="w-4 h-4" />
