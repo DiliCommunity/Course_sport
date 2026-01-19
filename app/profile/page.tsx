@@ -13,7 +13,7 @@ import { TransactionsHistory } from '@/components/profile/TransactionsHistory'
 import { MyCoursesModal } from '@/components/profile/MyCoursesModal'
 import { WalletModal } from '@/components/profile/WalletModal'
 import { ReferralModal } from '@/components/profile/ReferralModal'
-import { Loader2, Settings, ArrowLeft, Mail, Phone, Save, BookOpen, Wallet, Gift, Bot } from 'lucide-react'
+import { Loader2, Settings, ArrowLeft, Mail, Phone, Save, BookOpen, Wallet, Gift, Bot, Smartphone } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 
@@ -327,7 +327,7 @@ export default function ProfilePage() {
         </motion.div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <motion.button
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -381,6 +381,26 @@ export default function ProfilePage() {
               </div>
             </div>
           </motion.button>
+
+          <Link
+            href="/apps"
+            className="rounded-xl glass border border-white/10 p-6 hover:border-accent-electric/50 transition-all group text-left"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="flex items-center gap-4"
+            >
+              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-accent-electric to-accent-neon flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Smartphone className="w-7 h-7 text-dark-900" />
+              </div>
+              <div>
+                <p className="text-lg font-bold text-white">Приложения</p>
+                <p className="text-sm text-white/60">Инструменты</p>
+              </div>
+            </motion.div>
+          </Link>
         </div>
 
         {/* Stats Grid */}
