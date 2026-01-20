@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { Star, Quote, ArrowLeft, Filter, ChevronDown, Send, CheckCircle2, AlertCircle } from 'lucide-react'
+import { Star, Quote, ArrowLeft, Filter, ChevronDown, Send, CheckCircle2, AlertCircle, Lock } from 'lucide-react'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { COURSE_IDS } from '@/lib/constants'
 
@@ -162,6 +162,34 @@ export default function ReviewsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitSuccess, setSubmitSuccess] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [canReview, setCanReview] = useState<boolean | null>(null) // null = проверка, true/false = результат
+  const [isCheckingPermission, setIsCheckingPermission] = useState(true)
+
+  // Проверяем права на написание отзывов
+  useEffect(() => {
+    const checkReviewPermission = async () => {
+      if (!user) {
+        setCanReview(false)
+        setIsCheckingPermission(false)
+        return
+      }
+
+      try {
+        const response = await fetch('/api/reviews/check-permission', {
+          credentials: 'include'
+        })
+        const data = await response.json()
+        setCanReview(data.canReview || false)
+      } catch (error) {
+        console.error('Error checking review permission:', error)
+        setCanReview(false)
+      } finally {
+        setIsCheckingPermission(false)
+      }
+    }
+
+    checkReviewPermission()
+  }, [user])
 
   const filteredReviews = reviews.filter((review) => {
     const courseMatch = selectedCourse === 'Все курсы' || review.course === selectedCourse
@@ -259,14 +287,32 @@ export default function ReviewsPage() {
       </section>
 
       {/* Review Form Section */}
-      {user && (
+      {user && !isCheckingPermission && (
         <section className="container mx-auto px-4 sm:px-6 lg:px-8 mb-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="glass rounded-2xl p-6 lg:p-8 border-2 border-emerald-400/30"
           >
-            {!showReviewForm ? (
+            {!canReview ? (
+              <div className="text-center">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-yellow-500/10 border-2 border-yellow-500/30 mb-4">
+                  <Lock className="w-8 h-8 text-yellow-400" />
+                </div>
+                <h2 className="font-display font-bold text-2xl text-white mb-3">
+                  Оставить отзыв могут только студенты
+                </h2>
+                <p className="text-white/60 mb-6 max-w-md mx-auto">
+                  Чтобы оставить отзыв, необходимо приобрести хотя бы один курс. Ваш отзыв поможет другим студентам сделать правильный выбор!
+                </p>
+                <Link
+                  href="/courses"
+                  className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900 font-bold hover:shadow-[0_0_30px_rgba(251,191,36,0.4)] transition-all"
+                >
+                  Посмотреть курсы
+                </Link>
+              </div>
+            ) : !showReviewForm ? (
               <div className="text-center">
                 <h2 className="font-display font-bold text-2xl text-white mb-3">
                   Поделитесь своим опытом!

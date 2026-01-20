@@ -112,6 +112,9 @@ export function MenuGenerator() {
             .trim()
         }
         
+        // Нормализуем продукты блюда
+        const normalizedMealProducts = mealProducts.map(product => normalizeProduct(product))
+        
         // Создаем массив ключевых слов для каждого выбранного продукта
         const selectedKeywords = selectedProducts.map(selected => {
           const normalized = normalizeProduct(selected)
@@ -376,6 +379,336 @@ export function MenuGenerator() {
       }
       return day
     }))
+  }
+
+  const downloadSingleDishPDF = async (meal: Meal) => {
+    try {
+      setDownloading(true)
+
+      // Создаем красивый HTML элемент с темными стилями
+      const printContent = document.createElement('div')
+      printContent.id = 'single-dish-pdf-content'
+      printContent.style.position = 'absolute'
+      printContent.style.left = '-9999px'
+      printContent.style.width = '800px'
+      printContent.style.padding = '50px'
+      printContent.style.background = 'linear-gradient(135deg, #0a0a0b 0%, #1a1a1a 50%, #0a0a0b 100%)'
+      printContent.style.fontFamily = 'system-ui, -apple-system, sans-serif'
+      printContent.style.color = '#ffffff'
+      printContent.style.borderRadius = '20px'
+
+      const processingMethodLabel = meal.processingMethod ? getProcessingMethodLabel(meal.processingMethod) : ''
+      const dishTypeLabel = meal.dishType === 'first' ? 'Первое блюдо' : meal.dishType === 'second' ? 'Второе блюдо' : meal.dishType === 'dessert' ? 'Десерт' : meal.dishType === 'snack' ? 'Закуска' : ''
+
+      printContent.innerHTML = `
+        <div style="
+          background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(0, 212, 255, 0.1) 100%);
+          border: 2px solid rgba(255, 215, 0, 0.3);
+          border-radius: 20px;
+          padding: 40px;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 40px rgba(255, 215, 0, 0.1);
+        ">
+          <!-- Заголовок -->
+          <h1 style="
+            font-size: 42px;
+            font-weight: bold;
+            text-align: center;
+            margin: 0 0 10px 0;
+            color: #ffd700;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.5), 0 2px 10px rgba(0, 0, 0, 0.5);
+          ">
+            ${meal.name}
+          </h1>
+          
+          <p style="
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 16px;
+            margin: 0 0 40px 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+          ">
+            Личный шеф
+          </p>
+          
+          ${meal.description ? `
+          <!-- Описание -->
+          <div style="
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 35px;
+            backdrop-filter: blur(10px);
+          ">
+            <p style="
+              color: rgba(255, 255, 255, 0.9);
+              font-size: 16px;
+              line-height: 1.8;
+              margin: 0;
+            ">
+              ${meal.description}
+            </p>
+          </div>
+          ` : ''}
+          
+          <!-- Информационная карточка -->
+          <div style="
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 35px;
+            backdrop-filter: blur(10px);
+          ">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+              <div style="
+                background: rgba(255, 215, 0, 0.15);
+                border: 1px solid rgba(255, 215, 0, 0.3);
+                border-radius: 12px;
+                padding: 15px;
+                text-align: center;
+              ">
+                <div style="font-size: 14px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">⏱ Время</div>
+                <div style="font-size: 20px; font-weight: bold; color: #ffd700;">${meal.prepTime} мин</div>
+              </div>
+              <div style="
+                background: rgba(16, 185, 129, 0.15);
+                border: 1px solid rgba(16, 185, 129, 0.3);
+                border-radius: 12px;
+                padding: 15px;
+                text-align: center;
+              ">
+                <div style="font-size: 14px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">🔥 Калории</div>
+                <div style="font-size: 20px; font-weight: bold; color: #10b981;">${meal.calories} ккал</div>
+              </div>
+              <div style="
+                background: rgba(59, 130, 246, 0.15);
+                border: 1px solid rgba(59, 130, 246, 0.3);
+                border-radius: 12px;
+                padding: 15px;
+                text-align: center;
+              ">
+                <div style="font-size: 14px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">💰 Стоимость</div>
+                <div style="font-size: 20px; font-weight: bold; color: #3b82f6;">${meal.estimatedCost || '—'} ₽</div>
+              </div>
+            </div>
+            
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; text-align: center;">
+                <div>
+                  <div style="font-size: 12px; color: rgba(255, 255, 255, 0.6); margin-bottom: 5px;">Белки</div>
+                  <div style="font-size: 18px; font-weight: bold; color: #3b82f6;">${meal.proteins}г</div>
+                </div>
+                <div>
+                  <div style="font-size: 12px; color: rgba(255, 255, 255, 0.6); margin-bottom: 5px;">Жиры</div>
+                  <div style="font-size: 18px; font-weight: bold; color: #ffd700;">${meal.fats}г</div>
+                </div>
+                <div>
+                  <div style="font-size: 12px; color: rgba(255, 255, 255, 0.6); margin-bottom: 5px;">Углеводы</div>
+                  <div style="font-size: 18px; font-weight: bold; color: #10b981;">${meal.carbs}г</div>
+                </div>
+                <div>
+                  <div style="font-size: 12px; color: rgba(255, 255, 255, 0.6); margin-bottom: 5px;">Способ</div>
+                  <div style="font-size: 14px; font-weight: bold; color: rgba(255, 255, 255, 0.9);">${processingMethodLabel || dishTypeLabel || '—'}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          ${meal.ingredients && meal.ingredients.length > 0 ? `
+          <!-- Ингредиенты -->
+          <div style="margin-bottom: 35px;">
+            <h2 style="
+              font-size: 24px;
+              font-weight: bold;
+              color: #ffd700;
+              margin: 0 0 20px 0;
+              display: flex;
+              align-items: center;
+              gap: 10px;
+            ">
+              <span style="font-size: 28px;">🥘</span>
+              Ингредиенты:
+            </h2>
+            <div style="
+              background: rgba(255, 255, 255, 0.05);
+              border: 1px solid rgba(255, 255, 255, 0.1);
+              border-radius: 12px;
+              padding: 20px;
+              backdrop-filter: blur(10px);
+            ">
+              <ul style="
+                margin: 0;
+                padding-left: 0;
+                list-style: none;
+                line-height: 2;
+              ">
+                ${meal.ingredients.map((ingredient, idx) => `
+                  <li style="
+                    color: rgba(255, 255, 255, 0.9);
+                    font-size: 15px;
+                    padding: 8px 0;
+                    border-bottom: ${idx < meal.ingredients!.length - 1 ? '1px solid rgba(255, 255, 255, 0.05)' : 'none'};
+                  ">
+                    <span style="
+                      display: inline-block;
+                      width: 24px;
+                      height: 24px;
+                      background: linear-gradient(135deg, #ffd700 0%, #00d4ff 100%);
+                      border-radius: 50%;
+                      text-align: center;
+                      line-height: 24px;
+                      font-size: 12px;
+                      font-weight: bold;
+                      color: #0a0a0b;
+                      margin-right: 12px;
+                    ">${idx + 1}</span>
+                    ${ingredient}
+                  </li>
+                `).join('')}
+              </ul>
+            </div>
+          </div>
+          ` : ''}
+          
+          ${meal.instructions && meal.instructions.length > 0 ? `
+          <!-- Инструкция -->
+          <div>
+            <h2 style="
+              font-size: 24px;
+              font-weight: bold;
+              color: #ffd700;
+              margin: 0 0 20px 0;
+              display: flex;
+              align-items: center;
+              gap: 10px;
+            ">
+              <span style="font-size: 28px;">👨‍🍳</span>
+              Инструкция по приготовлению:
+            </h2>
+            <div style="
+              background: rgba(255, 255, 255, 0.05);
+              border: 1px solid rgba(255, 255, 255, 0.1);
+              border-radius: 12px;
+              padding: 20px;
+              backdrop-filter: blur(10px);
+            ">
+              <ol style="
+                margin: 0;
+                padding-left: 0;
+                list-style: none;
+                counter-reset: step-counter;
+              ">
+                ${meal.instructions.map((step, idx) => `
+                  <li style="
+                    color: rgba(255, 255, 255, 0.9);
+                    margin-bottom: 16px;
+                    padding-left: 50px;
+                    position: relative;
+                    line-height: 1.6;
+                    font-size: 15px;
+                  ">
+                    <span style="
+                      position: absolute;
+                      left: 0;
+                      width: 32px;
+                      height: 32px;
+                      background: linear-gradient(135deg, #ffd700 0%, #00d4ff 100%);
+                      border-radius: 50%;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      color: #0a0a0b;
+                      font-weight: bold;
+                      font-size: 14px;
+                      box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
+                    ">${idx + 1}</span>
+                    ${step}
+                  </li>
+                `).join('')}
+              </ol>
+            </div>
+          </div>
+          ` : ''}
+        </div>
+      `
+
+      document.body.appendChild(printContent)
+
+      // Используем html2canvas для создания изображения
+      const html2canvas = (await import('html2canvas')).default
+      const canvas = await html2canvas(printContent, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#0a0a0b',
+        allowTaint: true
+      })
+
+      document.body.removeChild(printContent)
+
+      // Конвертируем canvas в PDF
+      const { jsPDF } = await import('jspdf')
+      const imgData = canvas.toDataURL('image/png')
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      })
+
+      const imgWidth = 210 // A4 width in mm
+      const pageHeight = 297 // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
+
+      // Если изображение больше одной страницы, разбиваем на несколько страниц
+      if (imgHeight <= pageHeight) {
+        pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight)
+      } else {
+        let heightLeft = imgHeight
+        let yPosition = 0
+        
+        while (heightLeft > 0) {
+          pdf.addImage(imgData, 'PNG', 0, yPosition, imgWidth, imgHeight)
+          heightLeft -= pageHeight
+          
+          if (heightLeft > 0) {
+            pdf.addPage()
+            yPosition -= pageHeight
+          }
+        }
+      }
+
+      const fileName = `${meal.name.replace(/\s+/g, '_')}_${new Date().toLocaleDateString('ru-RU').replace(/\//g, '-')}.pdf`
+      
+      // Используем blob URL для лучшей совместимости с мобильными устройствами
+      const pdfBlob = pdf.output('blob')
+      const blobUrl = URL.createObjectURL(pdfBlob)
+      
+      // Создаем ссылку для скачивания
+      const link = document.createElement('a')
+      link.href = blobUrl
+      link.download = fileName
+      link.style.display = 'none'
+      
+      // Добавляем ссылку в DOM и кликаем
+      document.body.appendChild(link)
+      link.click()
+      
+      // Удаляем ссылку и очищаем blob URL через задержку
+      setTimeout(() => {
+        if (document.body.contains(link)) {
+          document.body.removeChild(link)
+        }
+        URL.revokeObjectURL(blobUrl)
+      }, 1000)
+
+      setDownloading(false)
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+      setDownloading(false)
+      alert('Не удалось создать PDF файл. Попробуйте еще раз.')
+    }
   }
 
   const downloadPDF = async () => {
@@ -1148,12 +1481,31 @@ export function MenuGenerator() {
           <div className="p-6 rounded-xl bg-white/5 border border-white/10">
             <div className="flex items-start justify-between mb-4">
               <h3 className="text-xl font-bold text-white">{generatedSingleDish.name}</h3>
-              <button
-                onClick={() => setSelectedMeal(generatedSingleDish)}
-                className="px-4 py-2 rounded-lg bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900 font-medium hover:shadow-lg transition-all"
-              >
-                Подробнее
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setSelectedMeal(generatedSingleDish)}
+                  className="px-4 py-2 rounded-lg bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900 font-medium hover:shadow-lg transition-all text-sm"
+                >
+                  Подробнее
+                </button>
+                <button
+                  onClick={() => downloadSingleDishPDF(generatedSingleDish)}
+                  disabled={downloading}
+                  className="px-4 py-2 rounded-lg bg-gradient-to-r from-accent-mint to-accent-teal text-dark-900 font-medium hover:shadow-lg transition-all text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {downloading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-dark-900 border-t-transparent rounded-full animate-spin" />
+                      <span>PDF...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4" />
+                      <span>PDF</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
             {generatedSingleDish.description && (
               <p className="text-white/70 mb-4">{generatedSingleDish.description}</p>
@@ -1197,12 +1549,31 @@ export function MenuGenerator() {
             >
               <div className="flex items-start justify-between mb-4">
                 <h4 className="text-lg font-bold text-white">{dish.name}</h4>
-                <button
-                  onClick={() => setSelectedMeal(dish)}
-                  className="px-4 py-2 rounded-lg bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900 font-medium hover:shadow-lg transition-all text-sm"
-                >
-                  Подробнее
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setSelectedMeal(dish)}
+                    className="px-4 py-2 rounded-lg bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900 font-medium hover:shadow-lg transition-all text-sm"
+                  >
+                    Подробнее
+                  </button>
+                  <button
+                    onClick={() => downloadSingleDishPDF(dish)}
+                    disabled={downloading}
+                    className="px-4 py-2 rounded-lg bg-gradient-to-r from-accent-mint to-accent-teal text-dark-900 font-medium hover:shadow-lg transition-all text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {downloading ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-dark-900 border-t-transparent rounded-full animate-spin" />
+                        <span>PDF...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Download className="w-4 h-4" />
+                        <span>PDF</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
               {dish.description && (
                 <p className="text-white/70 mb-4 text-sm">{dish.description}</p>

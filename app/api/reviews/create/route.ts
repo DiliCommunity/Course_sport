@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     // Получаем данные пользователя
     const { data: user, error: userError } = await supabase
       .from('users')
-      .select('name, username')
+      .select('name, username, is_admin')
       .eq('id', userId)
       .single()
 
@@ -46,6 +46,52 @@ export async function POST(request: NextRequest) {
         { error: 'Пользователь не найден' },
         { status: 404 }
       )
+    }
+
+    // Проверяем, может ли пользователь писать отзывы
+    // Отзывы могут писать только те, кто совершил хотя бы 1 оплату или является админом
+    const isAdmin = user.is_admin === true
+    
+    if (!isAdmin) {
+      // Проверяем наличие хотя бы одной завершенной оплаты
+      const { data: payments, error: paymentsError } = await supabase
+        .from('payments')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('status', 'completed')
+        .limit(1)
+
+      if (paymentsError) {
+        console.error('Error checking payments:', paymentsError)
+        return NextResponse.json(
+          { error: 'Ошибка при проверке прав доступа' },
+          { status: 500 }
+        )
+      }
+
+      // Если нет оплат, проверяем enrollments
+      if (!payments || payments.length === 0) {
+        const { data: enrollments, error: enrollmentsError } = await supabase
+          .from('enrollments')
+          .select('id')
+          .eq('user_id', userId)
+          .limit(1)
+
+        if (enrollmentsError) {
+          console.error('Error checking enrollments:', enrollmentsError)
+          return NextResponse.json(
+            { error: 'Ошибка при проверке прав доступа' },
+            { status: 500 }
+          )
+        }
+
+        if (!enrollments || enrollments.length === 0) {
+          return NextResponse.json(
+            { error: 'Вы можете оставить отзыв только после покупки хотя бы одного курса' },
+            { status: 403 }
+          )
+        }
+      }
     }
 
     const body = await request.json()
