@@ -206,7 +206,7 @@ export default function InstructorPage() {
 
   if (authLoading || checkingAccess) {
     return (
-      <main className="min-h-screen flex items-center justify-center">
+      <main className="min-h-screen pt-20 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-12 h-12 text-accent-teal animate-spin mx-auto mb-4" />
           <p className="text-white/60">Загрузка...</p>
@@ -217,7 +217,7 @@ export default function InstructorPage() {
 
   if (!hasAccess) {
     return (
-      <main className="min-h-screen pt-28 pb-16">
+      <main className="min-h-screen pt-20 pb-16">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

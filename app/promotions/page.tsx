@@ -86,7 +86,7 @@ export default function PromotionsPage() {
     }
   }, [user, isReferralModalOpen])
   return (
-    <main className="min-h-screen pt-28 pb-16">
+    <main className="min-h-screen pt-20 pb-16">
       {/* Hero Section */}
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <motion.div
@@ -251,14 +251,14 @@ export default function PromotionsPage() {
                 </div>
               </div>
               <div className="flex items-baseline gap-3 mb-4">
-                <span className="text-white/40 line-through text-lg">3998₽</span>
+                <span className="text-white/40 line-through text-lg">7898₽</span>
                 <span className="font-display font-black text-3xl bg-gradient-to-r from-accent-flame to-accent-gold bg-clip-text text-transparent">
                   2199₽
                 </span>
               </div>
               <div className="p-3 rounded-xl bg-accent-flame/10 border border-accent-flame/20 mb-6">
                 <div className="text-white/60 text-xs mb-1">Экономия:</div>
-                <div className="text-accent-flame font-bold text-xl">1799₽</div>
+                <div className="text-accent-flame font-bold text-xl">5699₽</div>
               </div>
               <button
                 onClick={() => {

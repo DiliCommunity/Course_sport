@@ -186,7 +186,7 @@ export default function ProfilePage() {
 
   if (authLoading || loading) {
     return (
-      <main className="min-h-screen flex items-center justify-center">
+      <main className="min-h-screen pt-20 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-12 h-12 text-accent-teal animate-spin mx-auto mb-4" />
           <p className="text-white/60">Загрузка профиля...</p>
@@ -197,7 +197,7 @@ export default function ProfilePage() {
 
   if (error || !profileData) {
     return (
-      <main className="min-h-screen flex items-center justify-center">
+      <main className="min-h-screen pt-20 flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-400 mb-4">{error || 'Профиль не найден'}</p>
           <Link href="/" className="text-accent-teal hover:underline">
@@ -209,7 +209,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="min-h-screen pt-28 pb-16">
+    <main className="min-h-screen pt-20 pb-16">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back Button */}
         <motion.div

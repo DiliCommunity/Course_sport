@@ -306,7 +306,7 @@ export default function LearnCoursePage({ params }: { params: { id: string } }) 
   // Показываем загрузку пока проверяется авторизация или загружается курс
   if (authLoading || pageLoading) {
     return (
-      <main className="min-h-screen flex items-center justify-center">
+      <main className="min-h-screen pt-20 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-12 h-12 text-accent-teal animate-spin mx-auto mb-4" />
           <p className="text-white/60">Загрузка курса...</p>
@@ -317,7 +317,7 @@ export default function LearnCoursePage({ params }: { params: { id: string } }) 
 
   if (!hasAccess) {
     return (
-      <main className="min-h-screen flex items-center justify-center">
+      <main className="min-h-screen pt-20 flex items-center justify-center">
         <div className="text-center">
           <AlertCircle className="w-12 h-12 text-accent-flame mx-auto mb-4" />
           <p className="text-white text-xl mb-4">Доступ к курсу ограничен</p>
@@ -333,7 +333,7 @@ export default function LearnCoursePage({ params }: { params: { id: string } }) 
   }
 
   return (
-    <main className="min-h-screen pt-24 pb-16">
+    <main className="min-h-screen pt-20 pb-16">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div

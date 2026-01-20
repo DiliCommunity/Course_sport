@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/Button'
 
 export default function NotFound() {
   return (
-    <main className="min-h-screen flex items-center justify-center px-4">
+    <main className="min-h-screen pt-20 flex items-center justify-center px-4">
       {/* Background effects */}
       <div className="absolute inset-0 bg-grid opacity-20" />
       <div className="absolute top-1/3 left-1/3 w-96 h-96 bg-accent-flame/10 rounded-full blur-[100px]" />

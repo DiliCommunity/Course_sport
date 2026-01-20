@@ -6383,7 +6383,7 @@ export default function CoursePage({ params }: { params: { id: string } }) {
   }, [user?.id, telegramUser?.id, params.id])
 
   return (
-    <main className="min-h-screen pt-24 pb-16">
+    <main className="min-h-screen pt-20 pb-16">
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-dark-800/50 to-dark-900" />

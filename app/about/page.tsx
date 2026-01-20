@@ -36,7 +36,7 @@ const values = [
 
 export default function AboutPage() {
   return (
-    <main className="min-h-screen pt-28 pb-16">
+    <main className="min-h-screen pt-20 pb-16">
       {/* Hero Section */}
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 mb-24">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">

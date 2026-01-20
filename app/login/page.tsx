@@ -183,11 +183,14 @@ export default function LoginPage() {
   // Вход по логину/паролю
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log('[LoginPage] handleSubmit called - login/password form submitted')
+    console.log('[LoginPage] isVKMiniApp:', isVKMiniApp, 'vkUser:', vkUser?.id)
     setError(null)
     setSuccess(null)
     setIsLoading(true)
     
     try {
+      console.log('[LoginPage] Sending login request with username:', username)
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -196,14 +199,22 @@ export default function LoginPage() {
       })
 
       const data = await response.json()
+      
+      console.log('[LoginPage] Login response:', { ok: response.ok, userId: data.user_id, username: data.username })
 
       if (!response.ok) {
+        console.error('[LoginPage] Login failed:', data.error)
         throw new Error(data.error || 'Ошибка входа')
       }
 
-      // Если мы в Telegram - связываем аккаунт с Telegram ID
+      console.log('[LoginPage] Login successful! User ID:', data.user_id)
+      console.log('[LoginPage] NOT linking VK account - user chose login/password method')
+
+      // Если мы в Telegram - связываем аккаунт с Telegram ID (только если пользователь явно выбрал вход через Telegram)
+      // НЕ привязываем VK аккаунт автоматически - пользователь должен явно выбрать вход через VK
       if (isTelegramApp && telegramUser) {
         try {
+          console.log('[LoginPage] Linking Telegram account:', telegramUser.id)
           await fetch('/api/profile/link-telegram', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -217,10 +228,16 @@ export default function LoginPage() {
           console.log('Could not link Telegram account:', linkError)
         }
       }
+      
+      // НЕ привязываем VK аккаунт автоматически при входе через логин/пароль
+      // Пользователь должен явно выбрать вход через VK
+      // Даже если мы в VK Mini App, мы НЕ используем данные VK для авторизации
 
       setSuccess('Вход выполнен успешно!')
+      console.log('[LoginPage] Refreshing user data...')
       await refreshUser()
       
+      console.log('[LoginPage] Redirecting to /courses in 1 second...')
       setTimeout(() => {
         router.push('/courses')
       }, 1000)
@@ -234,7 +251,7 @@ export default function LoginPage() {
   // В Telegram WebApp ждём инициализации только немного
   if (authLoading || (isTelegramApp && !tgReady) || (isVKMiniApp && !vkReady)) {
     return (
-      <main className="min-h-screen flex items-center justify-center px-4 py-20">
+      <main className="min-h-screen pt-20 flex items-center justify-center px-4 pb-20">
         <div className="text-center">
           <div className="inline-block w-12 h-12 border-4 border-accent-electric border-t-transparent rounded-full animate-spin mb-4" />
           <p className="text-white/60">Проверка авторизации...</p>
@@ -338,19 +355,22 @@ export default function LoginPage() {
 
                 {/* Кнопка "Войти через VK" - показываем если в VK Mini App и есть данные VK */}
                 {isVKMiniApp && vkUser ? (
-                  <Button 
-                    className="w-full" 
-                    size="lg"
+                  <motion.button
                     onClick={handleVKAuth}
-                    isLoading={isVKLoading}
-                    disabled={!vkReady || !vkUser}
-                    style={{ backgroundColor: '#0077FF', borderColor: '#0077FF' }}
+                    disabled={!vkReady || !vkUser || isVKLoading}
+                    className="flex items-center justify-center gap-3 w-full p-4 rounded-xl bg-gradient-to-r from-[#0077FF] to-[#0066DD] hover:from-[#0066DD] hover:to-[#0055CC] transition-all duration-300 shadow-[0_0_20px_rgba(0,119,255,0.4)] hover:shadow-[0_0_30px_rgba(0,119,255,0.6)] disabled:opacity-50 disabled:cursor-not-allowed"
+                    whileHover={{ scale: !vkReady || !vkUser || isVKLoading ? 1 : 1.02 }}
+                    whileTap={{ scale: !vkReady || !vkUser || isVKLoading ? 1 : 0.98 }}
                   >
-                    <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M12.785 16.241s.287-.033.435-.2c.136-.15.132-.432.132-.432s-.02-1.305.58-1.498c.594-.19 1.354.95 2.16 1.37.605.315 1.064.245 1.064.245l2.15-.031s1.123-.07.59-.955c-.044-.07-.31-.65-1.61-1.84-1.36-1.24-1.178-.52.45-1.59.99-.82 1.39-1.32 1.26-1.53-.118-.19-.85-.14-.85-.14l-2.19.014s-.162-.022-.282.05c-.118.07-.193.23-.193.23s-.35.93-.81 1.72c-.97 1.64-1.36 1.73-1.52 1.63-.37-.2-.28-.8-.28-1.23 0-1.34.21-1.9-.41-2.04-.2-.05-.35-.08-.86-.09-.66-.01-1.22.01-1.54.2-.21.12-.37.38-.27.4.12.02.39.07.53.26.18.24.18.78.18.78s.11 1.63-.26 1.83c-.26.13-.61-.14-1.37-1.63-.39-.75-.68-1.58-.68-1.58s-.06-.15-.16-.23c-.12-.09-.29-.12-.29-.12l-2.08.014s-.31.01-.43.15c-.1.12-.01.38-.01.38s1.58 3.74 3.37 5.63c1.64 1.72 3.51 1.61 3.51 1.61h.84z"/>
-                    </svg>
-                    Войти через VK
-                  </Button>
+                    {isVKLoading ? (
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12.785 16.241s.287-.033.435-.2c.136-.15.132-.432.132-.432s-.02-1.305.58-1.498c.594-.19 1.354.95 2.16 1.37.605.315 1.064.245 1.064.245l2.15-.031s1.123-.07.59-.955c-.044-.07-.31-.65-1.61-1.84-1.36-1.24-1.178-.52.45-1.59.99-.82 1.39-1.32 1.26-1.53-.118-.19-.85-.14-.85-.14l-2.19.014s-.162-.022-.282.05c-.118.07-.193.23-.193.23s-.35.93-.81 1.72c-.97 1.64-1.36 1.73-1.52 1.63-.37-.2-.28-.8-.28-1.23 0-1.34.21-1.9-.41-2.04-.2-.05-.35-.08-.86-.09-.66-.01-1.22.01-1.54.2-.21.12-.37.38-.27.4.12.02.39.07.53.26.18.24.18.78.18.78s.11 1.63-.26 1.83c-.26.13-.61-.14-1.37-1.63-.39-.75-.68-1.58-.68-1.58s-.06-.15-.16-.23c-.12-.09-.29-.12-.29-.12l-2.08.014s-.31.01-.43.15c-.1.12-.01.38-.01.38s1.58 3.74 3.37 5.63c1.64 1.72 3.51 1.61 3.51 1.61h.84z"/>
+                      </svg>
+                    )}
+                    <span className="font-semibold text-white">Войти через VK</span>
+                  </motion.button>
                 ) : !isVKMiniApp ? (
                   // Кнопка "Войти через VK" - если НЕ в VK Mini App (переход на VK Mini App)
                   <motion.a

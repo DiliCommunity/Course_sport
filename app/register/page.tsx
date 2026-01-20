@@ -158,7 +158,7 @@ export default function RegisterPage() {
   // Показываем загрузку пока проверяем авторизацию
   if (authLoading || !isReady) {
     return (
-      <main className="min-h-screen flex items-center justify-center px-4 py-20">
+      <main className="min-h-screen pt-20 flex items-center justify-center px-4 pb-20">
         <div className="text-center">
           <div className="inline-block w-12 h-12 border-4 border-accent-electric border-t-transparent rounded-full animate-spin mb-4" />
           <p className="text-white/60">Проверка авторизации...</p>

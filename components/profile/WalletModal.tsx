@@ -360,7 +360,7 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
   return createPortal(
     <AnimatePresence>
       {isOpen && (
-      <div className="fixed inset-0 z-[9999] flex items-start justify-center pt-24 p-4" style={{ position: 'fixed' }}>
+      <div className="fixed inset-0 z-[9999] flex items-start justify-center pt-20 p-4" style={{ position: 'fixed' }}>
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}

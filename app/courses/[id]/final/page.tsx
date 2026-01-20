@@ -147,7 +147,7 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
 
   if (authLoading || pageLoading) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-gradient-to-b from-dark-900 via-dark-800 to-dark-900">
+      <main className="min-h-screen pt-20 flex items-center justify-center bg-gradient-to-b from-dark-900 via-dark-800 to-dark-900">
         <div className="text-center">
           <Loader2 className="w-12 h-12 text-accent-teal animate-spin mx-auto mb-4" />
           <p className="text-white/60">Загрузка...</p>
@@ -157,7 +157,7 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-dark-900 via-dark-800 to-dark-900 pt-24">
+    <main className="min-h-screen bg-gradient-to-b from-dark-900 via-dark-800 to-dark-900 pt-20">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl py-12">
         {/* Header */}
         <motion.div

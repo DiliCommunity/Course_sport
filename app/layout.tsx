@@ -8,6 +8,7 @@ import { TelegramProvider } from '@/components/providers/TelegramProvider'
 import { VKProvider } from '@/components/providers/VKProvider'
 import { AuthProvider } from '@/components/providers/AuthProvider'
 import { ReferralTracker } from '@/components/providers/ReferralTracker'
+import { ChatButton } from '@/components/ui/ChatButton'
 import React, { Suspense } from 'react'
 
 const spaceGrotesk = Space_Grotesk({
@@ -73,6 +74,7 @@ export default function RootLayout({
                 {children}
               </main>
               <Footer />
+              <ChatButton />
             </div>
             </AuthProvider>
           </VKProvider>

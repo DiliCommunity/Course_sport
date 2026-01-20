@@ -22,7 +22,7 @@ export default function HomePage() {
   return (
     <>
       {/* Баннер с подарком */}
-      <section className="relative py-4 bg-gradient-to-r from-accent-gold/20 via-accent-electric/20 to-accent-gold/20 border-b-2 border-accent-gold/40 mt-20">
+      <section className="relative py-4 bg-gradient-to-r from-accent-gold/20 via-accent-electric/20 to-accent-gold/20 border-b-2 border-accent-gold/40 pt-20">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-center gap-3 text-center">
             <div className="text-2xl animate-bounce">🎁</div>

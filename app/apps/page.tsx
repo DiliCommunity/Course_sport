@@ -207,7 +207,7 @@ export default function AppsPage() {
 
   if (isCheckingAccess || authLoading) {
     return (
-      <main className="min-h-screen flex items-center justify-center px-4 py-20">
+      <main className="min-h-screen pt-20 flex items-center justify-center px-4 pb-20">
         <div className="text-center">
           <Loader2 className="w-12 h-12 border-4 border-accent-electric border-t-transparent rounded-full animate-spin mb-4 mx-auto" />
           <p className="text-white/60">Проверка доступа...</p>
@@ -218,7 +218,7 @@ export default function AppsPage() {
 
   if (!hasAccess) {
     return (
-      <main className="min-h-screen flex items-center justify-center px-4 py-20">
+      <main className="min-h-screen pt-20 flex items-center justify-center px-4 pb-20">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

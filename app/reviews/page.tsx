@@ -3,7 +3,9 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { Star, Quote, ArrowLeft, Filter, ChevronDown } from 'lucide-react'
+import { Star, Quote, ArrowLeft, Filter, ChevronDown, Send, CheckCircle2, AlertCircle } from 'lucide-react'
+import { useAuth } from '@/components/providers/AuthProvider'
+import { COURSE_IDS } from '@/lib/constants'
 
 // Данные отзывов (100+ отзывов с датами от 12.11.2024 по 13.01.2026)
 const reviews = [
@@ -137,11 +139,24 @@ const courses = ['Все курсы', 'Кето диета: от Мифов к �
 const ratings = ['Все оценки', '5 звёзд', '4 звезды', '3 звезды']
 
 export default function ReviewsPage() {
+  const { user } = useAuth()
   const [selectedCourse, setSelectedCourse] = useState('Все курсы')
   const [selectedRating, setSelectedRating] = useState('Все оценки')
   const [showCourseFilter, setShowCourseFilter] = useState(false)
   const [showRatingFilter, setShowRatingFilter] = useState(false)
   const [visibleCount, setVisibleCount] = useState(20)
+  
+  // Форма отправки отзыва
+  const [showReviewForm, setShowReviewForm] = useState(false)
+  const [reviewFormData, setReviewFormData] = useState({
+    courseId: COURSE_IDS.KETO,
+    courseName: 'Кето диета: от Мифов к Результатам',
+    rating: 5,
+    text: ''
+  })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitSuccess, setSubmitSuccess] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   const filteredReviews = reviews.filter((review) => {
     const courseMatch = selectedCourse === 'Все курсы' || review.course === selectedCourse
@@ -156,8 +171,47 @@ export default function ReviewsPage() {
   const averageRating = (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)
   const visibleReviews = filteredReviews.slice(0, visibleCount)
 
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    setSubmitError(null)
+    setSubmitSuccess(false)
+
+    try {
+      const response = await fetch('/api/reviews/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(reviewFormData)
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Ошибка при отправке отзыва')
+      }
+
+      setSubmitSuccess(true)
+      setReviewFormData({
+        courseId: COURSE_IDS.KETO,
+        courseName: 'Кето диета: от Мифов к Результатам',
+        rating: 5,
+        text: ''
+      })
+      
+      setTimeout(() => {
+        setShowReviewForm(false)
+        setSubmitSuccess(false)
+      }, 2000)
+    } catch (error: any) {
+      setSubmitError(error.message || 'Ошибка при отправке отзыва')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   return (
-    <main className="min-h-screen pt-28 pb-16">
+    <main className="min-h-screen pt-20 pb-16">
       {/* Hero Section */}
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <motion.div
@@ -198,6 +252,163 @@ export default function ReviewsPage() {
           </div>
         </motion.div>
       </section>
+
+      {/* Review Form Section */}
+      {user && (
+        <section className="container mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="glass rounded-2xl p-6 lg:p-8 border-2 border-emerald-400/30"
+          >
+            {!showReviewForm ? (
+              <div className="text-center">
+                <h2 className="font-display font-bold text-2xl text-white mb-3">
+                  Поделитесь своим опытом!
+                </h2>
+                <p className="text-white/60 mb-6">
+                  Ваш отзыв поможет другим студентам сделать правильный выбор
+                </p>
+                <button
+                  onClick={() => setShowReviewForm(true)}
+                  className="px-8 py-4 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 text-dark-900 font-bold hover:shadow-[0_0_30px_rgba(52,211,153,0.4)] transition-all flex items-center gap-2 mx-auto"
+                >
+                  <Send className="w-5 h-5" />
+                  Оставить отзыв
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmitReview} className="space-y-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-display font-bold text-xl text-white">
+                    Оставить отзыв
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowReviewForm(false)
+                      setSubmitError(null)
+                      setSubmitSuccess(false)
+                    }}
+                    className="text-white/60 hover:text-white transition-colors"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                {submitSuccess && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-3"
+                  >
+                    <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                    <p className="text-sm text-emerald-400">
+                      Отзыв отправлен на модерацию! Спасибо за ваш отзыв.
+                    </p>
+                  </motion.div>
+                )}
+
+                {submitError && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-4 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center gap-3"
+                  >
+                    <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
+                    <p className="text-sm text-red-400">{submitError}</p>
+                  </motion.div>
+                )}
+
+                {/* Course Selection */}
+                <div>
+                  <label className="block text-white/80 text-sm font-medium mb-2">
+                    Выберите курс
+                  </label>
+                  <select
+                    value={reviewFormData.courseId}
+                    onChange={(e) => {
+                      const courseId = e.target.value
+                      setReviewFormData({
+                        ...reviewFormData,
+                        courseId,
+                        courseName: courseId === COURSE_IDS.KETO 
+                          ? 'Кето диета: от Мифов к Результатам'
+                          : 'Интервальное голодание'
+                      })
+                    }}
+                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-emerald-400/50 focus:ring-2 focus:ring-emerald-400/20 transition-all"
+                  >
+                    <option value={COURSE_IDS.KETO}>Кето диета: от Мифов к Результатам</option>
+                    <option value={COURSE_IDS.INTERVAL}>Интервальное голодание</option>
+                  </select>
+                </div>
+
+                {/* Rating */}
+                <div>
+                  <label className="block text-white/80 text-sm font-medium mb-2">
+                    Ваша оценка
+                  </label>
+                  <div className="flex items-center gap-2">
+                    {[1, 2, 3, 4, 5].map((rating) => (
+                      <button
+                        key={rating}
+                        type="button"
+                        onClick={() => setReviewFormData({ ...reviewFormData, rating })}
+                        className={`w-12 h-12 rounded-lg flex items-center justify-center transition-all ${
+                          reviewFormData.rating >= rating
+                            ? 'bg-accent-gold text-dark-900'
+                            : 'bg-white/5 text-white/40 hover:bg-white/10'
+                        }`}
+                      >
+                        <Star className={`w-6 h-6 ${reviewFormData.rating >= rating ? 'fill-current' : ''}`} />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Review Text */}
+                <div>
+                  <label className="block text-white/80 text-sm font-medium mb-2">
+                    Ваш отзыв
+                  </label>
+                  <textarea
+                    value={reviewFormData.text}
+                    onChange={(e) => setReviewFormData({ ...reviewFormData, text: e.target.value })}
+                    placeholder="Поделитесь своим опытом прохождения курса..."
+                    rows={6}
+                    maxLength={2000}
+                    required
+                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-emerald-400/50 focus:ring-2 focus:ring-emerald-400/20 transition-all resize-none"
+                  />
+                  <div className="text-right text-xs text-white/40 mt-1">
+                    {reviewFormData.text.length} / 2000
+                  </div>
+                </div>
+
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  disabled={isSubmitting || reviewFormData.text.length < 10}
+                  className="w-full py-4 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 text-dark-900 font-bold hover:shadow-[0_0_30px_rgba(52,211,153,0.4)] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-dark-900/30 border-t-dark-900 rounded-full animate-spin" />
+                      <span>Отправка...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-5 h-5" />
+                      <span>Отправить отзыв</span>
+                    </>
+                  )}
+                </button>
+              </form>
+            )}
+          </motion.div>
+        </section>
+      )}
 
       {/* Filters */}
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 mb-8">

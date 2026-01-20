@@ -112,7 +112,7 @@ function PaymentSuccessContent() {
 
   if (status === 'loading') {
     return (
-      <main className="min-h-screen flex items-center justify-center px-4">
+      <main className="min-h-screen pt-20 flex items-center justify-center px-4">
         <div className="text-center">
           <Loader2 className="w-16 h-16 text-accent-electric animate-spin mx-auto mb-6" />
           <h1 className="font-display font-bold text-2xl text-white mb-2">
@@ -131,7 +131,7 @@ function PaymentSuccessContent() {
 
   if (status === 'error') {
     return (
-      <main className="min-h-screen flex items-center justify-center px-4">
+      <main className="min-h-screen pt-20 flex items-center justify-center px-4">
         <div className="text-center max-w-md">
           <div className="w-20 h-20 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-6">
             <span className="text-4xl">❌</span>
@@ -181,7 +181,7 @@ function PaymentSuccessContent() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-4 py-20">
+    <main className="min-h-screen pt-20 flex items-center justify-center px-4 pb-20">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}

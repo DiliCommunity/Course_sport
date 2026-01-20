@@ -2,7 +2,7 @@
 
 export default function TestPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-dark-900 text-white">
+    <div className="min-h-screen pt-20 flex items-center justify-center bg-dark-900 text-white">
       <div className="text-center">
         <h1 className="text-4xl font-bold mb-4">Сайт работает! ✅</h1>
         <p className="text-xl text-white/60">Если ты видишь это сообщение, значит сайт загружается корректно.</p>

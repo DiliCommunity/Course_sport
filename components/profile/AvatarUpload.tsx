@@ -124,7 +124,7 @@ export function AvatarUpload({ currentAvatar, userId, onUploadComplete }: Avatar
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsPickerOpen(false)}
-              className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[9999] flex items-start justify-center pt-24 p-4"
+              className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[9999] flex items-start justify-center pt-20 p-4"
             >
               {/* Picker */}
               <motion.div

@@ -125,7 +125,7 @@ function PaymentPageContent() {
   }
 
   return (
-    <main className="min-h-screen pt-28 pb-16 flex items-center justify-center px-4">
+    <main className="min-h-screen pt-20 pb-16 flex items-center justify-center px-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -272,7 +272,7 @@ function PaymentPageContent() {
 export default function PaymentPage() {
   return (
     <Suspense fallback={
-      <main className="min-h-screen pt-28 pb-16 flex items-center justify-center px-4">
+      <main className="min-h-screen pt-20 pb-16 flex items-center justify-center px-4">
         <div className="text-white text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
           <p>Загрузка...</p>

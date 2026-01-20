@@ -3480,7 +3480,7 @@ export default function KetoFoodPage() {
   // Блокируем доступ, пока проверяем
   if (isCheckingAccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen pt-20 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-12 h-12 animate-spin text-accent-mint mx-auto mb-4" />
           <p className="text-white/60">Проверка доступа...</p>
@@ -3492,7 +3492,7 @@ export default function KetoFoodPage() {
   // Блокируем доступ, если нет оплаченного курса
   if (!hasPurchasedCourse) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4">
+      <div className="min-h-screen pt-20 flex items-center justify-center px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -3518,7 +3518,7 @@ export default function KetoFoodPage() {
   }
 
   return (
-    <main className="min-h-screen pt-28 pb-16">
+    <main className="min-h-screen pt-20 pb-16">
       {/* Hero Section */}
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <motion.div

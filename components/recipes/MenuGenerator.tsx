@@ -53,9 +53,11 @@ export function MenuGenerator() {
   const [productFilter, setProductFilter] = useState<'all' | 'exclude' | 'include'>('all')
   const [excludedProducts, setExcludedProducts] = useState<string[]>([])
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]) // Для режима "одно блюдо по продуктам"
+  const [dishesCount, setDishesCount] = useState<1 | 3 | 5>(1) // Количество блюд для генерации
   const [targetCalories, setTargetCalories] = useState('2000')
   const [generatedMenu, setGeneratedMenu] = useState<DayMenu[]>([])
   const [generatedSingleDish, setGeneratedSingleDish] = useState<Meal | null>(null)
+  const [generatedDishes, setGeneratedDishes] = useState<Meal[]>([]) // Несколько блюд
   const [downloading, setDownloading] = useState(false)
   const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null)
   
@@ -100,29 +102,68 @@ export function MenuGenerator() {
         const mealProducts = meal.availableProducts || meal.ingredients || []
         if (mealProducts.length === 0) return false
         
-        // Создаем строку из всех продуктов блюда для поиска
-        const mealProductsStr = mealProducts.join(' ').toLowerCase()
+        // Нормализуем названия продуктов для сравнения
+        const normalizeProduct = (product: string): string => {
+          return product.toLowerCase()
+            .replace(/\s+/g, ' ')
+            .replace(/\([^)]*\)/g, '') // Убираем скобки
+            .replace(/\d+[гкгмл]*\s*/g, '') // Убираем количество
+            .replace(/сыр\s+/g, 'сыр ') // Нормализуем "сыр"
+            .trim()
+        }
         
-        // Проверяем, содержит ли блюдо хотя бы несколько выбранных продуктов (минимум 1, предпочтительно 2+)
-        const matchingProducts = selectedProducts.filter(selected => {
-          const selectedLower = selected.toLowerCase()
-          // Проверяем точное совпадение или вхождение в название продукта
-          return mealProductsStr.includes(selectedLower) ||
-                 mealProducts.some(product => 
-                   product.toLowerCase().includes(selectedLower) ||
-                   selectedLower.includes(product.toLowerCase().split(' ')[0])
-                 )
+        // Создаем массив ключевых слов для каждого выбранного продукта
+        const selectedKeywords = selectedProducts.map(selected => {
+          const normalized = normalizeProduct(selected)
+          const words = normalized.split(' ').filter(w => w.length > 2)
+          return { original: selected, normalized, words }
         })
         
-        // Требуем минимум 1 совпадение
-        return matchingProducts.length >= 1
+        // Проверяем, какие выбранные продукты присутствуют в блюде
+        const matchingSelectedProducts = selectedKeywords.filter(selected => {
+          return normalizedMealProducts.some(mealProduct => {
+            const mealWords = mealProduct.split(' ').filter(w => w.length > 2)
+            
+            // Точное совпадение
+            if (mealProduct === selected.normalized) return true
+            
+            // Проверяем вхождение полного названия
+            if (mealProduct.includes(selected.normalized) || selected.normalized.includes(mealProduct)) {
+              return true
+            }
+            
+            // Проверяем совпадение ключевых слов (минимум одно слово должно совпадать)
+            const hasCommonWord = mealWords.some(mw => 
+              selected.words.some(sw => mw === sw || mw.includes(sw) || sw.includes(mw))
+            )
+            
+            // Специальные случаи для сыров
+            if (mealProduct.includes('сыр') && selected.normalized.includes('сыр')) {
+              const mealCheeseType = mealWords.find(w => w !== 'сыр')
+              const selectedCheeseType = selected.words.find(w => w !== 'сыр')
+              if (mealCheeseType && selectedCheeseType) {
+                return mealCheeseType === selectedCheeseType || 
+                       mealCheeseType.includes(selectedCheeseType) || 
+                       selectedCheeseType.includes(mealCheeseType)
+              }
+            }
+            
+            return hasCommonWord
+          })
+        })
+        
+        // Требуем минимум 80% выбранных продуктов должны быть в блюде
+        // Если выбрано 1-2 продукта, требуем 100% совпадение
+        const minMatchPercentage = selectedKeywords.length <= 2 ? 100 : 80
+        const matchPercentage = (matchingSelectedProducts.length / selectedKeywords.length) * 100
+        return matchPercentage >= minMatchPercentage
       })
     }
 
     return filtered
   }
 
-  // Генерация одного блюда по выбранным продуктам
+  // Генерация одного или нескольких блюд по выбранным продуктам
   const generateSingleDish = () => {
     if (selectedProducts.length === 0) {
       alert('Выберите хотя бы один продукт из вашего холодильника')
@@ -144,12 +185,22 @@ export function MenuGenerator() {
     const filtered = filterMeals(allMeals)
 
     if (filtered.length === 0) {
-      alert('Не найдено блюд, которые можно приготовить из выбранных продуктов. Попробуйте выбрать другие продукты.')
+      alert('Не найдено блюд, которые можно приготовить из выбранных продуктов. Попробуйте выбрать другие продукты или расширьте список выбранных продуктов.')
       return
     }
 
-    const randomDish = filtered[Math.floor(Math.random() * filtered.length)]
-    setGeneratedSingleDish(randomDish)
+    // Если нужно одно блюдо
+    if (dishesCount === 1) {
+      const randomDish = filtered[Math.floor(Math.random() * filtered.length)]
+      setGeneratedSingleDish(randomDish)
+      setGeneratedDishes([])
+    } else {
+      // Генерируем несколько блюд (без повторений)
+      const shuffled = [...filtered].sort(() => Math.random() - 0.5)
+      const selectedDishes = shuffled.slice(0, Math.min(dishesCount, filtered.length))
+      setGeneratedDishes(selectedDishes)
+      setGeneratedSingleDish(null)
+    }
   }
 
   // Генерация меню
@@ -603,6 +654,46 @@ export function MenuGenerator() {
               </div>
             </div>
 
+            {/* Количество блюд */}
+            <div>
+              <label className="block text-white/80 text-sm font-medium mb-3 flex items-center gap-2">
+                <ChefHat className="w-4 h-4" />
+                Количество блюд
+              </label>
+              <div className="grid grid-cols-3 gap-3">
+                <button
+                  onClick={() => setDishesCount(1)}
+                  className={`py-3 px-4 rounded-xl font-medium transition-all text-sm ${
+                    dishesCount === 1
+                      ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
+                      : 'bg-white/5 text-white hover:bg-white/10'
+                  }`}
+                >
+                  1 блюдо
+                </button>
+                <button
+                  onClick={() => setDishesCount(3)}
+                  className={`py-3 px-4 rounded-xl font-medium transition-all text-sm ${
+                    dishesCount === 3
+                      ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
+                      : 'bg-white/5 text-white hover:bg-white/10'
+                  }`}
+                >
+                  3 блюда
+                </button>
+                <button
+                  onClick={() => setDishesCount(5)}
+                  className={`py-3 px-4 rounded-xl font-medium transition-all text-sm ${
+                    dishesCount === 5
+                      ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
+                      : 'bg-white/5 text-white hover:bg-white/10'
+                  }`}
+                >
+                  5 блюд
+                </button>
+              </div>
+            </div>
+
             {/* Тип блюда для режима "одно блюдо" */}
             <div>
               <label className="block text-white/80 text-sm font-medium mb-3 flex items-center gap-2">
@@ -1021,11 +1112,31 @@ export function MenuGenerator() {
             generateSingleDish()
           }
         }}
-        className="w-full py-4 rounded-xl bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900 font-bold text-lg hover:shadow-lg hover:shadow-accent-gold/30 transition-all mb-6 flex items-center justify-center gap-2"
+        className="w-full py-4 rounded-xl bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900 font-bold text-lg hover:shadow-lg hover:shadow-accent-gold/30 transition-all mb-4 flex items-center justify-center gap-2"
       >
         <Sparkles className="w-5 h-5" />
-        {generationMode === 'full_menu' ? 'Хочу меню' : 'Найти блюдо'}
+        {generationMode === 'full_menu' ? 'Хочу меню' : dishesCount === 1 ? 'Найти блюдо' : `Найти ${dishesCount} блюд`}
       </button>
+
+      {/* Выбранные продукты (для режима "одно блюдо") */}
+      {generationMode === 'single_dish' && selectedProducts.length > 0 && (
+        <div className="mb-6 p-4 rounded-xl bg-white/5 border border-white/10">
+          <p className="text-white/60 text-sm mb-2 flex items-center gap-2">
+            <ShoppingCart className="w-4 h-4" />
+            Выбранные продукты:
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {selectedProducts.map((product) => (
+              <span
+                key={product}
+                className="px-3 py-1.5 rounded-lg text-sm font-medium bg-gradient-to-r from-accent-gold/20 to-accent-electric/20 border border-accent-gold/30 text-white"
+              >
+                {product}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Результат для режима "одно блюдо" */}
       {generationMode === 'single_dish' && generatedSingleDish && (
@@ -1065,6 +1176,59 @@ export function MenuGenerator() {
               </div>
             )}
           </div>
+        </motion.div>
+      )}
+
+      {/* Результат для нескольких блюд */}
+      {generationMode === 'single_dish' && generatedDishes.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="space-y-4 mb-6"
+        >
+          <h3 className="text-xl font-bold text-white mb-4">Найденные блюда ({generatedDishes.length}):</h3>
+          {generatedDishes.map((dish, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className="p-6 rounded-xl bg-white/5 border border-white/10"
+            >
+              <div className="flex items-start justify-between mb-4">
+                <h4 className="text-lg font-bold text-white">{dish.name}</h4>
+                <button
+                  onClick={() => setSelectedMeal(dish)}
+                  className="px-4 py-2 rounded-lg bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900 font-medium hover:shadow-lg transition-all text-sm"
+                >
+                  Подробнее
+                </button>
+              </div>
+              {dish.description && (
+                <p className="text-white/70 mb-4 text-sm">{dish.description}</p>
+              )}
+              <div className="flex items-center flex-wrap gap-4 mb-4 p-4 rounded-xl bg-white/5">
+                <span className="text-white/60 text-sm">Калории: <span className="text-white font-semibold">{dish.calories} ккал</span></span>
+                <span className="text-yellow-400 text-sm">Жиры: <span className="font-semibold">{dish.fats}г</span></span>
+                <span className="text-blue-400 text-sm">Белки: <span className="font-semibold">{dish.proteins}г</span></span>
+                <span className="text-green-400 text-sm">Углеводы: <span className="font-semibold">{dish.carbs}г</span></span>
+                <span className="text-white/60 text-sm">Время: <span className="text-white font-semibold">{dish.prepTime} мин</span></span>
+              </div>
+              {dish.ingredients && dish.ingredients.length > 0 && (
+                <div className="mb-4">
+                  <h5 className="text-white font-semibold mb-2 text-sm">Ингредиенты:</h5>
+                  <ul className="list-disc list-inside text-white/70 space-y-1 text-sm">
+                    {dish.ingredients.slice(0, 5).map((ingredient, idx) => (
+                      <li key={idx}>{ingredient}</li>
+                    ))}
+                    {dish.ingredients.length > 5 && (
+                      <li className="text-white/50">... и еще {dish.ingredients.length - 5}</li>
+                    )}
+                  </ul>
+                </div>
+              )}
+            </motion.div>
+          ))}
         </motion.div>
       )}
 
@@ -1203,6 +1367,21 @@ export function MenuGenerator() {
   )
 }
 
+// Функция для перевода способа приготовления в читаемый текст
+function getProcessingMethodLabel(method?: ProcessingMethod): string {
+  if (!method) return ''
+  const labels: Record<ProcessingMethod, string> = {
+    sous_vide: 'Су-вид',
+    frying: 'Жарка',
+    baking: 'Запекание',
+    boiling: 'Варка',
+    steaming: 'На пару',
+    grilling: 'Гриль',
+    air_frying: 'Аэрогриль'
+  }
+  return labels[method] || ''
+}
+
 function MealCard({ meal, label, onImageClick }: { meal: Meal; label: string; onImageClick: () => void }) {
   return (
     <div className="p-3 rounded-lg bg-white/5 border border-white/5">
@@ -1240,6 +1419,11 @@ function MealCard({ meal, label, onImageClick }: { meal: Meal; label: string; on
         <span className="text-blue-400 whitespace-nowrap">{meal.proteins}г Б</span>
         <span className="text-green-400 whitespace-nowrap">{meal.carbs}г У</span>
       </div>
+      {meal.processingMethod && (
+        <div className="mt-2 text-xs text-white/50">
+          <span className="text-white/40">Способ:</span> {getProcessingMethodLabel(meal.processingMethod)}
+        </div>
+      )}
     </div>
   )
 }
@@ -1309,13 +1493,27 @@ function MealModal({ meal, onClose }: { meal: Meal; onClose: () => void }) {
               <div className="flex-shrink-0 px-4 py-2 rounded-full bg-gradient-to-r from-accent-gold/20 to-amber-400/20 border border-accent-gold/40 backdrop-blur-sm">
                 <div className="flex items-center gap-1.5">
                   <span className="text-accent-gold text-lg font-bold">💰</span>
-                  <span className="text-accent-gold font-bold text-lg">{meal.estimatedCost}</span>
+                  <span className="text-accent-gold font-bold text-base">{Math.round(meal.estimatedCost * 0.85)}</span>
                   <span className="text-accent-gold/80 text-sm">₽</span>
                 </div>
                 <div className="text-xs text-accent-gold/60 text-center mt-0.5">примерная стоимость</div>
+                {meal.processingMethod && (
+                  <div className="text-xs text-accent-gold/70 text-center mt-1.5 pt-1.5 border-t border-accent-gold/20">
+                    {getProcessingMethodLabel(meal.processingMethod)}
+                  </div>
+                )}
               </div>
             )}
           </div>
+
+          {/* Описание блюда */}
+          {meal.description && (
+            <div className="mb-6">
+              <p className="text-white/80 text-lg leading-relaxed italic">
+                {meal.description}
+              </p>
+            </div>
+          )}
 
           {/* Макросы */}
           <div className="flex items-center flex-wrap gap-4 mb-6 p-4 rounded-xl bg-white/5">
@@ -1339,6 +1537,12 @@ function MealModal({ meal, onClose }: { meal: Meal; onClose: () => void }) {
               <span className="text-white/60">Время:</span>
               <span className="text-white font-semibold">{meal.prepTime} мин</span>
             </div>
+            {meal.processingMethod && (
+              <div className="flex items-center gap-2">
+                <span className="text-white/60">Способ:</span>
+                <span className="text-accent-gold font-semibold">{getProcessingMethodLabel(meal.processingMethod)}</span>
+              </div>
+            )}
           </div>
 
           {/* Ингредиенты */}
@@ -1364,7 +1568,12 @@ function MealModal({ meal, onClose }: { meal: Meal; onClose: () => void }) {
             <div>
               <h4 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
                 <ChefHat className="w-5 h-5 text-accent-mint" />
-                Способ приготовления:
+                Инструкции по приготовлению:
+                {meal.processingMethod && (
+                  <span className="ml-2 text-sm text-accent-gold font-normal">
+                    ({getProcessingMethodLabel(meal.processingMethod)})
+                  </span>
+                )}
               </h4>
               <ol className="space-y-3">
                 {meal.instructions.map((instruction, index) => (

@@ -37,7 +37,7 @@ export default function RecipesPage() {
 
   if (isChecking) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen pt-20 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-12 h-12 animate-spin text-accent-mint mx-auto mb-4" />
           <p className="text-white/60">Проверка доступа...</p>
@@ -48,7 +48,7 @@ export default function RecipesPage() {
 
   if (!hasAccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4">
+      <div className="min-h-screen pt-20 flex items-center justify-center px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -74,7 +74,7 @@ export default function RecipesPage() {
   }
 
   return (
-    <div className="min-h-screen py-8 px-4">
+    <div className="min-h-screen pt-20 pb-8 px-4">
       <div className="max-w-6xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

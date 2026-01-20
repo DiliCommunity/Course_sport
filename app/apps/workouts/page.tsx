@@ -795,7 +795,7 @@ export default function WorkoutGeneratorPage() {
 
   if (step === 'result' && workoutPlan) {
     return (
-      <main className="min-h-screen px-4 py-20">
+      <main className="min-h-screen px-4 pt-20 pb-20">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
           <motion.div
