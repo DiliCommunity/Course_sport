@@ -8,6 +8,7 @@ import { additionalColdDishesPart4, additionalHotFirstCoursesPart4, additionalHo
 import { additionalColdDishesPart5, additionalHotFirstCoursesPart5, additionalHotSecondCoursesPart5, additionalDessertDishesPart5 } from './additionalMealsPart5'
 import { sousVideMeals } from './sousVideMeals'
 import { moreSousVideMeals, airFryMeals } from './moreSousVideAndAirFryMeals'
+import { additionalColdDishesPart6, additionalHotFirstCoursesPart6, additionalHotSecondCoursesPart6, additionalDessertDishesPart6 } from './additionalMealsPart6'
 
 // Список доступных продуктов (из ShoppingListGenerator)
 export const AVAILABLE_PRODUCTS_LIST = [
@@ -3839,10 +3840,10 @@ export const moreDessertDishes: Meal[] = [
 ]
 
 // Объединяем все блюда и добавляем изображения
-const allColdDishes = addImagesToMeals([...coldDishes, ...additionalColdDishes, ...moreColdDishes, ...additionalColdDishesPart1, ...additionalColdDishesPart3, ...additionalColdDishesPart4, ...additionalColdDishesPart5])
-const allHotFirstCourses = addImagesToMeals([...hotFirstCourses, ...additionalHotFirstCourses, ...moreHotFirstCourses, ...additionalHotFirstCoursesPart1, ...additionalHotFirstCoursesPart4, ...additionalHotFirstCoursesPart5])
-const allHotSecondCourses = addImagesToMeals([...hotSecondCourses, ...additionalHotSecondCourses, ...moreHotSecondCourses, ...additionalHotSecondCoursesPart2, ...additionalHotSecondCoursesPart4, ...additionalHotSecondCoursesPart5, ...sousVideMeals, ...moreSousVideMeals, ...airFryMeals])
-const allDessertDishes = addImagesToMeals([...dessertDishes, ...additionalDessertDishes, ...moreDessertDishes, ...additionalDessertDishesPart3, ...additionalDessertDishesPart4, ...additionalDessertDishesPart5])
+const allColdDishes = addImagesToMeals([...coldDishes, ...additionalColdDishes, ...moreColdDishes, ...additionalColdDishesPart1, ...additionalColdDishesPart3, ...additionalColdDishesPart4, ...additionalColdDishesPart5, ...additionalColdDishesPart6])
+const allHotFirstCourses = addImagesToMeals([...hotFirstCourses, ...additionalHotFirstCourses, ...moreHotFirstCourses, ...additionalHotFirstCoursesPart1, ...additionalHotFirstCoursesPart4, ...additionalHotFirstCoursesPart5, ...additionalHotFirstCoursesPart6])
+const allHotSecondCourses = addImagesToMeals([...hotSecondCourses, ...additionalHotSecondCourses, ...moreHotSecondCourses, ...additionalHotSecondCoursesPart2, ...additionalHotSecondCoursesPart4, ...additionalHotSecondCoursesPart5, ...sousVideMeals, ...moreSousVideMeals, ...airFryMeals, ...additionalHotSecondCoursesPart6])
+const allDessertDishes = addImagesToMeals([...dessertDishes, ...additionalDessertDishes, ...moreDessertDishes, ...additionalDessertDishesPart3, ...additionalDessertDishesPart4, ...additionalDessertDishesPart5, ...additionalDessertDishesPart6])
 
 export const enhancedMealsDatabase: Record<string, Meal[]> = {
   snack: allColdDishes.filter(meal => meal.dishType === 'snack'),
