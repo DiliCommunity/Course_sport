@@ -328,7 +328,7 @@ export default function ReviewsPage() {
                   <select
                     value={reviewFormData.courseId}
                     onChange={(e) => {
-                      const courseId = e.target.value
+                      const courseId = e.target.value as typeof COURSE_IDS.KETO | typeof COURSE_IDS.INTERVAL
                       setReviewFormData({
                         ...reviewFormData,
                         courseId,

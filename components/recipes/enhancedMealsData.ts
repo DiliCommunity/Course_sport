@@ -1,5 +1,9 @@
 // Расширенная база данных блюд с новыми категориями и способами приготовления
 import { Meal, CookingMethod, DishType, ProcessingMethod } from './MenuGenerator'
+import { addImagesToMeals } from './mealImageMapping'
+import { additionalColdDishesPart1, additionalHotFirstCoursesPart1 } from './additionalMealsPart1'
+import { additionalHotSecondCoursesPart2 } from './additionalMealsPart2'
+import { additionalColdDishesPart3, additionalDessertDishesPart3 } from './additionalMealsPart3'
 
 // Список доступных продуктов (из ShoppingListGenerator)
 export const AVAILABLE_PRODUCTS_LIST = [
@@ -3338,15 +3342,485 @@ export const moreColdDishes: Meal[] = [
       'Дайте настояться 1 час'
     ],
     availableProducts: ['Морковь', 'Огурцы', 'Лук репчатый', 'Подсолнечное масло']
+  },
+  {
+    name: 'Салат с курицей и апельсином',
+    calories: 340,
+    proteins: 32,
+    fats: 20,
+    carbs: 12,
+    prepTime: 20,
+    cookingMethod: 'cold',
+    dishType: 'second',
+    description: 'Свежий салат с курицей и апельсином. Цитрусовые нотки и яркий вкус.',
+    estimatedCost: 280,
+    ingredients: ['250г куриной грудки', 'Апельсин 1 шт', 'Салат листовой', 'Орехи миндаль', 'Оливковое масло', 'Лимон'],
+    instructions: [
+      'Отварите курицу, нарежьте кубиками',
+      'Очистите апельсин, нарежьте дольками',
+      'Порвите салат',
+      'Смешайте курицу с салатом',
+      'Добавьте апельсин и орехи',
+      'Заправьте маслом и лимоном'
+    ],
+    availableProducts: ['Куриная грудка', 'Салат листовой', 'Оливковое масло', 'Лимон']
+  },
+  {
+    name: 'Салат с лососем и авокадо',
+    calories: 380,
+    proteins: 32,
+    fats: 28,
+    carbs: 4,
+    prepTime: 20,
+    cookingMethod: 'cold',
+    dishType: 'second',
+    description: 'Нежный салат с лососем и авокадо. Омега-3 и полезные жиры в каждой ложке.',
+    estimatedCost: 420,
+    ingredients: ['200г лосося', '1 авокадо', 'Салат листовой', 'Помидоры черри', 'Оливковое масло', 'Лимон', 'Укроп'],
+    instructions: [
+      'Обжарьте лосось или используйте копченый',
+      'Нарежьте авокадо кубиками',
+      'Порвите салат, разрежьте помидоры',
+      'Выложите все на тарелку',
+      'Заправьте оливковым маслом и лимоном',
+      'Украсьте укропом'
+    ],
+    availableProducts: ['Лосось', 'Авокадо', 'Салат листовой', 'Помидоры черри', 'Оливковое масло', 'Лимон', 'Зелень (петрушка, укроп)']
+  },
+  {
+    name: 'Салат с индейкой и авокадо',
+    calories: 360,
+    proteins: 34,
+    fats: 24,
+    carbs: 6,
+    prepTime: 18,
+    cookingMethod: 'cold',
+    dishType: 'second',
+    description: 'Сытный салат с индейкой и авокадо. Белок и полезные жиры в идеальном сочетании.',
+    estimatedCost: 320,
+    ingredients: ['250г индейки', '1 авокадо', 'Салат листовой', 'Помидоры черри', 'Оливковое масло', 'Лимон'],
+    instructions: [
+      'Отварите индейку, нарежьте кубиками',
+      'Нарежьте авокадо кубиками',
+      'Порвите салат, разрежьте помидоры',
+      'Смешайте все ингредиенты',
+      'Заправьте оливковым маслом и лимоном',
+      'Подавайте охлажденным'
+    ],
+    availableProducts: ['Индейка', 'Авокадо', 'Салат листовой', 'Помидоры черри', 'Оливковое масло', 'Лимон']
+  },
+  {
+    name: 'Салат с креветками и огурцом',
+    calories: 280,
+    proteins: 28,
+    fats: 16,
+    carbs: 4,
+    prepTime: 15,
+    cookingMethod: 'cold',
+    dishType: 'second',
+    description: 'Освежающий салат с креветками и огурцом. Легкое и питательное блюдо.',
+    estimatedCost: 300,
+    ingredients: ['200г креветок', 'Огурцы 2 шт', 'Салат листовой', 'Лимон', 'Оливковое масло', 'Укроп'],
+    instructions: [
+      'Отварите креветки, очистите',
+      'Нарежьте огурцы кружочками',
+      'Порвите салат',
+      'Смешайте все ингредиенты',
+      'Заправьте оливковым маслом и лимоном',
+      'Украсьте укропом'
+    ],
+    availableProducts: ['Креветки', 'Огурцы', 'Салат листовой', 'Лимон', 'Оливковое масло', 'Зелень (петрушка, укроп)']
+  },
+  {
+    name: 'Салат с курицей и киноа',
+    calories: 380,
+    proteins: 36,
+    fats: 18,
+    carbs: 20,
+    prepTime: 25,
+    cookingMethod: 'cold',
+    dishType: 'second',
+    description: 'Сытный салат с курицей и киноа. Полноценный обед в одной тарелке.',
+    estimatedCost: 260,
+    ingredients: ['250г куриной грудки', 'Киноа 100г', 'Огурцы', 'Помидоры черри', 'Оливковое масло', 'Лимон'],
+    instructions: [
+      'Отварите курицу и киноа',
+      'Остудите до комнатной температуры',
+      'Нарежьте овощи',
+      'Смешайте все ингредиенты',
+      'Заправьте оливковым маслом и лимоном',
+      'Подавайте охлажденным'
+    ],
+    availableProducts: ['Куриная грудка', 'Огурцы', 'Помидоры черри', 'Оливковое масло', 'Лимон']
   }
 ]
 
-// Объединяем все блюда
+// Еще дополнительные горячие первые блюда
+export const moreHotFirstCourses: Meal[] = [
+  {
+    name: 'Суп с курицей и шпинатом',
+    calories: 240,
+    proteins: 26,
+    fats: 12,
+    carbs: 6,
+    prepTime: 30,
+    cookingMethod: 'hot',
+    dishType: 'first',
+    processingMethod: 'boiling',
+    description: 'Легкий суп с курицей и свежим шпинатом. Питательное и полезное блюдо.',
+    estimatedCost: 200,
+    ingredients: ['300г куриной грудки', 'Шпинат 200г', 'Морковь', 'Лук репчатый', 'Чеснок', 'Зелень', 'Соль', 'Перец'],
+    instructions: [
+      'Приготовьте куриный бульон',
+      'Добавьте нарезанную курицу',
+      'Добавьте овощи, варите 15 минут',
+      'Добавьте шпинат за 5 минут до готовности',
+      'Посыпьте зеленью',
+      'Подавайте горячим'
+    ],
+    availableProducts: ['Куриная грудка', 'Шпинат', 'Морковь', 'Лук репчатый', 'Чеснок', 'Зелень (петрушка, укроп)']
+  },
+  {
+    name: 'Суп с лососем и овощами',
+    calories: 280,
+    proteins: 32,
+    fats: 14,
+    carbs: 4,
+    prepTime: 25,
+    cookingMethod: 'hot',
+    dishType: 'first',
+    processingMethod: 'boiling',
+    description: 'Ароматный суп с лососем и свежими овощами. Морской аромат и нежность.',
+    estimatedCost: 380,
+    ingredients: ['400г лосося', 'Морковь', 'Сельдерей', 'Лук репчатый', 'Лимон', 'Укроп', 'Соль'],
+    instructions: [
+      'Приготовьте рыбный бульон',
+      'Добавьте нарезанную рыбу',
+      'Добавьте овощи',
+      'Варите 15 минут',
+      'Добавьте лимон и укроп',
+      'Подавайте горячим'
+    ],
+    availableProducts: ['Лосось', 'Морковь', 'Сельдерей', 'Лук репчатый', 'Лимон', 'Зелень (петрушка, укроп)']
+  },
+  {
+    name: 'Суп с индейкой и кабачками',
+    calories: 260,
+    proteins: 28,
+    fats: 12,
+    carbs: 8,
+    prepTime: 35,
+    cookingMethod: 'hot',
+    dishType: 'first',
+    processingMethod: 'boiling',
+    description: 'Легкий суп с индейкой и кабачками. Диетическое и сытное блюдо.',
+    estimatedCost: 240,
+    ingredients: ['300г индейки', 'Кабачки 200г', 'Морковь', 'Лук репчатый', 'Зелень', 'Соль'],
+    instructions: [
+      'Приготовьте бульон из индейки',
+      'Добавьте нарезанную индейку',
+      'Добавьте овощи',
+      'Варите 20 минут',
+      'Посыпьте зеленью',
+      'Подавайте горячим'
+    ],
+    availableProducts: ['Индейка', 'Кабачки', 'Морковь', 'Лук репчатый', 'Зелень (петрушка, укроп)']
+  },
+  {
+    name: 'Суп с бараниной и баклажанами',
+    calories: 340,
+    proteins: 30,
+    fats: 20,
+    carbs: 8,
+    prepTime: 70,
+    cookingMethod: 'hot',
+    dishType: 'first',
+    processingMethod: 'boiling',
+    description: 'Наваристый суп с бараниной и баклажанами. Сытное и ароматное блюдо.',
+    estimatedCost: 360,
+    ingredients: ['400г баранины', 'Баклажаны 200г', 'Морковь', 'Лук репчатый', 'Тимьян', 'Розмарин', 'Соль'],
+    instructions: [
+      'Приготовьте бульон из баранины',
+      'Добавьте нарезанную баранину',
+      'Добавьте овощи и травы',
+      'Варите 50 минут',
+      'Посыпьте зеленью',
+      'Подавайте горячим'
+    ],
+    availableProducts: ['Баранина', 'Баклажаны', 'Морковь', 'Лук репчатый', 'Тимьян', 'Розмарин']
+  },
+  {
+    name: 'Суп с курицей и брокколи',
+    calories: 250,
+    proteins: 28,
+    fats: 12,
+    carbs: 6,
+    prepTime: 30,
+    cookingMethod: 'hot',
+    dishType: 'first',
+    processingMethod: 'boiling',
+    description: 'Питательный суп с курицей и брокколи. Здоровое и сытное блюдо.',
+    estimatedCost: 220,
+    ingredients: ['300г куриной грудки', 'Брокколи 200г', 'Морковь', 'Лук репчатый', 'Чеснок', 'Зелень', 'Соль'],
+    instructions: [
+      'Приготовьте куриный бульон',
+      'Добавьте нарезанную курицу',
+      'Добавьте овощи',
+      'Варите 20 минут',
+      'Добавьте брокколи за 5 минут до готовности',
+      'Посыпьте зеленью'
+    ],
+    availableProducts: ['Куриная грудка', 'Брокколи', 'Морковь', 'Лук репчатый', 'Чеснок', 'Зелень (петрушка, укроп)']
+  }
+]
+
+// Еще дополнительные горячие вторые блюда
+export const moreHotSecondCourses: Meal[] = [
+  {
+    name: 'Куриная грудка с овощами в горшочке',
+    calories: 360,
+    proteins: 38,
+    fats: 18,
+    carbs: 8,
+    prepTime: 60,
+    cookingMethod: 'hot',
+    dishType: 'second',
+    processingMethod: 'baking',
+    description: 'Сочная куриная грудка с овощами, запеченная в горшочке. Домашний уют и аромат.',
+    estimatedCost: 280,
+    ingredients: ['500г куриной грудки', 'Морковь', 'Лук репчатый', 'Кабачки', 'Баклажаны', 'Сливки 20%', 'Соль', 'Перец'],
+    instructions: [
+      'Нарежьте курицу и овощи',
+      'Выложите все в горшочек слоями',
+      'Добавьте сливки',
+      'Запекайте 50 минут при 180°C',
+      'Подавайте горячим',
+      'Украсьте зеленью'
+    ],
+    availableProducts: ['Куриная грудка', 'Морковь', 'Лук репчатый', 'Кабачки', 'Баклажаны', 'Сливки 20%']
+  },
+  {
+    name: 'Говядина с грибами в сливочном соусе',
+    calories: 420,
+    proteins: 40,
+    fats: 26,
+    carbs: 6,
+    prepTime: 70,
+    cookingMethod: 'hot',
+    dishType: 'second',
+    processingMethod: 'baking',
+    description: 'Нежная говядина с грибами в сливочном соусе. Классическое сочетание вкусов.',
+    estimatedCost: 420,
+    ingredients: ['600г говядины', 'Грибы шампиньоны 300г', 'Сливки 20% 200мл', 'Лук репчатый', 'Чеснок', 'Тимьян', 'Соль', 'Перец'],
+    instructions: [
+      'Обжарьте говядину со всех сторон',
+      'Обжарьте грибы с луком',
+      'Добавьте сливки и чеснок',
+      'Тушите 1 час на медленном огне',
+      'Посыпьте тимьяном',
+      'Подавайте горячим'
+    ],
+    availableProducts: ['Говядина', 'Грибы шампиньоны', 'Сливки 20%', 'Лук репчатый', 'Чеснок', 'Тимьян']
+  },
+  {
+    name: 'Рыба с овощами в фольге',
+    calories: 300,
+    proteins: 34,
+    fats: 16,
+    carbs: 4,
+    prepTime: 40,
+    cookingMethod: 'hot',
+    dishType: 'second',
+    processingMethod: 'baking',
+    description: 'Нежная рыба с овощами, запеченная в фольге. Сохранены все соки и ароматы.',
+    estimatedCost: 320,
+    ingredients: ['500г рыбы (треска, минтай)', 'Морковь', 'Лук репчатый', 'Кабачки', 'Лимон', 'Укроп', 'Оливковое масло', 'Соль'],
+    instructions: [
+      'Нарежьте рыбу и овощи',
+      'Выложите на фольгу',
+      'Добавьте лимон и укроп',
+      'Полейте оливковым маслом',
+      'Запекайте 30 минут при 200°C',
+      'Подавайте горячим'
+    ],
+    availableProducts: ['Лосось', 'Морковь', 'Лук репчатый', 'Кабачки', 'Лимон', 'Зелень (петрушка, укроп)', 'Оливковое масло']
+  },
+  {
+    name: 'Куриные бедра с овощами в духовке',
+    calories: 400,
+    proteins: 34,
+    fats: 26,
+    carbs: 6,
+    prepTime: 60,
+    cookingMethod: 'hot',
+    dishType: 'second',
+    processingMethod: 'baking',
+    description: 'Сочные куриные бедра с овощами, запеченные в духовке. Хрустящая корочка и нежное мясо.',
+    estimatedCost: 280,
+    ingredients: ['1кг куриных бедер', 'Морковь', 'Лук репчатый', 'Кабачки', 'Баклажаны', 'Оливковое масло', 'Тимьян', 'Соль', 'Перец'],
+    instructions: [
+      'Обжарьте бедра до золотистой корочки',
+      'Нарежьте овощи',
+      'Выложите все на противень',
+      'Полейте оливковым маслом',
+      'Запекайте 45 минут при 200°C',
+      'Посыпьте тимьяном'
+    ],
+    availableProducts: ['Куриная грудка', 'Морковь', 'Лук репчатый', 'Кабачки', 'Баклажаны', 'Оливковое масло', 'Тимьян']
+  },
+  {
+    name: 'Говядина с овощами на пару',
+    calories: 320,
+    proteins: 36,
+    fats: 16,
+    carbs: 6,
+    prepTime: 50,
+    cookingMethod: 'hot',
+    dishType: 'second',
+    processingMethod: 'steaming',
+    description: 'Нежная говядина с овощами, приготовленная на пару. Легкое и полезное блюдо.',
+    estimatedCost: 380,
+    ingredients: ['500г говядины', 'Морковь', 'Брокколи', 'Цветная капуста', 'Соль', 'Перец'],
+    instructions: [
+      'Нарежьте говядину и овощи',
+      'Выложите в пароварку',
+      'Готовьте на пару 40 минут',
+      'Посолите и поперчите',
+      'Подавайте горячим',
+      'Украсьте зеленью'
+    ],
+    availableProducts: ['Говядина', 'Морковь', 'Брокколи', 'Цветная капуста']
+  }
+]
+
+// Еще дополнительные десерты
+export const moreDessertDishes: Meal[] = [
+  {
+    name: 'Кето-мороженое из авокадо',
+    calories: 280,
+    proteins: 6,
+    fats: 26,
+    carbs: 8,
+    prepTime: 240,
+    cookingMethod: 'cold',
+    dishType: 'dessert',
+    description: 'Кремовое кето-мороженое из авокадо. Нежный вкус и полезные жиры.',
+    estimatedCost: 220,
+    ingredients: ['2 авокадо', 'Сливки 33% 200мл', 'Эритрит 4 ст.л', 'Ваниль', 'Лимонный сок'],
+    instructions: [
+      'Разомните авокадо вилкой',
+      'Взбейте сливки с эритритом',
+      'Смешайте все ингредиенты',
+      'Добавьте лимонный сок',
+      'Заморозьте в мороженице или морозилке',
+      'Подавайте охлажденным'
+    ],
+    availableProducts: ['Авокадо', 'Сливки 33%', 'Эритрит']
+  },
+  {
+    name: 'Кето-печенье с орехами',
+    calories: 260,
+    proteins: 10,
+    fats: 22,
+    carbs: 6,
+    prepTime: 25,
+    cookingMethod: 'hot',
+    dishType: 'dessert',
+    processingMethod: 'baking',
+    description: 'Хрустящее кето-печенье с орехами. Идеальный перекус без сахара.',
+    estimatedCost: 180,
+    ingredients: ['Миндальная мука 150г', 'Грецкие орехи 50г', 'Яйца 2 шт', 'Эритрит 3 ст.л', 'Кокосовое масло', 'Ваниль'],
+    instructions: [
+      'Измельчите орехи',
+      'Смешайте все ингредиенты',
+      'Сформируйте печенье',
+      'Выпекайте 20 минут при 180°C',
+      'Остудите',
+      'Подавайте с чаем'
+    ],
+    availableProducts: ['Миндальная мука', 'Грецкие орехи', 'Яйца', 'Эритрит', 'Кокосовое масло']
+  },
+  {
+    name: 'Кето-кексы с лимоном',
+    calories: 220,
+    proteins: 8,
+    fats: 18,
+    carbs: 6,
+    prepTime: 30,
+    cookingMethod: 'hot',
+    dishType: 'dessert',
+    processingMethod: 'baking',
+    description: 'Нежные кето-кексы с лимоном. Освежающий вкус и аромат.',
+    estimatedCost: 160,
+    ingredients: ['Миндальная мука 120г', 'Яйца 3 шт', 'Сливки 20% 60мл', 'Эритрит 4 ст.л', 'Лимон 1 шт', 'Разрыхлитель', 'Ваниль'],
+    instructions: [
+      'Смешайте муку с разрыхлителем',
+      'Взбейте яйца со сливками',
+      'Добавьте цедру и сок лимона',
+      'Соедините все ингредиенты',
+      'Выпекайте 25 минут при 180°C',
+      'Подавайте охлажденными'
+    ],
+    availableProducts: ['Миндальная мука', 'Яйца', 'Сливки 20%', 'Эритрит', 'Лимон']
+  },
+  {
+    name: 'Кето-чизкейк с ягодами',
+    calories: 340,
+    proteins: 14,
+    fats: 30,
+    carbs: 6,
+    prepTime: 90,
+    cookingMethod: 'hot',
+    dishType: 'dessert',
+    processingMethod: 'baking',
+    description: 'Нежный кето-чизкейк с ягодами. Праздничный десерт без сахара.',
+    estimatedCost: 320,
+    ingredients: ['Сливки 33% 400мл', 'Сыр творожный 300г', 'Яйца 4 шт', 'Эритрит 6 ст.л', 'Ягоды 150г', 'Миндальная мука 100г', 'Ваниль'],
+    instructions: [
+      'Приготовьте основу из миндальной муки',
+      'Взбейте сливки с сыром',
+      'Добавьте яйца и эритрит',
+      'Вылейте на основу',
+      'Выпекайте 60 минут при 160°C',
+      'Украсьте ягодами'
+    ],
+    availableProducts: ['Сливки 33%', 'Яйца', 'Эритрит']
+  },
+  {
+    name: 'Кето-шоколадный мусс',
+    calories: 300,
+    proteins: 8,
+    fats: 28,
+    carbs: 6,
+    prepTime: 30,
+    cookingMethod: 'cold',
+    dishType: 'dessert',
+    description: 'Воздушный кето-шоколадный мусс. Декадентский десерт без сахара.',
+    estimatedCost: 240,
+    ingredients: ['Темный шоколад 85% 100г', 'Сливки 33% 300мл', 'Эритрит 4 ст.л', 'Яйца 3 шт', 'Ваниль'],
+    instructions: [
+      'Растопите шоколад',
+      'Взбейте сливки с эритритом',
+      'Отдельно взбейте желтки',
+      'Смешайте все ингредиенты',
+      'Охладите 2 часа',
+      'Подавайте в креманках'
+    ],
+    availableProducts: ['Сливки 33%', 'Яйца', 'Эритрит']
+  }
+]
+
+// Объединяем все блюда и добавляем изображения
+const allColdDishes = addImagesToMeals([...coldDishes, ...additionalColdDishes, ...moreColdDishes, ...additionalColdDishesPart1, ...additionalColdDishesPart3])
+const allHotFirstCourses = addImagesToMeals([...hotFirstCourses, ...additionalHotFirstCourses, ...moreHotFirstCourses, ...additionalHotFirstCoursesPart1])
+const allHotSecondCourses = addImagesToMeals([...hotSecondCourses, ...additionalHotSecondCourses, ...moreHotSecondCourses, ...additionalHotSecondCoursesPart2])
+const allDessertDishes = addImagesToMeals([...dessertDishes, ...additionalDessertDishes, ...moreDessertDishes, ...additionalDessertDishesPart3])
+
 export const enhancedMealsDatabase: Record<string, Meal[]> = {
-  snack: [...coldDishes.filter(meal => meal.dishType === 'snack'), ...additionalColdDishes.filter(meal => meal.dishType === 'snack'), ...moreColdDishes.filter(meal => meal.dishType === 'snack')],
-  cold: [...coldDishes, ...additionalColdDishes, ...moreColdDishes],
-  hot_first: [...hotFirstCourses, ...additionalHotFirstCourses],
-  hot_second: [...hotSecondCourses, ...additionalHotSecondCourses],
-  dessert: [...dessertDishes, ...additionalDessertDishes],
+  snack: allColdDishes.filter(meal => meal.dishType === 'snack'),
+  cold: allColdDishes,
+  hot_first: allHotFirstCourses,
+  hot_second: allHotSecondCourses,
+  dessert: allDessertDishes,
 }
 
