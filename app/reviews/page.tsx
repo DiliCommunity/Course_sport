@@ -148,7 +148,12 @@ export default function ReviewsPage() {
   
   // Форма отправки отзыва
   const [showReviewForm, setShowReviewForm] = useState(false)
-  const [reviewFormData, setReviewFormData] = useState({
+  const [reviewFormData, setReviewFormData] = useState<{
+    courseId: typeof COURSE_IDS.KETO | typeof COURSE_IDS.INTERVAL
+    courseName: string
+    rating: number
+    text: string
+  }>({
     courseId: COURSE_IDS.KETO,
     courseName: 'Кето диета: от Мифов к Результатам',
     rating: 5,
