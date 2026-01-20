@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { cookies } from 'next/headers'
 
 export const dynamic = 'force-dynamic'
@@ -53,16 +53,28 @@ export async function POST(request: NextRequest) {
     const isAdmin = user.is_admin === true
     
     if (!isAdmin) {
-      // Проверяем наличие хотя бы одной завершенной оплаты
-      const { data: payments, error: paymentsError } = await supabase
+      const adminSupabase = createAdminClient()
+      
+      if (!adminSupabase) {
+        console.error('[Review Create] Admin client not available')
+        return NextResponse.json(
+          { error: 'Ошибка сервера при проверке прав доступа' },
+          { status: 500 }
+        )
+      }
+
+      // Проверяем наличие хотя бы одной завершенной оплаты (используем adminSupabase для обхода RLS)
+      const { data: payments, error: paymentsError } = await adminSupabase
         .from('payments')
-        .select('id')
+        .select('id, status, course_id')
         .eq('user_id', userId)
         .eq('status', 'completed')
-        .limit(1)
+        .limit(10)
+
+      console.log('[Review Create] Payments found:', payments?.length || 0, 'Error:', paymentsError?.message)
 
       if (paymentsError) {
-        console.error('Error checking payments:', paymentsError)
+        console.error('[Review Create] Error checking payments:', paymentsError)
         return NextResponse.json(
           { error: 'Ошибка при проверке прав доступа' },
           { status: 500 }
@@ -71,14 +83,16 @@ export async function POST(request: NextRequest) {
 
       // Если нет оплат, проверяем enrollments
       if (!payments || payments.length === 0) {
-        const { data: enrollments, error: enrollmentsError } = await supabase
+        const { data: enrollments, error: enrollmentsError } = await adminSupabase
           .from('enrollments')
-          .select('id')
+          .select('id, course_id')
           .eq('user_id', userId)
-          .limit(1)
+          .limit(10)
+
+        console.log('[Review Create] Enrollments found:', enrollments?.length || 0, 'Error:', enrollmentsError?.message)
 
         if (enrollmentsError) {
-          console.error('Error checking enrollments:', enrollmentsError)
+          console.error('[Review Create] Error checking enrollments:', enrollmentsError)
           return NextResponse.json(
             { error: 'Ошибка при проверке прав доступа' },
             { status: 500 }
