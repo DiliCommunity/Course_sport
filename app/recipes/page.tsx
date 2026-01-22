@@ -3,11 +3,12 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Lock, Loader2, ChefHat, ArrowLeft, Clock, Flame, Beef, Salad, Search, X } from 'lucide-react'
+import { Lock, Loader2, ChefHat, ArrowLeft, Clock, Flame, Beef, Salad, Search, X, Sparkles, UtensilsCrossed } from 'lucide-react'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { Button } from '@/components/ui/Button'
 import Image from 'next/image'
 import { enhancedMealsDatabase } from '@/components/recipes/enhancedMealsData'
+import { MenuGenerator } from '@/components/recipes/MenuGenerator'
 import type { Meal, ProcessingMethod, DishType } from '@/components/recipes/MenuGenerator'
 import { getMealImage } from '@/components/recipes/mealImageMapping'
 
@@ -38,7 +39,10 @@ export default function RecipesPage() {
   const { user } = useAuth()
   const router = useRouter()
   
-  // Состояние навигации
+  // Режим страницы: recipes - просмотр рецептов, generator - генератор меню
+  const [mode, setMode] = useState<'recipes' | 'generator'>('recipes')
+  
+  // Состояние навигации для рецептов
   const [step, setStep] = useState<'cooking_method' | 'meal_type' | 'recipes'>('cooking_method')
   const [selectedCookingMethod, setSelectedCookingMethod] = useState<ProcessingMethod | 'all'>('all')
   const [selectedMealType, setSelectedMealType] = useState<DishType | 'all'>('all')
@@ -208,14 +212,58 @@ export default function RecipesPage() {
             </h1>
           </div>
           <p className="text-white/60 text-lg">
-            {step === 'cooking_method' && 'Выберите способ приготовления'}
-            {step === 'meal_type' && 'Выберите тип блюда'}
-            {step === 'recipes' && `${filteredRecipes.length} рецептов`}
+            {mode === 'generator' 
+              ? 'Создайте персональное меню на основе ваших предпочтений'
+              : step === 'cooking_method' 
+                ? 'Выберите способ приготовления' 
+                : step === 'meal_type' 
+                  ? 'Выберите тип блюда' 
+                  : `${filteredRecipes.length} рецептов`
+            }
           </p>
         </motion.div>
 
-        {/* Кнопка назад */}
-        {step !== 'cooking_method' && (
+        {/* Кнопки переключения режима */}
+        {mode === 'recipes' && step === 'cooking_method' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="mb-8 flex justify-center"
+          >
+            <button
+              onClick={() => setMode('generator')}
+              className="group relative px-8 py-4 rounded-2xl bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900 font-bold text-lg flex items-center gap-3 shadow-[0_0_25px_rgba(255,215,0,0.4),0_0_50px_rgba(0,217,255,0.2)] hover:shadow-[0_0_40px_rgba(255,215,0,0.6),0_0_80px_rgba(0,217,255,0.4)] hover:scale-105 transition-all duration-300 border-2 border-accent-gold/50"
+            >
+              <Sparkles className="w-6 h-6" />
+              <span>Сгенерировать меню</span>
+              <UtensilsCrossed className="w-6 h-6 group-hover:rotate-12 transition-transform" />
+            </button>
+          </motion.div>
+        )}
+
+        {/* Режим генератора меню */}
+        {mode === 'generator' && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <button
+              onClick={() => setMode('recipes')}
+              className="mb-6 flex items-center gap-2 text-white/70 hover:text-white transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              <span>К рецептам</span>
+            </button>
+            <MenuGenerator />
+          </motion.div>
+        )}
+
+        {/* Режим просмотра рецептов */}
+        {mode === 'recipes' && (
+          <>
+            {/* Кнопка назад */}
+            {step !== 'cooking_method' && (
           <motion.button
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -542,6 +590,8 @@ export default function RecipesPage() {
             </motion.div>
           )}
         </AnimatePresence>
+          </>
+        )}
       </div>
     </div>
   )

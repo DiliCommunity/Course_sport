@@ -127,7 +127,7 @@ export default function CoursesPage() {
                 </div>
                 <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
                   <Link
-                    href="/keto-food"
+                    href="/recipes"
                     className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-accent-gold to-amber-400 text-dark-900 font-bold hover:shadow-[0_0_30px_rgba(251,191,36,0.4)] transition-all text-lg"
                   >
                     Смотреть рецепты

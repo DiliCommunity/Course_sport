@@ -7,7 +7,7 @@ import { Heart, Instagram, Youtube, Send, Mail, Phone, MapPin, MessageCircle } f
 const footerLinks = {
   courses: [
     { label: 'Все курсы', href: '/courses' },
-    { label: 'Кето-рецепты', href: '/keto-food' },
+    { label: 'Рецепты', href: '/recipes' },
     { label: 'Отзывы', href: '/reviews' },
   ],
   company: [

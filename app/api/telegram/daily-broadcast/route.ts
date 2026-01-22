@@ -313,7 +313,7 @@ async function broadcastToSubscribers(
       },
       {
         text: '🥗 Рецепты',
-        url: `${appUrl}/keto-food`
+        url: `${appUrl}/recipes`
       }
     ]
   ]

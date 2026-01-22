@@ -59,7 +59,7 @@ export default function AboutPage() {
                   Начать обучение
                 </Button>
               </Link>
-              <Link href="/keto-food">
+              <Link href="/recipes">
                 <Button variant="secondary" size="lg">
                   Кето-рецепты
                 </Button>
