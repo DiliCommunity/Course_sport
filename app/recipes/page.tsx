@@ -15,13 +15,13 @@ import { getMealImage } from '@/components/recipes/mealImageMapping'
 // Способы приготовления с названиями и изображениями
 const COOKING_METHODS: { id: ProcessingMethod | 'all'; name: string; description: string; image: string }[] = [
   { id: 'all', name: 'Все способы', description: 'Показать все блюда', image: '/img/cooking-methods/all-methods.jpg' },
-  { id: 'sous_vide', name: 'Су-вид', description: 'Приготовление при низкой температуре в вакууме', image: '/img/cooking-methods/sous-vide.jpg' },
-  { id: 'grilling', name: 'Гриль', description: 'Приготовление на открытом огне или гриле', image: '/img/cooking-methods/grilling.jpg' },
-  { id: 'frying', name: 'Жарка', description: 'Жарка на сковороде на сливочном масле', image: '/img/cooking-methods/frying.jpg' },
-  { id: 'baking', name: 'Запекание', description: 'Запекание в духовке', image: '/img/cooking-methods/baking.jpg' },
-  { id: 'boiling', name: 'Варка', description: 'Варка в воде или бульоне', image: '/img/cooking-methods/boiling.jpg' },
+  { id: 'sous_vide', name: 'Су-вид', description: 'При низкой температуре в вакууме', image: '/img/cooking-methods/sous_vide.jpg' },
+  { id: 'grilling', name: 'Гриль', description: 'На открытом огне или гриле', image: '/img/cooking-methods/grilling.jpg' },
+  { id: 'frying', name: 'Жарка', description: 'На сковороде со сливочным маслом', image: '/img/cooking-methods/frying.jpg' },
+  { id: 'baking', name: 'Запекание', description: 'В духовке', image: '/img/cooking-methods/baking.jpg' },
+  { id: 'boiling', name: 'Варка', description: 'В воде или бульоне', image: '/img/cooking-methods/boiling.jpg' },
   { id: 'steaming', name: 'На пару', description: 'Приготовление на пару', image: '/img/cooking-methods/steaming.jpg' },
-  { id: 'air_frying', name: 'Аэрогриль', description: 'Приготовление в аэрогриле', image: '/img/cooking-methods/air-frying.jpg' },
+  { id: 'air_frying', name: 'Аэрогриль', description: 'В аэрогриле', image: '/img/cooking-methods/air-frying.jpg' },
 ]
 
 // Приёмы пищи с названиями
@@ -292,47 +292,50 @@ export default function RecipesPage() {
                     key={method.id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0, transition: { delay: index * 0.05 } }}
-                    whileHover={{ scale: 1.02, y: -4 }}
+                    whileHover={{ scale: 1.03, y: -6 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => handleCookingMethodSelect(method.id)}
                     disabled={count === 0 && method.id !== 'all'}
-                    className={`relative p-5 rounded-2xl border-2 transition-all duration-300 text-left group overflow-hidden
+                    className={`relative h-48 md:h-56 rounded-2xl border-2 transition-all duration-300 text-left group overflow-hidden
                       ${count === 0 && method.id !== 'all'
-                        ? 'border-white/5 bg-dark-800/30 cursor-not-allowed opacity-50'
-                        : 'border-white/10 bg-gradient-to-br from-dark-800/90 to-dark-900/90 hover:border-accent-gold/60 hover:shadow-xl hover:shadow-accent-gold/20'
+                        ? 'border-white/5 cursor-not-allowed opacity-50'
+                        : 'border-white/20 hover:border-accent-gold/70 hover:shadow-2xl hover:shadow-accent-gold/30'
                       }`}
                   >
-                    {/* Фото способа приготовления */}
-                    <div className="relative w-16 h-16 rounded-xl overflow-hidden mb-4 group-hover:scale-110 transition-transform duration-300 ring-2 ring-white/10 group-hover:ring-accent-gold/50">
+                    {/* Фоновое фото на всю кнопку */}
+                    <div className="absolute inset-0">
                       <Image
                         src={method.image}
                         alt={method.name}
                         fill
-                        className="object-cover"
+                        className="object-cover transition-transform duration-500 group-hover:scale-110"
                         onError={(e) => {
-                          // Fallback если фото не найдено
                           const target = e.target as HTMLImageElement
                           target.style.display = 'none'
-                          target.parentElement!.innerHTML = '<div class="w-full h-full bg-gradient-to-br from-accent-gold/30 to-accent-electric/30 flex items-center justify-center text-2xl">🍽️</div>'
                         }}
                       />
+                      {/* Тёмный градиент для читаемости текста */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/20 group-hover:from-black/95 group-hover:via-black/60 transition-all duration-300" />
                     </div>
                     
-                    {/* Переливающийся заголовок */}
-                    <h3 className="text-xl font-bold mb-1 text-neon-shine">
-                      {method.name}
-                    </h3>
-                    <p className="text-sm text-white/70 mb-3 line-clamp-2">{method.description}</p>
-                    
-                    {/* Счётчик блюд с подсветкой */}
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent-gold/15 border border-accent-gold/40 badge-glow">
-                      <span className="text-sm font-bold text-gradient-shine">
-                        {count} блюд
-                      </span>
+                    {/* Контент поверх фото */}
+                    <div className="relative h-full flex flex-col justify-end p-5 z-10">
+                      {/* Переливающийся заголовок */}
+                      <h3 className="text-2xl font-bold mb-1 text-neon-shine drop-shadow-lg">
+                        {method.name}
+                      </h3>
+                      <p className="text-sm text-white/80 mb-3 drop-shadow-md">{method.description}</p>
+                      
+                      {/* Счётчик блюд с подсветкой */}
+                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-black/50 backdrop-blur-sm border border-accent-gold/50 badge-glow w-fit">
+                        <span className="text-base font-bold text-gradient-shine">
+                          {count} блюд
+                        </span>
+                      </div>
                     </div>
 
-                    {/* Декоративное свечение при наведении */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-accent-gold/0 via-accent-gold/5 to-accent-mint/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                    {/* Свечение при наведении */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-accent-gold/0 via-accent-gold/10 to-accent-mint/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-5" />
                   </motion.button>
                 )
               })}
