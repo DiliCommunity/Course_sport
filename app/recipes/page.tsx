@@ -12,16 +12,16 @@ import { MenuGenerator } from '@/components/recipes/MenuGenerator'
 import type { Meal, ProcessingMethod, DishType } from '@/components/recipes/MenuGenerator'
 import { getMealImage } from '@/components/recipes/mealImageMapping'
 
-// Способы приготовления с названиями и иконками
-const COOKING_METHODS: { id: ProcessingMethod | 'all'; name: string; description: string; icon: string }[] = [
-  { id: 'all', name: 'Все способы', description: 'Показать все блюда', icon: '🍽️' },
-  { id: 'sous_vide', name: 'Су-вид', description: 'Приготовление при низкой температуре в вакууме', icon: '🥩' },
-  { id: 'grilling', name: 'Гриль', description: 'Приготовление на открытом огне или гриле', icon: '🔥' },
-  { id: 'frying', name: 'Жарка', description: 'Жарка на сковороде или во фритюре', icon: '🍳' },
-  { id: 'baking', name: 'Запекание', description: 'Запекание в духовке', icon: '♨️' },
-  { id: 'boiling', name: 'Варка', description: 'Варка в воде или бульоне', icon: '🍲' },
-  { id: 'steaming', name: 'На пару', description: 'Приготовление на пару', icon: '💨' },
-  { id: 'air_frying', name: 'Аэрогриль', description: 'Приготовление в аэрогриле', icon: '🌀' },
+// Способы приготовления с названиями и изображениями
+const COOKING_METHODS: { id: ProcessingMethod | 'all'; name: string; description: string; image: string }[] = [
+  { id: 'all', name: 'Все способы', description: 'Показать все блюда', image: '/img/cooking-methods/all-methods.jpg' },
+  { id: 'sous_vide', name: 'Су-вид', description: 'Приготовление при низкой температуре в вакууме', image: '/img/cooking-methods/sous-vide.jpg' },
+  { id: 'grilling', name: 'Гриль', description: 'Приготовление на открытом огне или гриле', image: '/img/cooking-methods/grilling.jpg' },
+  { id: 'frying', name: 'Жарка', description: 'Жарка на сковороде на сливочном масле', image: '/img/cooking-methods/frying.jpg' },
+  { id: 'baking', name: 'Запекание', description: 'Запекание в духовке', image: '/img/cooking-methods/baking.jpg' },
+  { id: 'boiling', name: 'Варка', description: 'Варка в воде или бульоне', image: '/img/cooking-methods/boiling.jpg' },
+  { id: 'steaming', name: 'На пару', description: 'Приготовление на пару', image: '/img/cooking-methods/steaming.jpg' },
+  { id: 'air_frying', name: 'Аэрогриль', description: 'Приготовление в аэрогриле', image: '/img/cooking-methods/air-frying.jpg' },
 ]
 
 // Приёмы пищи с названиями
@@ -292,25 +292,47 @@ export default function RecipesPage() {
                     key={method.id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0, transition: { delay: index * 0.05 } }}
+                    whileHover={{ scale: 1.02, y: -4 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => handleCookingMethodSelect(method.id)}
                     disabled={count === 0 && method.id !== 'all'}
-                    className={`relative p-6 rounded-2xl border-2 transition-all duration-300 text-left group
+                    className={`relative p-5 rounded-2xl border-2 transition-all duration-300 text-left group overflow-hidden
                       ${count === 0 && method.id !== 'all'
                         ? 'border-white/5 bg-dark-800/30 cursor-not-allowed opacity-50'
-                        : 'border-white/10 bg-gradient-to-br from-dark-800/90 to-dark-900/90 hover:border-accent-gold/50 hover:shadow-lg hover:shadow-accent-gold/10'
+                        : 'border-white/10 bg-gradient-to-br from-dark-800/90 to-dark-900/90 hover:border-accent-gold/60 hover:shadow-xl hover:shadow-accent-gold/20'
                       }`}
                   >
-                    {/* Иконка способа (заглушка - замените на реальное фото) */}
-                    <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-accent-gold/20 to-accent-electric/20 flex items-center justify-center mb-4 text-3xl group-hover:scale-110 transition-transform">
-                      {method.icon}
+                    {/* Фото способа приготовления */}
+                    <div className="relative w-16 h-16 rounded-xl overflow-hidden mb-4 group-hover:scale-110 transition-transform duration-300 ring-2 ring-white/10 group-hover:ring-accent-gold/50">
+                      <Image
+                        src={method.image}
+                        alt={method.name}
+                        fill
+                        className="object-cover"
+                        onError={(e) => {
+                          // Fallback если фото не найдено
+                          const target = e.target as HTMLImageElement
+                          target.style.display = 'none'
+                          target.parentElement!.innerHTML = '<div class="w-full h-full bg-gradient-to-br from-accent-gold/30 to-accent-electric/30 flex items-center justify-center text-2xl">🍽️</div>'
+                        }}
+                      />
                     </div>
                     
-                    <h3 className="text-lg font-bold text-white mb-1">{method.name}</h3>
-                    <p className="text-sm text-white/50 mb-3 line-clamp-2">{method.description}</p>
+                    {/* Переливающийся заголовок */}
+                    <h3 className="text-xl font-bold mb-1 text-neon-shine">
+                      {method.name}
+                    </h3>
+                    <p className="text-sm text-white/70 mb-3 line-clamp-2">{method.description}</p>
                     
-                    <div className="flex items-center gap-2 text-accent-gold">
-                      <span className="text-sm font-medium">{count} блюд</span>
+                    {/* Счётчик блюд с подсветкой */}
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent-gold/15 border border-accent-gold/40 badge-glow">
+                      <span className="text-sm font-bold text-gradient-shine">
+                        {count} блюд
+                      </span>
                     </div>
+
+                    {/* Декоративное свечение при наведении */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-accent-gold/0 via-accent-gold/5 to-accent-mint/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                   </motion.button>
                 )
               })}
@@ -341,17 +363,25 @@ export default function RecipesPage() {
                       key={type.id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0, transition: { delay: index * 0.05 } }}
+                      whileHover={{ scale: 1.03, y: -4 }}
+                      whileTap={{ scale: 0.98 }}
                       onClick={() => handleMealTypeSelect(type.id)}
                       disabled={count === 0 && type.id !== 'all'}
-                      className={`relative p-6 rounded-2xl border-2 transition-all duration-300 text-center group
+                      className={`relative p-6 rounded-2xl border-2 transition-all duration-300 text-center group overflow-hidden
                         ${count === 0 && type.id !== 'all'
                           ? 'border-white/5 bg-dark-800/30 cursor-not-allowed opacity-50'
-                          : 'border-white/10 bg-gradient-to-br from-dark-800/90 to-dark-900/90 hover:border-accent-mint/50 hover:shadow-lg hover:shadow-accent-mint/10'
+                          : 'border-white/10 bg-gradient-to-br from-dark-800/90 to-dark-900/90 hover:border-accent-mint/60 hover:shadow-xl hover:shadow-accent-mint/20'
                         }`}
                     >
-                      <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">{type.icon}</div>
-                      <h3 className="text-lg font-bold text-white mb-2">{type.name}</h3>
-                      <div className="text-accent-mint font-medium">{count} блюд</div>
+                      <div className="text-5xl mb-3 group-hover:scale-125 transition-transform duration-300 drop-shadow-lg">{type.icon}</div>
+                      <h3 className="text-lg font-bold text-neon-shine mb-2">{type.name}</h3>
+                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent-mint/15 border border-accent-mint/40 badge-glow">
+                        <span className="text-sm font-bold bg-gradient-to-r from-accent-mint via-white to-accent-aqua bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent">
+                          {count} блюд
+                        </span>
+                      </div>
+                      {/* Декоративное свечение */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-accent-mint/0 via-accent-mint/5 to-accent-aqua/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                     </motion.button>
                   )
                 })}
@@ -436,8 +466,7 @@ export default function RecipesPage() {
                         )}
                         {/* Бейдж способа приготовления */}
                         {recipe.processingMethod && (
-                          <div className="absolute top-3 left-3 px-3 py-1 rounded-full bg-dark-900/80 backdrop-blur-sm text-sm text-accent-gold">
-                            {COOKING_METHODS.find(m => m.id === recipe.processingMethod)?.icon}{' '}
+                          <div className="absolute top-3 left-3 px-3 py-1 rounded-full bg-dark-900/80 backdrop-blur-sm text-sm text-accent-gold font-medium">
                             {COOKING_METHODS.find(m => m.id === recipe.processingMethod)?.name}
                           </div>
                         )}

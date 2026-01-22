@@ -60,7 +60,9 @@ module.exports = {
         'fade-in': 'fade-in 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
         'scale-in': 'scale-in 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
         'spin-slow': 'spin 30s linear infinite',
-        'gradient-x': 'gradient-x 10s ease infinite',
+        'gradient-x': 'gradient-x 3s ease infinite',
+        'gradient-shine': 'gradient-shine 2s ease-in-out infinite',
+        'text-shimmer': 'text-shimmer 2.5s ease-in-out infinite',
         'shimmer': 'shimmer 3s ease-in-out infinite',
         'grid-move': 'grid-move 20s linear infinite',
       },
@@ -102,6 +104,20 @@ module.exports = {
         'gradient-x': {
           '0%, 100%': { backgroundPosition: '0% 50%' },
           '50%': { backgroundPosition: '100% 50%' },
+        },
+        'gradient-shine': {
+          '0%': { backgroundPosition: '200% center' },
+          '100%': { backgroundPosition: '-200% center' },
+        },
+        'text-shimmer': {
+          '0%, 100%': { 
+            backgroundPosition: '0% 50%',
+            filter: 'brightness(1)',
+          },
+          '50%': { 
+            backgroundPosition: '100% 50%',
+            filter: 'brightness(1.3)',
+          },
         },
         'shimmer': {
           '0%': { backgroundPosition: '-200% 0' },

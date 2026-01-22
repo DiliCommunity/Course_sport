@@ -14,6 +14,7 @@ import { additionalColdDishesPart8, additionalHotFirstCoursesPart8, additionalHo
 import { additionalColdDishesPart9, additionalHotFirstCoursesPart9, additionalHotSecondCoursesPart9, additionalDessertDishesPart9 } from './additionalMealsPart9'
 import { additionalColdDishesPart10, additionalHotFirstCoursesPart10, additionalHotSecondCoursesPart10, additionalDessertDishesPart10 } from './additionalMealsPart10'
 import { additionalColdDishesPart11, additionalHotFirstCoursesPart11, additionalHotSecondCoursesPart11, additionalDessertDishesPart11 } from './additionalMealsPart11'
+import { grillMeals, steamMeals } from './grillAndSteamMeals'
 
 // Список доступных продуктов (из ShoppingListGenerator)
 export const AVAILABLE_PRODUCTS_LIST = [
@@ -1242,27 +1243,27 @@ export const hotSecondCourses: Meal[] = [
     availableProducts: ['Индейка', 'Сливочное масло', 'Розмарин', 'Тимьян', 'Чеснок', 'Лимон']
   },
   {
-    name: 'Кальмары, жаренные в кляре',
-    calories: 320,
+    name: 'Кальмары на гриле с лимоном',
+    calories: 180,
     proteins: 28,
-    fats: 18,
-    carbs: 8,
-    prepTime: 20,
+    fats: 6,
+    carbs: 2,
+    prepTime: 15,
     cookingMethod: 'hot',
     dishType: 'second',
-    processingMethod: 'frying',
-    description: 'Хрустящие кальмары в кето-кляре. Аппетитная закуска или основное блюдо.',
-    estimatedCost: 300,
-    ingredients: ['400г кальмаров', 'Миндальная мука', 'Яйца', 'Оливковое масло', 'Лимон', 'Соль', 'Перец'],
+    processingMethod: 'grilling',
+    description: 'Нежные кальмары на гриле с ароматом лимона и трав. Легкое и полезное кето-блюдо.',
+    estimatedCost: 280,
+    ingredients: ['400г кальмаров', 'Оливковое масло 2 ст.л.', 'Лимон', 'Чеснок 2 зубчика', 'Петрушка', 'Соль', 'Перец'],
     instructions: [
-      'Нарежьте кальмары кольцами',
-      'Обваляйте в миндальной муке',
-      'Обмакните во взбитые яйца',
-      'Обжарьте на оливковом масле до золотистого цвета',
-      'Выложите на бумажное полотенце',
-      'Подавайте с лимоном'
+      'Очистите кальмары, разрежьте вдоль',
+      'Сделайте надрезы сеточкой на внутренней стороне',
+      'Замаринуйте в оливковом масле с чесноком и лимоном на 15 минут',
+      'Разогрейте гриль до максимума',
+      'Жарьте кальмары 1-2 минуты с каждой стороны',
+      'Подавайте с лимоном и свежей петрушкой'
     ],
-    availableProducts: ['Кальмары', 'Миндальная мука', 'Яйца', 'Оливковое масло', 'Лимон']
+    availableProducts: ['Кальмары', 'Оливковое масло', 'Лимон', 'Чеснок', 'Петрушка']
   },
   {
     name: 'Говядина, жаренная на сковороде',
@@ -3847,7 +3848,7 @@ export const moreDessertDishes: Meal[] = [
 // Объединяем все блюда и добавляем изображения
 const allColdDishes = addImagesToMeals([...coldDishes, ...additionalColdDishes, ...moreColdDishes, ...additionalColdDishesPart1, ...additionalColdDishesPart3, ...additionalColdDishesPart4, ...additionalColdDishesPart5, ...additionalColdDishesPart6, ...additionalColdDishesPart7, ...additionalColdDishesPart8, ...additionalColdDishesPart9, ...additionalColdDishesPart10, ...additionalColdDishesPart11])
 const allHotFirstCourses = addImagesToMeals([...hotFirstCourses, ...additionalHotFirstCourses, ...moreHotFirstCourses, ...additionalHotFirstCoursesPart1, ...additionalHotFirstCoursesPart4, ...additionalHotFirstCoursesPart5, ...additionalHotFirstCoursesPart6, ...additionalHotFirstCoursesPart7, ...additionalHotFirstCoursesPart8, ...additionalHotFirstCoursesPart9, ...additionalHotFirstCoursesPart10, ...additionalHotFirstCoursesPart11])
-const allHotSecondCourses = addImagesToMeals([...hotSecondCourses, ...additionalHotSecondCourses, ...moreHotSecondCourses, ...additionalHotSecondCoursesPart2, ...additionalHotSecondCoursesPart4, ...additionalHotSecondCoursesPart5, ...sousVideMeals, ...moreSousVideMeals, ...airFryMeals, ...additionalHotSecondCoursesPart6, ...additionalHotSecondCoursesPart7, ...additionalHotSecondCoursesPart8, ...additionalHotSecondCoursesPart9, ...additionalHotSecondCoursesPart10, ...additionalHotSecondCoursesPart11])
+const allHotSecondCourses = addImagesToMeals([...hotSecondCourses, ...additionalHotSecondCourses, ...moreHotSecondCourses, ...additionalHotSecondCoursesPart2, ...additionalHotSecondCoursesPart4, ...additionalHotSecondCoursesPart5, ...sousVideMeals, ...moreSousVideMeals, ...airFryMeals, ...grillMeals, ...steamMeals, ...additionalHotSecondCoursesPart6, ...additionalHotSecondCoursesPart7, ...additionalHotSecondCoursesPart8, ...additionalHotSecondCoursesPart9, ...additionalHotSecondCoursesPart10, ...additionalHotSecondCoursesPart11])
 const allDessertDishes = addImagesToMeals([...dessertDishes, ...additionalDessertDishes, ...moreDessertDishes, ...additionalDessertDishesPart3, ...additionalDessertDishesPart4, ...additionalDessertDishesPart5, ...additionalDessertDishesPart6, ...additionalDessertDishesPart7, ...additionalDessertDishesPart8, ...additionalDessertDishesPart9, ...additionalDessertDishesPart10, ...additionalDessertDishesPart11])
 
 export const enhancedMealsDatabase: Record<string, Meal[]> = {
@@ -3858,5 +3859,7 @@ export const enhancedMealsDatabase: Record<string, Meal[]> = {
   dessert: allDessertDishes,
   sous_vide: allHotSecondCourses.filter(meal => meal.processingMethod === 'sous_vide'),
   air_frying: allHotSecondCourses.filter(meal => meal.processingMethod === 'air_frying'),
+  grilling: allHotSecondCourses.filter(meal => meal.processingMethod === 'grilling'),
+  steaming: allHotSecondCourses.filter(meal => meal.processingMethod === 'steaming'),
 }
 
