@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
-import { cookies } from 'next/headers'
+import { getUserFromSession } from '@/lib/session-utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -8,15 +8,6 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient()
     const adminSupabase = createAdminClient()
-    const cookieStore = await cookies()
-    const sessionToken = cookieStore.get('session_token')?.value
-
-    if (!sessionToken) {
-      return NextResponse.json(
-        { canReview: false, reason: 'not_authenticated' },
-        { status: 200 }
-      )
-    }
 
     if (!adminSupabase) {
       console.error('[Review Permission] Admin client not available')
@@ -26,42 +17,21 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Получаем пользователя по сессии
-    const { data: session, error: sessionError } = await supabase
-      .from('sessions')
-      .select('user_id')
-      .eq('token', sessionToken)
-      .eq('is_active', true)
-      .single()
+    // Получаем пользователя из сессии (поддерживает и cookie, и X-Session-Token header для VK Mini App)
+    const user = await getUserFromSession(supabase)
 
-    if (sessionError || !session) {
-      console.error('[Review Permission] Session error:', sessionError)
+    if (!user) {
       return NextResponse.json(
-        { canReview: false, reason: 'invalid_session' },
+        { canReview: false, reason: 'not_authenticated' },
         { status: 200 }
       )
     }
 
-    const userId = session.user_id
+    const userId = user.id
     console.log('[Review Permission] Checking for user:', userId)
 
-    // Получаем данные пользователя (используем adminSupabase для обхода RLS)
-    const { data: user, error: userError } = await adminSupabase
-      .from('users')
-      .select('is_admin')
-      .eq('id', userId)
-      .single()
-
-    if (userError || !user) {
-      console.error('[Review Permission] User not found:', userError)
-      return NextResponse.json(
-        { canReview: false, reason: 'user_not_found' },
-        { status: 200 }
-      )
-    }
-
     // Проверяем, является ли пользователь админом
-    const isAdmin = user.is_admin === true
+    const isAdmin = user.is_admin === true || false
 
     if (isAdmin) {
       console.log('[Review Permission] User is admin')
@@ -137,4 +107,3 @@ export async function GET(request: NextRequest) {
     )
   }
 }
-

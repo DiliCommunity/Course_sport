@@ -1,56 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
-import { cookies } from 'next/headers'
+import { getUserFromSession } from '@/lib/session-utils'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
-    const cookieStore = await cookies()
-    const sessionToken = cookieStore.get('session_token')?.value
+    
+    // Получаем пользователя из сессии (поддерживает и cookie, и X-Session-Token header для VK Mini App)
+    const user = await getUserFromSession(supabase)
 
-    if (!sessionToken) {
+    if (!user) {
       return NextResponse.json(
         { error: 'Необходима авторизация' },
         { status: 401 }
       )
     }
 
-    // Получаем пользователя по сессии
-    const { data: session, error: sessionError } = await supabase
-      .from('sessions')
-      .select('user_id')
-      .eq('token', sessionToken)
-      .eq('is_active', true)
-      .single()
-
-    if (sessionError || !session) {
-      return NextResponse.json(
-        { error: 'Недействительная сессия' },
-        { status: 401 }
-      )
-    }
-
-    const userId = session.user_id
-
-    // Получаем данные пользователя
-    const { data: user, error: userError } = await supabase
-      .from('users')
-      .select('name, username, is_admin')
-      .eq('id', userId)
-      .single()
-
-    if (userError || !user) {
-      return NextResponse.json(
-        { error: 'Пользователь не найден' },
-        { status: 404 }
-      )
-    }
+    const userId = user.id
 
     // Проверяем, может ли пользователь писать отзывы
     // Отзывы могут писать только те, кто совершил хотя бы 1 оплату или является админом
-    const isAdmin = user.is_admin === true
+    const isAdmin = user.is_admin === true || false
     
     if (!isAdmin) {
       const adminSupabase = createAdminClient()

@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { Star, Quote, ArrowLeft, Filter, ChevronDown, Send, CheckCircle2, AlertCircle, Lock } from 'lucide-react'
 import { useAuth } from '@/components/providers/AuthProvider'
+import { useVK } from '@/components/providers/VKProvider'
 import { COURSE_IDS } from '@/lib/constants'
 
 // Данные отзывов (100+ отзывов с датами от 12.11.2024 по 13.01.2026)
@@ -140,6 +141,7 @@ const ratings = ['Все оценки', '5 звёзд', '4 звезды', '3 з�
 
 export default function ReviewsPage() {
   const { user } = useAuth()
+  const { isVKMiniApp, sessionToken } = useVK()
   const [selectedCourse, setSelectedCourse] = useState('Все курсы')
   const [selectedRating, setSelectedRating] = useState('Все оценки')
   const [showCourseFilter, setShowCourseFilter] = useState(false)
@@ -175,7 +177,14 @@ export default function ReviewsPage() {
       }
 
       try {
+        // Для VK Mini App передаём токен в заголовке (cookies не работают на iOS)
+        const headers: HeadersInit = {}
+        if (isVKMiniApp && sessionToken) {
+          headers['X-Session-Token'] = sessionToken
+        }
+        
         const response = await fetch('/api/reviews/check-permission', {
+          headers,
           credentials: 'include'
         })
         const data = await response.json()
@@ -189,7 +198,7 @@ export default function ReviewsPage() {
     }
 
     checkReviewPermission()
-  }, [user])
+  }, [user, isVKMiniApp, sessionToken])
 
   const filteredReviews = reviews.filter((review) => {
     const courseMatch = selectedCourse === 'Все курсы' || review.course === selectedCourse
@@ -211,9 +220,15 @@ export default function ReviewsPage() {
     setSubmitSuccess(false)
 
     try {
+      // Для VK Mini App передаём токен в заголовке (cookies не работают на iOS)
+      const headers: HeadersInit = { 'Content-Type': 'application/json' }
+      if (isVKMiniApp && sessionToken) {
+        headers['X-Session-Token'] = sessionToken
+      }
+      
       const response = await fetch('/api/reviews/create', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         credentials: 'include',
         body: JSON.stringify(reviewFormData)
       })
