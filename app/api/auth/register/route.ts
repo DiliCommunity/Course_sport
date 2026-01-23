@@ -193,23 +193,24 @@ export async function POST(request: NextRequest) {
     }
 
     // Устанавливаем cookies
+    // Используем sameSite: 'none' и secure: true для работы в VK Mini App (cross-site контекст)
     const cookieStore = await cookies()
     cookieStore.set('session_token', sessionToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: true, // Обязательно true для sameSite: 'none'
+      sameSite: 'none', // Необходимо для cross-site (VK Mini App внутри iframe)
       path: '/',
-      expires: expiresAt,
+      maxAge: 60 * 60 * 24 * 7, // 7 дней
     })
 
     // Если регистрация из Telegram - устанавливаем telegram_id cookie
     if (telegram_id) {
       cookieStore.set('telegram_id', telegram_id, {
         httpOnly: false,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: true,
+        sameSite: 'none',
         path: '/',
-        expires: expiresAt,
+        maxAge: 60 * 60 * 24 * 7, // 7 дней
       })
     }
 

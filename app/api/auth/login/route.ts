@@ -127,14 +127,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Устанавливаем cookie с токеном сессии
-    // БЕЗ expires - session cookie, удалится при закрытии браузера
+    // Используем sameSite: 'none' и secure: true для работы в VK Mini App (cross-site контекст)
     const cookieStore = await cookies()
     cookieStore.set('session_token', sessionToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: true, // Обязательно true для sameSite: 'none'
+      sameSite: 'none', // Необходимо для cross-site (VK Mini App внутри iframe)
       path: '/',
-      // expires НЕ указываем - это session cookie
+      maxAge: 60 * 60 * 24 * 7, // 7 дней
     })
 
     return NextResponse.json({
