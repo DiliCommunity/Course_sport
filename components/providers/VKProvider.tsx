@@ -50,29 +50,21 @@ export function VKProvider({ children }: VKProviderProps) {
   const bridgeInitializedRef = useRef(false)
 
   // Сохранение токена в VK Bridge Storage (работает в iOS VK Mini App!)
+  // Токен сессии хранится в БД (sessions), это только клиентское хранилище для передачи токена
   const saveSessionToken = useCallback(async (token: string) => {
-    console.log('[VKProvider] Saving session token...')
-    
-    // Сохраняем в state
+    console.log('[VKProvider] Saving session token to VK Bridge Storage...')
     setSessionToken(token)
     
-    // Сохраняем в localStorage как fallback
-    try {
-      localStorage.setItem('vk_session_token', token)
-    } catch (e) {
-      console.log('[VKProvider] localStorage not available')
-    }
-    
-    // Сохраняем в VK Bridge Storage (работает в VK Mini App на iOS!)
+    // VK Bridge Storage - единственный способ сохранить токен в VK Mini App на iOS
     if (bridge && typeof bridge.send === 'function') {
       try {
         await bridge.send('VKWebAppStorageSet', {
           key: 'session_token',
           value: token,
         })
-        console.log('[VKProvider] Token saved to VK Bridge Storage')
+        console.log('[VKProvider] ✅ Token saved to VK Bridge Storage')
       } catch (error) {
-        console.log('[VKProvider] VK Bridge Storage not available:', error)
+        console.error('[VKProvider] ❌ VK Bridge Storage save error:', error)
       }
     }
   }, [])
@@ -82,25 +74,21 @@ export function VKProvider({ children }: VKProviderProps) {
     console.log('[VKProvider] Clearing session token...')
     setSessionToken(null)
     
-    try {
-      localStorage.removeItem('vk_session_token')
-    } catch (e) {}
-    
     if (bridge && typeof bridge.send === 'function') {
       try {
         await bridge.send('VKWebAppStorageSet', {
           key: 'session_token',
           value: '',
         })
+        console.log('[VKProvider] ✅ Token cleared from VK Bridge Storage')
       } catch (error) {
-        console.log('[VKProvider] Could not clear VK Bridge Storage:', error)
+        console.error('[VKProvider] ❌ Could not clear VK Bridge Storage:', error)
       }
     }
   }, [])
 
-  // Загрузка токена из хранилищ
+  // Загрузка токена из VK Bridge Storage
   const loadSessionToken = useCallback(async (): Promise<string | null> => {
-    // Пробуем VK Bridge Storage первым (самый надёжный для VK Mini App)
     if (bridge && typeof bridge.send === 'function') {
       try {
         const result = await bridge.send('VKWebAppStorageGet', {
@@ -109,7 +97,7 @@ export function VKProvider({ children }: VKProviderProps) {
         if (result && result.keys && result.keys.length > 0) {
           const token = result.keys[0]?.value
           if (token) {
-            console.log('[VKProvider] Token loaded from VK Bridge Storage')
+            console.log('[VKProvider] ✅ Token loaded from VK Bridge Storage')
             return token
           }
         }
@@ -117,16 +105,6 @@ export function VKProvider({ children }: VKProviderProps) {
         console.log('[VKProvider] VK Bridge Storage read error:', error)
       }
     }
-    
-    // Fallback на localStorage
-    try {
-      const token = localStorage.getItem('vk_session_token')
-      if (token) {
-        console.log('[VKProvider] Token loaded from localStorage')
-        return token
-      }
-    } catch (e) {}
-    
     return null
   }, [])
 
