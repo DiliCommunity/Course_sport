@@ -31,12 +31,12 @@ export default function LoginPage() {
     console.log('[LoginPage] VK state:', { isVKMiniApp, vkUser: vkUser?.id, isReady: vkReady })
   }, [isVKMiniApp, vkUser, vkReady])
 
-  // Если пользователь уже авторизован - редирект на курсы
+  // Если пользователь уже авторизован - редирект на курсы (только в браузере, не в VK Mini App)
   useEffect(() => {
-    if (!authLoading && user) {
+    if (!authLoading && user && !isVKMiniApp) {
       router.replace('/courses')
     }
-  }, [authLoading, user, router])
+  }, [authLoading, user, router, isVKMiniApp])
 
   // Авторизация через VK
   const handleVKAuth = useCallback(async () => {
@@ -126,11 +126,21 @@ export default function LoginPage() {
       console.log('[LoginPage] ✅ VK Auth successful:', data.isNewUser ? 'New user registered' : 'Existing user logged in')
       setSuccess(data.isNewUser ? 'Регистрация успешна!' : 'Вход выполнен!')
       
-      // Обновляем профиль вместо полного редиректа
+      // Обновляем профиль
       await refreshUser()
       
-      await new Promise(resolve => setTimeout(resolve, 500))
-      router.push('/profile')
+      // В VK Mini App НЕ делаем редирект - это вызывает переход в браузер
+      // Просто обновляем состояние и показываем успех
+      if (isVKMiniApp) {
+        console.log('[LoginPage] VK Mini App: staying on login page, user state updated')
+        setIsVKLoading(false)
+        // Пользователь останется на странице, но будет авторизован
+        // Можно показать сообщение об успехе и предложить перейти на другую страницу через меню
+      } else {
+        // В обычном браузере делаем редирект
+        await new Promise(resolve => setTimeout(resolve, 500))
+        router.push('/profile')
+      }
     } catch (err: any) {
       console.error('[LoginPage] VK Auth error:', err)
       setError(err.message || 'Ошибка авторизации через VK')
@@ -313,10 +323,33 @@ export default function LoginPage() {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="p-4 rounded-lg bg-accent-neon/10 border border-accent-neon/30 flex items-center gap-3 mb-6"
+              className="p-4 rounded-lg bg-accent-neon/10 border border-accent-neon/30 mb-6"
             >
-              <CheckCircle2 className="w-5 h-5 text-accent-neon flex-shrink-0" />
-              <p className="text-sm text-accent-neon">{success}</p>
+              <div className="flex items-center gap-3 mb-3">
+                <CheckCircle2 className="w-5 h-5 text-accent-neon flex-shrink-0" />
+                <p className="text-sm text-accent-neon flex-1">{success}</p>
+              </div>
+              {isVKMiniApp && user && (
+                <div className="flex gap-2 mt-3">
+                  <button
+                    onClick={() => {
+                      // В VK Mini App используем router.push - он должен работать без перезагрузки
+                      router.push('/courses')
+                    }}
+                    className="flex-1 px-4 py-2 rounded-lg bg-accent-neon/20 hover:bg-accent-neon/30 text-accent-neon text-sm font-medium transition-colors"
+                  >
+                    Перейти к курсам
+                  </button>
+                  <button
+                    onClick={() => {
+                      router.push('/profile')
+                    }}
+                    className="flex-1 px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition-colors"
+                  >
+                    Профиль
+                  </button>
+                </div>
+              )}
             </motion.div>
           )}
 
