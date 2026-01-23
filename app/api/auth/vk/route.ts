@@ -410,6 +410,7 @@ export async function POST(request: NextRequest) {
       userId,
       vkId,
       isNewUser,
+      sessionToken, // Возвращаем токен для сохранения в VK Bridge Storage (iOS fix!)
       message: isNewUser ? 'Регистрация успешна!' : 'Вход выполнен успешно!',
     })
 

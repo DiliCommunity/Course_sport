@@ -1,4 +1,4 @@
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 
 export interface SessionUser {
@@ -25,14 +25,19 @@ export interface SessionUser {
 
 /**
  * Получает пользователя из сессии для использования в API routes
- * Проверяет cookie session_token и telegram_id
+ * Проверяет: 1) X-Session-Token header (для VK Mini App), 2) cookie session_token, 3) telegram_id
  */
 export async function getUserFromSession(supabase: Awaited<ReturnType<typeof createClient>>): Promise<SessionUser | null> {
   const cookieStore = await cookies()
-  const sessionToken = cookieStore.get('session_token')?.value
+  const headersList = await headers()
+  
+  // Приоритет: 1) Header (для VK Mini App где cookies не работают), 2) Cookie
+  const headerToken = headersList.get('x-session-token')
+  const cookieToken = cookieStore.get('session_token')?.value
+  const sessionToken = headerToken || cookieToken
   const telegramId = cookieStore.get('telegram_id')?.value
 
-  console.log('[Session] Checking session. Token exists:', !!sessionToken, 'TelegramId exists:', !!telegramId)
+  console.log('[Session] Checking session. HeaderToken:', !!headerToken, 'CookieToken:', !!cookieToken, 'TelegramId:', !!telegramId)
 
   if (!sessionToken && !telegramId) {
     console.log('[Session] No session token or telegram_id found')

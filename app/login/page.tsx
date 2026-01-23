@@ -22,7 +22,7 @@ export default function LoginPage() {
   const [showLoginForm, setShowLoginForm] = useState(false)
   const [vkAuthAttempted, setVkAuthAttempted] = useState(false)
   const { isTelegramApp, user: telegramUser, isReady: tgReady } = useTelegram()
-  const { isVKMiniApp, vkUser, isReady: vkReady } = useVK()
+  const { isVKMiniApp, vkUser, isReady: vkReady, saveSessionToken } = useVK()
   const { user, loading: authLoading, refreshUser } = useAuth()
   const router = useRouter()
 
@@ -108,6 +108,7 @@ export default function LoginPage() {
         ok: response.ok,
         isNewUser: data.isNewUser,
         userId: data.userId,
+        sessionToken: !!data.sessionToken,
         error: data.error
       })
 
@@ -116,17 +117,26 @@ export default function LoginPage() {
         throw new Error(data.error || 'Ошибка авторизации через VK')
       }
 
+      // Сохраняем токен в VK Bridge Storage (для iOS VK Mini App где cookies не работают!)
+      if (data.sessionToken) {
+        console.log('[LoginPage] Saving session token to VK Bridge Storage...')
+        await saveSessionToken(data.sessionToken)
+      }
+
       console.log('[LoginPage] ✅ VK Auth successful:', data.isNewUser ? 'New user registered' : 'Existing user logged in')
       setSuccess(data.isNewUser ? 'Регистрация успешна!' : 'Вход выполнен!')
       
-      await new Promise(resolve => setTimeout(resolve, 800))
-      window.location.href = '/profile'
+      // Обновляем профиль вместо полного редиректа
+      await refreshUser()
+      
+      await new Promise(resolve => setTimeout(resolve, 500))
+      router.push('/profile')
     } catch (err: any) {
       console.error('[LoginPage] VK Auth error:', err)
       setError(err.message || 'Ошибка авторизации через VK')
       setIsVKLoading(false)
     }
-  }, [isVKMiniApp, vkUser])
+  }, [isVKMiniApp, vkUser, saveSessionToken, refreshUser, router])
 
   // Автоматическая авторизация ОТКЛЮЧЕНА - пользователь должен выбрать метод входа
   // Это позволяет пользователю выбрать способ входа как в браузере, так и в VK Mini App
@@ -208,10 +218,14 @@ export default function LoginPage() {
       }
 
       console.log('[LoginPage] Login successful! User ID:', data.user_id)
-      console.log('[LoginPage] NOT linking VK account - user chose login/password method')
+      
+      // Сохраняем токен в VK Bridge Storage (для iOS VK Mini App где cookies не работают!)
+      if (isVKMiniApp && data.sessionToken) {
+        console.log('[LoginPage] Saving session token to VK Bridge Storage for login/password auth...')
+        await saveSessionToken(data.sessionToken)
+      }
 
       // Если мы в Telegram - связываем аккаунт с Telegram ID (только если пользователь явно выбрал вход через Telegram)
-      // НЕ привязываем VK аккаунт автоматически - пользователь должен явно выбрать вход через VK
       if (isTelegramApp && telegramUser) {
         try {
           console.log('[LoginPage] Linking Telegram account:', telegramUser.id)
@@ -228,16 +242,12 @@ export default function LoginPage() {
           console.log('Could not link Telegram account:', linkError)
         }
       }
-      
-      // НЕ привязываем VK аккаунт автоматически при входе через логин/пароль
-      // Пользователь должен явно выбрать вход через VK
-      // Даже если мы в VK Mini App, мы НЕ используем данные VK для авторизации
 
       setSuccess('Вход выполнен успешно!')
       console.log('[LoginPage] Refreshing user data...')
       await refreshUser()
       
-      console.log('[LoginPage] Redirecting to /courses in 1 second...')
+      console.log('[LoginPage] Redirecting to /courses in 500ms...')
       setTimeout(() => {
         router.push('/courses')
       }, 1000)

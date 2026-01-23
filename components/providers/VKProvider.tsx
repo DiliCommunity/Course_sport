@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, useRef, ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, useRef, ReactNode, useCallback } from 'react'
 import bridge from '@vkontakte/vk-bridge'
 
 // Типы для VK Bridge
@@ -18,6 +18,9 @@ interface VKContextType {
   isVKMiniApp: boolean
   isReady: boolean
   initData: string | null
+  sessionToken: string | null
+  saveSessionToken: (token: string) => Promise<void>
+  clearSessionToken: () => Promise<void>
 }
 
 const VKContext = createContext<VKContextType>({
@@ -25,6 +28,9 @@ const VKContext = createContext<VKContextType>({
   isVKMiniApp: false,
   isReady: false,
   initData: null,
+  sessionToken: null,
+  saveSessionToken: async () => {},
+  clearSessionToken: async () => {},
 })
 
 export function useVK() {
@@ -40,7 +46,89 @@ export function VKProvider({ children }: VKProviderProps) {
   const [isVKMiniApp, setIsVKMiniApp] = useState(false)
   const [isReady, setIsReady] = useState(false)
   const [initData, setInitData] = useState<string | null>(null)
+  const [sessionToken, setSessionToken] = useState<string | null>(null)
   const bridgeInitializedRef = useRef(false)
+
+  // Сохранение токена в VK Bridge Storage (работает в iOS VK Mini App!)
+  const saveSessionToken = useCallback(async (token: string) => {
+    console.log('[VKProvider] Saving session token...')
+    
+    // Сохраняем в state
+    setSessionToken(token)
+    
+    // Сохраняем в localStorage как fallback
+    try {
+      localStorage.setItem('vk_session_token', token)
+    } catch (e) {
+      console.log('[VKProvider] localStorage not available')
+    }
+    
+    // Сохраняем в VK Bridge Storage (работает в VK Mini App на iOS!)
+    if (bridge && typeof bridge.send === 'function') {
+      try {
+        await bridge.send('VKWebAppStorageSet', {
+          key: 'session_token',
+          value: token,
+        })
+        console.log('[VKProvider] Token saved to VK Bridge Storage')
+      } catch (error) {
+        console.log('[VKProvider] VK Bridge Storage not available:', error)
+      }
+    }
+  }, [])
+
+  // Очистка токена
+  const clearSessionToken = useCallback(async () => {
+    console.log('[VKProvider] Clearing session token...')
+    setSessionToken(null)
+    
+    try {
+      localStorage.removeItem('vk_session_token')
+    } catch (e) {}
+    
+    if (bridge && typeof bridge.send === 'function') {
+      try {
+        await bridge.send('VKWebAppStorageSet', {
+          key: 'session_token',
+          value: '',
+        })
+      } catch (error) {
+        console.log('[VKProvider] Could not clear VK Bridge Storage:', error)
+      }
+    }
+  }, [])
+
+  // Загрузка токена из хранилищ
+  const loadSessionToken = useCallback(async (): Promise<string | null> => {
+    // Пробуем VK Bridge Storage первым (самый надёжный для VK Mini App)
+    if (bridge && typeof bridge.send === 'function') {
+      try {
+        const result = await bridge.send('VKWebAppStorageGet', {
+          keys: ['session_token'],
+        })
+        if (result && result.keys && result.keys.length > 0) {
+          const token = result.keys[0]?.value
+          if (token) {
+            console.log('[VKProvider] Token loaded from VK Bridge Storage')
+            return token
+          }
+        }
+      } catch (error) {
+        console.log('[VKProvider] VK Bridge Storage read error:', error)
+      }
+    }
+    
+    // Fallback на localStorage
+    try {
+      const token = localStorage.getItem('vk_session_token')
+      if (token) {
+        console.log('[VKProvider] Token loaded from localStorage')
+        return token
+      }
+    } catch (e) {}
+    
+    return null
+  }, [])
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -191,8 +279,15 @@ export function VKProvider({ children }: VKProviderProps) {
       } catch (error) {
         console.error('[VKProvider] VK Mini App initialization error:', error)
       } finally {
+        // Загружаем сохранённый токен сессии
+        const savedToken = await loadSessionToken()
+        if (savedToken) {
+          setSessionToken(savedToken)
+          console.log('[VKProvider] Loaded saved session token')
+        }
+        
         setIsReady(true)
-        console.log('[VKProvider] Initialization complete, isVKMiniApp:', detectedVKMiniApp, 'vkUser:', detectedUser?.id || 'null')
+        console.log('[VKProvider] Initialization complete, isVKMiniApp:', detectedVKMiniApp, 'vkUser:', detectedUser?.id || 'null', 'hasToken:', !!savedToken)
       }
     }
 
@@ -252,6 +347,9 @@ export function VKProvider({ children }: VKProviderProps) {
     isVKMiniApp,
     isReady,
     initData,
+    sessionToken,
+    saveSessionToken,
+    clearSessionToken,
   }
 
   // Логируем финальное значение для отладки

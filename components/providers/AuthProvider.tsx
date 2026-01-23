@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTelegram } from './TelegramProvider'
+import { useVK } from './VKProvider'
 
 interface AuthUser {
   id: string
@@ -44,13 +45,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [authAttempted, setAuthAttempted] = useState(false)
   const router = useRouter()
   const { user: telegramUser, isTelegramApp, isReady } = useTelegram()
+  const { isVKMiniApp, sessionToken, clearSessionToken, isReady: vkReady } = useVK()
 
   // Функция для получения профиля пользователя
   const fetchProfile = useCallback(async () => {
     try {
-      console.log('[AuthProvider] Fetching profile...')
+      console.log('[AuthProvider] Fetching profile... isVKMiniApp:', isVKMiniApp, 'hasToken:', !!sessionToken)
+      
+      // Для VK Mini App передаём токен в заголовке (cookies могут не работать)
+      const headers: HeadersInit = {}
+      if (isVKMiniApp && sessionToken) {
+        headers['X-Session-Token'] = sessionToken
+        console.log('[AuthProvider] Adding X-Session-Token header for VK Mini App')
+      }
+      
       const response = await fetch('/api/profile/data', {
         credentials: 'include',
+        headers,
       })
 
       console.log('[AuthProvider] Profile response status:', response.status)
@@ -77,7 +88,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       console.error('[AuthProvider] Fetch profile error:', error)
       return false
     }
-  }, [])
+  }, [isVKMiniApp, sessionToken])
 
   // Авторизация через Telegram
   const authViaTelegram = useCallback(async () => {
@@ -126,10 +137,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // Основная логика авторизации
   useEffect(() => {
-    if (!isReady || authAttempted) return
+    // Ждём готовности и Telegram, и VK
+    if (!isReady || !vkReady || authAttempted) return
 
     const initAuth = async () => {
-      console.log('[AuthProvider] Init auth started. isReady:', isReady, 'isTelegramApp:', isTelegramApp)
+      console.log('[AuthProvider] Init auth started. isReady:', isReady, 'vkReady:', vkReady, 'isTelegramApp:', isTelegramApp, 'isVKMiniApp:', isVKMiniApp, 'hasToken:', !!sessionToken)
       setLoading(true)
 
       // Проверяем, есть ли уже сессия
@@ -142,14 +154,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return
       }
 
-      // Не авторизуем автоматически - пользователь должен нажать кнопку "Войти через Telegram"
+      // Не авторизуем автоматически - пользователь должен нажать кнопку "Войти через Telegram/VK"
       console.log('[AuthProvider] Auth init complete - no session, waiting for user action')
       setLoading(false)
       setAuthAttempted(true)
     }
 
     initAuth()
-  }, [isReady, authAttempted, fetchProfile])
+  }, [isReady, vkReady, authAttempted, fetchProfile, isTelegramApp, isVKMiniApp, sessionToken])
 
   // Функция выхода
   const signOut = async () => {
@@ -159,6 +171,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
         credentials: 'include',
       })
       setUser(null)
+      
+      // Очищаем VK токен если в VK Mini App
+      if (isVKMiniApp) {
+        await clearSessionToken()
+      }
+      
       router.push('/')
     } catch (error) {
       console.error('Sign out error:', error)

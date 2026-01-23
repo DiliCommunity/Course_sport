@@ -143,6 +143,7 @@ export async function POST(request: NextRequest) {
       username: user.username,
       name: user.name,
       email: user.email,
+      sessionToken, // Возвращаем токен для сохранения в VK Bridge Storage (iOS fix!)
       message: 'Вход выполнен успешно!'
     })
 
