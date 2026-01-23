@@ -257,10 +257,20 @@ export default function LoginPage() {
       console.log('[LoginPage] Refreshing user data...')
       await refreshUser()
       
-      console.log('[LoginPage] Redirecting to /courses in 500ms...')
-      setTimeout(() => {
-        router.push('/courses')
-      }, 1000)
+      // В VK Mini App НЕ делаем редирект - это вызывает переход в браузер
+      // Просто обновляем состояние и показываем успех
+      if (isVKMiniApp) {
+        console.log('[LoginPage] VK Mini App: staying on login page, user state updated')
+        setIsLoading(false)
+        // Пользователь останется на странице, но будет авторизован
+        // Кнопки навигации появятся в сообщении об успехе
+      } else {
+        // В обычном браузере делаем редирект
+        console.log('[LoginPage] Redirecting to /courses in 500ms...')
+        setTimeout(() => {
+          router.push('/courses')
+        }, 500)
+      }
     } catch (err: any) {
       setError(err.message || 'Ошибка входа. Проверьте данные.')
       setIsLoading(false)
