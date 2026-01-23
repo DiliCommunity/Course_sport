@@ -543,22 +543,25 @@ export default function RecipesPage() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setSelectedRecipe(null)}
-              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-dark-900/80 backdrop-blur-sm"
+              className="fixed inset-0 z-[9999] flex items-start justify-center pt-20 pb-4 px-4 bg-dark-900/80 backdrop-blur-sm overflow-y-auto"
             >
               <motion.div
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
                 onClick={(e) => e.stopPropagation()}
-                className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl bg-gradient-to-br from-dark-800 to-dark-900 border-2 border-white/10 shadow-2xl"
+                className="relative w-full max-w-4xl max-h-[calc(100vh-6rem)] my-auto overflow-y-auto rounded-2xl bg-gradient-to-br from-dark-800 to-dark-900 border-2 border-white/10 shadow-2xl"
               >
-                {/* Кнопка закрытия */}
-                <button
-                  onClick={() => setSelectedRecipe(null)}
-                  className="absolute top-4 right-4 z-10 p-2 rounded-full bg-dark-900/80 text-white/70 hover:text-white transition-colors"
-                >
-                  <X className="w-6 h-6" />
-                </button>
+                {/* Кнопка закрытия - sticky, всегда видна */}
+                <div className="sticky top-0 z-50 flex justify-end p-4 bg-gradient-to-b from-dark-800 via-dark-800/95 to-transparent rounded-t-2xl">
+                  <button
+                    onClick={() => setSelectedRecipe(null)}
+                    className="w-10 h-10 flex items-center justify-center rounded-full bg-red-500/90 hover:bg-red-600 text-white transition-all shadow-lg hover:shadow-red-500/50 border-2 border-white/30 backdrop-blur-sm"
+                    aria-label="Закрыть"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
 
                 {/* Изображение */}
                 <div className="relative h-64 md:h-80">

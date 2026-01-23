@@ -109,8 +109,8 @@ export function ReferralModal({
           <div className="absolute inset-0 bg-gradient-to-br from-amber-500/10 via-transparent to-emerald-500/10" />
           
           <div className="relative z-10 flex flex-col h-full max-h-[90vh]">
-            {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-white/10">
+            {/* Header - sticky */}
+            <div className="sticky top-0 z-50 flex items-center justify-between p-6 border-b border-white/10 bg-dark-800/95 backdrop-blur-sm rounded-t-2xl">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-gold to-accent-electric flex items-center justify-center">
                   <Gift className="w-6 h-6 text-dark-900" />
@@ -122,9 +122,10 @@ export function ReferralModal({
               </div>
               <button
                 onClick={onClose}
-                className="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
+                className="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors border border-white/20"
+                aria-label="Закрыть"
               >
-                <X className="w-5 h-5 text-white/70" />
+                <X className="w-5 h-5 text-white" />
               </button>
             </div>
 

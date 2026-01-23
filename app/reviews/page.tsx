@@ -302,14 +302,19 @@ export default function ReviewsPage() {
       </section>
 
       {/* Review Form Section */}
-      {user && !isCheckingPermission && (
+      {user ? (
         <section className="container mx-auto px-4 sm:px-6 lg:px-8 mb-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="glass rounded-2xl p-6 lg:p-8 border-2 border-emerald-400/30"
           >
-            {!canReview ? (
+            {isCheckingPermission ? (
+              <div className="text-center py-8">
+                <div className="inline-block w-8 h-8 border-4 border-emerald-400 border-t-transparent rounded-full animate-spin mb-4" />
+                <p className="text-white/60">Проверка прав доступа...</p>
+              </div>
+            ) : !canReview ? (
               <div className="text-center">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-yellow-500/10 border-2 border-yellow-500/30 mb-4">
                   <Lock className="w-8 h-8 text-yellow-400" />
@@ -345,7 +350,7 @@ export default function ReviewsPage() {
               </div>
             ) : (
               <form onSubmit={handleSubmitReview} className="space-y-6">
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between mb-4 sticky top-0 bg-dark-900/95 backdrop-blur-sm py-2 -mx-6 px-6 -mt-6 rounded-t-2xl z-10 border-b border-white/10">
                   <h3 className="font-display font-bold text-xl text-white">
                     Оставить отзыв
                   </h3>
@@ -356,7 +361,8 @@ export default function ReviewsPage() {
                       setSubmitError(null)
                       setSubmitSuccess(false)
                     }}
-                    className="text-white/60 hover:text-white transition-colors"
+                    className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-colors text-xl font-bold"
+                    aria-label="Закрыть форму"
                   >
                     ✕
                   </button>

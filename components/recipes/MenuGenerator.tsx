@@ -1817,7 +1817,7 @@ function MealModal({ meal, onClose }: { meal: Meal; onClose: () => void }) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+      className="fixed inset-0 z-[9999] flex items-start justify-center pt-20 pb-4 px-4 bg-black/80 backdrop-blur-sm overflow-y-auto"
       onClick={onClose}
     >
       <motion.div
@@ -1825,19 +1825,21 @@ function MealModal({ meal, onClose }: { meal: Meal; onClose: () => void }) {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
-        className="relative max-w-3xl w-full max-h-[85vh] overflow-y-auto rounded-2xl bg-gradient-to-br from-dark-800 via-dark-800/95 to-dark-900 border-2 border-white/10 shadow-2xl"
+        className="relative max-w-3xl w-full max-h-[calc(100vh-6rem)] my-auto overflow-y-auto rounded-2xl bg-gradient-to-br from-dark-800 via-dark-800/95 to-dark-900 border-2 border-white/10 shadow-2xl"
       >
-        {/* Кнопка закрытия - внутри модалки, поверх всего */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            onClose()
-          }}
-          className="absolute top-4 right-4 z-50 w-10 h-10 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center text-white transition-all shadow-lg hover:shadow-red-500/50 border-2 border-white/30"
-          aria-label="Закрыть"
-        >
-          <X className="w-5 h-5" />
-        </button>
+        {/* Кнопка закрытия - sticky, всегда видна */}
+        <div className="sticky top-0 z-50 flex justify-end p-4 bg-gradient-to-b from-dark-800 via-dark-800/95 to-transparent rounded-t-2xl">
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onClose()
+            }}
+            className="w-10 h-10 rounded-full bg-red-500/90 hover:bg-red-600 flex items-center justify-center text-white transition-all shadow-lg hover:shadow-red-500/50 border-2 border-white/30 backdrop-blur-sm"
+            aria-label="Закрыть"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
         {/* Изображение */}
         {meal.image && (
