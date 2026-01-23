@@ -24,13 +24,14 @@ const COOKING_METHODS: { id: ProcessingMethod | 'all'; name: string; description
   { id: 'air_frying', name: 'Аэрогриль', description: 'В аэрогриле', image: '/img/cooking-methods/air-frying.jpg' },
 ]
 
-// Приёмы пищи с названиями
-const MEAL_TYPES: { id: DishType | 'all'; name: string; icon: string }[] = [
-  { id: 'all', name: 'Все блюда', icon: '🍽️' },
-  { id: 'snack', name: 'Закуски', icon: '🥗' },
-  { id: 'first', name: 'Первые блюда', icon: '🍜' },
-  { id: 'second', name: 'Вторые блюда', icon: '🥘' },
-  { id: 'dessert', name: 'Десерты', icon: '🍰' },
+// Типы блюд с названиями и изображениями
+const MEAL_TYPES: { id: DishType | 'all' | 'salad'; name: string; description: string; image: string }[] = [
+  { id: 'all', name: 'Все блюда', description: 'Показать все блюда', image: '/img/meal-types/all-dishes.jpg' },
+  { id: 'salad', name: 'Салаты', description: 'Свежие и сытные салаты', image: '/img/meal-types/salads.jpg' },
+  { id: 'snack', name: 'Закуски', description: 'Лёгкие закуски и снеки', image: '/img/meal-types/snacks.jpg' },
+  { id: 'first', name: 'Первые блюда', description: 'Супы и бульоны', image: '/img/meal-types/soups.jpg' },
+  { id: 'second', name: 'Вторые блюда', description: 'Основные горячие блюда', image: '/img/meal-types/main-courses.jpg' },
+  { id: 'dessert', name: 'Десерты', description: 'Кето-десерты и сладости', image: '/img/meal-types/desserts.jpg' },
 ]
 
 export default function RecipesPage() {
@@ -45,7 +46,7 @@ export default function RecipesPage() {
   // Состояние навигации для рецептов
   const [step, setStep] = useState<'cooking_method' | 'meal_type' | 'recipes'>('cooking_method')
   const [selectedCookingMethod, setSelectedCookingMethod] = useState<ProcessingMethod | 'all'>('all')
-  const [selectedMealType, setSelectedMealType] = useState<DishType | 'all'>('all')
+  const [selectedMealType, setSelectedMealType] = useState<DishType | 'all' | 'salad'>('all')
   const [selectedRecipe, setSelectedRecipe] = useState<Meal | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -101,7 +102,15 @@ export default function RecipesPage() {
     
     // Фильтр по типу блюда
     if (selectedMealType !== 'all') {
-      result = result.filter(meal => meal.dishType === selectedMealType)
+      if (selectedMealType === 'salad') {
+        // Салаты - это блюда с названием "Салат" или холодные вторые блюда
+        result = result.filter(meal => 
+          meal.name.toLowerCase().includes('салат') || 
+          (meal.cookingMethod === 'cold' && meal.dishType === 'second')
+        )
+      } else {
+        result = result.filter(meal => meal.dishType === selectedMealType)
+      }
     }
     
     // Поиск
@@ -123,12 +132,19 @@ export default function RecipesPage() {
     return allRecipes.filter(m => m.processingMethod === method).length
   }
 
-  const getCountForMealType = (type: DishType | 'all') => {
+  const getCountForMealType = (type: DishType | 'all' | 'salad') => {
     let recipes = selectedCookingMethod === 'all' 
       ? allRecipes 
       : allRecipes.filter(m => m.processingMethod === selectedCookingMethod)
     
     if (type === 'all') return recipes.length
+    // Салаты - это холодные блюда с названием, содержащим "Салат" или "салат"
+    if (type === 'salad') {
+      return recipes.filter(m => 
+        m.name.toLowerCase().includes('салат') || 
+        (m.cookingMethod === 'cold' && m.dishType === 'second')
+      ).length
+    }
     return recipes.filter(m => m.dishType === type).length
   }
 
@@ -139,7 +155,7 @@ export default function RecipesPage() {
   }
 
   // Обработка выбора типа блюда
-  const handleMealTypeSelect = (type: DishType | 'all') => {
+  const handleMealTypeSelect = (type: DishType | 'all' | 'salad') => {
     setSelectedMealType(type)
     setStep('recipes')
   }
@@ -358,7 +374,7 @@ export default function RecipesPage() {
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                 {MEAL_TYPES.map((type, index) => {
                   const count = getCountForMealType(type.id)
                   return (
@@ -370,21 +386,36 @@ export default function RecipesPage() {
                       whileTap={{ scale: 0.98 }}
                       onClick={() => handleMealTypeSelect(type.id)}
                       disabled={count === 0 && type.id !== 'all'}
-                      className={`relative p-6 rounded-2xl border-2 transition-all duration-300 text-center group overflow-hidden
+                      className={`relative h-44 rounded-2xl border-2 transition-all duration-300 text-center group overflow-hidden
                         ${count === 0 && type.id !== 'all'
-                          ? 'border-white/5 bg-dark-800/30 cursor-not-allowed opacity-50'
-                          : 'border-white/10 bg-gradient-to-br from-dark-800/90 to-dark-900/90 hover:border-accent-mint/60 hover:shadow-xl hover:shadow-accent-mint/20'
+                          ? 'border-white/5 cursor-not-allowed opacity-50'
+                          : 'border-white/10 hover:border-accent-mint/60 hover:shadow-xl hover:shadow-accent-mint/20'
                         }`}
                     >
-                      <div className="text-5xl mb-3 group-hover:scale-125 transition-transform duration-300 drop-shadow-lg">{type.icon}</div>
-                      <h3 className="text-lg font-bold text-neon-shine mb-2">{type.name}</h3>
-                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent-mint/15 border border-accent-mint/40 badge-glow">
-                        <span className="text-sm font-bold bg-gradient-to-r from-accent-mint via-white to-accent-aqua bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent">
-                          {count} блюд
-                        </span>
+                      {/* Фоновое изображение */}
+                      <Image
+                        src={type.image}
+                        alt={type.name}
+                        fill
+                        className="object-cover transition-transform duration-500 group-hover:scale-110"
+                        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 16vw"
+                      />
+                      {/* Тёмный градиент для читаемости текста */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/20 group-hover:from-black/95 group-hover:via-black/60 transition-all duration-300" />
+                      
+                      {/* Контент поверх изображения */}
+                      <div className="absolute inset-0 flex flex-col justify-end p-4">
+                        <h3 className="text-lg font-bold text-neon-shine mb-1 drop-shadow-lg">{type.name}</h3>
+                        <p className="text-xs text-white/70 mb-2 line-clamp-1">{type.description}</p>
+                        <div className="inline-flex items-center justify-center gap-2 px-3 py-1 rounded-full bg-accent-mint/20 border border-accent-mint/50 backdrop-blur-sm">
+                          <span className="text-sm font-bold bg-gradient-to-r from-accent-mint via-white to-accent-aqua bg-[length:200%_auto] animate-gradient-x bg-clip-text text-transparent">
+                            {count} блюд
+                          </span>
+                        </div>
                       </div>
-                      {/* Декоративное свечение */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-accent-mint/0 via-accent-mint/5 to-accent-aqua/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                      
+                      {/* Декоративное свечение при наведении */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-accent-mint/0 via-accent-mint/10 to-accent-aqua/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
                     </motion.button>
                   )
                 })}

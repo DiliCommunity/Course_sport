@@ -447,7 +447,7 @@ export const mealImageMapping: Record<string, string> = {
   'Дорадо на гриле целиком': '/img/recipes/grilled-dorado-whole.jpg',
   'Стейк из тунца на гриле': '/img/recipes/grilled-tuna-steak.jpg',
   'Креветки на гриле с чесноком': '/img/recipes/grilled-shrimp-garlic.jpg',
-  'Осьминог на гриле': '/img/recipes/grilled-octopus.jpg',
+  'Стейк из лосося на гриле': '/img/recipes/grilled-salmon-steak.jpg',
   'Сибас на гриле с фенхелем': '/img/recipes/grilled-seabass-fennel.jpg',
   'Овощи на гриле ассорти': '/img/recipes/grilled-vegetables-assorted.jpg',
   'Стейк из цветной капусты на гриле': '/img/recipes/grilled-cauliflower-steak.jpg',
