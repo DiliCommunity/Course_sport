@@ -90,16 +90,16 @@ export function Header() {
   return (
     <header
       className={cn(
-        // h-20 фиксирует общую высоту хедера (80px). padding-top уходит внутрь за счёт border-box (см. globals.css),
-        // поэтому в iOS/VK Mini App контент опускается ниже status bar без увеличения общей высоты.
-        'fixed top-0 left-0 right-0 z-50 transition-all duration-500 h-20 box-border pt-[env(safe-area-inset-top)]',
+        // Safe-area для iOS/VK Mini App: добавляем верхний отступ и увеличиваем общий контейнер хедера,
+        // чтобы контент никогда не залезал под системную панель.
+        'fixed top-0 left-0 right-0 z-50 transition-all duration-500 box-border pt-[env(safe-area-inset-top)] h-[calc(5rem+env(safe-area-inset-top))]',
         isScrolled
           ? 'bg-dark-900/80 backdrop-blur-xl border-b border-white/5'
           : 'bg-transparent'
       )}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <nav className="flex items-center justify-between h-[calc(5rem-env(safe-area-inset-top))]">
+        <nav className="flex items-center justify-between h-20">
           {/* Left: Burger Menu (Mobile) */}
           <div className="flex items-center gap-4">
             {/* Стильное бургер меню */}

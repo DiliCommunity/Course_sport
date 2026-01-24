@@ -46,6 +46,9 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  // ВАЖНО для iOS/VK: без viewport-fit=cover safe-area-inset-* часто возвращает 0
+  // и фиксированный header может залезать под верхнюю панель.
+  viewportFit: 'cover',
   themeColor: '#0a0a0b',
 }
 
