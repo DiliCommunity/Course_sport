@@ -57,6 +57,16 @@ export function Header() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  // Блокируем скролл страницы, когда открыто бургер-меню (чтобы оно не “исчезало” при прокрутке)
+  useEffect(() => {
+    if (!isMobileMenuOpen) return
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = prevOverflow
+    }
+  }, [isMobileMenuOpen])
+
   // Закрываем меню при клике вне его
   useEffect(() => {
     if (!isUserMenuOpen) return

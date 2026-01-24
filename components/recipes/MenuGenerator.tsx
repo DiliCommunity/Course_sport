@@ -37,6 +37,7 @@ interface DayMenu {
   dinner?: Meal
   snack?: Meal
   dessert?: Meal
+  mealTimes?: Partial<Record<'breakfast' | 'lunch' | 'dinner' | 'snack' | 'dessert', string>>
 }
 
 // База данных блюд - используем все рецепты из кето-рецептов
@@ -65,6 +66,57 @@ export function MenuGenerator() {
   const [cookingMethod, setCookingMethod] = useState<CookingMethod | 'all'>('all') // Холодные/горячие
   const [dishType, setDishType] = useState<DishType | 'all'>('all') // Первые/вторые/кондитерские
   const [processingMethod, setProcessingMethod] = useState<ProcessingMethod | 'all'>('all') // Способ обработки
+
+  const getMealSignature = (meal: Meal): string => {
+    const name = (meal.name || '').toLowerCase()
+    const sigMap: Array<[RegExp, string]> = [
+      [/кревет/i, 'shrimp'],
+      [/куриц|курин/i, 'chicken'],
+      [/индей/i, 'turkey'],
+      [/говя|стейк/i, 'beef'],
+      [/свин/i, 'pork'],
+      [/лосос/i, 'salmon'],
+      [/тунц/i, 'tuna'],
+      [/треск|хек|дорад|сибас|рыб/i, 'fish'],
+      [/яйц/i, 'eggs'],
+      [/сыр|творог/i, 'dairy'],
+      [/авокад/i, 'avocado'],
+      [/гриб/i, 'mushroom'],
+    ]
+    for (const [re, sig] of sigMap) {
+      if (re.test(name)) return sig
+    }
+    return (meal.dishType || meal.cookingMethod || 'meal').toString()
+  }
+
+  const pickUniqueMeal = (candidates: Meal[], usedNames: Set<string>, usedSignatures: Set<string>): Meal | undefined => {
+    if (!candidates.length) return undefined
+    const shuffled = [...candidates].sort(() => Math.random() - 0.5)
+
+    const pick = (allowRepeatSignature: boolean) => {
+      for (const m of shuffled) {
+        const nm = (m.name || '').trim().toLowerCase()
+        const sig = getMealSignature(m)
+        if (usedNames.has(nm)) continue
+        if (!allowRepeatSignature && usedSignatures.has(sig)) continue
+        usedNames.add(nm)
+        usedSignatures.add(sig)
+        return { ...m }
+      }
+      return undefined
+    }
+
+    // 1) Строго: не повторяем имя и “сигнатуру” (основной продукт)
+    return pick(false) || pick(true) || { ...shuffled[0] }
+  }
+
+  const setMealTime = (dayIndex: number, type: 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'dessert', value: string) => {
+    setGeneratedMenu((prev) =>
+      prev.map((day, idx) =>
+        idx === dayIndex ? { ...day, mealTimes: { ...(day.mealTimes || {}), [type]: value } } : day
+      )
+    )
+  }
 
   // Фильтрация блюд по всем параметрам
   const filterMeals = (meals: Meal[]): Meal[] => {
@@ -250,52 +302,44 @@ export function MenuGenerator() {
       let dinner: Meal | undefined
       let snack: Meal | undefined
       let dessert: Meal | undefined
+      const usedNames = new Set<string>()
+      const usedSignatures = new Set<string>()
+
+      // Пулы по типам (предпочитаем явные категории из базы)
+      const breakfastPool = MEALS_DATABASE.breakfast
+        ? filterMeals(MEALS_DATABASE.breakfast)
+        : allAvailableMeals.filter((meal) => !meal.dishType || meal.dishType === 'second' || meal.cookingMethod === 'cold')
+
+      const lunchPool = MEALS_DATABASE.lunch
+        ? filterMeals(MEALS_DATABASE.lunch)
+        : allAvailableMeals.filter((meal) => meal.dishType === 'first' || meal.dishType === 'second' || !meal.dishType)
+
+      const dinnerPool = MEALS_DATABASE.dinner
+        ? filterMeals(MEALS_DATABASE.dinner)
+        : allAvailableMeals.filter((meal) => meal.dishType === 'second' || !meal.dishType)
+
+      const dessertPoolRaw = MEALS_DATABASE.desserts ? filterMeals(MEALS_DATABASE.desserts) : allAvailableMeals
+      const dessertPool = dessertPoolRaw.filter((meal) => meal.dishType === 'dessert')
 
       // Генерируем блюда в зависимости от выбранного типа
       if (mealType === 'full' || mealType === 'breakfast') {
-        // Фильтруем завтраки (холодные блюда или блюда без типа)
-        const breakfastMeals = allAvailableMeals.filter(meal => 
-          !meal.dishType || meal.dishType === 'second' || meal.cookingMethod === 'cold'
-        )
-        if (breakfastMeals.length > 0) {
-          breakfast = { ...breakfastMeals[Math.floor(Math.random() * breakfastMeals.length)] }
-        }
+        breakfast = pickUniqueMeal(breakfastPool, usedNames, usedSignatures)
       }
 
       if (mealType === 'full' || mealType === 'lunch') {
-        // Для обеда: первые или вторые блюда
-        const lunchMeals = allAvailableMeals.filter(meal => 
-          meal.dishType === 'first' || meal.dishType === 'second' || !meal.dishType
-        )
-        if (lunchMeals.length > 0) {
-          lunch = { ...lunchMeals[Math.floor(Math.random() * lunchMeals.length)] }
-        }
+        lunch = pickUniqueMeal(lunchPool, usedNames, usedSignatures)
       }
 
       if (mealType === 'full' || mealType === 'dinner') {
-        // Для ужина: вторые блюда
-        const dinnerMeals = allAvailableMeals.filter(meal => 
-          meal.dishType === 'second' || !meal.dishType
-        )
-        if (dinnerMeals.length > 0) {
-          dinner = { ...dinnerMeals[Math.floor(Math.random() * dinnerMeals.length)] }
-        }
+        dinner = pickUniqueMeal(dinnerPool, usedNames, usedSignatures)
       }
 
       // Добавляем snack и dessert только для полного меню
       if (mealType === 'full') {
-        const snackMeals = allAvailableMeals.filter(meal => 
-          meal.cookingMethod === 'cold' || !meal.dishType
-        )
-        if (snackMeals.length > 0) {
-          snack = { ...snackMeals[Math.floor(Math.random() * snackMeals.length)] }
-        }
-
-        const dessertMeals = allAvailableMeals.filter(meal => 
-          meal.dishType === 'dessert'
-        )
-        if (dessertMeals.length > 0) {
-          dessert = { ...dessertMeals[Math.floor(Math.random() * dessertMeals.length)] }
+        // В “Дополнения” кладём только ДЕСЕРТ (по желанию пользователя).
+        // Перекус не генерируем автоматически, чтобы не попадали “основные блюда” в дополнения.
+        if (dessertPool.length > 0) {
+          dessert = pickUniqueMeal(dessertPool, usedNames, usedSignatures)
         }
       }
 
@@ -331,6 +375,7 @@ export function MenuGenerator() {
         dinner,
         snack,
         dessert,
+        mealTimes: {},
       })
     }
 
@@ -923,7 +968,7 @@ export function MenuGenerator() {
           <div className="grid grid-cols-2 gap-3">
             <button
               onClick={() => setGenerationMode('full_menu')}
-              className={`py-3 px-4 rounded-xl font-medium transition-all ${
+              className={`py-3 px-4 rounded-xl font-medium transition-all text-sm leading-tight text-center whitespace-normal break-words min-h-[3rem] ${
                 generationMode === 'full_menu'
                   ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
                   : 'bg-white/5 text-white hover:bg-white/10'
@@ -933,7 +978,7 @@ export function MenuGenerator() {
             </button>
             <button
               onClick={() => setGenerationMode('single_dish')}
-              className={`py-3 px-4 rounded-xl font-medium transition-all ${
+              className={`py-3 px-4 rounded-xl font-medium transition-all text-sm leading-tight text-center whitespace-normal break-words min-h-[3rem] ${
                 generationMode === 'single_dish'
                   ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
                   : 'bg-white/5 text-white hover:bg-white/10'
@@ -1136,7 +1181,7 @@ export function MenuGenerator() {
               <button
                 key={p}
                 onClick={() => setPeriod(p)}
-                className={`py-3 px-4 rounded-xl font-medium transition-all ${
+                className={`py-3 px-4 rounded-xl font-medium transition-all text-sm leading-tight text-center whitespace-normal break-words min-h-[3rem] ${
                   period === p
                     ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
                     : 'bg-white/5 text-white hover:bg-white/10'
@@ -1627,42 +1672,51 @@ export function MenuGenerator() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                   {day.breakfast && (
-                    <MealCard meal={day.breakfast} label="Завтрак" onImageClick={() => setSelectedMeal(day.breakfast!)} />
+                    <MealCard
+                      meal={day.breakfast}
+                      label="Завтрак"
+                      onImageClick={() => setSelectedMeal(day.breakfast!)}
+                      timeValue={day.mealTimes?.breakfast || ''}
+                      onTimeChange={(v) => setMealTime(index, 'breakfast', v)}
+                    />
                   )}
                   {day.lunch && (
-                    <MealCard meal={day.lunch} label="Обед" onImageClick={() => setSelectedMeal(day.lunch!)} />
+                    <MealCard
+                      meal={day.lunch}
+                      label="Обед"
+                      onImageClick={() => setSelectedMeal(day.lunch!)}
+                      timeValue={day.mealTimes?.lunch || ''}
+                      onTimeChange={(v) => setMealTime(index, 'lunch', v)}
+                    />
                   )}
                   {day.dinner && (
-                    <MealCard meal={day.dinner} label="Ужин" onImageClick={() => setSelectedMeal(day.dinner!)} />
+                    <MealCard
+                      meal={day.dinner}
+                      label="Ужин"
+                      onImageClick={() => setSelectedMeal(day.dinner!)}
+                      timeValue={day.mealTimes?.dinner || ''}
+                      onTimeChange={(v) => setMealTime(index, 'dinner', v)}
+                    />
                   )}
                 </div>
 
-                {/* Дополнения (snack и dessert) только для полного меню */}
-                {(day.snack || day.dessert) && (
+                {/* Дополнения: только десерт (по желанию) */}
+                {day.dessert && (
                   <div className="mb-3 pt-3 border-t border-white/10">
                     <div className="flex items-center justify-between mb-2">
-                      <div className="text-xs text-white/60 font-medium">Дополнения:</div>
+                      <div className="text-xs text-white/60 font-medium">Дополнения (по желанию):</div>
                       <div className="text-xs text-white/40 italic">* Не корректируются под целевые калории</div>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {day.snack && (
-                        <div className="relative group">
-                          <MealCard meal={day.snack} label="Перекус" onImageClick={() => setSelectedMeal(day.snack!)} />
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              removeSnackOrDessert(index, 'snack')
-                            }}
-                            className="absolute top-2 right-2 w-7 h-7 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center transition-all z-20 shadow-lg hover:shadow-red-500/50 border-2 border-white/30"
-                            title="Удалить перекус"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      )}
                       {day.dessert && (
                         <div className="relative group">
-                          <MealCard meal={day.dessert} label="Десерт" onImageClick={() => setSelectedMeal(day.dessert!)} />
+                          <MealCard
+                            meal={day.dessert}
+                            label="Десерт"
+                            onImageClick={() => setSelectedMeal(day.dessert!)}
+                            timeValue={day.mealTimes?.dessert || ''}
+                            onTimeChange={(v) => setMealTime(index, 'dessert', v)}
+                          />
                           <button
                             onClick={(e) => {
                               e.stopPropagation()
@@ -1753,13 +1807,25 @@ function getProcessingMethodLabel(method?: ProcessingMethod): string {
   return labels[method] || ''
 }
 
-function MealCard({ meal, label, onImageClick }: { meal: Meal; label: string; onImageClick: () => void }) {
+function MealCard({
+  meal,
+  label,
+  onImageClick,
+  timeValue,
+  onTimeChange,
+}: {
+  meal: Meal
+  label: string
+  onImageClick: () => void
+  timeValue: string
+  onTimeChange: (value: string) => void
+}) {
   return (
     <div className="p-3 rounded-lg bg-white/5 border border-white/5">
       <div className="flex items-start justify-between mb-2 gap-2">
         <div className="flex-1 min-w-0">
           <div className="text-xs text-white/60 mb-1">{label}</div>
-          <div className="text-white font-medium text-sm break-words leading-tight">{meal.name}</div>
+          <div className="text-white font-medium text-sm leading-tight break-words overflow-hidden">{meal.name}</div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           {meal.image && (
@@ -1789,6 +1855,17 @@ function MealCard({ meal, label, onImageClick }: { meal: Meal; label: string; on
         <span className="text-yellow-400 whitespace-nowrap">{meal.fats}г Ж</span>
         <span className="text-blue-400 whitespace-nowrap">{meal.proteins}г Б</span>
         <span className="text-green-400 whitespace-nowrap">{meal.carbs}г У</span>
+      </div>
+
+      {/* Время приёма пищи */}
+      <div className="mt-2">
+        <label className="block text-[11px] text-white/50 mb-1">Время приёма пищи</label>
+        <input
+          type="time"
+          value={timeValue}
+          onChange={(e) => onTimeChange(e.target.value)}
+          className="w-full h-10 px-3 rounded-lg bg-white/5 border border-white/10 text-white/90 text-sm outline-none focus:border-emerald-400/50 focus:ring-2 focus:ring-emerald-400/20"
+        />
       </div>
       {meal.processingMethod && (
         <div className="mt-2 text-xs text-white/50">
