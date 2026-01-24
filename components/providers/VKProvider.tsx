@@ -286,13 +286,30 @@ export function VKProvider({ children }: VKProviderProps) {
       
       // Если мы в VK (по hostname) и еще не инициализировали bridge - делаем это
       // Это гарантирует, что VKWebAppInit будет вызван даже если основная проверка не сработала
-      if (isVKHost && bridge && typeof bridge.send === 'function' && !bridgeInitializedRef.current) {
+      if (isVKHost && bridge && typeof bridge.send === 'function') {
         try {
-          // ВАЖНО: VKWebAppInit должен вызываться при каждой загрузке приложения в VK Mini App
-          // Это обязательное требование для прохождения модерации
-          await bridge.send('VKWebAppInit', {})
-          bridgeInitializedRef.current = true
-          console.log('[VKProvider] Delayed check: VKWebAppInit called successfully')
+          // Если bridge еще не инициализирован - инициализируем
+          if (!bridgeInitializedRef.current) {
+            // ВАЖНО: VKWebAppInit должен вызываться при каждой загрузке приложения в VK Mini App
+            // Это обязательное требование для прохождения модерации
+            await bridge.send('VKWebAppInit', {})
+            bridgeInitializedRef.current = true
+            console.log('[VKProvider] Delayed check: VKWebAppInit called successfully')
+          }
+          
+          // Пытаемся получить данные пользователя через VK Bridge, если еще не получили
+          if (!vkUser && bridgeInitializedRef.current) {
+            try {
+              const userResult = await bridge.send('VKWebAppGetUserInfo', {})
+              console.log('[VKProvider] Delayed check: User info from bridge:', userResult)
+              if (userResult && (userResult as any).id) {
+                setVkUser(userResult as UserInfo)
+                console.log('[VKProvider] Delayed check: User set from VK Bridge')
+              }
+            } catch (userError) {
+              console.log('[VKProvider] Delayed check: Could not get user info via bridge:', userError)
+            }
+          }
         } catch (error) {
           console.log('[VKProvider] Delayed check: VKWebAppInit error (may be already initialized):', error)
         }
@@ -306,13 +323,20 @@ export function VKProvider({ children }: VKProviderProps) {
         if (!vkUser) {
           const detectedUser: UserInfo = {
             id: Number(userId),
-            first_name: urlParams.get('vk_user_first_name') || hashParams.get('vk_user_first_name') || 'Пользователь',
-            last_name: urlParams.get('vk_user_last_name') || hashParams.get('vk_user_last_name') || '',
-            photo_200: urlParams.get('vk_user_photo_200') || hashParams.get('vk_user_photo_200') || undefined,
-            photo_100: urlParams.get('vk_user_photo_100') || hashParams.get('vk_user_photo_100') || undefined,
-            domain: urlParams.get('vk_user_domain') || hashParams.get('vk_user_domain') || undefined,
+            first_name: urlParams.get('vk_user_first_name') || hashParams.get('vk_user_first_name') || localStorage.getItem('vk_user_first_name') || 'Пользователь',
+            last_name: urlParams.get('vk_user_last_name') || hashParams.get('vk_user_last_name') || localStorage.getItem('vk_user_last_name') || '',
+            photo_200: urlParams.get('vk_user_photo_200') || hashParams.get('vk_user_photo_200') || localStorage.getItem('vk_user_photo_200') || undefined,
+            photo_100: urlParams.get('vk_user_photo_100') || hashParams.get('vk_user_photo_100') || localStorage.getItem('vk_user_photo_100') || undefined,
+            domain: urlParams.get('vk_user_domain') || hashParams.get('vk_user_domain') || localStorage.getItem('vk_user_domain') || undefined,
           }
           setVkUser(detectedUser)
+          // Сохраняем в localStorage для будущего использования
+          localStorage.setItem('vk_user_id', String(detectedUser.id))
+          if (detectedUser.first_name) localStorage.setItem('vk_user_first_name', detectedUser.first_name)
+          if (detectedUser.last_name) localStorage.setItem('vk_user_last_name', detectedUser.last_name)
+          if (detectedUser.photo_200) localStorage.setItem('vk_user_photo_200', detectedUser.photo_200)
+          if (detectedUser.photo_100) localStorage.setItem('vk_user_photo_100', detectedUser.photo_100)
+          if (detectedUser.domain) localStorage.setItem('vk_user_domain', detectedUser.domain)
         }
       }
     }, 1000)

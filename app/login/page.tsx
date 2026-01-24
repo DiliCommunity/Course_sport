@@ -42,26 +42,47 @@ export default function LoginPage() {
   const handleVKAuth = useCallback(async () => {
     console.log('[LoginPage] handleVKAuth called with vkUser:', vkUser, 'type:', typeof vkUser)
     
-    // Если vkUser еще не загружен или это не объект, пытаемся получить из URL
+    // Если vkUser еще не загружен или это не объект, пытаемся получить из URL или VK Bridge
     let userToAuth = vkUser
     
     // Проверяем, что vkUser - это объект с id
     if (!userToAuth || typeof userToAuth !== 'object' || !userToAuth.id) {
-      console.log('[LoginPage] vkUser is invalid, trying URL params')
+      console.log('[LoginPage] vkUser is invalid, trying URL params and VK Bridge')
       if (isVKMiniApp) {
-        const urlParams = new URLSearchParams(window.location.search)
-        const userId = urlParams.get('vk_user_id')
-        console.log('[LoginPage] URL params vk_user_id:', userId)
-        if (userId) {
-          userToAuth = {
-            id: Number(userId),
-            first_name: urlParams.get('vk_user_first_name') || 'Пользователь',
-            last_name: urlParams.get('vk_user_last_name') || '',
-            photo_200: urlParams.get('vk_user_photo_200') || undefined,
-            photo_100: urlParams.get('vk_user_photo_100') || undefined,
-            domain: urlParams.get('vk_user_domain') || undefined,
+        // Пытаемся получить через VK Bridge
+        try {
+          const bridge = (window as any).vkBridge || (window as any).bridge
+          if (bridge && typeof bridge.send === 'function') {
+            console.log('[LoginPage] Trying to get user info via VK Bridge...')
+            const userResult = await bridge.send('VKWebAppGetUserInfo', {})
+            console.log('[LoginPage] VK Bridge user info:', userResult)
+            if (userResult && (userResult as any).id) {
+              userToAuth = userResult as any
+              console.log('[LoginPage] Got user from VK Bridge:', { id: userToAuth.id, first_name: userToAuth.first_name })
+            }
           }
-          console.log('[LoginPage] Created userToAuth from URL:', { id: userToAuth.id, first_name: userToAuth.first_name })
+        } catch (bridgeError) {
+          console.log('[LoginPage] VK Bridge error, trying URL params:', bridgeError)
+        }
+        
+        // Если не получили через Bridge - пробуем URL параметры
+        if (!userToAuth || typeof userToAuth !== 'object' || !userToAuth.id) {
+          const urlParams = new URLSearchParams(window.location.search)
+          const hashParams = new URLSearchParams(window.location.hash.substring(1))
+          const userId = urlParams.get('vk_user_id') || hashParams.get('vk_user_id')
+          console.log('[LoginPage] URL params vk_user_id:', userId)
+          if (userId) {
+            const sourceParams = urlParams.get('vk_user_id') ? urlParams : hashParams
+            userToAuth = {
+              id: Number(userId),
+              first_name: sourceParams.get('vk_user_first_name') || urlParams.get('vk_user_first_name') || hashParams.get('vk_user_first_name') || 'Пользователь',
+              last_name: sourceParams.get('vk_user_last_name') || urlParams.get('vk_user_last_name') || hashParams.get('vk_user_last_name') || '',
+              photo_200: sourceParams.get('vk_user_photo_200') || urlParams.get('vk_user_photo_200') || hashParams.get('vk_user_photo_200') || undefined,
+              photo_100: sourceParams.get('vk_user_photo_100') || urlParams.get('vk_user_photo_100') || hashParams.get('vk_user_photo_100') || undefined,
+              domain: sourceParams.get('vk_user_domain') || urlParams.get('vk_user_domain') || hashParams.get('vk_user_domain') || undefined,
+            }
+            console.log('[LoginPage] Created userToAuth from URL:', { id: userToAuth.id, first_name: userToAuth.first_name })
+          }
         }
       }
     } else {
@@ -69,8 +90,9 @@ export default function LoginPage() {
     }
     
     if (!userToAuth || typeof userToAuth !== 'object' || !userToAuth.id) {
-      setError('Не удалось получить данные пользователя VK')
-      console.error('[LoginPage] handleVKAuth: No valid vkUser available', { userToAuth, vkUser })
+      setError('Не удалось получить данные пользователя VK. Попробуйте обновить страницу или войти через логин/пароль.')
+      console.error('[LoginPage] handleVKAuth: No valid vkUser available', { userToAuth, vkUser, isVKMiniApp })
+      setIsVKLoading(false)
       return
     }
     
@@ -375,8 +397,29 @@ export default function LoginPage() {
             <div className="space-y-4">
               {/* Кнопки авторизации через соцсети */}
               <div className="space-y-3">
-                {/* Кнопка "Войти через Telegram" - если в Telegram WebApp */}
+                {/* Кнопка "Войти через VK" - показываем ВСЕГДА в VK Mini App, даже если нет данных */}
+                {isVKMiniApp ? (
+                  <motion.button
+                    onClick={handleVKAuth}
+                    disabled={!vkReady || isVKLoading}
+                    className="flex items-center justify-center gap-3 w-full p-4 rounded-xl bg-gradient-to-r from-[#0077FF] to-[#0066DD] hover:from-[#0066DD] hover:to-[#0055CC] transition-all duration-300 shadow-[0_0_20px_rgba(0,119,255,0.4)] hover:shadow-[0_0_30px_rgba(0,119,255,0.6)] disabled:opacity-50 disabled:cursor-not-allowed"
+                    whileHover={{ scale: !vkReady || isVKLoading ? 1 : 1.02 }}
+                    whileTap={{ scale: !vkReady || isVKLoading ? 1 : 0.98 }}
+                  >
+                    {isVKLoading ? (
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12.785 16.241s.287-.033.435-.2c.136-.15.132-.432.132-.432s-.02-1.305.58-1.498c.594-.19 1.354.95 2.16 1.37.605.315 1.064.245 1.064.245l2.15-.031s1.123-.07.59-.955c-.044-.07-.31-.65-1.61-1.84-1.36-1.24-1.178-.52.45-1.59.99-.82 1.39-1.32 1.26-1.53-.118-.19-.85-.14-.85-.14l-2.19.014s-.162-.022-.282.05c-.118.07-.193.23-.193.23s-.35.93-.81 1.72c-.97 1.64-1.36 1.73-1.52 1.63-.37-.2-.28-.8-.28-1.23 0-1.34.21-1.9-.41-2.04-.2-.05-.35-.08-.86-.09-.66-.01-1.22.01-1.54.2-.21.12-.37.38-.27.4.12.02.39.07.53.26.18.24.18.78.18.78s.11 1.63-.26 1.83c-.26.13-.61-.14-1.37-1.63-.39-.75-.68-1.58-.68-1.58s-.06-.15-.16-.23c-.12-.09-.29-.12-.29-.12l-2.08.014s-.31.01-.43.15c-.1.12-.01.38-.01.38s1.58 3.74 3.37 5.63c1.64 1.72 3.51 1.61 3.51 1.61h.84z"/>
+                      </svg>
+                    )}
+                    <span className="font-semibold text-white">Войти через VK</span>
+                  </motion.button>
+                ) : null}
+
+                {/* Кнопка "Войти через Telegram" - показываем ВСЕГДА */}
                 {isTelegramApp && telegramUser ? (
+                  // Если в Telegram WebApp - кнопка с авторизацией
                   <Button 
                     className="w-full" 
                     size="lg"
@@ -386,8 +429,8 @@ export default function LoginPage() {
                     <Send className="w-5 h-5 mr-2" />
                     Войти через Telegram
                   </Button>
-                ) : !isVKMiniApp ? (
-                  // Кнопка "Войти через Telegram" - если НЕ в Telegram и НЕ в VK Mini App (переход на бота)
+                ) : (
+                  // Если НЕ в Telegram WebApp - ссылка на бота (работает и в VK Mini App, и в браузере)
                   <motion.a
                     href="https://t.me/Course_Sport_bot"
                     target="_blank"
@@ -399,28 +442,10 @@ export default function LoginPage() {
                     <Send className="w-5 h-5 text-white" />
                     <span className="font-semibold text-white">Войти через Telegram</span>
                   </motion.a>
-                ) : null}
+                )}
 
-                {/* Кнопка "Войти через VK" - показываем если в VK Mini App и есть данные VK */}
-                {isVKMiniApp && vkUser ? (
-                  <motion.button
-                    onClick={handleVKAuth}
-                    disabled={!vkReady || !vkUser || isVKLoading}
-                    className="flex items-center justify-center gap-3 w-full p-4 rounded-xl bg-gradient-to-r from-[#0077FF] to-[#0066DD] hover:from-[#0066DD] hover:to-[#0055CC] transition-all duration-300 shadow-[0_0_20px_rgba(0,119,255,0.4)] hover:shadow-[0_0_30px_rgba(0,119,255,0.6)] disabled:opacity-50 disabled:cursor-not-allowed"
-                    whileHover={{ scale: !vkReady || !vkUser || isVKLoading ? 1 : 1.02 }}
-                    whileTap={{ scale: !vkReady || !vkUser || isVKLoading ? 1 : 0.98 }}
-                  >
-                    {isVKLoading ? (
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    ) : (
-                      <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12.785 16.241s.287-.033.435-.2c.136-.15.132-.432.132-.432s-.02-1.305.58-1.498c.594-.19 1.354.95 2.16 1.37.605.315 1.064.245 1.064.245l2.15-.031s1.123-.07.59-.955c-.044-.07-.31-.65-1.61-1.84-1.36-1.24-1.178-.52.45-1.59.99-.82 1.39-1.32 1.26-1.53-.118-.19-.85-.14-.85-.14l-2.19.014s-.162-.022-.282.05c-.118.07-.193.23-.193.23s-.35.93-.81 1.72c-.97 1.64-1.36 1.73-1.52 1.63-.37-.2-.28-.8-.28-1.23 0-1.34.21-1.9-.41-2.04-.2-.05-.35-.08-.86-.09-.66-.01-1.22.01-1.54.2-.21.12-.37.38-.27.4.12.02.39.07.53.26.18.24.18.78.18.78s.11 1.63-.26 1.83c-.26.13-.61-.14-1.37-1.63-.39-.75-.68-1.58-.68-1.58s-.06-.15-.16-.23c-.12-.09-.29-.12-.29-.12l-2.08.014s-.31.01-.43.15c-.1.12-.01.38-.01.38s1.58 3.74 3.37 5.63c1.64 1.72 3.51 1.61 3.51 1.61h.84z"/>
-                      </svg>
-                    )}
-                    <span className="font-semibold text-white">Войти через VK</span>
-                  </motion.button>
-                ) : !isVKMiniApp ? (
-                  // Кнопка "Войти через VK" - если НЕ в VK Mini App (переход на VK Mini App)
+                {/* Кнопка "Войти через VK" - если НЕ в VK Mini App (переход на VK Mini App) */}
+                {!isVKMiniApp && (
                   <motion.a
                     href="https://vk.com/app54424350"
                     target="_blank"
@@ -434,7 +459,7 @@ export default function LoginPage() {
                     </svg>
                     <span className="font-semibold text-white">Войти через VK</span>
                   </motion.a>
-                ) : null}
+                )}
               </div>
 
               {/* Divider */}
