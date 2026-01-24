@@ -147,8 +147,6 @@ export default function ReviewsPage() {
   const [showCourseFilter, setShowCourseFilter] = useState(false)
   const [showRatingFilter, setShowRatingFilter] = useState(false)
   const [visibleCount, setVisibleCount] = useState(20)
-  
-  // Форма отправки отзыва
   const [showReviewForm, setShowReviewForm] = useState(false)
   const [reviewFormData, setReviewFormData] = useState<{
     courseId: typeof COURSE_IDS.KETO | typeof COURSE_IDS.INTERVAL
@@ -164,10 +162,9 @@ export default function ReviewsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitSuccess, setSubmitSuccess] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
-  const [canReview, setCanReview] = useState<boolean | null>(null) // null = проверка, true/false = результат
+  const [canReview, setCanReview] = useState<boolean | null>(null)
   const [isCheckingPermission, setIsCheckingPermission] = useState(true)
 
-  // Проверяем права на написание отзывов
   useEffect(() => {
     const checkReviewPermission = async () => {
       if (!user) {
@@ -258,7 +255,6 @@ export default function ReviewsPage() {
 
   return (
     <main className="min-h-screen pt-20 pb-16">
-      {/* Hero Section */}
       <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -276,7 +272,6 @@ export default function ReviewsPage() {
             Реальные отзывы от людей, которые изменили свою жизнь с нашими курсами
           </p>
 
-          {/* Stats */}
           <div className="flex flex-wrap justify-center gap-8 mb-12">
             <div className="text-center">
               <div className="text-4xl font-bold text-accent-gold mb-1">{averageRating}</div>
@@ -297,10 +292,7 @@ export default function ReviewsPage() {
             </div>
           </div>
         </motion.div>
-      </section>
-
-      {/* Review Form Section */}
-      {user ? (
+      </section>{user ? (
         <section className="container mx-auto px-4 sm:px-6 lg:px-8 mb-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -388,10 +380,7 @@ export default function ReviewsPage() {
                     <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
                     <p className="text-sm text-red-400">{submitError}</p>
                   </motion.div>
-                )}
-
-                {/* Course Selection */}
-                <div>
+                )}<div>
                   <label className="block text-white/80 text-sm font-medium mb-2">
                     Выберите курс
                   </label>
@@ -414,7 +403,6 @@ export default function ReviewsPage() {
                   </select>
                 </div>
 
-                {/* Rating */}
                 <div>
                   <label className="block text-white/80 text-sm font-medium mb-2">
                     Ваша оценка
@@ -437,7 +425,6 @@ export default function ReviewsPage() {
                   </div>
                 </div>
 
-                {/* Review Text */}
                 <div>
                   <label className="block text-white/80 text-sm font-medium mb-2">
                     Ваш отзыв
@@ -454,10 +441,7 @@ export default function ReviewsPage() {
                   <div className="text-right text-xs text-white/40 mt-1">
                     {reviewFormData.text.length} / 2000
                   </div>
-                </div>
-
-                {/* Submit Button */}
-                <button
+                </div><button
                   type="submit"
                   disabled={isSubmitting || reviewFormData.text.length < 10}
                   className="w-full py-4 rounded-xl bg-gradient-to-r from-emerald-400 to-teal-400 text-dark-900 font-bold hover:shadow-[0_0_30px_rgba(52,211,153,0.4)] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
@@ -478,13 +462,8 @@ export default function ReviewsPage() {
             )}
           </motion.div>
         </section>
-      )}
-
-      {/* Filters */}
-      <section className="container mx-auto px-4 sm:px-6 lg:px-8 mb-8">
-        <div className="flex flex-wrap gap-4 justify-center">
-          {/* Course Filter */}
-          <div className="relative">
+      )}<section className="container mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+        <div className="flex flex-wrap gap-4 justify-center"><div className="relative">
             <button
               onClick={() => {
                 setShowCourseFilter(!showCourseFilter)
@@ -521,7 +500,6 @@ export default function ReviewsPage() {
             )}
           </div>
 
-          {/* Rating Filter */}
           <div className="relative">
             <button
               onClick={() => {
@@ -559,10 +537,7 @@ export default function ReviewsPage() {
             )}
           </div>
         </div>
-      </section>
-
-      {/* Reviews Grid */}
-      <section className="container mx-auto px-4 sm:px-6 lg:px-8">
+      </section><section className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {visibleReviews.map((review, index) => (
             <motion.div
@@ -571,12 +546,7 @@ export default function ReviewsPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: Math.min(index * 0.05, 0.5) }}
               className="glass rounded-2xl p-6 relative overflow-hidden hover:border-emerald-400/30 border border-transparent transition-all"
-            >
-              {/* Quote Icon */}
-              <Quote className="absolute top-4 right-4 w-12 h-12 text-emerald-400/10" />
-
-              {/* Header */}
-              <div className="flex items-start gap-4 mb-4">
+            ><Quote className="absolute top-4 right-4 w-12 h-12 text-emerald-400/10" /><div className="flex items-start gap-4 mb-4">
                 <div className="relative w-14 h-14 rounded-full overflow-hidden flex-shrink-0 bg-gradient-to-br from-emerald-400 to-teal-500">
                   <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-dark-900">
                     {review.name[0]}
@@ -593,10 +563,7 @@ export default function ReviewsPage() {
                   </div>
                   <p className="text-white/60 text-sm">{review.date}</p>
                 </div>
-              </div>
-
-              {/* Rating */}
-              <div className="flex items-center gap-1 mb-3">
+              </div><div className="flex items-center gap-1 mb-3">
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
@@ -605,15 +572,9 @@ export default function ReviewsPage() {
                     }`}
                   />
                 ))}
-              </div>
-
-              {/* Course Badge */}
-              <div className="inline-block px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-sm font-medium mb-4">
+              </div><div className="inline-block px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-sm font-medium mb-4">
                 {review.course}
-              </div>
-
-              {/* Review Text */}
-              <p className="text-white/80 leading-relaxed">{review.text}</p>
+              </div><p className="text-white/80 leading-relaxed">{review.text}</p>
             </motion.div>
           ))}
         </div>
@@ -622,10 +583,7 @@ export default function ReviewsPage() {
           <div className="text-center py-12">
             <p className="text-white/60">Нет отзывов по выбранным фильтрам</p>
           </div>
-        )}
-
-        {/* Load More Button */}
-        {visibleCount < filteredReviews.length && (
+        )}{visibleCount < filteredReviews.length && (
           <div className="text-center mt-12">
             <button
               onClick={() => setVisibleCount(prev => prev + 20)}
@@ -635,10 +593,7 @@ export default function ReviewsPage() {
             </button>
           </div>
         )}
-      </section>
-
-      {/* CTA Section */}
-      <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-16">
+      </section><section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-16">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -661,10 +616,7 @@ export default function ReviewsPage() {
             </Link>
           </div>
         </motion.div>
-      </section>
-
-      {/* Back Button */}
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-12">
+      </section><div className="container mx-auto px-4 sm:px-6 lg:px-8 mt-12">
         <Link
           href="/"
           className="inline-flex items-center gap-2 text-white/70 hover:text-emerald-400 transition-colors font-medium"
@@ -676,3 +628,4 @@ export default function ReviewsPage() {
     </main>
   )
 }
+
