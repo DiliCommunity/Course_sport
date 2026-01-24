@@ -177,7 +177,6 @@ export default function ReviewsPage() {
       }
 
       try {
-        // Для VK Mini App передаём токен в заголовке (cookies не работают на iOS)
         const headers: HeadersInit = {}
         if (isVKMiniApp && sessionToken) {
           headers['X-Session-Token'] = sessionToken
@@ -220,7 +219,6 @@ export default function ReviewsPage() {
     setSubmitSuccess(false)
 
     try {
-      // Для VK Mini App передаём токен в заголовке (cookies не работают на iOS)
       const headers: HeadersInit = { 'Content-Type': 'application/json' }
       if (isVKMiniApp && sessionToken) {
         headers['X-Session-Token'] = sessionToken
