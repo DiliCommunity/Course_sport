@@ -373,7 +373,7 @@ TDEE (расход калорий): ${results.tdee} ккал/день
           <div className="flex gap-2">
             <button
               onClick={() => setGender('male')}
-              className={`flex-1 py-3 rounded-xl font-medium transition-all ${
+              className={`flex-1 py-3 px-2 rounded-xl font-medium transition-all text-sm leading-tight whitespace-normal break-words ${
                 gender === 'male'
                   ? 'bg-gradient-to-r from-accent-teal to-accent-mint text-dark-900 shadow-lg shadow-accent-teal/30'
                   : 'bg-white/5 text-white/60 hover:bg-white/10'
@@ -383,7 +383,7 @@ TDEE (расход калорий): ${results.tdee} ккал/день
             </button>
             <button
               onClick={() => setGender('female')}
-              className={`flex-1 py-3 rounded-xl font-medium transition-all ${
+              className={`flex-1 py-3 px-2 rounded-xl font-medium transition-all text-sm leading-tight whitespace-normal break-words ${
                 gender === 'female'
                   ? 'bg-gradient-to-r from-accent-teal to-accent-mint text-dark-900 shadow-lg shadow-accent-teal/30'
                   : 'bg-white/5 text-white/60 hover:bg-white/10'
@@ -439,7 +439,7 @@ TDEE (расход калорий): ${results.tdee} ккал/день
           <select
             value={activityLevel}
             onChange={(e) => setActivityLevel(e.target.value as keyof typeof ACTIVITY_MULTIPLIERS)}
-            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-accent-teal/50 focus:ring-2 focus:ring-accent-teal/20 transition-all"
+            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-accent-teal/50 focus:ring-2 focus:ring-accent-teal/20 transition-all text-sm leading-tight"
           >
             {Object.entries(ACTIVITY_MULTIPLIERS).map(([key, { label }]) => (
               <option key={key} value={key} className="bg-dark-800">
@@ -458,7 +458,7 @@ TDEE (расход калорий): ${results.tdee} ккал/день
           <div className="grid grid-cols-3 gap-2">
             <button
               onClick={() => setGoal('cut')}
-              className={`py-3 rounded-xl font-medium transition-all ${
+              className={`py-3 px-2 rounded-xl font-medium transition-all text-[12px] sm:text-sm leading-tight whitespace-normal break-words min-h-[3.25rem] flex items-center justify-center text-center ${
                 goal === 'cut'
                   ? 'bg-gradient-to-r from-red-500/20 to-red-600/20 border-2 border-red-500/50 text-white shadow-lg shadow-red-500/20'
                   : 'bg-white/5 text-white/60 hover:bg-white/10 border border-white/10'
@@ -468,7 +468,7 @@ TDEE (расход калорий): ${results.tdee} ккал/день
             </button>
             <button
               onClick={() => setGoal('maintain')}
-              className={`py-3 rounded-xl font-medium transition-all ${
+              className={`py-3 px-2 rounded-xl font-medium transition-all text-[12px] sm:text-sm leading-tight whitespace-normal break-words min-h-[3.25rem] flex items-center justify-center text-center ${
                 goal === 'maintain'
                   ? 'bg-gradient-to-r from-accent-teal/20 to-accent-mint/20 border-2 border-accent-teal/50 text-white shadow-lg shadow-accent-teal/20'
                   : 'bg-white/5 text-white/60 hover:bg-white/10 border border-white/10'
@@ -478,7 +478,7 @@ TDEE (расход калорий): ${results.tdee} ккал/день
             </button>
             <button
               onClick={() => setGoal('bulk')}
-              className={`py-3 rounded-xl font-medium transition-all ${
+              className={`py-3 px-2 rounded-xl font-medium transition-all text-[12px] sm:text-sm leading-tight whitespace-normal break-words min-h-[3.25rem] flex items-center justify-center text-center ${
                 goal === 'bulk'
                   ? 'bg-gradient-to-r from-blue-500/20 to-blue-600/20 border-2 border-blue-500/50 text-white shadow-lg shadow-blue-500/20'
                   : 'bg-white/5 text-white/60 hover:bg-white/10 border border-white/10'
