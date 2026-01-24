@@ -133,29 +133,29 @@ export function VKProvider({ children }: VKProviderProps) {
         
         // Проверяем localStorage/sessionStorage для сохранённых VK данных
         // НО только если мы действительно в VK (hostname содержит vk.com или vk.ru)
+        // ИЛИ если есть явные VK параметры в URL
         const isVKHostname = hostname.includes('vk.com') || hostname.includes('vk.ru')
-        const storedVkUserId = (isVKHostname) ? (localStorage.getItem('vk_user_id') || sessionStorage.getItem('vk_user_id')) : null
-        const storedVkApp = (isVKHostname) ? (localStorage.getItem('is_vk_mini_app') === 'true' || sessionStorage.getItem('is_vk_mini_app') === 'true') : false
+        const storedVkUserId = (isVKHostname || hasUserId) ? (localStorage.getItem('vk_user_id') || sessionStorage.getItem('vk_user_id')) : null
+        const storedVkApp = (isVKHostname || hasUserId) ? (localStorage.getItem('is_vk_mini_app') === 'true' || sessionStorage.getItem('is_vk_mini_app') === 'true') : false
         
         // НЕ используем cookie vk_id для определения VK Mini App
         // Cookie может быть установлен в обычном браузере после VK авторизации
         
         // Множественные способы определения VK окружения
-        // VK Mini App определяется только по URL параметрам, hostname или VK Bridge
+        // VK Mini App определяется ТОЛЬКО по:
+        // 1. Hostname содержит vk.com или vk.ru
+        // 2. Есть VK параметры в URL (vk_user_id, vk_platform и т.д.)
+        // 3. Есть VK Bridge в window
+        // НЕ используем referrer и localStorage для определения - это может дать ложные срабатывания
         const isVKEnv = 
           isVKHostname || // Основной признак - hostname содержит vk.com или vk.ru
-          fullUrl.includes('vk.com') ||
-          fullUrl.includes('vk.ru') ||
-          referrer.includes('vk.com') ||
-          referrer.includes('vk.ru') ||
           hasUserId || // Наличие vk_user_id в URL
-          (isVKHostname && storedVkApp) || // Сохранённый флаг, но только если мы в VK
           urlParams.has('vk_access_token_settings') ||
           urlParams.has('vk_platform') ||
           urlParams.has('vk_is_app_user') ||
           hashParams.has('vk_user_id') ||
-          (window as any).vkBridge || // Проверяем наличие VK Bridge в window
-          (window as any).bridge // Альтернативный способ доступа к bridge
+          ((window as any).vkBridge && isVKHostname) || // VK Bridge только если hostname тоже VK
+          ((window as any).bridge && isVKHostname) // Альтернативный способ доступа к bridge
         
         console.log('[VKProvider] VK environment check:', {
           hostname,
@@ -179,8 +179,10 @@ export function VKProvider({ children }: VKProviderProps) {
           setIsVKMiniApp(true)
           setInitData(window.location.search)
           
-          // Сохраняем флаг VK Mini App в localStorage для использования после редиректов
-          localStorage.setItem('is_vk_mini_app', 'true')
+          // Сохраняем флаг VK Mini App в localStorage ТОЛЬКО если hostname тоже VK
+          if (isVKHostname || hasUserId) {
+            localStorage.setItem('is_vk_mini_app', 'true')
+          }
           
           // ВАЖНО: Всегда вызываем VKWebAppInit при загрузке приложения в VK Mini App
           // Это обязательное требование для прохождения модерации VK
@@ -253,6 +255,14 @@ export function VKProvider({ children }: VKProviderProps) {
           }
         } else {
           console.log('[VKProvider] Not in VK environment')
+          // Очищаем VK данные из localStorage если мы НЕ в VK
+          localStorage.removeItem('is_vk_mini_app')
+          localStorage.removeItem('vk_user_id')
+          localStorage.removeItem('vk_user_first_name')
+          localStorage.removeItem('vk_user_last_name')
+          localStorage.removeItem('vk_user_photo_200')
+          localStorage.removeItem('vk_user_photo_100')
+          localStorage.removeItem('vk_user_domain')
         }
       } catch (error) {
         console.error('[VKProvider] VK Mini App initialization error:', error)
