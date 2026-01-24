@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { useVK } from '@/components/providers/VKProvider'
 
@@ -73,6 +74,17 @@ export default function HomePage() {
 
       {/* Hero Section */}
       <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden pt-20">
+        {/* Background image (keto_full2) */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/img/keto_full2.jpg"
+            alt="Keto background"
+            fill
+            priority
+            className="object-cover opacity-35"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-dark-900/40 via-dark-900/70 to-dark-900/95" />
+        </div>
         <div className="container mx-auto px-4 relative z-10">
           <div className="text-center max-w-4xl mx-auto">
             <div className="inline-block px-4 py-2 bg-gradient-to-r from-accent-gold/20 to-accent-electric/20 border border-accent-gold/40 rounded-full text-sm font-medium text-accent-gold mb-6">
