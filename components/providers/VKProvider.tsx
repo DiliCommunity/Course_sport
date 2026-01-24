@@ -131,12 +131,8 @@ export function VKProvider({ children }: VKProviderProps) {
         const userIdFromHash = hashParams.get('vk_user_id')
         const hasUserId = !!(userIdFromSearch || userIdFromHash)
         
-        // Проверяем localStorage/sessionStorage для сохранённых VK данных
-        // НО только если мы действительно в VK (hostname содержит vk.com или vk.ru)
-        // ИЛИ если есть явные VK параметры в URL
+        // НЕ используем localStorage/sessionStorage - только URL параметры и VK Bridge
         const isVKHostname = hostname.includes('vk.com') || hostname.includes('vk.ru')
-        const storedVkUserId = (isVKHostname || hasUserId) ? (localStorage.getItem('vk_user_id') || sessionStorage.getItem('vk_user_id')) : null
-        const storedVkApp = (isVKHostname || hasUserId) ? (localStorage.getItem('is_vk_mini_app') === 'true' || sessionStorage.getItem('is_vk_mini_app') === 'true') : false
         
         // НЕ используем cookie vk_id для определения VK Mini App
         // Cookie может быть установлен в обычном браузере после VK авторизации
@@ -159,17 +155,14 @@ export function VKProvider({ children }: VKProviderProps) {
         
         console.log('[VKProvider] VK environment check:', {
           hostname,
-          fullUrl: fullUrl.substring(0, 100), // Логируем только первые 100 символов
+          fullUrl: fullUrl.substring(0, 100),
           hasVkUserId: hasUserId,
           userIdFromSearch,
           userIdFromHash,
-          storedVkUserId,
-          storedVkApp,
           isVKHostname,
           hasVkAccessToken: urlParams.has('vk_access_token_settings'),
           hasVkPlatform: urlParams.has('vk_platform'),
           hasVkIsAppUser: urlParams.has('vk_is_app_user'),
-          referrer: referrer.substring(0, 100),
           hasBridge: !!(window as any).vkBridge || !!(window as any).bridge,
           isVKEnv
         })
@@ -178,11 +171,6 @@ export function VKProvider({ children }: VKProviderProps) {
           detectedVKMiniApp = true
           setIsVKMiniApp(true)
           setInitData(window.location.search)
-          
-          // Сохраняем флаг VK Mini App в localStorage ТОЛЬКО если hostname тоже VK
-          if (isVKHostname || hasUserId) {
-            localStorage.setItem('is_vk_mini_app', 'true')
-          }
           
           // ВАЖНО: Всегда вызываем VKWebAppInit при загрузке приложения в VK Mini App
           // Это обязательное требование для прохождения модерации VK
@@ -219,50 +207,32 @@ export function VKProvider({ children }: VKProviderProps) {
             }
           }
           
-          // Получаем данные из URL параметров (fallback или основной способ)
-          // Проверяем как search params, так и hash params, а также localStorage
-          const userId = userIdFromSearch || userIdFromHash || urlParams.get('vk_user_id') || hashParams.get('vk_user_id') || storedVkUserId
+          // Получаем данные ТОЛЬКО из URL параметров - НЕ используем localStorage
+          const userId = userIdFromSearch || userIdFromHash || urlParams.get('vk_user_id') || hashParams.get('vk_user_id')
           if (userId && !detectedUser) {
-            console.log('[VKProvider] Setting user from URL params/storage, userId:', userId)
+            console.log('[VKProvider] Setting user from URL params, userId:', userId)
             // Используем параметры из того источника, где нашли userId
             const sourceParams = userIdFromSearch || urlParams.get('vk_user_id') ? urlParams : hashParams
             detectedUser = {
               id: Number(userId),
-              first_name: sourceParams.get('vk_user_first_name') || urlParams.get('vk_user_first_name') || hashParams.get('vk_user_first_name') || localStorage.getItem('vk_user_first_name') || 'Пользователь',
-              last_name: sourceParams.get('vk_user_last_name') || urlParams.get('vk_user_last_name') || hashParams.get('vk_user_last_name') || localStorage.getItem('vk_user_last_name') || '',
-              photo_200: sourceParams.get('vk_user_photo_200') || urlParams.get('vk_user_photo_200') || hashParams.get('vk_user_photo_200') || localStorage.getItem('vk_user_photo_200') || undefined,
-              photo_100: sourceParams.get('vk_user_photo_100') || urlParams.get('vk_user_photo_100') || hashParams.get('vk_user_photo_100') || localStorage.getItem('vk_user_photo_100') || undefined,
-              domain: sourceParams.get('vk_user_domain') || urlParams.get('vk_user_domain') || hashParams.get('vk_user_domain') || localStorage.getItem('vk_user_domain') || undefined,
+              first_name: sourceParams.get('vk_user_first_name') || urlParams.get('vk_user_first_name') || hashParams.get('vk_user_first_name') || 'Пользователь',
+              last_name: sourceParams.get('vk_user_last_name') || urlParams.get('vk_user_last_name') || hashParams.get('vk_user_last_name') || '',
+              photo_200: sourceParams.get('vk_user_photo_200') || urlParams.get('vk_user_photo_200') || hashParams.get('vk_user_photo_200') || undefined,
+              photo_100: sourceParams.get('vk_user_photo_100') || urlParams.get('vk_user_photo_100') || hashParams.get('vk_user_photo_100') || undefined,
+              domain: sourceParams.get('vk_user_domain') || urlParams.get('vk_user_domain') || hashParams.get('vk_user_domain') || undefined,
             } as UserInfo
             setVkUser(detectedUser)
-            
-            // Сохраняем данные пользователя в localStorage
-            localStorage.setItem('vk_user_id', String(detectedUser.id))
-            if (detectedUser.first_name) localStorage.setItem('vk_user_first_name', detectedUser.first_name)
-            if (detectedUser.last_name) localStorage.setItem('vk_user_last_name', detectedUser.last_name)
-            if (detectedUser.photo_200) localStorage.setItem('vk_user_photo_200', detectedUser.photo_200)
-            if (detectedUser.photo_100) localStorage.setItem('vk_user_photo_100', detectedUser.photo_100)
-            if (detectedUser.domain) localStorage.setItem('vk_user_domain', detectedUser.domain)
             
             // Если нашли пользователя через URL - это точно VK Mini App
             if (!detectedVKMiniApp) {
               detectedVKMiniApp = true
               setIsVKMiniApp(true)
-              localStorage.setItem('is_vk_mini_app', 'true')
             }
           } else if (!userId) {
-            console.log('[VKProvider] No vk_user_id in URL params, hash, or storage')
+            console.log('[VKProvider] No vk_user_id in URL params or hash')
           }
         } else {
           console.log('[VKProvider] Not in VK environment')
-          // Очищаем VK данные из localStorage если мы НЕ в VK
-          localStorage.removeItem('is_vk_mini_app')
-          localStorage.removeItem('vk_user_id')
-          localStorage.removeItem('vk_user_first_name')
-          localStorage.removeItem('vk_user_last_name')
-          localStorage.removeItem('vk_user_photo_200')
-          localStorage.removeItem('vk_user_photo_100')
-          localStorage.removeItem('vk_user_domain')
         }
       } catch (error) {
         console.error('[VKProvider] VK Mini App initialization error:', error)
@@ -282,26 +252,19 @@ export function VKProvider({ children }: VKProviderProps) {
     // Начинаем инициализацию сразу, без задержки
     initVK()
     
-    // Дополнительная проверка через 1 секунду - иногда данные приходят с задержкой
-    // Также убеждаемся, что VKWebAppInit вызывается, если мы в VK Mini App
+    // Дополнительная проверка через 1 секунду - иногда VK Bridge инициализируется с задержкой
     const delayedCheck = setTimeout(async () => {
       const urlParams = new URLSearchParams(window.location.search)
       const hashParams = new URLSearchParams(window.location.hash.substring(1))
       const userIdFromUrl = urlParams.get('vk_user_id') || hashParams.get('vk_user_id')
-      const userIdFromStorage = localStorage.getItem('vk_user_id') || sessionStorage.getItem('vk_user_id')
-      const userId = userIdFromUrl || userIdFromStorage
       
       // Проверяем hostname, чтобы убедиться, что мы действительно в VK
       const isVKHost = window.location.hostname.includes('vk.com') || window.location.hostname.includes('vk.ru')
       
       // Если мы в VK (по hostname) и еще не инициализировали bridge - делаем это
-      // Это гарантирует, что VKWebAppInit будет вызван даже если основная проверка не сработала
       if (isVKHost && bridge && typeof bridge.send === 'function') {
         try {
-          // Если bridge еще не инициализирован - инициализируем
           if (!bridgeInitializedRef.current) {
-            // ВАЖНО: VKWebAppInit должен вызываться при каждой загрузке приложения в VK Mini App
-            // Это обязательное требование для прохождения модерации
             await bridge.send('VKWebAppInit', {})
             bridgeInitializedRef.current = true
             console.log('[VKProvider] Delayed check: VKWebAppInit called successfully')
@@ -325,28 +288,21 @@ export function VKProvider({ children }: VKProviderProps) {
         }
       }
       
-      // Если нашли vk_user_id из URL или storage - это VK Mini App
-      if (userId && !isVKMiniApp && (isVKHost || userIdFromUrl)) {
-        console.log('[VKProvider] Delayed check: Found vk_user_id, setting isVKMiniApp to true')
+      // Если нашли vk_user_id ТОЛЬКО из URL - это VK Mini App
+      if (userIdFromUrl && !isVKMiniApp && isVKHost) {
+        console.log('[VKProvider] Delayed check: Found vk_user_id in URL, setting isVKMiniApp to true')
         setIsVKMiniApp(true)
         
         if (!vkUser) {
           const detectedUser: UserInfo = {
-            id: Number(userId),
-            first_name: urlParams.get('vk_user_first_name') || hashParams.get('vk_user_first_name') || localStorage.getItem('vk_user_first_name') || 'Пользователь',
-            last_name: urlParams.get('vk_user_last_name') || hashParams.get('vk_user_last_name') || localStorage.getItem('vk_user_last_name') || '',
-            photo_200: urlParams.get('vk_user_photo_200') || hashParams.get('vk_user_photo_200') || localStorage.getItem('vk_user_photo_200') || undefined,
-            photo_100: urlParams.get('vk_user_photo_100') || hashParams.get('vk_user_photo_100') || localStorage.getItem('vk_user_photo_100') || undefined,
-            domain: urlParams.get('vk_user_domain') || hashParams.get('vk_user_domain') || localStorage.getItem('vk_user_domain') || undefined,
+            id: Number(userIdFromUrl),
+            first_name: urlParams.get('vk_user_first_name') || hashParams.get('vk_user_first_name') || 'Пользователь',
+            last_name: urlParams.get('vk_user_last_name') || hashParams.get('vk_user_last_name') || '',
+            photo_200: urlParams.get('vk_user_photo_200') || hashParams.get('vk_user_photo_200') || undefined,
+            photo_100: urlParams.get('vk_user_photo_100') || hashParams.get('vk_user_photo_100') || undefined,
+            domain: urlParams.get('vk_user_domain') || hashParams.get('vk_user_domain') || undefined,
           }
           setVkUser(detectedUser)
-          // Сохраняем в localStorage для будущего использования
-          localStorage.setItem('vk_user_id', String(detectedUser.id))
-          if (detectedUser.first_name) localStorage.setItem('vk_user_first_name', detectedUser.first_name)
-          if (detectedUser.last_name) localStorage.setItem('vk_user_last_name', detectedUser.last_name)
-          if (detectedUser.photo_200) localStorage.setItem('vk_user_photo_200', detectedUser.photo_200)
-          if (detectedUser.photo_100) localStorage.setItem('vk_user_photo_100', detectedUser.photo_100)
-          if (detectedUser.domain) localStorage.setItem('vk_user_domain', detectedUser.domain)
         }
       }
     }, 1000)
