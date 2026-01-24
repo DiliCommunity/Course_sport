@@ -151,18 +151,12 @@ export default function LoginPage() {
       // Обновляем профиль
       await refreshUser()
       
-      // В VK Mini App НЕ делаем редирект - это вызывает переход в браузер
-      // Просто обновляем состояние и показываем успех
-      if (isVKMiniApp) {
-        console.log('[LoginPage] VK Mini App: staying on login page, user state updated')
-        setIsVKLoading(false)
-        // Пользователь останется на странице, но будет авторизован
-        // Можно показать сообщение об успехе и предложить перейти на другую страницу через меню
-      } else {
-        // В обычном браузере делаем редирект
-        await new Promise(resolve => setTimeout(resolve, 500))
-        router.push('/profile')
-      }
+      // Переход ПОСЛЕ явного клика по кнопке VK:
+      // - В VK Mini App остаёмся внутри мини-приложения и открываем контент
+      // - В браузере также ведём на контент (а не на /profile), чтобы поведение было одинаковым
+      await new Promise(resolve => setTimeout(resolve, 200))
+      setIsVKLoading(false)
+      router.replace('/courses')
     } catch (err: any) {
       console.error('[LoginPage] VK Auth error:', err)
       setError(err.message || 'Ошибка авторизации через VK')
