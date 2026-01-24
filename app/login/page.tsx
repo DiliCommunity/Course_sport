@@ -21,6 +21,7 @@ export default function LoginPage() {
   const [success, setSuccess] = useState<string | null>(null)
   const [showLoginForm, setShowLoginForm] = useState(false)
   const [vkAuthAttempted, setVkAuthAttempted] = useState(false)
+  const [isInitializing, setIsInitializing] = useState(true)
   const { isTelegramApp, user: telegramUser, isReady: tgReady } = useTelegram()
   const { isVKMiniApp, vkUser, isReady: vkReady, saveSessionToken } = useVK()
   const { user, loading: authLoading, refreshUser } = useAuth()
@@ -30,6 +31,15 @@ export default function LoginPage() {
   useEffect(() => {
     console.log('[LoginPage] VK state:', { isVKMiniApp, vkUser: vkUser?.id, isReady: vkReady })
   }, [isVKMiniApp, vkUser, vkReady])
+
+  // Инициализация - определяем окружение
+  useEffect(() => {
+    // Ждем, пока провайдеры инициализируются
+    if (vkReady && tgReady) {
+      console.log('[LoginPage] Providers ready. Environment:', { isVKMiniApp, isTelegramApp })
+      setIsInitializing(false)
+    }
+  }, [vkReady, tgReady, isVKMiniApp, isTelegramApp])
 
   // Если пользователь уже авторизован - редирект на курсы (только в браузере, не в VK Mini App)
   useEffect(() => {
@@ -299,14 +309,13 @@ export default function LoginPage() {
     }
   }
 
-  // Показываем загрузку пока проверяем авторизацию
-  // В Telegram WebApp ждём инициализации только немного
-  if (authLoading || (isTelegramApp && !tgReady) || (isVKMiniApp && !vkReady)) {
+  // Показываем загрузку только пока идет начальная инициализация
+  if (isInitializing || authLoading) {
     return (
       <main className="min-h-screen pt-20 flex items-center justify-center px-4 pb-20">
         <div className="text-center">
           <div className="inline-block w-12 h-12 border-4 border-accent-electric border-t-transparent rounded-full animate-spin mb-4" />
-          <p className="text-white/60">Проверка авторизации...</p>
+          <p className="text-white/60">Загрузка...</p>
         </div>
       </main>
     )
