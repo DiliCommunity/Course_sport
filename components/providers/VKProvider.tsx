@@ -49,6 +49,20 @@ export function VKProvider({ children }: VKProviderProps) {
   const [sessionToken, setSessionToken] = useState<string | null>(null)
   const bridgeInitializedRef = useRef(false)
 
+  const withTimeout = useCallback(async <T,>(promise: Promise<T>, ms: number, fallback: T): Promise<T> => {
+    let timeoutId: ReturnType<typeof setTimeout> | undefined
+    try {
+      return await Promise.race([
+        promise,
+        new Promise<T>((resolve) => {
+          timeoutId = setTimeout(() => resolve(fallback), ms)
+        }),
+      ])
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId)
+    }
+  }, [])
+
   // Сохранение токена в VK Bridge Storage (работает в iOS VK Mini App!)
   // Токен сессии хранится в БД (sessions), это только клиентское хранилище для передачи токена
   const saveSessionToken = useCallback(async (token: string) => {
@@ -237,13 +251,17 @@ export function VKProvider({ children }: VKProviderProps) {
       } catch (error) {
         console.error('[VKProvider] VK Mini App initialization error:', error)
       } finally {
-        // Загружаем сохранённый токен сессии
-        const savedToken = await loadSessionToken()
-        if (savedToken) {
-          setSessionToken(savedToken)
-          console.log('[VKProvider] Loaded saved session token')
+        // Загружаем сохранённый токен сессии ТОЛЬКО в VK Mini App.
+        // В других окружениях VK Bridge Storage может зависать -> блокирует isReady и ломает /login.
+        let savedToken: string | null = null
+        if (detectedVKMiniApp) {
+          savedToken = await withTimeout(loadSessionToken(), 800, null)
+          if (savedToken) {
+            setSessionToken(savedToken)
+            console.log('[VKProvider] Loaded saved session token')
+          }
         }
-        
+
         setIsReady(true)
         console.log('[VKProvider] Initialization complete, isVKMiniApp:', detectedVKMiniApp, 'vkUser:', detectedUser?.id || 'null', 'hasToken:', !!savedToken)
       }
