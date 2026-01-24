@@ -58,7 +58,7 @@ export default function LoginPage() {
             console.log('[LoginPage] VK Bridge user info:', userResult)
             if (userResult && (userResult as any).id) {
               userToAuth = userResult as any
-              console.log('[LoginPage] Got user from VK Bridge:', { id: userToAuth.id, first_name: userToAuth.first_name })
+              console.log('[LoginPage] Got user from VK Bridge:', { id: (userResult as any).id, first_name: (userResult as any).first_name })
             }
           }
         } catch (bridgeError) {
