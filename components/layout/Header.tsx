@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, User, ChevronDown, LogOut } from 'lucide-react'
@@ -57,15 +58,6 @@ export function Header() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Блокируем скролл страницы, когда открыто бургер-меню (чтобы оно не “исчезало” при прокрутке)
-  useEffect(() => {
-    if (!isMobileMenuOpen) return
-    const prevOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = prevOverflow
-    }
-  }, [isMobileMenuOpen])
 
   // Закрываем меню при клике вне его
   useEffect(() => {
@@ -88,6 +80,7 @@ export function Header() {
   }
 
   return (
+    <>
     <header
       className={cn(
         // Safe-area для iOS/VK Mini App: добавляем верхний отступ и увеличиваем общий контейнер хедера,
@@ -235,126 +228,186 @@ export function Header() {
         </nav>
       </div>
 
-      {/* Mobile Menu - ПОЛНОСТЬЮ ФИКСИРОВАННОЕ, открывается в любом месте страницы */}
-      {isMobileMenuOpen && (
-        <div 
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm md:hidden"
-          style={{ zIndex: 99999 }}
-          onClick={(e) => {
-            // Закрываем только при клике на overlay (темный фон)
-            if (e.target === e.currentTarget) {
-              setIsMobileMenuOpen(false)
-            }
-          }}
-        >
-          <motion.div
-            initial={{ x: '-100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '-100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed top-0 left-0 h-full w-80 max-w-[85vw] bg-dark-800 border-r border-emerald-400/20 shadow-[5px_0_30px_rgba(0,0,0,0.5)] overflow-y-auto"
-            style={{ zIndex: 100000 }}
-            onClick={(e) => e.stopPropagation()}
-          >
-              <div className="flex flex-col h-full">
-                {/* Header с крестиком */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-emerald-400/20">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-teal to-accent-mint p-0.5">
-                      <div className="w-full h-full rounded-[10px] bg-dark-900 flex items-center justify-center">
-                        <span className="text-xl">💚</span>
-                      </div>
-                    </div>
-                    <span className="font-display font-bold text-lg">
-                      <span className="text-white">Course</span>
-                      <span className="gradient-text">Health</span>
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="w-10 h-10 rounded-xl bg-emerald-400/10 border border-emerald-400/20 hover:bg-emerald-400/20 flex items-center justify-center transition-colors"
-                  >
-                    <X className="w-5 h-5 text-emerald-400" />
-                  </button>
-                </div>
-                
-                {/* Навигационные ссылки - показываем всегда */}
-                <div className="px-6 py-8 space-y-2">
-                  {navLinks.map((link, index) => (
-                    <motion.div
-                      key={link.href}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                    >
-                      <Link
-                        href={link.href}
-                        className="flex items-center gap-3 px-4 py-3 rounded-xl text-lg font-medium text-white/70 hover:text-emerald-400 hover:bg-emerald-400/10 transition-all duration-200 group border border-transparent hover:border-emerald-400/20"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        <span className="w-1.5 h-6 bg-emerald-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                        {link.label}
-                      </Link>
-                    </motion.div>
-                  ))}
-                </div>
-                <div className="mt-auto px-6 py-6 border-t border-emerald-400/20 space-y-3">
-                  {isAuthenticated ? (
-                    <>
-                      <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-emerald-400/10 border border-emerald-400/20">
-                        <div className="w-10 h-10 rounded-full bg-emerald-400/20 flex items-center justify-center">
-                          <User className="w-5 h-5 text-emerald-400" />
-                        </div>
-                        <div>
-                          <div className="text-emerald-400 font-bold">{displayName}</div>
-                          <div className="text-white/50 text-sm">
-                            {isTelegramApp ? 'Telegram' : 'Email'}
-                          </div>
-                        </div>
-                      </div>
-                      <Link
-                        href="/profile"
-                        className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-400/10 transition-colors text-white/70 hover:text-emerald-400 border border-transparent hover:border-emerald-400/20"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        <User className="w-5 h-5" />
-                        Мой профиль
-                      </Link>
-                      <Link
-                        href="/profile/courses"
-                        className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-400/10 transition-colors text-white/70 hover:text-emerald-400 border border-transparent hover:border-emerald-400/20"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                      >
-                        📚 Мои курсы
-                      </Link>
-                      {user && (
-                        <button
-                          onClick={async () => {
-                            await signOut()
-                            setIsMobileMenuOpen(false)
-                          }}
-                          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-500/10 transition-colors text-red-400 border border-transparent hover:border-red-400/20"
-                        >
-                          <LogOut className="w-5 h-5" />
-                          Выйти
-                        </button>
-                      )}
-                    </>
-                  ) : (
-                    <Link
-                      href="/login"
-                      className="flex items-center justify-center gap-3 px-4 py-4 rounded-xl font-bold text-dark-900 bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 shadow-[0_0_25px_rgba(52,211,153,0.5)] transition-all duration-300"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <User className="w-5 h-5" />
-                      Войти
-                    </Link>
-                  )}
+    </header>
+    
+    {/* Mobile Menu - рендерится через портал в body для максимального z-index */}
+    <MobileMenu
+      isOpen={isMobileMenuOpen}
+      onClose={() => setIsMobileMenuOpen(false)}
+      navLinks={navLinks}
+      isAuthenticated={isAuthenticated}
+      displayName={displayName}
+      isTelegramApp={isTelegramApp}
+      user={user}
+      signOut={signOut}
+    />
+    </>
+  )
+}
+
+// Компонент мобильного меню, рендерится через портал в body
+function MobileMenu({
+  isOpen,
+  onClose,
+  navLinks,
+  isAuthenticated,
+  displayName,
+  isTelegramApp,
+  user,
+  signOut
+}: {
+  isOpen: boolean
+  onClose: () => void
+  navLinks: { href: string; label: string }[]
+  isAuthenticated: boolean
+  displayName: string
+  isTelegramApp: boolean
+  user: any
+  signOut: () => Promise<void>
+}) {
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Блокируем скролл когда меню открыто
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isOpen])
+
+  if (!mounted || !isOpen) return null
+
+  return createPortal(
+    <div 
+      className="fixed inset-0 md:hidden"
+      style={{ zIndex: 999999 }}
+    >
+      {/* Overlay - закрывает меню при клике */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+        onClick={onClose}
+      />
+      
+      {/* Само меню */}
+      <motion.div
+        initial={{ x: '-100%' }}
+        animate={{ x: 0 }}
+        exit={{ x: '-100%' }}
+        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+        className="absolute top-0 left-0 h-full w-80 max-w-[85vw] bg-dark-800 border-r border-emerald-400/20 shadow-[5px_0_30px_rgba(0,0,0,0.5)] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex flex-col h-full pt-[env(safe-area-inset-top)]">
+          {/* Header с крестиком */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-emerald-400/20">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-teal to-accent-mint p-0.5">
+                <div className="w-full h-full rounded-[10px] bg-dark-900 flex items-center justify-center">
+                  <span className="text-xl">💚</span>
                 </div>
               </div>
-            </motion.div>
+              <span className="font-display font-bold text-lg">
+                <span className="text-white">Course</span>
+                <span className="gradient-text">Health</span>
+              </span>
+            </div>
+            <button
+              onClick={onClose}
+              className="w-10 h-10 rounded-xl bg-emerald-400/10 border border-emerald-400/20 hover:bg-emerald-400/20 flex items-center justify-center transition-colors"
+            >
+              <X className="w-5 h-5 text-emerald-400" />
+            </button>
           </div>
-        )}
-    </header>
+          
+          {/* Навигационные ссылки */}
+          <div className="px-6 py-8 space-y-2">
+            {navLinks.map((link, index) => (
+              <motion.div
+                key={link.href}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <Link
+                  href={link.href}
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl text-lg font-medium text-white/70 hover:text-emerald-400 hover:bg-emerald-400/10 transition-all duration-200 group border border-transparent hover:border-emerald-400/20"
+                  onClick={onClose}
+                >
+                  <span className="w-1.5 h-6 bg-emerald-400 rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                  {link.label}
+                </Link>
+              </motion.div>
+            ))}
+          </div>
+          
+          {/* Нижняя часть с авторизацией */}
+          <div className="mt-auto px-6 py-6 border-t border-emerald-400/20 space-y-3">
+            {isAuthenticated ? (
+              <>
+                <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-emerald-400/10 border border-emerald-400/20">
+                  <div className="w-10 h-10 rounded-full bg-emerald-400/20 flex items-center justify-center">
+                    <User className="w-5 h-5 text-emerald-400" />
+                  </div>
+                  <div>
+                    <div className="text-emerald-400 font-bold">{displayName}</div>
+                    <div className="text-white/50 text-sm">
+                      {isTelegramApp ? 'Telegram' : 'Email'}
+                    </div>
+                  </div>
+                </div>
+                <Link
+                  href="/profile"
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-400/10 transition-colors text-white/70 hover:text-emerald-400 border border-transparent hover:border-emerald-400/20"
+                  onClick={onClose}
+                >
+                  <User className="w-5 h-5" />
+                  Мой профиль
+                </Link>
+                <Link
+                  href="/profile/courses"
+                  className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-400/10 transition-colors text-white/70 hover:text-emerald-400 border border-transparent hover:border-emerald-400/20"
+                  onClick={onClose}
+                >
+                  📚 Мои курсы
+                </Link>
+                {user && (
+                  <button
+                    onClick={async () => {
+                      await signOut()
+                      onClose()
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-500/10 transition-colors text-red-400 border border-transparent hover:border-red-400/20"
+                  >
+                    <LogOut className="w-5 h-5" />
+                    Выйти
+                  </button>
+                )}
+              </>
+            ) : (
+              <Link
+                href="/login"
+                className="flex items-center justify-center gap-3 px-4 py-4 rounded-xl font-bold text-dark-900 bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 shadow-[0_0_25px_rgba(52,211,153,0.5)] transition-all duration-300"
+                onClick={onClose}
+              >
+                <User className="w-5 h-5" />
+                Войти
+              </Link>
+            )}
+          </div>
+        </div>
+      </motion.div>
+    </div>,
+    document.body
   )
 }
