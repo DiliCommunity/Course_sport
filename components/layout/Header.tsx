@@ -235,27 +235,19 @@ export function Header() {
         </nav>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu - ПОЛНОСТЬЮ ФИКСИРОВАННОЕ, открывается в любом месте страницы */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 top-20 bg-dark-900/95 backdrop-blur-lg z-40 md:hidden overflow-hidden"
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] md:hidden"
             onClick={(e) => {
-              // Закрываем только при клике на overlay (темный фон), не при скролле
+              // Закрываем только при клике на overlay (темный фон)
               if (e.target === e.currentTarget) {
                 setIsMobileMenuOpen(false)
               }
-            }}
-            onWheel={(e) => {
-              // Предотвращаем закрытие меню при скролле
-              e.stopPropagation()
-            }}
-            onTouchMove={(e) => {
-              // Предотвращаем закрытие меню при скролле на мобильных
-              e.stopPropagation()
             }}
           >
             <motion.div
@@ -263,16 +255,8 @@ export function Header() {
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="h-full w-80 bg-dark-800 border-r border-emerald-400/20 shadow-[5px_0_30px_rgba(0,0,0,0.5)] overflow-y-auto"
+              className="fixed top-0 left-0 h-full w-80 max-w-[85vw] bg-dark-800 border-r border-emerald-400/20 shadow-[5px_0_30px_rgba(0,0,0,0.5)] overflow-y-auto z-[10000]"
               onClick={(e) => e.stopPropagation()}
-              onWheel={(e) => {
-                // Останавливаем всплытие события скролла
-                e.stopPropagation()
-              }}
-              onTouchMove={(e) => {
-                // Останавливаем всплытие события скролла на мобильных
-                e.stopPropagation()
-              }}
             >
               <div className="flex flex-col h-full">
                 {/* Header с крестиком */}
