@@ -3,7 +3,8 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Lock, Loader2, ChefHat, ArrowLeft, Clock, Flame, Beef, Salad, Search, X, Sparkles, UtensilsCrossed } from 'lucide-react'
+import { Lock, Loader2, ChefHat, ArrowLeft, Clock, Flame, Beef, Salad, Search, X, Sparkles, UtensilsCrossed, Download } from 'lucide-react'
+import { jsPDF } from 'jspdf'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { Button } from '@/components/ui/Button'
 import Image from 'next/image'
@@ -49,6 +50,197 @@ export default function RecipesPage() {
   const [selectedMealType, setSelectedMealType] = useState<DishType | 'all' | 'salad'>('all')
   const [selectedRecipe, setSelectedRecipe] = useState<Meal | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [downloadingPdf, setDownloadingPdf] = useState(false)
+
+  // Функция скачивания PDF для рецепта
+  const downloadRecipePDF = async (recipe: Meal) => {
+    if (downloadingPdf) return
+    setDownloadingPdf(true)
+
+    try {
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+      if (!ctx) {
+        throw new Error('Could not get canvas context')
+      }
+
+      const dpi = 300
+      const mmToPx = dpi / 25.4
+      const pageWidthMm = 210
+      const pageHeightMm = 297
+      const pageWidthPx = pageWidthMm * mmToPx
+      const pageHeightPx = pageHeightMm * mmToPx
+
+      canvas.width = pageWidthPx
+      canvas.height = pageHeightPx
+
+      // Белый фон
+      ctx.fillStyle = '#ffffff'
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+      const marginPx = 20 * mmToPx
+      let yPosPx = 25 * mmToPx
+
+      // Заголовок
+      ctx.fillStyle = '#FFD700'
+      ctx.font = 'bold 32px Arial, sans-serif'
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'top'
+      ctx.fillText(recipe.name, pageWidthPx / 2, yPosPx)
+      yPosPx += 50
+
+      // Характеристики
+      ctx.fillStyle = '#666666'
+      ctx.font = '18px Arial, sans-serif'
+      ctx.fillText(
+        `${recipe.prepTime} мин | ${recipe.calories} ккал | Б: ${recipe.proteins}г | Ж: ${recipe.fats}г | У: ${recipe.carbs}г`,
+        pageWidthPx / 2,
+        yPosPx
+      )
+      yPosPx += 40
+
+      if (recipe.estimatedCost) {
+        ctx.fillText(`Примерная стоимость: ~${recipe.estimatedCost}₽`, pageWidthPx / 2, yPosPx)
+        yPosPx += 40
+      }
+
+      // Описание
+      ctx.textAlign = 'left'
+      if (recipe.description) {
+        ctx.fillStyle = '#10b981'
+        ctx.font = 'bold 20px Arial, sans-serif'
+        ctx.fillText('Описание', marginPx, yPosPx)
+        yPosPx += 30
+
+        ctx.fillStyle = '#333333'
+        ctx.font = '16px Arial, sans-serif'
+        
+        // Разбиваем текст на строки
+        const words = recipe.description.split(' ')
+        let line = ''
+        const maxWidth = pageWidthPx - marginPx * 2
+        
+        for (const word of words) {
+          const testLine = line + word + ' '
+          const metrics = ctx.measureText(testLine)
+          if (metrics.width > maxWidth && line !== '') {
+            ctx.fillText(line.trim(), marginPx, yPosPx)
+            line = word + ' '
+            yPosPx += 25
+          } else {
+            line = testLine
+          }
+        }
+        if (line.trim()) {
+          ctx.fillText(line.trim(), marginPx, yPosPx)
+          yPosPx += 35
+        }
+      }
+
+      // Ингредиенты
+      if (recipe.ingredients && recipe.ingredients.length > 0) {
+        yPosPx += 10
+        ctx.fillStyle = '#10b981'
+        ctx.font = 'bold 20px Arial, sans-serif'
+        ctx.fillText('Ингредиенты', marginPx, yPosPx)
+        yPosPx += 30
+
+        ctx.fillStyle = '#333333'
+        ctx.font = '16px Arial, sans-serif'
+        recipe.ingredients.forEach((ingredient) => {
+          ctx.fillText(`• ${ingredient}`, marginPx + 10, yPosPx)
+          yPosPx += 25
+        })
+      }
+
+      // Инструкции
+      if (recipe.instructions && recipe.instructions.length > 0) {
+        yPosPx += 15
+        ctx.fillStyle = '#10b981'
+        ctx.font = 'bold 20px Arial, sans-serif'
+        ctx.fillText('Приготовление', marginPx, yPosPx)
+        yPosPx += 30
+
+        ctx.fillStyle = '#333333'
+        ctx.font = '16px Arial, sans-serif'
+        const maxWidth = pageWidthPx - marginPx * 2 - 30
+        
+        recipe.instructions.forEach((step, index) => {
+          // Номер шага
+          ctx.fillStyle = '#FFD700'
+          ctx.font = 'bold 16px Arial, sans-serif'
+          ctx.fillText(`${index + 1}.`, marginPx, yPosPx)
+          
+          // Текст шага
+          ctx.fillStyle = '#333333'
+          ctx.font = '16px Arial, sans-serif'
+          
+          const words = step.split(' ')
+          let line = ''
+          let firstLine = true
+          
+          for (const word of words) {
+            const testLine = line + word + ' '
+            const metrics = ctx.measureText(testLine)
+            if (metrics.width > maxWidth && line !== '') {
+              ctx.fillText(line.trim(), marginPx + 30, yPosPx)
+              line = word + ' '
+              yPosPx += 22
+              firstLine = false
+            } else {
+              line = testLine
+            }
+          }
+          if (line.trim()) {
+            ctx.fillText(line.trim(), marginPx + 30, yPosPx)
+            yPosPx += 30
+          }
+        })
+      }
+
+      // Футер
+      yPosPx = pageHeightPx - 30 * mmToPx
+      ctx.fillStyle = '#999999'
+      ctx.font = '12px Arial, sans-serif'
+      ctx.textAlign = 'center'
+      ctx.fillText('CourseHealth - Личный шеф', pageWidthPx / 2, yPosPx)
+
+      // Создаём PDF
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      })
+
+      const imgData = canvas.toDataURL('image/png')
+      pdf.addImage(imgData, 'PNG', 0, 0, pageWidthMm, pageHeightMm)
+
+      const fileName = `${recipe.name.replace(/\s+/g, '_')}.pdf`
+      
+      const pdfBlob = pdf.output('blob')
+      const blobUrl = URL.createObjectURL(pdfBlob)
+      
+      const link = document.createElement('a')
+      link.href = blobUrl
+      link.download = fileName
+      link.style.display = 'none'
+      document.body.appendChild(link)
+      link.click()
+      
+      setTimeout(() => {
+        if (document.body.contains(link)) {
+          document.body.removeChild(link)
+        }
+        URL.revokeObjectURL(blobUrl)
+      }, 1000)
+
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+      alert('Не удалось создать PDF файл. Попробуйте еще раз.')
+    } finally {
+      setDownloadingPdf(false)
+    }
+  }
 
   useEffect(() => {
     const checkAccess = async () => {
@@ -585,7 +777,26 @@ export default function RecipesPage() {
 
                 {/* Контент */}
                 <div className="p-6 md:p-8">
-                  <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">{selectedRecipe.name}</h2>
+                  <div className="flex items-start justify-between gap-4 mb-4">
+                    <h2 className="text-2xl md:text-3xl font-bold text-white flex-1">{selectedRecipe.name}</h2>
+                    <button
+                      onClick={() => downloadRecipePDF(selectedRecipe)}
+                      disabled={downloadingPdf}
+                      className="flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-accent-mint to-accent-teal text-dark-900 font-medium hover:shadow-lg hover:shadow-accent-mint/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {downloadingPdf ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-dark-900 border-t-transparent rounded-full animate-spin" />
+                          <span className="hidden sm:inline">PDF...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Download className="w-4 h-4" />
+                          <span className="hidden sm:inline">Скачать PDF</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                   
                   {/* Характеристики */}
                   <div className="flex flex-wrap gap-4 mb-6">
