@@ -67,47 +67,86 @@ export function MenuGenerator() {
   const [dishType, setDishType] = useState<DishType | 'all'>('all') // Первые/вторые/кондитерские
   const [processingMethod, setProcessingMethod] = useState<ProcessingMethod | 'all'>('all') // Способ обработки
 
-  const getMealSignature = (meal: Meal): string => {
+  // Получаем ВСЕ основные ингредиенты блюда (для строгой проверки разнообразия)
+  const getMealIngredientSignatures = (meal: Meal): string[] => {
     const name = (meal.name || '').toLowerCase()
+    const ingredients = (meal.ingredients || []).join(' ').toLowerCase()
+    const combined = name + ' ' + ingredients
+    
     const sigMap: Array<[RegExp, string]> = [
       [/кревет/i, 'shrimp'],
-      [/куриц|курин/i, 'chicken'],
+      [/куриц|курин|курятин/i, 'chicken'],
       [/индей/i, 'turkey'],
-      [/говя|стейк/i, 'beef'],
+      [/говя|стейк|телятин/i, 'beef'],
       [/свин/i, 'pork'],
-      [/лосос/i, 'salmon'],
+      [/лосос|сёмг|семг/i, 'salmon'],
       [/тунц/i, 'tuna'],
-      [/треск|хек|дорад|сибас|рыб/i, 'fish'],
-      [/яйц/i, 'eggs'],
-      [/сыр|творог/i, 'dairy'],
+      [/треск|хек|дорад|сибас|рыб|минтай|камбал/i, 'fish'],
+      [/яйц|омлет/i, 'eggs'],
+      [/творог/i, 'cottage_cheese'],
+      [/сыр(?!ник)/i, 'cheese'], // сыр, но не сырник
       [/авокад/i, 'avocado'],
       [/гриб/i, 'mushroom'],
+      [/бекон/i, 'bacon'],
+      [/утк/i, 'duck'],
+      [/кролик/i, 'rabbit'],
+      [/морепродукт|кальмар|мидии|осьминог/i, 'seafood'],
     ]
+    
+    const signatures: string[] = []
     for (const [re, sig] of sigMap) {
-      if (re.test(name)) return sig
+      if (re.test(combined)) {
+        signatures.push(sig)
+      }
     }
-    return (meal.dishType || meal.cookingMethod || 'meal').toString()
+    
+    // Если не нашли конкретный ингредиент, возвращаем тип блюда
+    if (signatures.length === 0) {
+      signatures.push((meal.dishType || meal.cookingMethod || 'meal').toString())
+    }
+    
+    return signatures
+  }
+
+  const getMealSignature = (meal: Meal): string => {
+    const signatures = getMealIngredientSignatures(meal)
+    return signatures[0] || 'meal'
   }
 
   const pickUniqueMeal = (candidates: Meal[], usedNames: Set<string>, usedSignatures: Set<string>): Meal | undefined => {
     if (!candidates.length) return undefined
     const shuffled = [...candidates].sort(() => Math.random() - 0.5)
 
-    const pick = (allowRepeatSignature: boolean) => {
+    const pick = (strictMode: 'strict' | 'relaxed' | 'any') => {
       for (const m of shuffled) {
         const nm = (m.name || '').trim().toLowerCase()
-        const sig = getMealSignature(m)
+        const allSigs = getMealIngredientSignatures(m)
+        
+        // Всегда проверяем имя
         if (usedNames.has(nm)) continue
-        if (!allowRepeatSignature && usedSignatures.has(sig)) continue
+        
+        if (strictMode === 'strict') {
+          // Строгий режим: ни один ингредиент не должен повторяться
+          const hasConflict = allSigs.some(sig => usedSignatures.has(sig))
+          if (hasConflict) continue
+        } else if (strictMode === 'relaxed') {
+          // Мягкий режим: главный ингредиент не должен повторяться
+          const mainSig = allSigs[0]
+          if (mainSig && usedSignatures.has(mainSig)) continue
+        }
+        // 'any' — берём любое неиспользованное по имени
+        
         usedNames.add(nm)
-        usedSignatures.add(sig)
+        allSigs.forEach(sig => usedSignatures.add(sig))
         return { ...m }
       }
       return undefined
     }
 
-    // 1) Строго: не повторяем имя и “сигнатуру” (основной продукт)
-    return pick(false) || pick(true) || { ...shuffled[0] }
+    // 1) Строго: не повторяем ни один основной ингредиент
+    // 2) Мягко: не повторяем главный ингредиент
+    // 3) Любое: просто не повторяем название
+    return pick('strict') || pick('relaxed') || pick('any') || { ...shuffled[0] }
   }
 
   const setMealTime = (dayIndex: number, type: 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'dessert', value: string) => {
@@ -318,8 +357,33 @@ export function MenuGenerator() {
         ? filterMeals(MEALS_DATABASE.dinner)
         : allAvailableMeals.filter((meal) => meal.dishType === 'second' || !meal.dishType)
 
+      // Десерты — только настоящие десерты (кето-сладости, муссы, пудинги и т.д.)
       const dessertPoolRaw = MEALS_DATABASE.desserts ? filterMeals(MEALS_DATABASE.desserts) : allAvailableMeals
-      const dessertPool = dessertPoolRaw.filter((meal) => meal.dishType === 'dessert')
+      const dessertPool = dessertPoolRaw.filter((meal) => {
+        // Только десерты
+        if (meal.dishType !== 'dessert') return false
+        // Исключаем "салаты" из десертов (на всякий случай)
+        const name = (meal.name || '').toLowerCase()
+        if (name.includes('салат')) return false
+        return true
+      })
+
+      // Лёгкие закуски для дополнений — низкокалорийные (до 200 ккал), без основных белков
+      const snackPoolRaw = MEALS_DATABASE.snacks ? filterMeals(MEALS_DATABASE.snacks) : allAvailableMeals
+      const lightSnackPool = snackPoolRaw.filter((meal) => {
+        // Только закуски
+        if (meal.dishType !== 'snack') return false
+        // Низкокалорийные (до 250 ккал)
+        if (meal.calories > 250) return false
+        // Исключаем полноценные салаты с белком
+        const name = (meal.name || '').toLowerCase()
+        const ingredients = (meal.ingredients || []).join(' ').toLowerCase()
+        const combined = name + ' ' + ingredients
+        // Исключаем блюда с основными белками (они не "лёгкие")
+        const heavyProteins = /кревет|куриц|говя|свин|рыб|лосос|тунц|индей|стейк|бекон/i
+        if (heavyProteins.test(combined)) return false
+        return true
+      })
 
       // Генерируем блюда в зависимости от выбранного типа
       if (mealType === 'full' || mealType === 'breakfast') {
@@ -336,10 +400,14 @@ export function MenuGenerator() {
 
       // Добавляем snack и dessert только для полного меню
       if (mealType === 'full') {
-        // В “Дополнения” кладём только ДЕСЕРТ (по желанию пользователя).
-        // Перекус не генерируем автоматически, чтобы не попадали “основные блюда” в дополнения.
+        // В "Дополнения" кладём только ДЕСЕРТ (по желанию пользователя).
+        // Это должны быть настоящие кето-десерты, а не салаты.
         if (dessertPool.length > 0) {
           dessert = pickUniqueMeal(dessertPool, usedNames, usedSignatures)
+        }
+        // Если нет десертов, можно добавить лёгкую закуску
+        if (!dessert && lightSnackPool.length > 0) {
+          snack = pickUniqueMeal(lightSnackPool, usedNames, usedSignatures)
         }
       }
 
@@ -835,70 +903,30 @@ export function MenuGenerator() {
         ctx.fillStyle = '#000000'
         ctx.font = '16px Arial, sans-serif'
 
-        if (day.breakfast) {
+        // Функция для отрисовки блюда с временем
+        const drawMeal = (label: string, meal: Meal | undefined, mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack' | 'dessert') => {
+          if (!meal) return
+          const time = day.mealTimes?.[mealType]
+          const timeStr = time ? ` (${time})` : ''
+          
           ctx.font = 'bold 16px Arial, sans-serif'
-          ctx.fillText('Завтрак:', marginPx + 10, yPosPx)
+          ctx.fillStyle = '#000000'
+          ctx.fillText(`${label}${timeStr}:`, marginPx + 10, yPosPx)
           ctx.font = '16px Arial, sans-serif'
-          ctx.fillText(day.breakfast.name, marginPx + 80, yPosPx)
+          ctx.fillText(meal.name, marginPx + 120, yPosPx)
           yPosPx += 25
           ctx.font = '14px Arial, sans-serif'
           ctx.fillStyle = '#666666'
-          ctx.fillText(`  ${day.breakfast.calories} ккал | ${day.breakfast.fats}г Ж | ${day.breakfast.proteins}г Б | ${day.breakfast.carbs}г У`, marginPx + 10, yPosPx)
+          ctx.fillText(`  ${meal.calories} ккал | ${meal.fats}г Ж | ${meal.proteins}г Б | ${meal.carbs}г У`, marginPx + 10, yPosPx)
           yPosPx += 30
           ctx.fillStyle = '#000000'
         }
 
-        if (day.lunch) {
-          ctx.font = 'bold 16px Arial, sans-serif'
-          ctx.fillText('Обед:', marginPx + 10, yPosPx)
-          ctx.font = '16px Arial, sans-serif'
-          ctx.fillText(day.lunch.name, marginPx + 80, yPosPx)
-          yPosPx += 25
-          ctx.font = '14px Arial, sans-serif'
-          ctx.fillStyle = '#666666'
-          ctx.fillText(`  ${day.lunch.calories} ккал | ${day.lunch.fats}г Ж | ${day.lunch.proteins}г Б | ${day.lunch.carbs}г У`, marginPx + 10, yPosPx)
-          yPosPx += 30
-          ctx.fillStyle = '#000000'
-        }
-
-        if (day.dinner) {
-          ctx.font = 'bold 16px Arial, sans-serif'
-          ctx.fillText('Ужин:', marginPx + 10, yPosPx)
-          ctx.font = '16px Arial, sans-serif'
-          ctx.fillText(day.dinner.name, marginPx + 80, yPosPx)
-          yPosPx += 25
-          ctx.font = '14px Arial, sans-serif'
-          ctx.fillStyle = '#666666'
-          ctx.fillText(`  ${day.dinner.calories} ккал | ${day.dinner.fats}г Ж | ${day.dinner.proteins}г Б | ${day.dinner.carbs}г У`, marginPx + 10, yPosPx)
-          yPosPx += 30
-          ctx.fillStyle = '#000000'
-        }
-
-        if (day.snack) {
-          ctx.font = 'bold 16px Arial, sans-serif'
-          ctx.fillText('Перекус:', marginPx + 10, yPosPx)
-          ctx.font = '16px Arial, sans-serif'
-          ctx.fillText(day.snack.name, marginPx + 80, yPosPx)
-          yPosPx += 25
-          ctx.font = '14px Arial, sans-serif'
-          ctx.fillStyle = '#666666'
-          ctx.fillText(`  ${day.snack.calories} ккал | ${day.snack.fats}г Ж | ${day.snack.proteins}г Б | ${day.snack.carbs}г У`, marginPx + 10, yPosPx)
-          yPosPx += 30
-          ctx.fillStyle = '#000000'
-        }
-
-        if (day.dessert) {
-          ctx.font = 'bold 16px Arial, sans-serif'
-          ctx.fillText('Десерт:', marginPx + 10, yPosPx)
-          ctx.font = '16px Arial, sans-serif'
-          ctx.fillText(day.dessert.name, marginPx + 80, yPosPx)
-          yPosPx += 25
-          ctx.font = '14px Arial, sans-serif'
-          ctx.fillStyle = '#666666'
-          ctx.fillText(`  ${day.dessert.calories} ккал | ${day.dessert.fats}г Ж | ${day.dessert.proteins}г Б | ${day.dessert.carbs}г У`, marginPx + 10, yPosPx)
-          yPosPx += 30
-          ctx.fillStyle = '#000000'
-        }
+        drawMeal('Завтрак', day.breakfast, 'breakfast')
+        drawMeal('Обед', day.lunch, 'lunch')
+        drawMeal('Ужин', day.dinner, 'dinner')
+        drawMeal('Перекус', day.snack, 'snack')
+        drawMeal('Десерт', day.dessert, 'dessert')
 
         // Итого
         ctx.font = 'bold 16px Arial, sans-serif'
