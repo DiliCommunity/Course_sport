@@ -335,7 +335,7 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
   if (paymentType === 'promotion' && promotionId) {
     console.log('🎁 Обработка акции:', promotionId)
     
-    // Акция "2 курса за 2199₽"
+    // Акция "2 курса за 2499₽"
     if (promotionId === 'two_courses') {
       const { COURSE_IDS } = await import('@/lib/constants')
       const ketoCourseId = getCourseUUID(COURSE_IDS.KETO)

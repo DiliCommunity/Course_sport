@@ -63,28 +63,27 @@ export default function AppPage() {
         return
       }
 
+      // Если пользователь админ - сразу даём доступ
+      if (user.is_admin) {
+        console.log('[AppPage] User is admin - full access granted')
+        setHasAccess(true)
+        setIsCheckingAccess(false)
+        return
+      }
+
       try {
-        const response = await fetch('/api/profile/data', {
+        // Проверяем доступ через /api/courses/access - там есть проверка админа
+        const response = await fetch('/api/courses/access?check_purchased=true', {
           credentials: 'include'
         })
         
-        if (!response.ok) {
-          const fallbackResponse = await fetch('/api/courses/access?check_purchased=true', {
-            credentials: 'include'
-          })
-          if (fallbackResponse.ok) {
-            const fallbackData = await fallbackResponse.json()
-            setHasAccess(fallbackData.hasPurchased === true)
-          } else {
-            setHasAccess(false)
-          }
-          setIsCheckingAccess(false)
-          return
+        if (response.ok) {
+          const data = await response.json()
+          console.log('[AppPage] Access check response:', data)
+          setHasAccess(data.hasPurchased === true || data.isAdmin === true)
+        } else {
+          setHasAccess(false)
         }
-        
-        const data = await response.json()
-        const hasAccessToApps = (data.enrollments && data.enrollments.length > 0)
-        setHasAccess(hasAccessToApps)
       } catch (error) {
         console.error('Error checking access:', error)
         setHasAccess(false)

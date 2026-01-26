@@ -32,6 +32,17 @@ export async function GET(
       )
     }
 
+    // Если админ - полный доступ к финальным модулям
+    if (user.is_admin) {
+      console.log('[Final Access] Admin user - full access granted')
+      return NextResponse.json({
+        hasAccess: true,
+        reason: 'admin_access',
+        hasFullAccess: true,
+        isAdmin: true
+      })
+    }
+
     // Проверяем enrollment
     const { data: enrollment } = await adminSupabase
       .from('enrollments')

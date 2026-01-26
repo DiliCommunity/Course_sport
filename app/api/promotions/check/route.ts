@@ -126,7 +126,7 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Для акции "2 курса за 2199₽" - всегда доступна
+    // Для акции "2 курса за 2499₽" - всегда доступна
     if (promotionId === 'two_courses') {
       return NextResponse.json({
         promotionId: 'two_courses',

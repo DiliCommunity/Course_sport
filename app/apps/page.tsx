@@ -149,39 +149,29 @@ export default function AppsPage() {
         return
       }
 
+      // Если пользователь админ - сразу даём доступ
+      if (user.is_admin) {
+        console.log('[AppsPage] User is admin - full access granted')
+        setHasAccess(true)
+        setIsCheckingAccess(false)
+        return
+      }
+
       try {
-        // Проверяем доступ через /api/profile/data - там правильная логика проверки покупок
-        const response = await fetch('/api/profile/data', {
+        // Проверяем доступ через /api/courses/access - там есть проверка админа
+        const response = await fetch('/api/courses/access?check_purchased=true', {
           credentials: 'include'
         })
         
-        if (!response.ok) {
-          console.error('[AppsPage] Profile data fetch failed:', response.status, response.statusText)
-          // Fallback: пробуем через /api/courses/access
-          const fallbackResponse = await fetch('/api/courses/access?check_purchased=true', {
-            credentials: 'include'
-          })
-          if (fallbackResponse.ok) {
-            const fallbackData = await fallbackResponse.json()
-            console.log('[AppsPage] Fallback access check:', fallbackData)
-            setHasAccess(fallbackData.hasPurchased === true)
-          } else {
-            setHasAccess(false)
-          }
-          setIsCheckingAccess(false)
-          return
+        if (response.ok) {
+          const data = await response.json()
+          console.log('[AppsPage] Access check response:', data)
+          // Админ или купил курс
+          setHasAccess(data.hasPurchased === true || data.isAdmin === true)
+        } else {
+          console.error('[AppsPage] Access check failed:', response.status)
+          setHasAccess(false)
         }
-        
-        const data = await response.json()
-        console.log('[AppsPage] Profile data response:', {
-          enrollmentsCount: data.enrollments?.length || 0,
-          user: !!data.user
-        })
-        
-        // Проверяем, есть ли хотя бы один курс (enrollments)
-        const hasAccessToApps = (data.enrollments && data.enrollments.length > 0)
-        console.log('[AppsPage] User has access to apps:', hasAccessToApps)
-        setHasAccess(hasAccessToApps)
       } catch (error) {
         console.error('Error checking access:', error)
         setHasAccess(false)

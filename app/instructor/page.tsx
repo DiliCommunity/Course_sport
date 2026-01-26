@@ -86,12 +86,21 @@ export default function InstructorPage() {
   }, [messages])
 
   const checkAccess = async () => {
+    // Если пользователь админ - сразу даём доступ
+    if (user?.is_admin) {
+      console.log('[InstructorPage] User is admin - full access granted')
+      setHasAccess(true)
+      setCheckingAccess(false)
+      return
+    }
+
     try {
       const response = await fetch('/api/courses/access?check_purchased=true', {
         credentials: 'include'
       })
       const data = await response.json()
-      setHasAccess(data.hasPurchased || false)
+      // Админ или купил курс
+      setHasAccess(data.hasPurchased === true || data.isAdmin === true)
     } catch (error) {
       console.error('Error checking access:', error)
       setHasAccess(false)

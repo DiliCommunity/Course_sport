@@ -29,10 +29,16 @@ export async function GET(request: NextRequest) {
       const user = await getUserFromSession(supabase)
       if (!user) {
         console.log('[Access Check] No user found in session - access denied')
-        return NextResponse.json({ hasPurchased: false }, { status: 200 })
+        return NextResponse.json({ hasPurchased: false, isAdmin: false }, { status: 200 })
       }
 
-      console.log('[Access Check] Checking purchases for user:', user.id)
+      console.log('[Access Check] Checking purchases for user:', user.id, 'is_admin:', user.is_admin)
+
+      // Если админ - полный доступ ко всему
+      if (user.is_admin) {
+        console.log('[Access Check] User is admin - full access granted')
+        return NextResponse.json({ hasPurchased: true, isAdmin: true })
+      }
 
       // Проверяем, есть ли хотя бы один завершенный платеж
       const { data: payments, error: paymentsError } = await adminSupabase
@@ -58,7 +64,8 @@ export async function GET(request: NextRequest) {
       console.log('[Access Check] Final result - hasPurchased:', hasPurchased)
 
       return NextResponse.json({
-        hasPurchased: hasPurchased || false
+        hasPurchased: hasPurchased || false,
+        isAdmin: false
       })
     }
 

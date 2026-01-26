@@ -235,7 +235,7 @@ export async function POST(request: NextRequest) {
       description: type === 'balance_topup' 
         ? `Пополнение баланса на ${(amount / 100).toFixed(2)}₽`
         : type === 'promotion' && metadata?.promotion_id === 'two_courses'
-        ? `Оплата 2 курсов по акции (2199₽)`
+        ? `Оплата 2 курсов по акции (2499₽)`
         : type === 'promotion' && metadata?.promotion_id === 'first_100'
         ? `Оплата курса по акции "Первым 100 студентам" (1099₽)`
         : type === 'final_modules'

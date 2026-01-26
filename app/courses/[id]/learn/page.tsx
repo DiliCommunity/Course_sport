@@ -82,13 +82,27 @@ export default function LearnCoursePage({ params }: { params: { id: string } }) 
     try {
       setPageLoading(true)
       
+      // Если пользователь админ - сразу даём доступ
+      if (user?.is_admin) {
+        console.log('[LearnPage] User is admin - full access granted')
+        setHasAccess(true)
+        // Загружаем уроки и прогресс параллельно
+        await Promise.all([
+          loadLessons(),
+          loadProgress()
+        ])
+        setPageLoading(false)
+        return
+      }
+      
       // Проверяем доступ
       const accessResponse = await fetch(`/api/courses/access?course_id=${params.id}`, {
         credentials: 'include'
       })
       const accessData = await accessResponse.json()
       
-      if (!accessData.hasAccess) {
+      // Админ или есть доступ
+      if (!accessData.hasAccess && !accessData.isAdmin) {
         router.push(`/courses/${params.id}`)
         return
       }

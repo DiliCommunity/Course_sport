@@ -222,7 +222,7 @@ export default function PromotionsPage() {
             </div>
           </motion.div>
 
-          {/* Акция 3: 2 курса за 2199₽ */}
+          {/* Акция 3: 2 курса за 2499₽ */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -236,7 +236,7 @@ export default function PromotionsPage() {
                 <span className="text-accent-flame font-medium text-sm">Горячая акция</span>
               </div>
               <h3 className="font-display font-bold text-2xl text-white mb-3">
-                2 курса можно купить сразу по цене 2199₽
+                2 курса можно купить сразу по цене 2499₽
               </h3>
               <p className="text-white/60 mb-4 text-sm">
                 Специальное предложение! Купите курс по Кето-диете и курс по Интервальному голоданию вместе и сэкономьте!
@@ -253,12 +253,12 @@ export default function PromotionsPage() {
               <div className="flex items-baseline gap-3 mb-4">
                 <span className="text-white/40 line-through text-lg">7898₽</span>
                 <span className="font-display font-black text-3xl bg-gradient-to-r from-accent-flame to-accent-gold bg-clip-text text-transparent">
-                  2199₽
+                  2499₽
                 </span>
               </div>
               <div className="p-3 rounded-xl bg-accent-flame/10 border border-accent-flame/20 mb-6">
                 <div className="text-white/60 text-xs mb-1">Экономия:</div>
-                <div className="text-accent-flame font-bold text-xl">5699₽</div>
+                <div className="text-accent-flame font-bold text-xl">5399₽</div>
               </div>
               <button
                 onClick={() => {
@@ -407,7 +407,7 @@ export default function PromotionsPage() {
           isOpen={true}
           onClose={() => setSelectedPromotion(null)}
           courseTitle="2 курса: Кето-диета + Интервальное голодание"
-          coursePrice={219900} // 2199₽ в копейках
+          coursePrice={249900} // 2499₽ в копейках
           type="promotion"
           promotionId="two_courses"
           onPaymentSuccess={() => {

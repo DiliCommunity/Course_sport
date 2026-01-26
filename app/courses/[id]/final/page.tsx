@@ -79,6 +79,15 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
   }, [user, authLoading, params.id])
 
   const checkAccess = async () => {
+    // Если пользователь админ - сразу даём доступ
+    if (user?.is_admin) {
+      console.log('[FinalModulesPage] User is admin - full access granted')
+      setHasAccess(true)
+      setAccessData({ hasAccess: true, reason: 'admin_access', isAdmin: true })
+      setPageLoading(false)
+      return
+    }
+
     try {
       setPageLoading(true)
       const response = await fetch(`/api/courses/${params.id}/final-access`, {
@@ -86,11 +95,12 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
       })
       const data = await response.json()
       
-      setHasAccess(data.hasAccess || false)
+      // Админ или оплачено
+      setHasAccess(data.hasAccess || data.isAdmin || false)
       setAccessData(data)
       
       // Если нет доступа и прогресс < 70%, перенаправляем на модули 2-4
-      if (!data.hasAccess && data.reason === 'insufficient_progress') {
+      if (!data.hasAccess && !data.isAdmin && data.reason === 'insufficient_progress') {
         router.push(`/courses/${params.id}/learn`)
         return
       }
