@@ -310,7 +310,9 @@ export default function RecipesPage() {
               exit={{ opacity: 0, y: -20 }}
               className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
             >
-              {COOKING_METHODS.map((method, index) => {
+              {COOKING_METHODS
+                .filter(method => method.id === 'all' || getCountForMethod(method.id) > 0)
+                .map((method, index) => {
                 const count = getCountForMethod(method.id)
                 return (
                   <motion.button
@@ -320,12 +322,7 @@ export default function RecipesPage() {
                     whileHover={{ scale: 1.03, y: -6 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => handleCookingMethodSelect(method.id)}
-                    disabled={count === 0 && method.id !== 'all'}
-                    className={`relative h-48 md:h-56 rounded-2xl border-2 transition-all duration-300 text-left group overflow-hidden
-                      ${count === 0 && method.id !== 'all'
-                        ? 'border-white/5 cursor-not-allowed opacity-50'
-                        : 'border-white/20 hover:border-accent-gold/70 hover:shadow-2xl hover:shadow-accent-gold/30'
-                      }`}
+                    className="relative h-48 md:h-56 rounded-2xl border-2 transition-all duration-300 text-left group overflow-hidden border-white/20 hover:border-accent-gold/70 hover:shadow-2xl hover:shadow-accent-gold/30"
                   >
                     {/* Фоновое фото на всю кнопку */}
                     <div className="absolute inset-0">
@@ -384,7 +381,9 @@ export default function RecipesPage() {
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                {MEAL_TYPES.map((type, index) => {
+                {MEAL_TYPES
+                  .filter(type => type.id === 'all' || getCountForMealType(type.id) > 0)
+                  .map((type, index) => {
                   const count = getCountForMealType(type.id)
                   return (
                     <motion.button
@@ -394,12 +393,7 @@ export default function RecipesPage() {
                       whileHover={{ scale: 1.03, y: -4 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => handleMealTypeSelect(type.id)}
-                      disabled={count === 0 && type.id !== 'all'}
-                      className={`relative h-44 rounded-2xl border-2 transition-all duration-300 text-center group overflow-hidden
-                        ${count === 0 && type.id !== 'all'
-                          ? 'border-white/5 cursor-not-allowed opacity-50'
-                          : 'border-white/10 hover:border-accent-mint/60 hover:shadow-xl hover:shadow-accent-mint/20'
-                        }`}
+                      className="relative h-44 rounded-2xl border-2 transition-all duration-300 text-center group overflow-hidden border-white/10 hover:border-accent-mint/60 hover:shadow-xl hover:shadow-accent-mint/20"
                     >
                       {/* Фоновое изображение */}
                       <Image
