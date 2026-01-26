@@ -13,7 +13,8 @@ import { TransactionsHistory } from '@/components/profile/TransactionsHistory'
 import { MyCoursesModal } from '@/components/profile/MyCoursesModal'
 import { WalletModal } from '@/components/profile/WalletModal'
 import { ReferralModal } from '@/components/profile/ReferralModal'
-import { Loader2, Settings, ArrowLeft, Mail, Phone, Save, BookOpen, Wallet, Gift, Bot, Smartphone } from 'lucide-react'
+import { PromocodeSection } from '@/components/profile/PromocodeSection'
+import { Loader2, Settings, ArrowLeft, Mail, Phone, Save, BookOpen, Wallet, Gift, Bot, Smartphone, Ticket } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 
@@ -403,6 +404,37 @@ export default function ProfilePage() {
           </Link>
         </div>
 
+        {/* Admin Quick Actions */}
+        {profileData.user.is_admin && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="mb-8"
+          >
+            <h2 className="font-display font-bold text-xl text-white mb-4 flex items-center gap-2">
+              <span className="px-2 py-1 rounded bg-accent-gold/20 text-accent-gold text-sm">Админ</span>
+              Панель управления
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <Link
+                href="/admin/promocodes"
+                className="rounded-xl glass border border-white/10 p-6 hover:border-accent-flame/50 transition-all group text-left"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-accent-flame to-accent-gold flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Ticket className="w-7 h-7 text-dark-900" />
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold text-white">Промокоды</p>
+                    <p className="text-sm text-white/60">Создание и управление</p>
+                  </div>
+                </div>
+              </Link>
+            </div>
+          </motion.div>
+        )}
+
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <motion.div
@@ -479,6 +511,16 @@ export default function ProfilePage() {
             />
           </motion.div>
         </div>
+
+        {/* Promocode Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+          className="mb-8"
+        >
+          <PromocodeSection />
+        </motion.div>
 
         {/* Courses Section */}
         <motion.div

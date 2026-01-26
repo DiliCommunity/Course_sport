@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { useVK } from '@/components/providers/VKProvider'
+import { User } from 'lucide-react'
 
 export default function HomePage() {
   const { user, loading } = useAuth()
@@ -41,6 +42,21 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Кнопка "Мой профиль" для авторизованных пользователей */}
+      {user && (
+        <section className="py-3">
+          <div className="container mx-auto px-4">
+            <Link
+              href="/profile"
+              className="flex items-center justify-center gap-2 mx-auto w-fit px-6 py-3 rounded-xl bg-gradient-to-r from-accent-electric/20 to-accent-neon/20 border border-accent-electric/40 text-white hover:border-accent-electric hover:shadow-[0_0_20px_rgba(0,217,255,0.3)] transition-all duration-300"
+            >
+              <User className="w-5 h-5 text-accent-electric" />
+              <span className="font-medium">Мой профиль</span>
+            </Link>
+          </div>
+        </section>
+      )}
 
       {/* Social Links */}
       <section className="py-4">
