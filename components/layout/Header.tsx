@@ -236,28 +236,26 @@ export function Header() {
       </div>
 
       {/* Mobile Menu - ПОЛНОСТЬЮ ФИКСИРОВАННОЕ, открывается в любом месте страницы */}
-      <AnimatePresence>
-        {isMobileMenuOpen && (
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm md:hidden"
+          style={{ zIndex: 99999 }}
+          onClick={(e) => {
+            // Закрываем только при клике на overlay (темный фон)
+            if (e.target === e.currentTarget) {
+              setIsMobileMenuOpen(false)
+            }
+          }}
+        >
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] md:hidden"
-            onClick={(e) => {
-              // Закрываем только при клике на overlay (темный фон)
-              if (e.target === e.currentTarget) {
-                setIsMobileMenuOpen(false)
-              }
-            }}
+            initial={{ x: '-100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '-100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed top-0 left-0 h-full w-80 max-w-[85vw] bg-dark-800 border-r border-emerald-400/20 shadow-[5px_0_30px_rgba(0,0,0,0.5)] overflow-y-auto"
+            style={{ zIndex: 100000 }}
+            onClick={(e) => e.stopPropagation()}
           >
-            <motion.div
-              initial={{ x: '-100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '-100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed top-0 left-0 h-full w-80 max-w-[85vw] bg-dark-800 border-r border-emerald-400/20 shadow-[5px_0_30px_rgba(0,0,0,0.5)] overflow-y-auto z-[10000]"
-              onClick={(e) => e.stopPropagation()}
-            >
               <div className="flex flex-col h-full">
                 {/* Header с крестиком */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-emerald-400/20">
@@ -355,9 +353,8 @@ export function Header() {
                 </div>
               </div>
             </motion.div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
     </header>
   )
 }

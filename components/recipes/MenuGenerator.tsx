@@ -357,10 +357,9 @@ export function MenuGenerator() {
         ? filterMeals(MEALS_DATABASE.dinner)
         : allAvailableMeals.filter((meal) => meal.dishType === 'second' || !meal.dishType)
 
-      // Десерты — только настоящие десерты (кето-сладости, муссы, пудинги и т.д.)
-      const dessertPoolRaw = MEALS_DATABASE.desserts ? filterMeals(MEALS_DATABASE.desserts) : allAvailableMeals
-      const dessertPool = dessertPoolRaw.filter((meal) => {
-        // Только десерты
+      // Десерты — кето-сладости, муссы, пудинги, чизкейки и т.д.
+      // Берём из всех источников блюда с dishType === 'dessert'
+      const dessertPool = allAvailableMeals.filter((meal) => {
         if (meal.dishType !== 'dessert') return false
         // Исключаем "салаты" из десертов (на всякий случай)
         const name = (meal.name || '').toLowerCase()
@@ -368,20 +367,15 @@ export function MenuGenerator() {
         return true
       })
 
-      // Лёгкие закуски для дополнений — низкокалорийные (до 200 ккал), без основных белков
-      const snackPoolRaw = MEALS_DATABASE.snacks ? filterMeals(MEALS_DATABASE.snacks) : allAvailableMeals
-      const lightSnackPool = snackPoolRaw.filter((meal) => {
+      // Лёгкие закуски для дополнений — закуски без тяжёлых белков
+      const lightSnackPool = allAvailableMeals.filter((meal) => {
         // Только закуски
         if (meal.dishType !== 'snack') return false
-        // Низкокалорийные (до 250 ккал)
-        if (meal.calories > 250) return false
         // Исключаем полноценные салаты с белком
         const name = (meal.name || '').toLowerCase()
-        const ingredients = (meal.ingredients || []).join(' ').toLowerCase()
-        const combined = name + ' ' + ingredients
         // Исключаем блюда с основными белками (они не "лёгкие")
         const heavyProteins = /кревет|куриц|говя|свин|рыб|лосос|тунц|индей|стейк|бекон/i
-        if (heavyProteins.test(combined)) return false
+        if (heavyProteins.test(name)) return false
         return true
       })
 
@@ -400,14 +394,18 @@ export function MenuGenerator() {
 
       // Добавляем snack и dessert только для полного меню
       if (mealType === 'full') {
-        // В "Дополнения" кладём только ДЕСЕРТ (по желанию пользователя).
-        // Это должны быть настоящие кето-десерты, а не салаты.
+        console.log('[MenuGenerator] dessertPool length:', dessertPool.length, 'lightSnackPool length:', lightSnackPool.length)
+        
+        // Пробуем добавить десерт
         if (dessertPool.length > 0) {
           dessert = pickUniqueMeal(dessertPool, usedNames, usedSignatures)
+          console.log('[MenuGenerator] Selected dessert:', dessert?.name)
         }
-        // Если нет десертов, можно добавить лёгкую закуску
+        
+        // Если нет десерта, пробуем лёгкую закуску
         if (!dessert && lightSnackPool.length > 0) {
           snack = pickUniqueMeal(lightSnackPool, usedNames, usedSignatures)
+          console.log('[MenuGenerator] Selected snack:', snack?.name)
         }
       }
 
