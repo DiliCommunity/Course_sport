@@ -3,8 +3,9 @@
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { CourseCard } from '@/components/ui/CourseCard'
-import { ChefHat, Download, Star, ArrowRight, Gift, Zap, BookOpen } from 'lucide-react'
+import { ChefHat, Download, Star, ArrowRight, Gift, Zap, BookOpen, User } from 'lucide-react'
 import { COURSE_IDS } from '@/lib/constants'
+import { useAuth } from '@/components/providers/AuthProvider'
 
 // Все курсы: 15% бесплатно, полный доступ за 1699₽
 // Только 2 курса как в HTML версии
@@ -42,9 +43,30 @@ const allCourses = [
 ]
 
 export default function CoursesPage() {
+  const { user } = useAuth()
+
   return (
     <main className="min-h-screen pt-20 pb-16">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Кнопка "Мой профиль" для авторизованных пользователей */}
+        {user && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8"
+          >
+            <Link
+              href="/profile"
+              className="group relative flex items-center justify-center gap-3 mx-auto w-fit px-8 py-4 rounded-2xl bg-gradient-to-r from-accent-electric via-accent-neon to-accent-electric bg-[length:200%_100%] animate-gradient text-dark-900 font-bold text-lg shadow-[0_0_30px_rgba(0,217,255,0.5)] hover:shadow-[0_0_50px_rgba(0,217,255,0.8)] hover:scale-105 transition-all duration-300"
+            >
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-accent-electric via-accent-neon to-accent-electric opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-300" />
+              <User className="relative w-6 h-6" />
+              <span className="relative">👤 Мой профиль</span>
+              <span className="relative animate-pulse">✨</span>
+            </Link>
+          </motion.div>
+        )}
+
         {/* Page Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

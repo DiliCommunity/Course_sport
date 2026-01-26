@@ -45,14 +45,16 @@ export default function HomePage() {
 
       {/* Кнопка "Мой профиль" для авторизованных пользователей */}
       {user && (
-        <section className="py-3">
+        <section className="py-4">
           <div className="container mx-auto px-4">
             <Link
               href="/profile"
-              className="flex items-center justify-center gap-2 mx-auto w-fit px-6 py-3 rounded-xl bg-gradient-to-r from-accent-electric/20 to-accent-neon/20 border border-accent-electric/40 text-white hover:border-accent-electric hover:shadow-[0_0_20px_rgba(0,217,255,0.3)] transition-all duration-300"
+              className="group relative flex items-center justify-center gap-3 mx-auto w-fit px-8 py-4 rounded-2xl bg-gradient-to-r from-accent-electric via-accent-neon to-accent-electric bg-[length:200%_100%] animate-gradient text-dark-900 font-bold text-lg shadow-[0_0_30px_rgba(0,217,255,0.5)] hover:shadow-[0_0_50px_rgba(0,217,255,0.8)] hover:scale-105 transition-all duration-300"
             >
-              <User className="w-5 h-5 text-accent-electric" />
-              <span className="font-medium">Мой профиль</span>
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-accent-electric via-accent-neon to-accent-electric opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-300" />
+              <User className="relative w-6 h-6" />
+              <span className="relative">👤 Мой профиль</span>
+              <span className="relative animate-pulse">✨</span>
             </Link>
           </div>
         </section>
