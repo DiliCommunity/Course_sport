@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { getUserFromSession } from '@/lib/auth/session'
+import { getUserFromSession } from '@/lib/session-utils'
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await getUserFromSession()
+    const supabase = await createClient()
+    const user = await getUserFromSession(supabase)
     
     if (!user) {
       return NextResponse.json(
@@ -22,8 +23,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
-
-    const supabase = await createClient()
 
     // Ищем промокод
     const { data: promocode, error: promoError } = await supabase
@@ -107,4 +106,3 @@ export async function POST(request: NextRequest) {
     )
   }
 }
-

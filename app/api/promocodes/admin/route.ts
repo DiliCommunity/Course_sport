@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createAdminClient } from '@/lib/supabase/admin'
-import { getUserFromSession } from '@/lib/auth/session'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { getUserFromSession } from '@/lib/session-utils'
 
 // Получение всех промокодов (только для админов)
 export async function GET(request: NextRequest) {
   try {
-    const user = await getUserFromSession()
+    const supabaseClient = await createClient()
+    const user = await getUserFromSession(supabaseClient)
     
     if (!user || !user.is_admin) {
       return NextResponse.json(
@@ -15,6 +16,9 @@ export async function GET(request: NextRequest) {
     }
 
     const supabase = createAdminClient()
+    if (!supabase) {
+      return NextResponse.json({ error: 'Database error' }, { status: 500 })
+    }
 
     const { data: promocodes, error } = await supabase
       .from('promocodes')
@@ -40,7 +44,8 @@ export async function GET(request: NextRequest) {
 // Создание нового промокода (только для админов)
 export async function POST(request: NextRequest) {
   try {
-    const user = await getUserFromSession()
+    const supabaseClient = await createClient()
+    const user = await getUserFromSession(supabaseClient)
     
     if (!user || !user.is_admin) {
       return NextResponse.json(
@@ -70,6 +75,9 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = createAdminClient()
+    if (!supabase) {
+      return NextResponse.json({ error: 'Database error' }, { status: 500 })
+    }
 
     const { data: promocode, error } = await supabase
       .from('promocodes')
@@ -114,7 +122,8 @@ export async function POST(request: NextRequest) {
 // Обновление промокода (только для админов)
 export async function PATCH(request: NextRequest) {
   try {
-    const user = await getUserFromSession()
+    const supabaseClient = await createClient()
+    const user = await getUserFromSession(supabaseClient)
     
     if (!user || !user.is_admin) {
       return NextResponse.json(
@@ -145,6 +154,9 @@ export async function PATCH(request: NextRequest) {
     }
 
     const supabase = createAdminClient()
+    if (!supabase) {
+      return NextResponse.json({ error: 'Database error' }, { status: 500 })
+    }
 
     const updateData: Record<string, unknown> = {}
     if (code !== undefined) updateData.code = code.toUpperCase().trim()
@@ -183,7 +195,8 @@ export async function PATCH(request: NextRequest) {
 // Удаление промокода (только для админов)
 export async function DELETE(request: NextRequest) {
   try {
-    const user = await getUserFromSession()
+    const supabaseClient = await createClient()
+    const user = await getUserFromSession(supabaseClient)
     
     if (!user || !user.is_admin) {
       return NextResponse.json(
@@ -203,6 +216,9 @@ export async function DELETE(request: NextRequest) {
     }
 
     const supabase = createAdminClient()
+    if (!supabase) {
+      return NextResponse.json({ error: 'Database error' }, { status: 500 })
+    }
 
     const { error } = await supabase
       .from('promocodes')
@@ -224,4 +240,3 @@ export async function DELETE(request: NextRequest) {
     )
   }
 }
-

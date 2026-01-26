@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createAdminClient } from '@/lib/supabase/admin'
-import { getUserFromSession } from '@/lib/auth/session'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { getUserFromSession } from '@/lib/session-utils'
 
 // Фиксация использования промокода после оплаты
 export async function POST(request: NextRequest) {
   try {
-    const user = await getUserFromSession()
+    const supabaseClient = await createClient()
+    const user = await getUserFromSession(supabaseClient)
     
     if (!user) {
       return NextResponse.json(
@@ -25,6 +26,9 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = createAdminClient()
+    if (!supabase) {
+      return NextResponse.json({ error: 'Database error' }, { status: 500 })
+    }
 
     // Добавляем запись об использовании
     const { error: insertError } = await supabase
@@ -47,36 +51,18 @@ export async function POST(request: NextRequest) {
       throw insertError
     }
 
-    // Увеличиваем счётчик активаций
-    const { error: updateError } = await supabase
+    // Увеличиваем счётчик активаций - сначала получаем текущее значение
+    const { data: currentPromo } = await supabase
       .from('promocodes')
-      .update({ 
-        current_activations: supabase.rpc('increment_promocode_activations', { promo_id: promocodeId })
-      })
+      .select('current_activations')
       .eq('id', promocodeId)
+      .single()
 
-    // Альтернативный способ увеличения счётчика
-    if (updateError) {
-      await supabase.rpc('increment', { 
-        table_name: 'promocodes',
-        row_id: promocodeId,
-        column_name: 'current_activations'
-      }).catch(() => {
-        // Fallback: прямой SQL
-        supabase
-          .from('promocodes')
-          .select('current_activations')
-          .eq('id', promocodeId)
-          .single()
-          .then(({ data }) => {
-            if (data) {
-              supabase
-                .from('promocodes')
-                .update({ current_activations: (data.current_activations || 0) + 1 })
-                .eq('id', promocodeId)
-            }
-          })
-      })
+    if (currentPromo) {
+      await supabase
+        .from('promocodes')
+        .update({ current_activations: (currentPromo.current_activations || 0) + 1 })
+        .eq('id', promocodeId)
     }
 
     return NextResponse.json({
@@ -92,4 +78,3 @@ export async function POST(request: NextRequest) {
     )
   }
 }
-
