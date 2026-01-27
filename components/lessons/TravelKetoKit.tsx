@@ -347,10 +347,10 @@ export function TravelKetoKit() {
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value as TravelItem['category'])}
-            className="w-full sm:w-auto px-3 sm:px-4 py-2.5 sm:py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-accent-electric/50 text-sm"
+            className="w-full sm:w-auto px-4 py-3 rounded-xl bg-dark-800/80 border-2 border-accent-electric/30 text-white focus:outline-none focus:border-accent-electric focus:ring-2 focus:ring-accent-electric/30 transition-all hover:border-accent-electric/50 shadow-[0_0_15px_rgba(96,165,250,0.1)] text-sm"
           >
             {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
-              <option key={key} value={key} className="bg-dark-800">{label}</option>
+              <option key={key} value={key}>{label}</option>
             ))}
           </select>
           <button

@@ -1013,9 +1013,9 @@ export default function WorkoutGeneratorPage() {
               <select
                 value={sport}
                 onChange={(e) => setSport(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-dark-800 border border-white/10 text-white focus:border-accent-electric focus:outline-none"
+                className="w-full px-4 py-3.5 rounded-xl bg-dark-800/80 border-2 border-accent-electric/30 text-white focus:outline-none focus:border-accent-electric focus:ring-2 focus:ring-accent-electric/30 transition-all hover:border-accent-electric/50 shadow-[0_0_15px_rgba(96,165,250,0.1)]"
               >
-                <option value="">Выберите вид спорта</option>
+                <option value="">🏃 Выберите вид спорта</option>
                 {SPORTS.map(s => (
                   <option key={s} value={s}>{s}</option>
                 ))}

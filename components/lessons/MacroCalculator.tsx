@@ -439,10 +439,10 @@ TDEE (расход калорий): ${results.tdee} ккал/день
           <select
             value={activityLevel}
             onChange={(e) => setActivityLevel(e.target.value as keyof typeof ACTIVITY_MULTIPLIERS)}
-            className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-accent-teal/50 focus:ring-2 focus:ring-accent-teal/20 transition-all text-sm leading-tight"
+            className="w-full px-4 py-3.5 rounded-xl bg-dark-800/80 border-2 border-accent-teal/30 text-white focus:outline-none focus:border-accent-teal focus:ring-2 focus:ring-accent-teal/30 transition-all hover:border-accent-teal/50 shadow-[0_0_15px_rgba(45,212,191,0.1)] text-sm leading-tight"
           >
             {Object.entries(ACTIVITY_MULTIPLIERS).map(([key, { label }]) => (
-              <option key={key} value={key} className="bg-dark-800">
+              <option key={key} value={key}>
                 {label}
               </option>
             ))}

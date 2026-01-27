@@ -400,10 +400,10 @@ export default function ReviewsPage() {
                           : 'Интервальное голодание'
                       })
                     }}
-                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-emerald-400/50 focus:ring-2 focus:ring-emerald-400/20 transition-all"
+                    className="w-full px-4 py-3.5 rounded-xl bg-dark-800/80 border-2 border-emerald-400/30 text-white focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/30 transition-all hover:border-emerald-400/50 shadow-[0_0_15px_rgba(16,185,129,0.1)]"
                   >
-                    <option value={COURSE_IDS.KETO}>Кето диета: от Мифов к Результатам</option>
-                    <option value={COURSE_IDS.INTERVAL}>Интервальное голодание</option>
+                    <option value={COURSE_IDS.KETO}>🥑 Кето диета: от Мифов к Результатам</option>
+                    <option value={COURSE_IDS.INTERVAL}>⏰ Интервальное голодание</option>
                   </select>
                 </div>
 
