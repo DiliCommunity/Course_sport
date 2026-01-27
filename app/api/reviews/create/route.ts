@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { courseId, courseName, rating, text } = body
+    const { courseId, courseName, rating, text, isAnonymous } = body
 
     // Валидация
     if (!courseId || !courseName || !rating || !text) {
@@ -126,13 +126,15 @@ export async function POST(request: NextRequest) {
 
     if (existingReview) {
       // Обновляем существующий отзыв
+      const displayName = isAnonymous ? 'Анонимный пользователь' : (user.name || user.username || 'Пользователь')
       const { data: updatedReview, error: updateError } = await supabase
         .from('reviews')
         .update({
           course_name: courseName,
           rating,
           text: text.trim(),
-          user_name: user.name || user.username || 'Пользователь',
+          user_name: displayName,
+          is_anonymous: isAnonymous === true,
           is_approved: false, // Требуется повторная модерация
           updated_at: new Date().toISOString()
         })
@@ -155,6 +157,7 @@ export async function POST(request: NextRequest) {
       })
     } else {
       // Создаём новый отзыв
+      const displayName = isAnonymous ? 'Анонимный пользователь' : (user.name || user.username || 'Пользователь')
       const { data: newReview, error: insertError } = await supabase
         .from('reviews')
         .insert({
@@ -163,7 +166,8 @@ export async function POST(request: NextRequest) {
           course_name: courseName,
           rating,
           text: text.trim(),
-          user_name: user.name || user.username || 'Пользователь',
+          user_name: displayName,
+          is_anonymous: isAnonymous === true,
           is_verified: true, // Пользователь авторизован, значит верифицирован
           is_approved: false // Требуется модерация
         })

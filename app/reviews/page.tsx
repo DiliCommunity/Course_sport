@@ -153,11 +153,13 @@ export default function ReviewsPage() {
     courseName: string
     rating: number
     text: string
+    isAnonymous: boolean
   }>({
     courseId: COURSE_IDS.KETO,
     courseName: 'Кето диета: от Мифов к Результатам',
     rating: 5,
-    text: ''
+    text: '',
+    isAnonymous: false
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitSuccess, setSubmitSuccess] = useState(false)
@@ -239,7 +241,8 @@ export default function ReviewsPage() {
         courseId: COURSE_IDS.KETO,
         courseName: 'Кето диета: от Мифов к Результатам',
         rating: 5,
-        text: ''
+        text: '',
+        isAnonymous: false
       })
       
       setTimeout(() => {
@@ -444,6 +447,29 @@ export default function ReviewsPage() {
                   />
                   <div className="text-right text-xs text-white/40 mt-1">
                     {reviewFormData.text.length} / 2000
+                  </div>
+                </div>
+
+                {/* Анонимный отзыв */}
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setReviewFormData({ ...reviewFormData, isAnonymous: !reviewFormData.isAnonymous })}
+                    className={`relative w-12 h-7 rounded-full transition-all duration-300 ${
+                      reviewFormData.isAnonymous 
+                        ? 'bg-emerald-500' 
+                        : 'bg-white/10 border border-white/20'
+                    }`}
+                  >
+                    <span 
+                      className={`absolute top-1 w-5 h-5 rounded-full bg-white shadow-md transition-all duration-300 ${
+                        reviewFormData.isAnonymous ? 'left-6' : 'left-1'
+                      }`}
+                    />
+                  </button>
+                  <div>
+                    <span className="text-white font-medium">Анонимный отзыв</span>
+                    <p className="text-white/50 text-xs">Ваше имя не будет отображаться публично</p>
                   </div>
                 </div>
 
