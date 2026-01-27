@@ -52,181 +52,351 @@ export default function RecipesPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [downloadingPdf, setDownloadingPdf] = useState(false)
 
-  // Функция скачивания PDF для рецепта
+  // Функция скачивания PDF для рецепта (красивый HTML-шаблон с тёмной темой)
   const downloadRecipePDF = async (recipe: Meal) => {
     if (downloadingPdf) return
     setDownloadingPdf(true)
 
     try {
-      const canvas = document.createElement('canvas')
-      const ctx = canvas.getContext('2d')
-      if (!ctx) {
-        throw new Error('Could not get canvas context')
-      }
-
-      const dpi = 300
-      const mmToPx = dpi / 25.4
-      const pageWidthMm = 210
-      const pageHeightMm = 297
-      const pageWidthPx = pageWidthMm * mmToPx
-      const pageHeightPx = pageHeightMm * mmToPx
-
-      canvas.width = pageWidthPx
-      canvas.height = pageHeightPx
-
-      // Белый фон
-      ctx.fillStyle = '#ffffff'
-      ctx.fillRect(0, 0, canvas.width, canvas.height)
-
-      const marginPx = 20 * mmToPx
-      let yPosPx = 25 * mmToPx
-
-      // Заголовок
-      ctx.fillStyle = '#FFD700'
-      ctx.font = 'bold 32px Arial, sans-serif'
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'top'
-      ctx.fillText(recipe.name, pageWidthPx / 2, yPosPx)
-      yPosPx += 50
-
-      // Характеристики
-      ctx.fillStyle = '#666666'
-      ctx.font = '18px Arial, sans-serif'
-      ctx.fillText(
-        `${recipe.prepTime} мин | ${recipe.calories} ккал | Б: ${recipe.proteins}г | Ж: ${recipe.fats}г | У: ${recipe.carbs}г`,
-        pageWidthPx / 2,
-        yPosPx
-      )
-      yPosPx += 40
-
-      if (recipe.estimatedCost) {
-        ctx.fillText(`Примерная стоимость: ~${recipe.estimatedCost}₽`, pageWidthPx / 2, yPosPx)
-        yPosPx += 40
-      }
-
-      // Описание
-      ctx.textAlign = 'left'
-      if (recipe.description) {
-        ctx.fillStyle = '#10b981'
-        ctx.font = 'bold 20px Arial, sans-serif'
-        ctx.fillText('Описание', marginPx, yPosPx)
-        yPosPx += 30
-
-        ctx.fillStyle = '#333333'
-        ctx.font = '16px Arial, sans-serif'
-        
-        // Разбиваем текст на строки
-        const words = recipe.description.split(' ')
-        let line = ''
-        const maxWidth = pageWidthPx - marginPx * 2
-        
-        for (const word of words) {
-          const testLine = line + word + ' '
-          const metrics = ctx.measureText(testLine)
-          if (metrics.width > maxWidth && line !== '') {
-            ctx.fillText(line.trim(), marginPx, yPosPx)
-            line = word + ' '
-            yPosPx += 25
-          } else {
-            line = testLine
-          }
+      // Получаем метки для способа приготовления и типа блюда
+      const getProcessingMethodLabel = (method: string) => {
+        const labels: Record<string, string> = {
+          'sous_vide': 'Су-вид',
+          'grilling': 'Гриль',
+          'frying': 'Жарка',
+          'baking': 'Запекание',
+          'boiling': 'Варка',
+          'steaming': 'На пару'
         }
-        if (line.trim()) {
-          ctx.fillText(line.trim(), marginPx, yPosPx)
-          yPosPx += 35
-        }
+        return labels[method] || method
       }
+      
+      const processingMethodLabel = recipe.processingMethod ? getProcessingMethodLabel(recipe.processingMethod) : ''
+      const dishTypeLabel = recipe.dishType === 'first' ? 'Первое блюдо' : recipe.dishType === 'second' ? 'Второе блюдо' : recipe.dishType === 'dessert' ? 'Десерт' : recipe.dishType === 'snack' ? 'Закуска' : ''
 
-      // Ингредиенты
-      if (recipe.ingredients && recipe.ingredients.length > 0) {
-        yPosPx += 10
-        ctx.fillStyle = '#10b981'
-        ctx.font = 'bold 20px Arial, sans-serif'
-        ctx.fillText('Ингредиенты', marginPx, yPosPx)
-        yPosPx += 30
+      // Создаем красивый HTML элемент с темными стилями
+      const printContent = document.createElement('div')
+      printContent.id = 'recipe-pdf-content'
+      printContent.style.position = 'absolute'
+      printContent.style.left = '-9999px'
+      printContent.style.width = '800px'
+      printContent.style.padding = '50px'
+      printContent.style.background = 'linear-gradient(135deg, #0a0a0b 0%, #1a1a1a 50%, #0a0a0b 100%)'
+      printContent.style.fontFamily = 'system-ui, -apple-system, sans-serif'
+      printContent.style.color = '#ffffff'
+      printContent.style.borderRadius = '20px'
 
-        ctx.fillStyle = '#333333'
-        ctx.font = '16px Arial, sans-serif'
-        recipe.ingredients.forEach((ingredient) => {
-          ctx.fillText(`• ${ingredient}`, marginPx + 10, yPosPx)
-          yPosPx += 25
-        })
-      }
-
-      // Инструкции
-      if (recipe.instructions && recipe.instructions.length > 0) {
-        yPosPx += 15
-        ctx.fillStyle = '#10b981'
-        ctx.font = 'bold 20px Arial, sans-serif'
-        ctx.fillText('Приготовление', marginPx, yPosPx)
-        yPosPx += 30
-
-        ctx.fillStyle = '#333333'
-        ctx.font = '16px Arial, sans-serif'
-        const maxWidth = pageWidthPx - marginPx * 2 - 30
-        
-        recipe.instructions.forEach((step, index) => {
-          // Номер шага
-          ctx.fillStyle = '#FFD700'
-          ctx.font = 'bold 16px Arial, sans-serif'
-          ctx.fillText(`${index + 1}.`, marginPx, yPosPx)
+      printContent.innerHTML = `
+        <div style="
+          background: linear-gradient(135deg, rgba(255, 215, 0, 0.1) 0%, rgba(0, 212, 255, 0.1) 100%);
+          border: 2px solid rgba(255, 215, 0, 0.3);
+          border-radius: 20px;
+          padding: 40px;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 40px rgba(255, 215, 0, 0.1);
+        ">
+          <!-- Заголовок -->
+          <h1 style="
+            font-size: 42px;
+            font-weight: bold;
+            text-align: center;
+            margin: 0 0 10px 0;
+            color: #ffd700;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.5), 0 2px 10px rgba(0, 0, 0, 0.5);
+          ">
+            ${recipe.name}
+          </h1>
           
-          // Текст шага
-          ctx.fillStyle = '#333333'
-          ctx.font = '16px Arial, sans-serif'
+          <p style="
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 16px;
+            margin: 0 0 40px 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+          ">
+            CourseHealth - Рецепты
+          </p>
           
-          const words = step.split(' ')
-          let line = ''
-          let firstLine = true
+          ${recipe.description ? `
+          <!-- Описание -->
+          <div style="
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 35px;
+            backdrop-filter: blur(10px);
+          ">
+            <p style="
+              color: rgba(255, 255, 255, 0.9);
+              font-size: 16px;
+              line-height: 1.8;
+              margin: 0;
+            ">
+              ${recipe.description}
+            </p>
+          </div>
+          ` : ''}
           
-          for (const word of words) {
-            const testLine = line + word + ' '
-            const metrics = ctx.measureText(testLine)
-            if (metrics.width > maxWidth && line !== '') {
-              ctx.fillText(line.trim(), marginPx + 30, yPosPx)
-              line = word + ' '
-              yPosPx += 22
-              firstLine = false
-            } else {
-              line = testLine
-            }
-          }
-          if (line.trim()) {
-            ctx.fillText(line.trim(), marginPx + 30, yPosPx)
-            yPosPx += 30
-          }
-        })
-      }
+          <!-- Информационная карточка -->
+          <div style="
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 35px;
+            backdrop-filter: blur(10px);
+          ">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+              <div style="
+                background: rgba(255, 215, 0, 0.15);
+                border: 1px solid rgba(255, 215, 0, 0.3);
+                border-radius: 12px;
+                padding: 15px;
+                text-align: center;
+              ">
+                <div style="font-size: 14px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">⏱ Время</div>
+                <div style="font-size: 20px; font-weight: bold; color: #ffd700;">${recipe.prepTime} мин</div>
+              </div>
+              <div style="
+                background: rgba(16, 185, 129, 0.15);
+                border: 1px solid rgba(16, 185, 129, 0.3);
+                border-radius: 12px;
+                padding: 15px;
+                text-align: center;
+              ">
+                <div style="font-size: 14px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">🔥 Калории</div>
+                <div style="font-size: 20px; font-weight: bold; color: #10b981;">${recipe.calories} ккал</div>
+              </div>
+              <div style="
+                background: rgba(59, 130, 246, 0.15);
+                border: 1px solid rgba(59, 130, 246, 0.3);
+                border-radius: 12px;
+                padding: 15px;
+                text-align: center;
+              ">
+                <div style="font-size: 14px; color: rgba(255, 255, 255, 0.7); margin-bottom: 5px;">💰 Стоимость</div>
+                <div style="font-size: 20px; font-weight: bold; color: #3b82f6;">${recipe.estimatedCost || '—'} ₽</div>
+              </div>
+            </div>
+            
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; text-align: center;">
+                <div>
+                  <div style="font-size: 12px; color: rgba(255, 255, 255, 0.6); margin-bottom: 5px;">Белки</div>
+                  <div style="font-size: 18px; font-weight: bold; color: #3b82f6;">${recipe.proteins}г</div>
+                </div>
+                <div>
+                  <div style="font-size: 12px; color: rgba(255, 255, 255, 0.6); margin-bottom: 5px;">Жиры</div>
+                  <div style="font-size: 18px; font-weight: bold; color: #ffd700;">${recipe.fats}г</div>
+                </div>
+                <div>
+                  <div style="font-size: 12px; color: rgba(255, 255, 255, 0.6); margin-bottom: 5px;">Углеводы</div>
+                  <div style="font-size: 18px; font-weight: bold; color: #10b981;">${recipe.carbs}г</div>
+                </div>
+                <div>
+                  <div style="font-size: 12px; color: rgba(255, 255, 255, 0.6); margin-bottom: 5px;">Способ</div>
+                  <div style="font-size: 14px; font-weight: bold; color: rgba(255, 255, 255, 0.9);">${processingMethodLabel || dishTypeLabel || '—'}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          ${recipe.ingredients && recipe.ingredients.length > 0 ? `
+          <!-- Ингредиенты -->
+          <div style="margin-bottom: 35px;">
+            <h2 style="
+              font-size: 24px;
+              font-weight: bold;
+              color: #ffd700;
+              margin: 0 0 20px 0;
+              display: flex;
+              align-items: center;
+              gap: 10px;
+            ">
+              <span style="font-size: 28px;">🥘</span>
+              Ингредиенты:
+            </h2>
+            <div style="
+              background: rgba(255, 255, 255, 0.05);
+              border: 1px solid rgba(255, 255, 255, 0.1);
+              border-radius: 12px;
+              padding: 20px;
+              backdrop-filter: blur(10px);
+            ">
+              <ul style="
+                margin: 0;
+                padding-left: 0;
+                list-style: none;
+                line-height: 2;
+              ">
+                ${recipe.ingredients.map((ingredient, idx) => `
+                  <li style="
+                    color: rgba(255, 255, 255, 0.9);
+                    font-size: 15px;
+                    padding: 8px 0;
+                    border-bottom: ${idx < recipe.ingredients!.length - 1 ? '1px solid rgba(255, 255, 255, 0.05)' : 'none'};
+                  ">
+                    <span style="
+                      display: inline-block;
+                      width: 24px;
+                      height: 24px;
+                      background: linear-gradient(135deg, #ffd700 0%, #00d4ff 100%);
+                      border-radius: 50%;
+                      text-align: center;
+                      line-height: 24px;
+                      font-size: 12px;
+                      font-weight: bold;
+                      color: #0a0a0b;
+                      margin-right: 12px;
+                    ">${idx + 1}</span>
+                    ${ingredient}
+                  </li>
+                `).join('')}
+              </ul>
+            </div>
+          </div>
+          ` : ''}
+          
+          ${recipe.instructions && recipe.instructions.length > 0 ? `
+          <!-- Инструкция -->
+          <div>
+            <h2 style="
+              font-size: 24px;
+              font-weight: bold;
+              color: #ffd700;
+              margin: 0 0 20px 0;
+              display: flex;
+              align-items: center;
+              gap: 10px;
+            ">
+              <span style="font-size: 28px;">👨‍🍳</span>
+              Приготовление:
+            </h2>
+            <div style="
+              background: rgba(255, 255, 255, 0.05);
+              border: 1px solid rgba(255, 255, 255, 0.1);
+              border-radius: 12px;
+              padding: 20px;
+              backdrop-filter: blur(10px);
+            ">
+              <ol style="
+                margin: 0;
+                padding-left: 0;
+                list-style: none;
+                counter-reset: step-counter;
+              ">
+                ${recipe.instructions.map((step, idx) => `
+                  <li style="
+                    color: rgba(255, 255, 255, 0.9);
+                    margin-bottom: 16px;
+                    padding-left: 50px;
+                    position: relative;
+                    line-height: 1.6;
+                    font-size: 15px;
+                  ">
+                    <span style="
+                      position: absolute;
+                      left: 0;
+                      width: 32px;
+                      height: 32px;
+                      background: linear-gradient(135deg, #ffd700 0%, #00d4ff 100%);
+                      border-radius: 50%;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      color: #0a0a0b;
+                      font-weight: bold;
+                      font-size: 14px;
+                      box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
+                    ">${idx + 1}</span>
+                    ${step}
+                  </li>
+                `).join('')}
+              </ol>
+            </div>
+          </div>
+          ` : ''}
+          
+          <!-- Футер -->
+          <div style="
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+          ">
+            <p style="
+              color: rgba(255, 255, 255, 0.5);
+              font-size: 14px;
+              margin: 0;
+            ">
+              🌐 coursehealth.ru | 💚 CourseHealth
+            </p>
+          </div>
+        </div>
+      `
 
-      // Футер
-      yPosPx = pageHeightPx - 30 * mmToPx
-      ctx.fillStyle = '#999999'
-      ctx.font = '12px Arial, sans-serif'
-      ctx.textAlign = 'center'
-      ctx.fillText('CourseHealth - Личный шеф', pageWidthPx / 2, yPosPx)
+      document.body.appendChild(printContent)
 
-      // Создаём PDF
+      // Используем html2canvas для создания изображения
+      const html2canvas = (await import('html2canvas')).default
+      const canvas = await html2canvas(printContent, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#0a0a0b',
+        allowTaint: true
+      })
+
+      document.body.removeChild(printContent)
+
+      // Конвертируем canvas в PDF
+      const imgData = canvas.toDataURL('image/png')
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4'
       })
 
-      const imgData = canvas.toDataURL('image/png')
-      pdf.addImage(imgData, 'PNG', 0, 0, pageWidthMm, pageHeightMm)
+      const imgWidth = 210 // A4 width in mm
+      const pageHeight = 297 // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
+
+      // Если изображение больше одной страницы, разбиваем на несколько страниц
+      if (imgHeight <= pageHeight) {
+        pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight)
+      } else {
+        let heightLeft = imgHeight
+        let yPosition = 0
+        
+        while (heightLeft > 0) {
+          pdf.addImage(imgData, 'PNG', 0, yPosition, imgWidth, imgHeight)
+          heightLeft -= pageHeight
+          
+          if (heightLeft > 0) {
+            pdf.addPage()
+            yPosition -= pageHeight
+          }
+        }
+      }
 
       const fileName = `${recipe.name.replace(/\s+/g, '_')}.pdf`
       
+      // Используем blob URL для лучшей совместимости с мобильными устройствами
       const pdfBlob = pdf.output('blob')
       const blobUrl = URL.createObjectURL(pdfBlob)
       
+      // Создаем ссылку для скачивания
       const link = document.createElement('a')
       link.href = blobUrl
       link.download = fileName
       link.style.display = 'none'
+      
+      // Добавляем ссылку в DOM и кликаем
       document.body.appendChild(link)
       link.click()
       
+      // Удаляем ссылку и очищаем blob URL через задержку
       setTimeout(() => {
         if (document.body.contains(link)) {
           document.body.removeChild(link)
