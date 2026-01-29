@@ -155,7 +155,7 @@ export default function LoginPage() {
       // - В VK Mini App остаёмся внутри мини-приложения и открываем контент
       // - В браузере также ведём на контент (а не на /profile), чтобы поведение было одинаковым
       await new Promise(resolve => setTimeout(resolve, 200))
-      setIsVKLoading(false)
+        setIsVKLoading(false)
       router.replace('/courses')
     } catch (err: any) {
       console.error('[LoginPage] VK Auth error:', err)

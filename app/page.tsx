@@ -1,17 +1,19 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { useVK } from '@/components/providers/VKProvider'
-import { User } from 'lucide-react'
+import { User, ChefHat, Lock } from 'lucide-react'
 
 export default function HomePage() {
   const { user, loading } = useAuth()
   const { isVKMiniApp, isReady: vkReady } = useVK()
   const router = useRouter()
+  const [hasChefAccess, setHasChefAccess] = useState(false)
+  const [checkingAccess, setCheckingAccess] = useState(true)
 
   // Если в VK Mini App и не авторизован - редирект на логин
   useEffect(() => {
@@ -20,6 +22,34 @@ export default function HomePage() {
       router.push('/login')
     }
   }, [isVKMiniApp, vkReady, loading, user, router])
+
+  // Проверяем доступ к Личному шефу (админ или хотя бы одна оплата)
+  useEffect(() => {
+    const checkAccess = async () => {
+      if (!user) {
+        setHasChefAccess(false)
+        setCheckingAccess(false)
+        return
+      }
+
+      try {
+        const response = await fetch('/api/courses/access?check_purchased=true', {
+          credentials: 'include'
+        })
+        const data = await response.json()
+        setHasChefAccess(data.hasPurchased || data.isAdmin)
+      } catch (error) {
+        console.error('Error checking chef access:', error)
+        setHasChefAccess(false)
+      } finally {
+        setCheckingAccess(false)
+      }
+    }
+
+    if (!loading) {
+      checkAccess()
+    }
+  }, [user, loading])
 
   return (
     <>
@@ -179,6 +209,89 @@ export default function HomePage() {
               <span>→</span>
             </div>
           </Link>
+        </div>
+      </section>
+
+      {/* Personal Chef Banner */}
+      <section className="py-8">
+        <div className="container mx-auto px-4">
+          {hasChefAccess ? (
+            <Link 
+              href="/recipes"
+              className="group relative flex items-center justify-between overflow-hidden rounded-3xl border-2 border-accent-neon/50 hover:border-accent-neon transition-all duration-500 hover:shadow-[0_0_50px_rgba(0,255,136,0.3)]"
+            >
+              {/* Background with multiple food images */}
+              <div className="absolute inset-0 z-0">
+                <div className="absolute inset-0 grid grid-cols-4 gap-1 opacity-40">
+                  <Image src="/img/recipes/keto-burger.jpg" alt="" fill className="object-cover" />
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-r from-dark-900/95 via-dark-900/80 to-dark-900/60" />
+                <div className="absolute inset-0 bg-gradient-to-t from-accent-neon/20 via-transparent to-accent-electric/20" />
+              </div>
+              
+              <div className="relative z-10 flex items-center gap-6 p-6 md:p-8">
+                <div className="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-accent-neon via-accent-electric to-accent-gold rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(0,255,136,0.5)] group-hover:scale-110 transition-transform duration-300">
+                  <ChefHat className="w-10 h-10 md:w-12 md:h-12 text-dark-900" />
+                </div>
+                <div>
+                  <h3 className="text-2xl md:text-3xl font-black text-white mb-2">
+                    <span className="bg-gradient-to-r from-accent-neon via-accent-electric to-accent-gold bg-clip-text text-transparent">
+                      🍳 Личный Шеф
+                    </span>
+                  </h3>
+                  <p className="text-white/70 text-sm md:text-base max-w-md">
+                    100+ кето-рецептов с фото • Генератор меню • Персональные планы питания
+                  </p>
+                </div>
+              </div>
+              
+              <div className="relative z-10 hidden md:flex items-center gap-3 pr-8">
+                <span className="text-accent-neon font-bold text-lg group-hover:translate-x-2 transition-transform duration-300">
+                  Открыть
+                </span>
+                <span className="text-2xl group-hover:translate-x-2 transition-transform duration-300">→</span>
+              </div>
+              
+              {/* Animated border glow */}
+              <div className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+                <div className="absolute inset-0 rounded-3xl animate-pulse bg-gradient-to-r from-accent-neon/20 via-accent-electric/20 to-accent-gold/20" />
+              </div>
+            </Link>
+          ) : (
+            <div className="relative flex items-center justify-between overflow-hidden rounded-3xl border-2 border-white/10 bg-glass">
+              {/* Background with food images (dimmed) */}
+              <div className="absolute inset-0 z-0">
+                <div className="absolute inset-0 opacity-15">
+                  <Image src="/img/recipes/keto-burger.jpg" alt="" fill className="object-cover" />
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-r from-dark-900/98 via-dark-900/90 to-dark-900/80" />
+              </div>
+              
+              <div className="relative z-10 flex items-center gap-6 p-6 md:p-8">
+                <div className="w-20 h-20 md:w-24 md:h-24 bg-white/10 rounded-2xl flex items-center justify-center">
+                  <ChefHat className="w-10 h-10 md:w-12 md:h-12 text-white/40" />
+                </div>
+                <div>
+                  <h3 className="text-2xl md:text-3xl font-black text-white/60 mb-2">
+                    🍳 Личный Шеф
+                  </h3>
+                  <p className="text-white/40 text-sm md:text-base max-w-md">
+                    Доступно после покупки любого курса
+                  </p>
+                </div>
+              </div>
+              
+              <div className="relative z-10 flex items-center gap-3 pr-8">
+                <Lock className="w-6 h-6 text-white/30" />
+                <Link 
+                  href="/courses"
+                  className="px-6 py-3 bg-gradient-to-r from-accent-electric to-accent-neon text-dark-900 font-bold rounded-xl hover:shadow-[0_0_20px_rgba(0,217,255,0.5)] transition-all duration-300"
+                >
+                  Купить курс
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
