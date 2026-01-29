@@ -14,7 +14,7 @@ import { MyCoursesModal } from '@/components/profile/MyCoursesModal'
 import { WalletModal } from '@/components/profile/WalletModal'
 import { ReferralModal } from '@/components/profile/ReferralModal'
 import { PromocodeSection } from '@/components/profile/PromocodeSection'
-import { Loader2, Settings, ArrowLeft, Mail, Phone, Save, BookOpen, Wallet, Gift, Bot, Smartphone, Ticket } from 'lucide-react'
+import { Loader2, Settings, ArrowLeft, Mail, Phone, Save, BookOpen, Wallet, Gift, Bot, Smartphone, Ticket, Shield, Users, CreditCard, Star } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 
@@ -413,21 +413,91 @@ export default function ProfilePage() {
             className="mb-8"
           >
             <h2 className="font-display font-bold text-xl text-white mb-4 flex items-center gap-2">
-              <span className="px-2 py-1 rounded bg-accent-gold/20 text-accent-gold text-sm">Админ</span>
+              <span className="px-2 py-1 rounded bg-accent-gold/20 text-accent-gold text-sm">👑 Админ</span>
               Панель управления
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <Link
-                href="/admin/promocodes"
-                className="rounded-xl glass border border-white/10 p-6 hover:border-accent-flame/50 transition-all group text-left"
-              >
+            
+            {/* Main Admin Panel Button */}
+            <Link
+              href="/admin"
+              className="group relative block w-full mb-4 p-6 rounded-2xl bg-gradient-to-r from-purple-600/30 via-pink-500/30 to-orange-500/30 border-2 border-accent-gold/50 hover:border-accent-gold hover:shadow-[0_0_40px_rgba(255,215,0,0.3)] transition-all duration-300"
+            >
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-accent-flame to-accent-gold flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Ticket className="w-7 h-7 text-dark-900" />
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-accent-gold via-accent-flame to-purple-500 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+                    <Shield className="w-9 h-9 text-dark-900" />
                   </div>
                   <div>
-                    <p className="text-lg font-bold text-white">Промокоды</p>
-                    <p className="text-sm text-white/60">Создание и управление</p>
+                    <p className="text-2xl font-bold text-white flex items-center gap-2">
+                      🎛️ Админ-панель
+                      <span className="animate-pulse">✨</span>
+                    </p>
+                    <p className="text-white/60">Статистика, пользователи, платежи, отзывы</p>
+                  </div>
+                </div>
+                <div className="hidden md:flex items-center gap-3 text-white/40">
+                  <Users className="w-5 h-5" />
+                  <CreditCard className="w-5 h-5" />
+                  <Star className="w-5 h-5" />
+                  <Ticket className="w-5 h-5" />
+                </div>
+              </div>
+            </Link>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Link
+                href="/admin/users"
+                className="rounded-xl glass border border-white/10 p-4 hover:border-blue-400/50 transition-all group text-left"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Users className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-white">Пользователи</p>
+                    <p className="text-xs text-white/50">Управление</p>
+                  </div>
+                </div>
+              </Link>
+              <Link
+                href="/admin/payments"
+                className="rounded-xl glass border border-white/10 p-4 hover:border-green-400/50 transition-all group text-left"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <CreditCard className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-white">Платежи</p>
+                    <p className="text-xs text-white/50">История</p>
+                  </div>
+                </div>
+              </Link>
+              <Link
+                href="/admin/reviews"
+                className="rounded-xl glass border border-white/10 p-4 hover:border-yellow-400/50 transition-all group text-left"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Star className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-white">Отзывы</p>
+                    <p className="text-xs text-white/50">Модерация</p>
+                  </div>
+                </div>
+              </Link>
+              <Link
+                href="/admin/promocodes"
+                className="rounded-xl glass border border-white/10 p-4 hover:border-accent-flame/50 transition-all group text-left"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-flame to-accent-gold flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Ticket className="w-6 h-6 text-dark-900" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-white">Промокоды</p>
+                    <p className="text-xs text-white/50">Создание</p>
                   </div>
                 </div>
               </Link>
