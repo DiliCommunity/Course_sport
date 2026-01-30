@@ -10,18 +10,22 @@ interface AppliedPromocode {
   discountPercent: number
   discountAmount: number
   description: string | null
+  promoType?: string
+  referralCommission?: number
 }
 
 interface PromocodeSectionProps {
   onPromocodeApplied?: (promocode: AppliedPromocode) => void
+  onReferralActivated?: () => void
 }
 
-export function PromocodeSection({ onPromocodeApplied }: PromocodeSectionProps) {
+export function PromocodeSection({ onPromocodeApplied, onReferralActivated }: PromocodeSectionProps) {
   const [code, setCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [appliedPromocode, setAppliedPromocode] = useState<AppliedPromocode | null>(null)
+  const [isReferralPromo, setIsReferralPromo] = useState(false)
 
   const handleApplyPromocode = async () => {
     if (!code.trim()) {
@@ -52,6 +56,17 @@ export function PromocodeSection({ onPromocodeApplied }: PromocodeSectionProps) 
 
       setSuccess(data.message)
       setAppliedPromocode(data.promocode)
+      
+      // Проверяем, был ли это промокод для реферальной системы
+      if (data.promoType === 'referral_access') {
+        setIsReferralPromo(true)
+        // Вызываем callback для обновления страницы
+        if (onReferralActivated) {
+          setTimeout(() => {
+            onReferralActivated()
+          }, 1500) // Небольшая задержка чтобы пользователь увидел сообщение
+        }
+      }
       
       if (onPromocodeApplied && data.promocode) {
         onPromocodeApplied(data.promocode)
@@ -139,7 +154,12 @@ export function PromocodeSection({ onPromocodeApplied }: PromocodeSectionProps) 
             
             <div className="mt-3 flex items-center gap-2 text-sm text-green-400">
               <Sparkles className="w-4 h-4" />
-              <span>Промокод применён! Скидка будет учтена при оплате</span>
+              <span>
+                {isReferralPromo 
+                  ? '🎉 Реферальная система активирована! Страница обновится...'
+                  : 'Промокод применён! Скидка будет учтена при оплате'
+                }
+              </span>
             </div>
           </motion.div>
         ) : (

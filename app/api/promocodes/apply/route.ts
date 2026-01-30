@@ -14,6 +14,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Используем admin клиент для всех операций с БД (обход RLS)
+    const adminSupabase = createAdminClient()
+    if (!adminSupabase) {
+      return NextResponse.json(
+        { error: 'Ошибка сервера' },
+        { status: 500 }
+      )
+    }
+
     const body = await request.json()
     const { code, courseId } = body
 
@@ -24,8 +33,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Ищем промокод
-    const { data: promocode, error: promoError } = await supabase
+    // Ищем промокод (используем admin клиент для обхода RLS)
+    const { data: promocode, error: promoError } = await adminSupabase
       .from('promocodes')
       .select('*')
       .ilike('code', code.trim())
@@ -33,6 +42,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (promoError || !promocode) {
+      console.error('Promocode search error:', promoError)
       return NextResponse.json(
         { error: 'Промокод не найден или недействителен' },
         { status: 404 }
@@ -71,7 +81,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Проверяем, использовал ли пользователь этот промокод
-    const { data: existingUsage } = await supabase
+    const { data: existingUsage } = await adminSupabase
       .from('user_promocodes')
       .select('id')
       .eq('user_id', user.id)
@@ -87,14 +97,6 @@ export async function POST(request: NextRequest) {
 
     // Если это промокод для доступа к реферальной системе - активируем сразу
     if (promocode.promo_type === 'referral_access') {
-      const adminSupabase = createAdminClient()
-      if (!adminSupabase) {
-        return NextResponse.json(
-          { error: 'Ошибка сервера' },
-          { status: 500 }
-        )
-      }
-
       // Получаем комиссию из metadata
       const metadata = promocode.metadata || {}
       const commission = metadata.referral_commission || 15

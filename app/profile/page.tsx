@@ -589,7 +589,12 @@ export default function ProfilePage() {
           transition={{ delay: 0.35 }}
           className="mb-8"
         >
-          <PromocodeSection />
+          <PromocodeSection 
+            onReferralActivated={() => {
+              // Перезагружаем страницу для обновления данных реферальной системы
+              window.location.reload()
+            }}
+          />
         </motion.div>
 
         {/* Courses Section */}
