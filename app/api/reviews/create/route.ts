@@ -10,6 +10,17 @@ export async function POST(request: NextRequest) {
     
     // Получаем пользователя из сессии (поддерживает и cookie, и X-Session-Token header для VK Mini App)
     const user = await getUserFromSession(supabase)
+    
+    // Используем admin клиент для всех операций с БД (обход RLS)
+    const adminSupabase = createAdminClient()
+    
+    if (!adminSupabase) {
+      console.error('[Review Create] Admin client not available')
+      return NextResponse.json(
+        { error: 'Ошибка сервера' },
+        { status: 500 }
+      )
+    }
 
     if (!user) {
       return NextResponse.json(
@@ -19,66 +30,6 @@ export async function POST(request: NextRequest) {
     }
 
     const userId = user.id
-
-    // Проверяем, может ли пользователь писать отзывы
-    // Отзывы могут писать только те, кто совершил хотя бы 1 оплату или является админом
-    const isAdmin = user.is_admin === true || false
-    
-    if (!isAdmin) {
-      const adminSupabase = createAdminClient()
-      
-      if (!adminSupabase) {
-        console.error('[Review Create] Admin client not available')
-        return NextResponse.json(
-          { error: 'Ошибка сервера при проверке прав доступа' },
-          { status: 500 }
-        )
-      }
-
-      // Проверяем наличие хотя бы одной завершенной оплаты (используем adminSupabase для обхода RLS)
-      const { data: payments, error: paymentsError } = await adminSupabase
-        .from('payments')
-        .select('id, status, course_id')
-        .eq('user_id', userId)
-        .eq('status', 'completed')
-        .limit(10)
-
-      console.log('[Review Create] Payments found:', payments?.length || 0, 'Error:', paymentsError?.message)
-
-      if (paymentsError) {
-        console.error('[Review Create] Error checking payments:', paymentsError)
-        return NextResponse.json(
-          { error: 'Ошибка при проверке прав доступа' },
-          { status: 500 }
-        )
-      }
-
-      // Если нет оплат, проверяем enrollments
-      if (!payments || payments.length === 0) {
-        const { data: enrollments, error: enrollmentsError } = await adminSupabase
-          .from('enrollments')
-          .select('id, course_id')
-          .eq('user_id', userId)
-          .limit(10)
-
-        console.log('[Review Create] Enrollments found:', enrollments?.length || 0, 'Error:', enrollmentsError?.message)
-
-        if (enrollmentsError) {
-          console.error('[Review Create] Error checking enrollments:', enrollmentsError)
-          return NextResponse.json(
-            { error: 'Ошибка при проверке прав доступа' },
-            { status: 500 }
-          )
-        }
-
-        if (!enrollments || enrollments.length === 0) {
-          return NextResponse.json(
-            { error: 'Вы можете оставить отзыв только после покупки хотя бы одного курса' },
-            { status: 403 }
-          )
-        }
-      }
-    }
 
     const body = await request.json()
     const { courseId, courseName, rating, text, isAnonymous } = body
@@ -112,22 +63,65 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Проверяем, что пользователь купил именно этот курс (если не админ)
+    const isAdmin = user.is_admin === true
+    if (!isAdmin) {
+      // Проверяем наличие завершенной оплаты для этого курса
+      const { data: payments, error: paymentError } = await adminSupabase
+        .from('payments')
+        .select('id, status, course_id')
+        .eq('user_id', userId)
+        .eq('course_id', courseId)
+        .eq('status', 'completed')
+        .limit(1)
+
+      console.log('[Review Create] Payment check for course:', courseId, 'Found:', payments?.length || 0, 'Error:', paymentError?.message)
+
+      let hasAccess = false
+
+      // Если есть оплата - доступ есть
+      if (payments && payments.length > 0) {
+        hasAccess = true
+      } else {
+        // Если нет оплаты, проверяем enrollments
+        const { data: enrollments, error: enrollmentError } = await adminSupabase
+          .from('enrollments')
+          .select('id, course_id')
+          .eq('user_id', userId)
+          .eq('course_id', courseId)
+          .limit(1)
+
+        console.log('[Review Create] Enrollment check for course:', courseId, 'Found:', enrollments?.length || 0, 'Error:', enrollmentError?.message)
+
+        if (enrollments && enrollments.length > 0) {
+          hasAccess = true
+        }
+      }
+
+      if (!hasAccess) {
+        return NextResponse.json(
+          { error: 'Вы можете оставить отзыв только по купленному вами курсу' },
+          { status: 403 }
+        )
+      }
+    }
+
     // Проверяем, не оставлял ли пользователь уже отзыв на этот курс
-    const { data: existingReview, error: checkError } = await supabase
+    const { data: existingReview, error: checkError } = await adminSupabase
       .from('reviews')
       .select('id')
       .eq('user_id', userId)
       .eq('course_id', courseId)
-      .single()
+      .maybeSingle()
 
-    if (checkError && checkError.code !== 'PGRST116') {
-      console.error('Error checking existing review:', checkError)
+    if (checkError) {
+      console.error('[Review Create] Error checking existing review:', checkError)
     }
 
     if (existingReview) {
       // Обновляем существующий отзыв
       const displayName = isAnonymous ? 'Анонимный пользователь' : (user.name || user.username || 'Пользователь')
-      const { data: updatedReview, error: updateError } = await supabase
+      const { data: updatedReview, error: updateError } = await adminSupabase
         .from('reviews')
         .update({
           course_name: courseName,
@@ -143,7 +137,7 @@ export async function POST(request: NextRequest) {
         .single()
 
       if (updateError) {
-        console.error('Error updating review:', updateError)
+        console.error('[Review Create] Error updating review:', updateError)
         return NextResponse.json(
           { error: 'Ошибка при обновлении отзыва' },
           { status: 500 }
@@ -158,7 +152,7 @@ export async function POST(request: NextRequest) {
     } else {
       // Создаём новый отзыв
       const displayName = isAnonymous ? 'Анонимный пользователь' : (user.name || user.username || 'Пользователь')
-      const { data: newReview, error: insertError } = await supabase
+      const { data: newReview, error: insertError } = await adminSupabase
         .from('reviews')
         .insert({
           user_id: userId,
@@ -175,9 +169,9 @@ export async function POST(request: NextRequest) {
         .single()
 
       if (insertError) {
-        console.error('Error creating review:', insertError)
+        console.error('[Review Create] Error creating review:', insertError)
         return NextResponse.json(
-          { error: 'Ошибка при создании отзыва' },
+          { error: `Ошибка при создании отзыва: ${insertError.message}` },
           { status: 500 }
         )
       }
