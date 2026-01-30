@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
     // Build query
     let query = adminSupabase
       .from('users')
-      .select('id, email, phone, name, username, is_admin, is_referral_partner, referral_code, referral_commission_percent, created_at', { count: 'exact' })
+      .select('id, email, phone, name, username, is_admin, is_referral_partner, referral_code, referral_commission_percent, registration_method, telegram_id, telegram_username, vk_id, avatar_url, created_at, last_login', { count: 'exact' })
 
     // Apply filters
     if (filter === 'admins') {

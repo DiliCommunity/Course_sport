@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
       .select(`
         id, user_id, course_id, amount, status, payment_method, 
         yookassa_payment_id, is_full_access, created_at, updated_at,
-        user:users(name, email, phone)
+        user:users(name, email, phone, username, telegram_username)
       `, { count: 'exact' })
 
     // Apply status filter

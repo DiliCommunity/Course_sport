@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { getUserFromSession } from '@/lib/session-utils'
+import { COURSE_IDS } from '@/lib/constants'
 
 export const dynamic = 'force-dynamic'
 
@@ -106,15 +107,30 @@ export async function GET(request: NextRequest) {
       .from('enrollments')
       .select('*', { count: 'exact', head: true })
 
-    const { count: ketoEnrollments } = await adminSupabase
+    // Пробуем разные форматы course_id (UUID и строковые)
+    const { count: ketoEnrollments1 } = await adminSupabase
+      .from('enrollments')
+      .select('*', { count: 'exact', head: true })
+      .eq('course_id', COURSE_IDS.KETO)
+
+    const { count: ketoEnrollments2 } = await adminSupabase
       .from('enrollments')
       .select('*', { count: 'exact', head: true })
       .eq('course_id', '1')
 
-    const { count: intervalEnrollments } = await adminSupabase
+    const ketoEnrollments = (ketoEnrollments1 || 0) + (ketoEnrollments2 || 0)
+
+    const { count: intervalEnrollments1 } = await adminSupabase
+      .from('enrollments')
+      .select('*', { count: 'exact', head: true })
+      .eq('course_id', COURSE_IDS.INTERVAL)
+
+    const { count: intervalEnrollments2 } = await adminSupabase
       .from('enrollments')
       .select('*', { count: 'exact', head: true })
       .eq('course_id', '2')
+
+    const intervalEnrollments = (intervalEnrollments1 || 0) + (intervalEnrollments2 || 0)
 
     // === ПРОМОКОДЫ ===
     const { count: totalPromocodes } = await adminSupabase
@@ -230,8 +246,8 @@ export async function GET(request: NextRequest) {
       },
       courses: {
         totalEnrollments: totalEnrollments || 0,
-        ketoEnrollments: ketoEnrollments || 0,
-        intervalEnrollments: intervalEnrollments || 0
+        ketoEnrollments: ketoEnrollments,
+        intervalEnrollments: intervalEnrollments
       },
       promocodes: {
         total: totalPromocodes || 0,

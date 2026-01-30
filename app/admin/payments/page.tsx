@@ -26,6 +26,8 @@ interface Payment {
     name: string | null
     email: string | null
     phone: string | null
+    username: string | null
+    telegram_username: string | null
   }
 }
 
@@ -155,12 +157,14 @@ export default function AdminPaymentsPage() {
   }
 
   const getCourseName = (courseId: string) => {
-    switch (courseId) {
-      case '1': return 'Кето диета'
-      case '2': return 'Интервальное голодание'
-      case 'bundle': return 'Оба курса'
-      default: return `Курс ${courseId}`
-    }
+    // Поддержка разных форматов ID
+    const ketoIds = ['1', '00000000-0000-0000-0000-000000000001', 'keto', 'keto-diet']
+    const intervalIds = ['2', '00000000-0000-0000-0000-000000000002', 'interval', 'interval-fasting']
+    
+    if (ketoIds.includes(courseId)) return '🥑 Кето диета'
+    if (intervalIds.includes(courseId)) return '⏰ Интервальное голодание'
+    if (courseId === 'bundle' || courseId === 'both') return '📦 Оба курса'
+    return `Курс ${courseId.slice(0, 8)}...`
   }
 
   if (authLoading) {
@@ -315,10 +319,15 @@ export default function AdminPaymentsPage() {
                       <td className="px-6 py-4">
                         <div>
                           <div className="text-white font-medium">
-                            {payment.user?.name || payment.user?.email || 'Аноним'}
+                            {payment.user?.name || payment.user?.username || payment.user?.telegram_username || 'Аноним'}
                           </div>
-                          <div className="text-xs text-white/40">
-                            {payment.user?.email || payment.user?.phone || payment.user_id.slice(0, 8)}
+                          <div className="text-xs text-white/40 space-y-0.5">
+                            {payment.user?.email && <div>📧 {payment.user.email}</div>}
+                            {payment.user?.phone && <div>📱 {payment.user.phone}</div>}
+                            {payment.user?.telegram_username && <div>✈️ @{payment.user.telegram_username}</div>}
+                            {!payment.user?.email && !payment.user?.phone && !payment.user?.telegram_username && (
+                              <div>ID: {payment.user_id.slice(0, 8)}...</div>
+                            )}
                           </div>
                         </div>
                       </td>

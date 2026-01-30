@@ -9,7 +9,8 @@ import {
   Users, ArrowLeft, Search, Filter, Loader2, 
   Shield, ShieldOff, UserCog, Mail, Phone, Calendar,
   RefreshCw, ChevronLeft, ChevronRight, MoreVertical,
-  Eye, Ban, CheckCircle, XCircle, Crown, Handshake
+  Eye, Ban, CheckCircle, XCircle, Crown, Handshake,
+  MessageCircle, Globe, Key, Clock
 } from 'lucide-react'
 
 interface User {
@@ -22,9 +23,13 @@ interface User {
   is_referral_partner: boolean
   referral_code: string | null
   referral_commission_percent: number | null
+  registration_method: string | null
+  telegram_id: string | null
+  telegram_username: string | null
+  vk_id: string | null
+  avatar_url: string | null
   created_at: string
-  enrollments_count?: number
-  payments_count?: number
+  last_login: string | null
 }
 
 export default function AdminUsersPage() {
@@ -153,10 +158,64 @@ export default function AdminUsersPage() {
     return new Date(date).toLocaleDateString('ru-RU', {
       day: '2-digit',
       month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      year: 'numeric'
     })
+  }
+
+  const getRegistrationMethodBadge = (method: string | null, telegramId: string | null, vkId: string | null) => {
+    // Определяем метод по данным
+    let displayMethod = method
+    if (!displayMethod) {
+      if (telegramId) displayMethod = 'telegram'
+      else if (vkId) displayMethod = 'vk'
+      else displayMethod = 'unknown'
+    }
+
+    switch (displayMethod) {
+      case 'telegram':
+        return (
+          <span className="px-2 py-1 rounded-full bg-blue-500/20 text-blue-400 text-xs flex items-center gap-1 w-fit">
+            <MessageCircle className="w-3 h-3" />
+            Telegram
+          </span>
+        )
+      case 'vk':
+        return (
+          <span className="px-2 py-1 rounded-full bg-sky-500/20 text-sky-400 text-xs flex items-center gap-1 w-fit">
+            <Globe className="w-3 h-3" />
+            VK
+          </span>
+        )
+      case 'phone':
+        return (
+          <span className="px-2 py-1 rounded-full bg-green-500/20 text-green-400 text-xs flex items-center gap-1 w-fit">
+            <Phone className="w-3 h-3" />
+            Телефон
+          </span>
+        )
+      case 'email':
+        return (
+          <span className="px-2 py-1 rounded-full bg-purple-500/20 text-purple-400 text-xs flex items-center gap-1 w-fit">
+            <Mail className="w-3 h-3" />
+            Email
+          </span>
+        )
+      case 'password':
+      case 'login':
+        return (
+          <span className="px-2 py-1 rounded-full bg-orange-500/20 text-orange-400 text-xs flex items-center gap-1 w-fit">
+            <Key className="w-3 h-3" />
+            Логин
+          </span>
+        )
+      default:
+        return (
+          <span className="px-2 py-1 rounded-full bg-white/10 text-white/50 text-xs flex items-center gap-1 w-fit">
+            <Globe className="w-3 h-3" />
+            Web
+          </span>
+        )
+    }
   }
 
   if (authLoading) {
@@ -266,9 +325,9 @@ export default function AdminUsersPage() {
                 <tr className="border-b border-white/10">
                   <th className="px-6 py-4 text-left text-sm font-semibold text-white/60">Пользователь</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-white/60">Контакты</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-white/60">Метод</th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-white/60">Статус</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-white/60">Реферал</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-white/60">Регистрация</th>
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-white/60">Дата</th>
                   <th className="px-6 py-4 text-right text-sm font-semibold text-white/60">Действия</th>
                 </tr>
               </thead>
@@ -311,7 +370,7 @@ export default function AdminUsersPage() {
                           {u.email && (
                             <div className="flex items-center gap-2 text-sm text-white/70">
                               <Mail className="w-4 h-4 text-white/40" />
-                              {u.email}
+                              <span className="truncate max-w-[150px]">{u.email}</span>
                             </div>
                           )}
                           {u.phone && (
@@ -320,44 +379,51 @@ export default function AdminUsersPage() {
                               {u.phone}
                             </div>
                           )}
-                          {!u.email && !u.phone && (
+                          {u.telegram_username && (
+                            <div className="flex items-center gap-2 text-sm text-blue-400">
+                              <MessageCircle className="w-4 h-4" />
+                              @{u.telegram_username}
+                            </div>
+                          )}
+                          {!u.email && !u.phone && !u.telegram_username && (
                             <span className="text-white/30">—</span>
                           )}
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        {u.is_admin ? (
-                          <span className="px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 text-sm flex items-center gap-1 w-fit">
-                            <Shield className="w-3 h-3" />
-                            Админ
-                          </span>
-                        ) : (
-                          <span className="px-3 py-1 rounded-full bg-white/10 text-white/50 text-sm">
-                            Пользователь
-                          </span>
-                        )}
+                        {getRegistrationMethodBadge(u.registration_method, u.telegram_id, u.vk_id)}
                       </td>
                       <td className="px-6 py-4">
-                        {u.is_referral_partner ? (
-                          <div>
-                            <span className="px-3 py-1 rounded-full bg-pink-500/20 text-pink-300 text-sm flex items-center gap-1 w-fit">
+                        <div className="space-y-1">
+                          {u.is_admin && (
+                            <span className="px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 text-xs flex items-center gap-1 w-fit">
+                              <Crown className="w-3 h-3" />
+                              Админ
+                            </span>
+                          )}
+                          {u.is_referral_partner && (
+                            <span className="px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-300 text-xs flex items-center gap-1 w-fit">
                               <Handshake className="w-3 h-3" />
                               Партнёр {u.referral_commission_percent}%
                             </span>
-                            {u.referral_code && (
-                              <div className="text-xs text-white/40 mt-1 font-mono">
-                                {u.referral_code}
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-white/30">—</span>
-                        )}
+                          )}
+                          {!u.is_admin && !u.is_referral_partner && (
+                            <span className="text-white/30 text-xs">Пользователь</span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-4 text-white/60 text-sm">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-white/40" />
-                          {formatDate(u.created_at)}
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="w-3 h-3 text-white/40" />
+                            <span className="text-xs">{formatDate(u.created_at)}</span>
+                          </div>
+                          {u.last_login && (
+                            <div className="flex items-center gap-2 text-white/40">
+                              <Clock className="w-3 h-3" />
+                              <span className="text-xs">Был: {formatDate(u.last_login)}</span>
+                            </div>
+                          )}
                         </div>
                       </td>
                       <td className="px-6 py-4">
