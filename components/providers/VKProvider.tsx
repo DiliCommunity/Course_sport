@@ -21,6 +21,7 @@ interface VKContextType {
   sessionToken: string | null
   saveSessionToken: (token: string) => Promise<void>
   clearSessionToken: () => Promise<void>
+  refreshSession: () => Promise<void>
 }
 
 const VKContext = createContext<VKContextType>({
@@ -31,6 +32,7 @@ const VKContext = createContext<VKContextType>({
   sessionToken: null,
   saveSessionToken: async () => {},
   clearSessionToken: async () => {},
+  refreshSession: async () => {},
 })
 
 export function useVK() {
@@ -66,8 +68,14 @@ export function VKProvider({ children }: VKProviderProps) {
   // Сохранение токена в VK Bridge Storage (работает в iOS VK Mini App!)
   // Токен сессии хранится в БД (sessions), это только клиентское хранилище для передачи токена
   const saveSessionToken = useCallback(async (token: string) => {
-    console.log('[VKProvider] Saving session token to VK Bridge Storage...')
+    console.log('[VKProvider] Saving session token...')
     setSessionToken(token)
+    
+    // Сохраняем в sessionStorage для быстрого доступа при SPA навигации
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('vk_session_token', token)
+      console.log('[VKProvider] ✅ Token saved to sessionStorage')
+    }
     
     // VK Bridge Storage - единственный способ сохранить токен в VK Mini App на iOS
     if (bridge && typeof bridge.send === 'function') {
@@ -88,6 +96,11 @@ export function VKProvider({ children }: VKProviderProps) {
     console.log('[VKProvider] Clearing session token...')
     setSessionToken(null)
     
+    // Очищаем sessionStorage
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('vk_session_token')
+    }
+    
     if (bridge && typeof bridge.send === 'function') {
       try {
         await bridge.send('VKWebAppStorageSet', {
@@ -103,6 +116,16 @@ export function VKProvider({ children }: VKProviderProps) {
 
   // Загрузка токена из VK Bridge Storage
   const loadSessionToken = useCallback(async (): Promise<string | null> => {
+    // Сначала проверяем sessionStorage (быстрее и надёжнее для SPA навигации)
+    if (typeof window !== 'undefined') {
+      const cachedToken = sessionStorage.getItem('vk_session_token')
+      if (cachedToken) {
+        console.log('[VKProvider] ✅ Token loaded from sessionStorage (fast path)')
+        return cachedToken
+      }
+    }
+    
+    // Затем пробуем VK Bridge Storage
     if (bridge && typeof bridge.send === 'function') {
       try {
         const result = await bridge.send('VKWebAppStorageGet', {
@@ -112,6 +135,10 @@ export function VKProvider({ children }: VKProviderProps) {
           const token = result.keys[0]?.value
           if (token) {
             console.log('[VKProvider] ✅ Token loaded from VK Bridge Storage')
+            // Кэшируем в sessionStorage для быстрого доступа
+            if (typeof window !== 'undefined') {
+              sessionStorage.setItem('vk_session_token', token)
+            }
             return token
           }
         }
@@ -121,6 +148,18 @@ export function VKProvider({ children }: VKProviderProps) {
     }
     return null
   }, [])
+
+  // Обновление сессии - вызывается при навигации для перезагрузки токена
+  const refreshSession = useCallback(async () => {
+    if (!isVKMiniApp) return
+    
+    console.log('[VKProvider] Refreshing session...')
+    const token = await loadSessionToken()
+    if (token && token !== sessionToken) {
+      setSessionToken(token)
+      console.log('[VKProvider] Session refreshed with token')
+    }
+  }, [isVKMiniApp, loadSessionToken, sessionToken])
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -145,19 +184,21 @@ export function VKProvider({ children }: VKProviderProps) {
         const userIdFromHash = hashParams.get('vk_user_id')
         const hasUserId = !!(userIdFromSearch || userIdFromHash)
         
-        // НЕ используем localStorage/sessionStorage - только URL параметры и VK Bridge
+        // Проверяем hostname и флаг в sessionStorage (для сохранения состояния при SPA навигации)
         const isVKHostname = hostname.includes('vk.com') || hostname.includes('vk.ru')
+        const wasVKMiniApp = typeof window !== 'undefined' && sessionStorage.getItem('is_vk_mini_app') === 'true'
         
         // НЕ используем cookie vk_id для определения VK Mini App
         // Cookie может быть установлен в обычном браузере после VK авторизации
         
         // Множественные способы определения VK окружения
-        // VK Mini App определяется ТОЛЬКО по:
+        // VK Mini App определяется по:
         // 1. Hostname содержит vk.com или vk.ru
         // 2. Есть VK параметры в URL (vk_user_id, vk_platform и т.д.)
         // 3. Есть VK Bridge в window
-        // НЕ используем referrer и localStorage для определения - это может дать ложные срабатывания
+        // 4. Был определён как VK Mini App ранее (sessionStorage)
         const isVKEnv = 
+          wasVKMiniApp || // Сохранённый флаг (для SPA навигации)
           isVKHostname || // Основной признак - hostname содержит vk.com или vk.ru
           hasUserId || // Наличие vk_user_id в URL
           urlParams.has('vk_access_token_settings') ||
@@ -186,6 +227,11 @@ export function VKProvider({ children }: VKProviderProps) {
           setIsVKMiniApp(true)
           setInitData(window.location.search)
           
+          // Сохраняем флаг в sessionStorage для сохранения состояния при SPA навигации
+          if (typeof window !== 'undefined') {
+            sessionStorage.setItem('is_vk_mini_app', 'true')
+          }
+          
           // ВАЖНО: Всегда вызываем VKWebAppInit при загрузке приложения в VK Mini App
           // Это обязательное требование для прохождения модерации VK
           // Согласно документации: https://dev.vk.com/bridge/getting-started
@@ -208,6 +254,10 @@ export function VKProvider({ children }: VKProviderProps) {
                   if (userResult && (userResult as any).id) {
                     detectedUser = userResult as UserInfo
                     setVkUser(userResult as UserInfo)
+                    // Сохраняем в sessionStorage
+                    if (typeof window !== 'undefined') {
+                      sessionStorage.setItem('vk_user', JSON.stringify(userResult))
+                    }
                   }
                 } catch (userError) {
                   console.log('[VKProvider] Could not get user info via bridge, using URL params:', userError)
@@ -221,8 +271,23 @@ export function VKProvider({ children }: VKProviderProps) {
             }
           }
           
-          // Получаем данные ТОЛЬКО из URL параметров - НЕ используем localStorage
+          // Получаем данные из URL параметров или sessionStorage (для SPA навигации)
           const userId = userIdFromSearch || userIdFromHash || urlParams.get('vk_user_id') || hashParams.get('vk_user_id')
+          
+          // Пробуем загрузить сохранённого пользователя из sessionStorage
+          let cachedUser: UserInfo | null = null
+          if (typeof window !== 'undefined') {
+            const cachedUserStr = sessionStorage.getItem('vk_user')
+            if (cachedUserStr) {
+              try {
+                cachedUser = JSON.parse(cachedUserStr)
+                console.log('[VKProvider] Loaded cached VK user from sessionStorage:', cachedUser?.id)
+              } catch (e) {
+                console.log('[VKProvider] Failed to parse cached VK user')
+              }
+            }
+          }
+          
           if (userId && !detectedUser) {
             console.log('[VKProvider] Setting user from URL params, userId:', userId)
             // Используем параметры из того источника, где нашли userId
@@ -237,13 +302,24 @@ export function VKProvider({ children }: VKProviderProps) {
             } as UserInfo
             setVkUser(detectedUser)
             
+            // Сохраняем пользователя в sessionStorage
+            if (typeof window !== 'undefined') {
+              sessionStorage.setItem('vk_user', JSON.stringify(detectedUser))
+            }
+            
             // Если нашли пользователя через URL - это точно VK Mini App
             if (!detectedVKMiniApp) {
               detectedVKMiniApp = true
               setIsVKMiniApp(true)
+              sessionStorage.setItem('is_vk_mini_app', 'true')
             }
-          } else if (!userId) {
-            console.log('[VKProvider] No vk_user_id in URL params or hash')
+          } else if (cachedUser && !detectedUser) {
+            // Используем кэшированного пользователя
+            console.log('[VKProvider] Using cached VK user:', cachedUser.id)
+            detectedUser = cachedUser
+            setVkUser(cachedUser)
+          } else if (!userId && !cachedUser) {
+            console.log('[VKProvider] No vk_user_id in URL params or cache')
           }
         } else {
           console.log('[VKProvider] Not in VK environment')
@@ -336,6 +412,7 @@ export function VKProvider({ children }: VKProviderProps) {
     sessionToken,
     saveSessionToken,
     clearSessionToken,
+    refreshSession,
   }
 
   // Логируем финальное значение для отладки
