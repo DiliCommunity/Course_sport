@@ -382,27 +382,76 @@ export default function RecipesPage() {
 
       const fileName = `${recipe.name.replace(/\s+/g, '_')}.pdf`
       
-      // Используем blob URL для лучшей совместимости с мобильными устройствами
+      // Определяем, является ли устройство мобильным или мини-аппом
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+      const isInApp = window.location.hostname.includes('vk.com') || 
+                      window.location.hostname.includes('telegram') ||
+                      (window as any).Telegram?.WebApp ||
+                      navigator.userAgent.includes('VKAndroidApp') ||
+                      navigator.userAgent.includes('VKCOM')
+      
+      console.log('[PDF Download] isMobile:', isMobile, 'isInApp:', isInApp, 'userAgent:', navigator.userAgent)
+      
+      // Используем blob URL для совместимости
       const pdfBlob = pdf.output('blob')
       const blobUrl = URL.createObjectURL(pdfBlob)
       
-      // Создаем ссылку для скачивания
-      const link = document.createElement('a')
-      link.href = blobUrl
-      link.download = fileName
-      link.style.display = 'none'
-      
-      // Добавляем ссылку в DOM и кликаем
-      document.body.appendChild(link)
-      link.click()
-      
-      // Удаляем ссылку и очищаем blob URL через задержку
-      setTimeout(() => {
-        if (document.body.contains(link)) {
-          document.body.removeChild(link)
+      if (isMobile || isInApp) {
+        // На мобильных устройствах и в мини-аппах открываем PDF в новой вкладке
+        // Это позволит пользователю сохранить его через системное меню
+        try {
+          // Пробуем открыть в новой вкладке
+          const newWindow = window.open(blobUrl, '_blank')
+          
+          if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+            // Если popup заблокирован, пробуем другой способ
+            // Создаем Data URL и открываем его
+            const pdfDataUri = pdf.output('datauristring')
+            
+            // Пробуем через iframe для iOS
+            if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+              const iframe = document.createElement('iframe')
+              iframe.style.display = 'none'
+              iframe.src = pdfDataUri
+              document.body.appendChild(iframe)
+              
+              setTimeout(() => {
+                if (document.body.contains(iframe)) {
+                  document.body.removeChild(iframe)
+                }
+              }, 5000)
+            } else {
+              // Для Android и других - прямая навигация
+              window.location.href = pdfDataUri
+            }
+          }
+          
+          // Очищаем blob URL через задержку
+          setTimeout(() => {
+            URL.revokeObjectURL(blobUrl)
+          }, 10000)
+        } catch (e) {
+          console.error('[PDF Download] Error opening PDF:', e)
+          // Fallback - скачиваем напрямую
+          pdf.save(fileName)
         }
-        URL.revokeObjectURL(blobUrl)
-      }, 1000)
+      } else {
+        // На десктопе используем стандартное скачивание
+        const link = document.createElement('a')
+        link.href = blobUrl
+        link.download = fileName
+        link.style.display = 'none'
+        
+        document.body.appendChild(link)
+        link.click()
+        
+        setTimeout(() => {
+          if (document.body.contains(link)) {
+            document.body.removeChild(link)
+          }
+          URL.revokeObjectURL(blobUrl)
+        }, 1000)
+      }
 
     } catch (error) {
       console.error('Error generating PDF:', error)
