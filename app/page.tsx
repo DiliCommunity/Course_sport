@@ -135,8 +135,43 @@ export default function HomePage() {
         </div>
         <div className="container mx-auto px-4 relative z-10">
           <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-block px-4 py-2 bg-gradient-to-r from-accent-gold/20 to-accent-electric/20 border border-accent-gold/40 rounded-full text-sm font-medium text-accent-gold mb-6">
-              🎯 15% контента бесплатно
+            {/* Promo Video */}
+            <div className="relative mb-8 mx-auto max-w-4xl group">
+              <div className="relative rounded-2xl overflow-hidden border-2 border-accent-gold/50 shadow-[0_0_40px_rgba(255,215,0,0.3)] group-hover:border-accent-electric group-hover:shadow-[0_0_60px_rgba(0,217,255,0.5)] transition-all duration-500">
+                {/* Gradient overlay for professional look */}
+                <div className="absolute inset-0 bg-gradient-to-br from-accent-gold/10 via-transparent to-accent-electric/10 z-10 pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-t from-dark-900/60 via-transparent to-transparent z-10 pointer-events-none" />
+                
+                {/* Video */}
+                <video
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="w-full h-auto max-h-[400px] md:max-h-[500px] object-cover"
+                  poster="/img/keto_full2.jpg"
+                >
+                  <source src="/img/Keto_life.mp4" type="video/mp4" />
+                </video>
+                
+                {/* Animated border glow */}
+                <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+                  <div className="absolute inset-0 rounded-2xl animate-pulse bg-gradient-to-r from-accent-gold/20 via-accent-electric/20 to-accent-neon/20 blur-xl" />
+                </div>
+                
+                {/* Decorative corner accents */}
+                <div className="absolute top-0 left-0 w-20 h-20 border-t-2 border-l-2 border-accent-gold/50 rounded-tl-2xl opacity-60" />
+                <div className="absolute top-0 right-0 w-20 h-20 border-t-2 border-r-2 border-accent-electric/50 rounded-tr-2xl opacity-60" />
+                <div className="absolute bottom-0 left-0 w-20 h-20 border-b-2 border-l-2 border-accent-neon/50 rounded-bl-2xl opacity-60" />
+                <div className="absolute bottom-0 right-0 w-20 h-20 border-b-2 border-r-2 border-accent-gold/50 rounded-br-2xl opacity-60" />
+              </div>
+              
+              {/* Badge overlay */}
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-20">
+                <div className="px-6 py-2 bg-gradient-to-r from-accent-gold via-accent-electric to-accent-neon rounded-full text-dark-900 font-bold text-sm md:text-base shadow-[0_4px_20px_rgba(255,215,0,0.4)] animate-pulse">
+                  🎯 15% контента бесплатно
+                </div>
+              </div>
             </div>
             
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-black mb-6 leading-tight">
