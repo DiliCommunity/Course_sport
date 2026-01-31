@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -14,6 +14,8 @@ export default function HomePage() {
   const router = useRouter()
   const [hasChefAccess, setHasChefAccess] = useState(false)
   const [checkingAccess, setCheckingAccess] = useState(true)
+  const [videoMuted, setVideoMuted] = useState(true)
+  const videoRef = useRef<HTMLVideoElement>(null)
 
   // Если в VK Mini App и не авторизован - редирект на логин
   useEffect(() => {
@@ -144,15 +146,42 @@ export default function HomePage() {
                 
                 {/* Video */}
                 <video
+                  ref={videoRef}
                   autoPlay
                   loop
-                  muted
+                  muted={videoMuted}
                   playsInline
                   className="w-full h-auto max-h-[400px] md:max-h-[500px] object-cover"
                   poster="/img/keto_full2.jpg"
                 >
                   <source src="/img/Keto_life.mp4" type="video/mp4" />
                 </video>
+                
+                {/* Sound control button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setVideoMuted(!videoMuted)
+                    if (videoRef.current) {
+                      videoRef.current.muted = !videoMuted
+                    }
+                  }}
+                  className="absolute bottom-4 right-4 z-20 p-3 bg-dark-900/80 hover:bg-dark-900 rounded-full border border-accent-gold/50 hover:border-accent-electric transition-all duration-300 group/btn"
+                  aria-label={videoMuted ? "Включить звук" : "Выключить звук"}
+                >
+                  {videoMuted ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-accent-gold group-hover/btn:text-accent-electric transition-colors">
+                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                      <line x1="23" y1="9" x2="17" y2="15"></line>
+                      <line x1="17" y1="9" x2="23" y2="15"></line>
+                    </svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-accent-gold group-hover/btn:text-accent-electric transition-colors">
+                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                      <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                    </svg>
+                  )}
+                </button>
                 
                 {/* Animated border glow */}
                 <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
