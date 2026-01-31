@@ -221,12 +221,32 @@ export default function HomePage() {
               className="group relative flex items-center justify-between overflow-hidden rounded-3xl border-2 border-accent-neon/50 hover:border-accent-neon transition-all duration-500 hover:shadow-[0_0_50px_rgba(0,255,136,0.3)]"
             >
               {/* Background with multiple food images */}
-              <div className="absolute inset-0 z-0">
-                <div className="absolute inset-0 grid grid-cols-4 gap-1 opacity-40">
-                  <Image src="/img/recipes/keto-burger.jpg" alt="" fill className="object-cover" />
+              <div className="absolute inset-0 z-0 overflow-hidden">
+                {/* Grid of food images */}
+                <div className="absolute inset-0 grid grid-cols-3 grid-rows-2 gap-1 opacity-50">
+                  <div className="relative">
+                    <Image src="/img/recipes/grilled-salmon-fillet.jpg" alt="" fill className="object-cover" />
+                  </div>
+                  <div className="relative">
+                    <Image src="/img/recipes/keto-burger.jpg" alt="" fill className="object-cover" />
+                  </div>
+                  <div className="relative">
+                    <Image src="/img/recipes/grilled-beef-steak.jpg" alt="" fill className="object-cover" />
+                  </div>
+                  <div className="relative">
+                    <Image src="/img/recipes/keto-cheesecake.jpg" alt="" fill className="object-cover" />
+                  </div>
+                  <div className="relative">
+                    <Image src="/img/recipes/grilled-chicken-breast-vegetables.jpg" alt="" fill className="object-cover" />
+                  </div>
+                  <div className="relative">
+                    <Image src="/img/recipes/keto-caesar-salad.jpg" alt="" fill className="object-cover" />
+                  </div>
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-r from-dark-900/95 via-dark-900/80 to-dark-900/60" />
-                <div className="absolute inset-0 bg-gradient-to-t from-accent-neon/20 via-transparent to-accent-electric/20" />
+                {/* Overlay gradients */}
+                <div className="absolute inset-0 bg-gradient-to-r from-dark-900/95 via-dark-900/85 to-dark-900/70" />
+                <div className="absolute inset-0 bg-gradient-to-t from-accent-neon/30 via-transparent to-accent-electric/20" />
+                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-accent-gold/10" />
               </div>
               
               <div className="relative z-10 flex items-center gap-6 p-6 md:p-8">
@@ -260,11 +280,29 @@ export default function HomePage() {
           ) : (
             <div className="relative flex items-center justify-between overflow-hidden rounded-3xl border-2 border-white/10 bg-glass">
               {/* Background with food images (dimmed) */}
-              <div className="absolute inset-0 z-0">
-                <div className="absolute inset-0 opacity-15">
-                  <Image src="/img/recipes/keto-burger.jpg" alt="" fill className="object-cover" />
+              <div className="absolute inset-0 z-0 overflow-hidden">
+                {/* Grid of food images - dimmed */}
+                <div className="absolute inset-0 grid grid-cols-3 grid-rows-2 gap-1 opacity-10">
+                  <div className="relative">
+                    <Image src="/img/recipes/grilled-salmon-fillet.jpg" alt="" fill className="object-cover" />
+                  </div>
+                  <div className="relative">
+                    <Image src="/img/recipes/keto-burger.jpg" alt="" fill className="object-cover" />
+                  </div>
+                  <div className="relative">
+                    <Image src="/img/recipes/grilled-beef-steak.jpg" alt="" fill className="object-cover" />
+                  </div>
+                  <div className="relative">
+                    <Image src="/img/recipes/keto-cheesecake.jpg" alt="" fill className="object-cover" />
+                  </div>
+                  <div className="relative">
+                    <Image src="/img/recipes/grilled-chicken-breast-vegetables.jpg" alt="" fill className="object-cover" />
+                  </div>
+                  <div className="relative">
+                    <Image src="/img/recipes/keto-caesar-salad.jpg" alt="" fill className="object-cover" />
+                  </div>
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-r from-dark-900/98 via-dark-900/90 to-dark-900/80" />
+                <div className="absolute inset-0 bg-gradient-to-r from-dark-900/98 via-dark-900/92 to-dark-900/85" />
               </div>
               
               <div className="relative z-10 flex items-center gap-6 p-6 md:p-8">
