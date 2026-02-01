@@ -54,6 +54,7 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
   const [cardNumber, setCardNumber] = useState('')
   const [phoneNumber, setPhoneNumber] = useState('')
   const [isWithdrawing, setIsWithdrawing] = useState(false)
+  const [instantWithdrawal, setInstantWithdrawal] = useState(false)
   const [tonWalletAddress, setTonWalletAddress] = useState<string | null>(null)
   const [isConnectingTon, setIsConnectingTon] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -324,6 +325,7 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
           withdrawal_method: withdrawMethod,
           card_number: withdrawMethod === 'card' ? cardNumber : null,
           phone: withdrawMethod === 'phone' ? phoneNumber : null,
+          instant_withdrawal: instantWithdrawal,
         }),
       })
 
@@ -333,7 +335,12 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
         throw new Error(data.error || 'Ошибка создания заявки на вывод')
       }
 
-      alert('Заявка на вывод создана! Средства будут переведены в течение 1-3 рабочих дней.')
+      if (data.instant && data.payout_id) {
+        alert(data.message || '✅ Средства успешно переведены! Вывод выполнен моментально.')
+      } else {
+        alert(data.message || 'Заявка на вывод создана! Средства будут переведены в течение 1-3 рабочих дней.')
+      }
+      
       onClose()
       window.location.reload()
     } catch (err: any) {
@@ -685,6 +692,28 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
                       </div>
                     )}
 
+                    {/* Instant Withdrawal Option */}
+                    <div className="mb-4 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={instantWithdrawal}
+                          onChange={(e) => setInstantWithdrawal(e.target.checked)}
+                          className="w-5 h-5 rounded border-white/20 bg-white/5 text-accent-teal focus:ring-2 focus:ring-accent-teal/50"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-white">⚡ Моментальный вывод</span>
+                            <span className="px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 text-xs font-bold">Быстро</span>
+                          </div>
+                          <p className="text-xs text-white/60 mt-1">
+                            Средства поступят в течение нескольких минут через YooKassa. 
+                            {instantWithdrawal && ' Доступно для карт, СБП и ЮMoney.'}
+                          </p>
+                        </div>
+                      </label>
+                    </div>
+
                     {/* Withdraw Button */}
                     <button
                       onClick={handleWithdraw}
@@ -715,8 +744,9 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
                   {/* Info */}
                   <div className="p-4 rounded-xl bg-yellow-400/10 border border-yellow-400/20">
                     <p className="text-sm text-white/80">
-                      <strong className="text-yellow-400">💡 Важно:</strong> Средства будут переведены в течение 1-3 рабочих дней. 
-                      Комиссия за вывод зависит от выбранного способа (обычно 1-3%).
+                      <strong className="text-yellow-400">💡 Важно:</strong> {instantWithdrawal 
+                        ? 'При моментальном выводе средства поступят в течение нескольких минут. Комиссия может быть выше (обычно 2-4%).'
+                        : 'Средства будут переведены в течение 1-3 рабочих дней. Комиссия за вывод зависит от выбранного способа (обычно 1-3%).'}
                     </p>
                   </div>
                 </>

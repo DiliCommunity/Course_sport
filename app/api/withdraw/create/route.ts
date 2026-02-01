@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { getUserFromSession } from '@/lib/session-utils'
 
 export const dynamic = 'force-dynamic'
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { amount, withdrawal_method, card_number, phone, wallet_address } = body
+    const { amount, withdrawal_method, card_number, phone, wallet_address, instant_withdrawal } = body
 
     // Валидация суммы
     const amountInKopecks = Math.round(parseFloat(amount) * 100)
@@ -142,9 +142,22 @@ export async function POST(request: NextRequest) {
       reference_type: 'withdrawal_request'
     })
 
+    // Если запрошен моментальный вывод - помечаем заявку для автоматической обработки
+    // Админ может обработать её через админ-панель, используя кнопку "Моментальный вывод"
+    if (instant_withdrawal) {
+      // Обновляем метаданные заявки, чтобы указать, что запрошен моментальный вывод
+      await supabase
+        .from('withdrawal_requests')
+        .update({
+          metadata: { instant_withdrawal: true }
+        })
+        .eq('id', withdrawalRequest.id)
+    }
+
     return NextResponse.json({
       success: true,
       withdrawal_id: withdrawalRequest.id,
+      instant: false,
       message: 'Заявка на вывод создана. Средства будут переведены в течение 1-3 рабочих дней.'
     })
 
