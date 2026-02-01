@@ -430,6 +430,74 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
     console.log('✅ Оплата финальных модулей успешна, доступ предоставлен')
   }
 
+  // Фиксация использования промокода
+  const promocodeId = metadata?.promocode_id
+  if (promocodeId && paymentType === 'course_purchase') {
+    console.log('🎟️ Фиксация использования промокода:', promocodeId)
+    
+    try {
+      const promocodeDiscountPercent = metadata?.promocode_discount_percent
+      const promocodeDiscountAmount = metadata?.promocode_discount_amount
+      
+      // Вычисляем примененную скидку
+      let discountApplied = 0
+      if (promocodeDiscountPercent) {
+        // Нужно найти исходную сумму без скидки
+        // Для этого можно использовать amountInKopecks и процент скидки
+        const originalAmount = Math.round(amountInKopecks / (1 - promocodeDiscountPercent / 100))
+        discountApplied = originalAmount - amountInKopecks
+      } else if (promocodeDiscountAmount) {
+        discountApplied = Math.round(parseFloat(promocodeDiscountAmount) * 100) // Конвертируем в копейки
+      }
+
+      // Проверяем, не использован ли уже промокод
+      const { data: existingUsage } = await supabase
+        .from('user_promocodes')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('promocode_id', promocodeId)
+        .maybeSingle()
+
+      if (!existingUsage) {
+        // Добавляем запись об использовании
+        const { error: insertError } = await supabase
+          .from('user_promocodes')
+          .insert({
+            user_id: userId,
+            promocode_id: promocodeId,
+            discount_applied: discountApplied,
+            order_id: paymentRecordId
+          })
+
+        if (insertError) {
+          console.error('❌ Ошибка фиксации промокода:', insertError)
+        } else {
+          console.log('✅ Использование промокода зафиксировано')
+
+          // Увеличиваем счётчик активаций
+          const { data: currentPromo } = await supabase
+            .from('promocodes')
+            .select('current_activations')
+            .eq('id', promocodeId)
+            .single()
+
+          if (currentPromo) {
+            await supabase
+              .from('promocodes')
+              .update({ current_activations: (currentPromo.current_activations || 0) + 1 })
+              .eq('id', promocodeId)
+            console.log('✅ Счётчик активаций промокода обновлен')
+          }
+        }
+      } else {
+        console.log('ℹ️ Промокод уже был использован ранее')
+      }
+    } catch (promoError: any) {
+      console.error('❌ Ошибка при обработке промокода:', promoError)
+      // Не прерываем обработку платежа из-за ошибки промокода
+    }
+  }
+
   // Создаем транзакцию
   const transactionType = paymentType === 'balance_topup' ? 'earned' : 'spent'
   

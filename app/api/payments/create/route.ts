@@ -25,7 +25,7 @@ interface YooKassaPayment {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { courseId: rawCourseId, paymentMethod, amount, userId, returnUrl, type, metadata, receipt } = body
+    const { courseId: rawCourseId, paymentMethod, amount, userId, returnUrl, type, metadata, receipt, promocode } = body
     
     // Конвертируем старые ID ('1', '2') в UUID для БД
     const courseId = rawCourseId ? getCourseUUID(rawCourseId) : null
@@ -286,6 +286,12 @@ export async function POST(request: NextRequest) {
         user_id: userId || 'guest',
         payment_method: paymentMethod || 'card',
         type: type || 'course_purchase',
+        ...(promocode && {
+          promocode_id: promocode.id,
+          promocode_code: promocode.code,
+          promocode_discount_percent: promocode.discountPercent || null,
+          promocode_discount_amount: promocode.discountAmount || null
+        }),
         ...(body.metadata || {})
       }
     }
