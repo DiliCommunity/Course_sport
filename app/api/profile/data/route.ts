@@ -104,9 +104,12 @@ export async function GET(request: NextRequest) {
     
     console.log('[Profile API] Transactions found:', transactions?.length || 0)
     
-    // Если реферального кода нет, но есть enrollments ИЛИ транзакции (купленные курсы) - создаем код автоматически
-    if (!referralCode && (enrollments && enrollments.length > 0 || transactions && transactions.length > 0)) {
-      console.log('[Profile API] Нет реферального кода, но есть enrollments/transactions - создаем автоматически')
+    // Проверяем, применен ли промокод PARTNER2026 (is_referral_partner)
+    const isReferralPartner = user.is_referral_partner || false
+    
+    // Если реферального кода нет, но есть enrollments ИЛИ транзакции ИЛИ применен промокод PARTNER2026 - создаем код автоматически
+    if (!referralCode && (enrollments && enrollments.length > 0 || transactions && transactions.length > 0 || isReferralPartner)) {
+      console.log('[Profile API] Нет реферального кода, но есть enrollments/transactions/is_referral_partner - создаем автоматически')
       
       const generateCode = () => {
         const prefix = 'REF-'
@@ -255,11 +258,12 @@ export async function GET(request: NextRequest) {
       }
     }))
 
-    // Проверяем есть ли ЛЮБАЯ транзакция ИЛИ купленные курсы (для реферальной ссылки)
-    // Реферальная ссылка доступна после первой оплаты или если есть купленные курсы
+    // Проверяем есть ли ЛЮБАЯ транзакция ИЛИ купленные курсы ИЛИ применен промокод PARTNER2026 (для реферальной ссылки)
+    // Реферальная ссылка доступна после первой оплаты, если есть купленные курсы, или если применен промокод PARTNER2026
+    // isReferralPartner уже объявлен выше
     const hasAnyTransaction = (transactions?.length || 0) > 0
     const hasEnrollments = (enrollments?.length || 0) > 0
-    const hasPurchasedCourse = hasAnyTransaction || hasEnrollments
+    const hasPurchasedCourse = hasAnyTransaction || hasEnrollments || isReferralPartner
 
     console.log('[Profile API] Data loaded:', {
       enrollments: formattedEnrollments.length,
@@ -268,6 +272,7 @@ export async function GET(request: NextRequest) {
       referralCodeValue: referralCode?.referral_code,
       hasAnyTransaction,
       hasEnrollments,
+      isReferralPartner,
       hasPurchasedCourse
     })
 

@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Проверяем, есть ли транзакции ИЛИ купленные курсы (enrollments)
+    // Проверяем, есть ли транзакции ИЛИ купленные курсы (enrollments) ИЛИ применен промокод PARTNER2026
     // Это важно после очистки транзакций - пользователи с курсами тоже должны иметь реферальный код
     const { count: transactionsCount, error: transactionsError } = await supabase
       .from('transactions')
@@ -30,20 +30,24 @@ export async function POST(request: NextRequest) {
       .select('id', { count: 'exact', head: true })
       .eq('user_id', user.id)
 
+    // Проверяем, применен ли промокод PARTNER2026 (is_referral_partner)
+    const isReferralPartner = user.is_referral_partner || false
+
     console.log('[Referral Generate] Checking eligibility:', { 
       userId: user.id, 
       transactionsCount: transactionsCount || 0,
       enrollmentsCount: enrollmentsCount || 0,
+      isReferralPartner,
       transactionsError,
       enrollmentsError
     })
 
-    // Реферальный код доступен если есть транзакции ИЛИ купленные курсы
-    if ((transactionsCount || 0) === 0 && (enrollmentsCount || 0) === 0) {
+    // Реферальный код доступен если есть транзакции ИЛИ купленные курсы ИЛИ применен промокод PARTNER2026
+    if ((transactionsCount || 0) === 0 && (enrollmentsCount || 0) === 0 && !isReferralPartner) {
       return NextResponse.json({
         success: false,
         error: 'NO_ELIGIBILITY',
-        message: 'Реферальная ссылка будет доступна после первой оплаты',
+        message: 'Реферальная ссылка будет доступна после первой оплаты или применения промокода PARTNER2026',
       }, { status: 403 })
     }
 

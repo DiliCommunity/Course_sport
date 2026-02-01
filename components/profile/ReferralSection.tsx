@@ -60,8 +60,10 @@ export function ReferralSection({
       
       if (data.success && data.referral_code) {
         setCurrentCode(data.referral_code)
-      } else if (data.error === 'NO_PURCHASE') {
-        setError(data.message)
+      } else if (data.error === 'NO_ELIGIBILITY' || data.error === 'NO_PURCHASE') {
+        setError(data.message || 'Реферальная ссылка будет доступна после первой оплаты или применения промокода PARTNER2026')
+      } else {
+        setError(data.error || 'Ошибка генерации реферального кода')
       }
     } catch (err) {
       console.error('Failed to generate referral code:', err)
