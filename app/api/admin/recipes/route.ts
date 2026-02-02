@@ -1,8 +1,72 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { getUserFromSession } from '@/lib/session-utils'
+import { ketoRecipesData } from '@/components/recipes/ketoRecipesData'
+import { enhancedMealsDatabase } from '@/components/recipes/enhancedMealsData'
+import type { Meal } from '@/components/recipes/MenuGenerator'
 
 export const dynamic = 'force-dynamic'
+
+// Преобразуем Meal в формат рецепта для админ-панели
+function mealToRecipe(meal: Meal, source: 'code' = 'code'): any {
+  // Определяем dishType
+  let dishType = meal.dishType || 'second'
+  if (!meal.dishType) {
+    const name = meal.name?.toLowerCase() || ''
+    if (name.includes('салат') || name.includes('тартар') || name.includes('закуск')) {
+      dishType = 'snack'
+    } else if (name.includes('суп') || name.includes('бульон')) {
+      dishType = 'first'
+    } else if (name.includes('десерт') || name.includes('чизкейк') || name.includes('торт') || name.includes('кекс')) {
+      dishType = 'dessert'
+    }
+  }
+
+  // Определяем processingMethod
+  let processingMethod = meal.processingMethod || 'baking'
+  if (!meal.processingMethod) {
+    const description = (meal.description || '').toLowerCase()
+    const instructions = (meal.instructions || []).join(' ').toLowerCase()
+    const combined = description + ' ' + instructions
+    
+    if (combined.includes('су-вид') || combined.includes('sous vide')) {
+      processingMethod = 'sous_vide'
+    } else if (combined.includes('гриль') || combined.includes('grill')) {
+      processingMethod = 'grilling'
+    } else if (combined.includes('жарить') || combined.includes('fry')) {
+      processingMethod = 'frying'
+    } else if (combined.includes('варить') || combined.includes('boil')) {
+      processingMethod = 'boiling'
+    } else if (combined.includes('пару') || combined.includes('steam')) {
+      processingMethod = 'steaming'
+    } else if (combined.includes('аэрогриль') || combined.includes('air fry')) {
+      processingMethod = 'air_frying'
+    }
+  }
+
+  return {
+    id: `code_${meal.name?.toLowerCase().replace(/\s+/g, '_') || 'unknown'}`,
+    name: meal.name || 'Без названия',
+    description: meal.description || null,
+    calories: meal.calories || 0,
+    proteins: meal.proteins || 0,
+    fats: meal.fats || 0,
+    carbs: meal.carbs || 0,
+    prep_time: meal.prepTime || 0,
+    estimated_cost: meal.estimatedCost || 0,
+    cooking_method: meal.cookingMethod || 'hot',
+    dish_type: dishType,
+    processing_method: processingMethod,
+    ingredients: meal.ingredients || [],
+    instructions: meal.instructions || [],
+    available_products: meal.availableProducts || [],
+    image_url: meal.image || null,
+    created_by: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    source: 'code' // Помечаем, что рецепт из кода
+  }
+}
 
 // GET - получение списка рецептов
 export async function GET(request: NextRequest) {
@@ -26,22 +90,47 @@ export async function GET(request: NextRequest) {
     }
 
     // Получаем рецепты из БД
-    const { data: recipes, error } = await adminSupabase
+    const { data: dbRecipes, error } = await adminSupabase
       .from('recipes')
       .select('*')
       .order('created_at', { ascending: false })
 
-    if (error) {
+    if (error && error.code !== 'PGRST116' && !error.message?.includes('does not exist')) {
       console.error('[Admin Recipes] Error fetching recipes:', error)
-      // Если таблицы нет, возвращаем пустой массив
-      if (error.code === 'PGRST116' || error.message?.includes('does not exist')) {
-        return NextResponse.json({ recipes: [] })
-      }
-      throw error
     }
 
+    // Собираем рецепты из кода
+    const codeRecipes: Meal[] = []
+
+    // 1. Из ketoRecipesData
+    Object.values(ketoRecipesData).forEach((categoryRecipes: Meal[]) => {
+      categoryRecipes.forEach(recipe => {
+        codeRecipes.push(recipe)
+      })
+    })
+
+    // 2. Из enhancedMealsDatabase
+    Object.values(enhancedMealsDatabase).forEach((categoryRecipes: Meal[]) => {
+      categoryRecipes.forEach(recipe => {
+        // Проверяем дубликаты по названию
+        const exists = codeRecipes.some(r => r.name === recipe.name)
+        if (!exists) {
+          codeRecipes.push(recipe)
+        }
+      })
+    })
+
+    // Преобразуем рецепты из кода в формат для админ-панели
+    const codeRecipesFormatted = codeRecipes.map(meal => mealToRecipe(meal))
+
+    // Объединяем рецепты: сначала из БД, потом из кода
+    const allRecipes = [
+      ...(dbRecipes || []).map(r => ({ ...r, source: 'database' })),
+      ...codeRecipesFormatted
+    ]
+
     return NextResponse.json({
-      recipes: recipes || []
+      recipes: allRecipes
     })
 
   } catch (error: any) {

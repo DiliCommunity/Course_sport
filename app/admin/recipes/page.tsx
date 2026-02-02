@@ -220,6 +220,13 @@ export default function AdminRecipesPage() {
   }
 
   const deleteRecipe = async (id: string) => {
+    // Проверяем, не является ли рецепт из кода
+    const recipe = recipes.find(r => r.id === id)
+    if (recipe && (recipe as any).source === 'code') {
+      alert('Рецепты из личного шефа нельзя удалять. Они доступны только для просмотра.')
+      return
+    }
+
     if (!confirm('Вы уверены, что хотите удалить этот рецепт?')) return
 
     try {
@@ -241,6 +248,12 @@ export default function AdminRecipesPage() {
   }
 
   const editRecipe = (recipe: Recipe) => {
+    // Проверяем, не является ли рецепт из кода
+    if ((recipe as any).source === 'code') {
+      alert('Рецепты из личного шефа нельзя редактировать. Они доступны только для просмотра.')
+      return
+    }
+
     setEditingRecipe(recipe)
     setFormData({
       name: recipe.name || '',
@@ -425,37 +438,6 @@ export default function AdminRecipesPage() {
     setEditingRecipe(null)
   }
 
-  const handleImportRecipes = async () => {
-    if (!confirm('Импортировать все рецепты из личного шефа в базу данных? Это может занять некоторое время.')) {
-      return
-    }
-
-    try {
-      setIsSaving(true)
-      setError(null)
-      setSuccess(null)
-
-      const response = await fetch('/api/admin/recipes/import', {
-        method: 'POST',
-        credentials: 'include'
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Ошибка при импорте рецептов')
-      }
-
-      setSuccess(`Импортировано ${data.imported} рецептов. Пропущено: ${data.skipped}. Ошибок: ${data.errors || 0}`)
-      fetchRecipes()
-      
-      setTimeout(() => setSuccess(null), 5000)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка импорта')
-    } finally {
-      setIsSaving(false)
-    }
-  }
 
   // AI Chef functions
   const sendAiMessage = async () => {
@@ -594,13 +576,6 @@ export default function AdminRecipesPage() {
             >
               <Sparkles className="w-5 h-5" />
               AI Шеф
-            </button>
-            <button
-              onClick={handleImportRecipes}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold hover:shadow-[0_0_30px_rgba(6,182,212,0.4)] transition-all"
-            >
-              <Package className="w-5 h-5" />
-              Импортировать рецепты
             </button>
           </div>
         </div>
@@ -917,20 +892,29 @@ export default function AdminRecipesPage() {
                         >
                           <Eye className="w-4 h-4 text-blue-400" />
                         </button>
-                        <button
-                          onClick={() => editRecipe(recipe)}
-                          className="w-8 h-8 rounded-lg bg-green-500/20 hover:bg-green-500/30 border border-green-500/40 flex items-center justify-center transition-all"
-                          title="Редактировать"
-                        >
-                          <Edit className="w-4 h-4 text-green-400" />
-                        </button>
-                        <button
-                          onClick={() => recipe.id && deleteRecipe(recipe.id)}
-                          className="w-8 h-8 rounded-lg bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 flex items-center justify-center transition-all"
-                          title="Удалить"
-                        >
-                          <Trash2 className="w-4 h-4 text-red-400" />
-                        </button>
+                        {(recipe as any).source !== 'code' && (
+                          <>
+                            <button
+                              onClick={() => editRecipe(recipe)}
+                              className="w-8 h-8 rounded-lg bg-green-500/20 hover:bg-green-500/30 border border-green-500/40 flex items-center justify-center transition-all"
+                              title="Редактировать"
+                            >
+                              <Edit className="w-4 h-4 text-green-400" />
+                            </button>
+                            <button
+                              onClick={() => recipe.id && deleteRecipe(recipe.id)}
+                              className="w-8 h-8 rounded-lg bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 flex items-center justify-center transition-all"
+                              title="Удалить"
+                            >
+                              <Trash2 className="w-4 h-4 text-red-400" />
+                            </button>
+                          </>
+                        )}
+                        {(recipe as any).source === 'code' && (
+                          <span className="px-2 py-1 rounded-lg bg-purple-500/20 text-purple-400 text-xs border border-purple-500/40">
+                            Из кода
+                          </span>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-4 text-sm text-white/50">
@@ -967,7 +951,7 @@ export default function AdminRecipesPage() {
         {/* Add Recipe Modal */}
         <AnimatePresence>
           {isModalOpen && (
-            <div className="fixed inset-0 z-[9999] flex items-start justify-center pt-20 pb-4 px-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
+            <div className="fixed inset-0 z-[9999] flex items-start justify-center pt-24 pb-4 px-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
               {/* Backdrop */}
               <motion.div
                 initial={{ opacity: 0 }}
@@ -1389,7 +1373,7 @@ export default function AdminRecipesPage() {
         {/* AI Chef Modal */}
         <AnimatePresence>
           {isAiChefOpen && (
-            <div className="fixed inset-0 z-[9999] flex items-start justify-center pt-20 pb-4 px-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
+            <div className="fixed inset-0 z-[9999] flex items-start justify-center pt-24 pb-4 px-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -1615,7 +1599,7 @@ export default function AdminRecipesPage() {
         {/* View Recipe Modal */}
         <AnimatePresence>
           {viewingRecipe && (
-            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+            <div className="fixed inset-0 z-[9999] flex items-start justify-center pt-24 pb-4 px-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}

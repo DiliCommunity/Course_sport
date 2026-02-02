@@ -70,8 +70,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Интеграция с DeepSeek API
-    const deepseekApiKey = process.env.DEEPSEEK_API_KEY
-    const openaiApiKey = process.env.OPENAI_API_KEY
+    const deepseekApiKey = process.env.DEEPSEEK_API_KEY?.trim()
+    const openaiApiKey = process.env.OPENAI_API_KEY?.trim()
     const apiKey = deepseekApiKey || openaiApiKey
     const useDeepSeek = !!deepseekApiKey
 
@@ -79,7 +79,8 @@ export async function POST(request: NextRequest) {
       hasDeepSeekKey: !!deepseekApiKey,
       hasOpenAIKey: !!openaiApiKey,
       useDeepSeek,
-      keyLength: apiKey ? apiKey.length : 0
+      keyLength: apiKey ? apiKey.length : 0,
+      keyStartsWithSk: apiKey?.startsWith('sk-') || false
     })
 
     if (!apiKey) {
@@ -88,6 +89,11 @@ export async function POST(request: NextRequest) {
         { error: 'AI API key not configured. Please set DEEPSEEK_API_KEY or OPENAI_API_KEY in environment variables.' },
         { status: 500 }
       )
+    }
+
+    // Проверяем формат ключа DeepSeek (должен начинаться с sk-)
+    if (useDeepSeek && !apiKey.startsWith('sk-')) {
+      console.warn('[AI Chef] DeepSeek API key format warning - should start with "sk-"')
     }
 
     try {
@@ -106,7 +112,7 @@ export async function POST(request: NextRequest) {
       const client = new OpenAI({
         apiKey: apiKey,
         baseURL: useDeepSeek 
-          ? 'https://api.deepseek.com' 
+          ? 'https://api.deepseek.com/v1' 
           : undefined,
       })
 
@@ -128,14 +134,16 @@ export async function POST(request: NextRequest) {
       ]
 
       console.log('[AI Chef] Sending request to', useDeepSeek ? 'DeepSeek' : 'OpenAI', 'with mode:', mode)
+      console.log('[AI Chef] API Key length:', apiKey?.length || 0, 'Base URL:', useDeepSeek ? 'https://api.deepseek.com/v1' : 'default')
       
       const completion = await client.chat.completions.create({
         model: useDeepSeek 
-          ? 'deepseek-chat'
+          ? 'deepseek-chat'  // Модель DeepSeek
           : 'gpt-4o-mini',
         messages: messages,
         temperature: 0.7,
-        max_tokens: mode === 'recipe' ? 1500 : 500,
+        max_tokens: mode === 'recipe' ? 2000 : 1000,
+        stream: false
       })
 
       console.log('[AI Chef] Received response from', useDeepSeek ? 'DeepSeek' : 'OpenAI')
