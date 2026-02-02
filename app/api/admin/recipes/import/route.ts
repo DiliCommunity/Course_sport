@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Фильтруем null значения (невалидные рецепты)
-    const validRecipes = recipesToInsert.filter(r => r !== null) as typeof recipesToInsert
+    const validRecipes = recipesToInsert.filter((r): r is NonNullable<typeof r> => r !== null)
     
     console.log(`[Import Recipes] Prepared ${validRecipes.length} valid recipes for insertion (${recipesToInsert.length - validRecipes.length} invalid skipped)`)
 
