@@ -168,14 +168,6 @@ export default function AdminDashboardPage() {
       stats: `${stats.reviews.pending} на модерации`
     },
     {
-      title: 'Курсы',
-      description: 'Управление контентом',
-      icon: BookOpen,
-      href: '/admin/courses',
-      color: 'from-indigo-500 to-purple-500',
-      stats: `${stats.courses.totalEnrollments} записей`
-    },
-    {
       title: 'Рецепты',
       description: 'Личный шеф - контент',
       icon: ChefHat,

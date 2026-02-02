@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
       .from('payments')
       .select(`
         id, user_id, course_id, amount, status, payment_method, 
-        yookassa_payment_id, created_at, updated_at, metadata
+        created_at, updated_at, metadata, completed_at, currency
       `, { count: 'exact' })
 
     // Apply status filter
@@ -95,10 +95,23 @@ export async function GET(request: NextRequest) {
 
     // Обрабатываем payments и добавляем данные пользователя
     const processedPayments = (payments || []).map((payment: any) => {
-      const metadata = payment.metadata || {}
+      // Безопасно обрабатываем metadata (может быть JSONB или объектом)
+      let metadata: Record<string, any> = {}
+      try {
+        if (typeof payment.metadata === 'string') {
+          metadata = JSON.parse(payment.metadata)
+        } else if (payment.metadata && typeof payment.metadata === 'object') {
+          metadata = payment.metadata as Record<string, any>
+        }
+      } catch (e) {
+        console.warn('[Admin Payments] Error parsing metadata:', e)
+        metadata = {}
+      }
+      
       const user = usersMap[payment.user_id] || null
       return {
         ...payment,
+        yookassa_payment_id: metadata.yookassa_payment_id || null,
         is_full_access: metadata.is_full_access || false,
         user: user ? {
           name: user.name,
@@ -123,10 +136,19 @@ export async function GET(request: NextRequest) {
       }
     })
 
-  } catch (error) {
-    console.error('Error fetching payments:', error)
+  } catch (error: any) {
+    console.error('[Admin Payments] Error fetching payments:', error)
+    console.error('[Admin Payments] Error details:', {
+      message: error?.message,
+      code: error?.code,
+      details: error?.details,
+      hint: error?.hint
+    })
     return NextResponse.json(
-      { error: 'Ошибка при загрузке платежей' },
+      { 
+        error: 'Ошибка при загрузке платежей',
+        details: process.env.NODE_ENV === 'development' ? error?.message : undefined
+      },
       { status: 500 }
     )
   }
