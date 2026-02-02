@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { userId, isPartner, commissionPercent = 15 } = body
+    const { userId, isPartner, commissionPercent = 10 } = body
 
     if (!userId) {
       return NextResponse.json(

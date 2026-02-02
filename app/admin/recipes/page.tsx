@@ -6,8 +6,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { 
   ChefHat, Loader2, Plus, X, Upload, Image as ImageIcon,
-  Clock, Flame, UtensilsCrossed, FileText, Save
+  Clock, Flame, UtensilsCrossed, FileText, Save, ArrowLeft, Menu
 } from 'lucide-react'
+import Link from 'next/link'
 import type { Meal, ProcessingMethod, DishType, CookingMethod } from '@/components/recipes/MenuGenerator'
 
 interface Recipe extends Meal {
@@ -268,27 +269,46 @@ export default function AdminRecipesPage() {
   return (
     <main className="min-h-screen pt-20 pb-16">
       <div className="container mx-auto px-4">
+        {/* Back Button */}
+        <Link
+          href="/admin"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white/80 hover:text-white transition-all mb-6"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Назад в админ-панель
+        </Link>
+
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-white flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500 to-red-500 flex items-center justify-center">
-                <ChefHat className="w-7 h-7 text-white" />
-              </div>
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500 to-red-500 flex items-center justify-center">
+              <ChefHat className="w-7 h-7 text-white" />
+            </div>
+            <h1 className="text-3xl md:text-4xl font-bold text-white">
               Управление рецептами
             </h1>
-            <p className="text-white/60 mt-2">
-              Добавляйте и редактируйте рецепты для пользователей
-            </p>
           </div>
+          <p className="text-white/60 mb-6">
+            Добавляйте и редактируйте рецепты для пользователей
+          </p>
           
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-rose-500 to-red-500 text-white font-medium hover:shadow-[0_0_30px_rgba(244,63,94,0.4)] transition-all"
-          >
-            <Plus className="w-5 h-5" />
-            Добавить рецепт
-          </button>
+          {/* Action Buttons */}
+          <div className="flex flex-wrap items-center gap-4">
+            <Link
+              href="/recipes"
+              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold hover:shadow-[0_0_30px_rgba(16,185,129,0.4)] transition-all"
+            >
+              <Menu className="w-5 h-5" />
+              Меню личного шефа
+            </Link>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-rose-500 to-red-500 text-white font-bold hover:shadow-[0_0_30px_rgba(244,63,94,0.4)] transition-all"
+            >
+              <Plus className="w-5 h-5" />
+              Добавить рецепт
+            </button>
+          </div>
         </div>
 
         {error && (
@@ -350,27 +370,51 @@ export default function AdminRecipesPage() {
         {/* Add Recipe Modal */}
         <AnimatePresence>
           {isModalOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+            <div className="fixed inset-0 z-[9999] flex items-start justify-center pt-20 pb-4 px-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
+              {/* Backdrop */}
               <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl glass border border-white/20 p-6"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => {
+                  setIsModalOpen(false)
+                  resetForm()
+                }}
+                className="absolute inset-0 bg-dark-900/90 backdrop-blur-md"
+                style={{ zIndex: 9998 }}
+              />
+              
+              {/* Modal */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                onClick={(e) => e.stopPropagation()}
+                className="relative w-full max-w-4xl max-h-[85vh] overflow-y-auto rounded-2xl glass border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.5)]"
+                style={{ zIndex: 9999 }}
               >
-                <button
-                  onClick={() => {
-                    setIsModalOpen(false)
-                    resetForm()
-                  }}
-                  className="absolute top-4 right-4 w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
-                >
-                  <X className="w-5 h-5 text-white" />
-                </button>
-
-                <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-                  <ChefHat className="w-6 h-6 text-rose-400" />
-                  Добавить новый рецепт
-                </h2>
+                {/* Gradient background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-rose-500/10 via-transparent to-red-500/10 rounded-2xl" />
+                
+                <div className="relative z-10">
+                  {/* Header */}
+                  <div className="sticky top-0 z-50 flex items-center justify-between p-6 border-b border-white/10 bg-dark-800/95 backdrop-blur-sm rounded-t-2xl">
+                    <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                      <ChefHat className="w-6 h-6 text-rose-400" />
+                      Добавить новый рецепт
+                    </h2>
+                    <button
+                      onClick={() => {
+                        setIsModalOpen(false)
+                        resetForm()
+                      }}
+                      className="w-10 h-10 rounded-xl bg-white/10 hover:bg-red-500/20 border border-white/20 hover:border-red-500/40 flex items-center justify-center transition-all"
+                    >
+                      <X className="w-5 h-5 text-white/80 hover:text-white" />
+                    </button>
+                  </div>
+                  
+                  <div className="p-6">
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {/* Basic Info */}
@@ -384,7 +428,7 @@ export default function AdminRecipesPage() {
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         required
-                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-rose-400/50"
+                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-rose-400/50 focus:ring-2 focus:ring-rose-400/20 transition-all"
                         placeholder="Например: Куриная грудка с овощами"
                       />
                     </div>
@@ -399,7 +443,7 @@ export default function AdminRecipesPage() {
                         onChange={(e) => setFormData({ ...formData, prepTime: parseInt(e.target.value) || 0 })}
                         required
                         min="0"
-                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-rose-400/50"
+                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-rose-400/50 focus:ring-2 focus:ring-rose-400/20 transition-all"
                       />
                     </div>
                   </div>
@@ -412,7 +456,7 @@ export default function AdminRecipesPage() {
                       value={formData.description}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                       rows={3}
-                      className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-rose-400/50 resize-none"
+                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-rose-400/50 focus:ring-2 focus:ring-rose-400/20 transition-all resize-none"
                       placeholder="Подробное описание блюда..."
                     />
                   </div>
@@ -429,7 +473,7 @@ export default function AdminRecipesPage() {
                         onChange={(e) => setFormData({ ...formData, calories: parseInt(e.target.value) || 0 })}
                         required
                         min="0"
-                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-rose-400/50"
+                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-rose-400/50 focus:ring-2 focus:ring-rose-400/20 transition-all"
                       />
                     </div>
                     <div>
@@ -443,7 +487,7 @@ export default function AdminRecipesPage() {
                         required
                         min="0"
                         step="0.1"
-                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-rose-400/50"
+                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-rose-400/50 focus:ring-2 focus:ring-rose-400/20 transition-all"
                       />
                     </div>
                     <div>
@@ -457,7 +501,7 @@ export default function AdminRecipesPage() {
                         required
                         min="0"
                         step="0.1"
-                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-rose-400/50"
+                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-rose-400/50 focus:ring-2 focus:ring-rose-400/20 transition-all"
                       />
                     </div>
                     <div>
@@ -471,7 +515,7 @@ export default function AdminRecipesPage() {
                         required
                         min="0"
                         step="0.1"
-                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-rose-400/50"
+                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-rose-400/50 focus:ring-2 focus:ring-rose-400/20 transition-all"
                       />
                     </div>
                   </div>
@@ -485,7 +529,7 @@ export default function AdminRecipesPage() {
                       <select
                         value={formData.processingMethod}
                         onChange={(e) => setFormData({ ...formData, processingMethod: e.target.value as ProcessingMethod })}
-                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-rose-400/50"
+                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-rose-400/50 focus:ring-2 focus:ring-rose-400/20 transition-all"
                       >
                         {COOKING_METHODS.map(method => (
                           <option key={method} value={method}>
@@ -501,7 +545,7 @@ export default function AdminRecipesPage() {
                       <select
                         value={formData.dishType}
                         onChange={(e) => setFormData({ ...formData, dishType: e.target.value as DishType })}
-                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-rose-400/50"
+                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-rose-400/50 focus:ring-2 focus:ring-rose-400/20 transition-all"
                       >
                         {DISH_TYPES.map(type => (
                           <option key={type} value={type}>
@@ -517,7 +561,7 @@ export default function AdminRecipesPage() {
                       <select
                         value={formData.cookingMethod}
                         onChange={(e) => setFormData({ ...formData, cookingMethod: e.target.value as CookingMethod })}
-                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-rose-400/50"
+                        className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-rose-400/50 focus:ring-2 focus:ring-rose-400/20 transition-all"
                       >
                         {COOKING_TYPES.map(type => (
                           <option key={type} value={type}>
@@ -547,7 +591,7 @@ export default function AdminRecipesPage() {
                       Изображение блюда
                     </label>
                     <div className="flex items-center gap-4">
-                      <label className="flex items-center gap-2 px-4 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 cursor-pointer transition-colors">
+                      <label className="flex items-center gap-2 px-4 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-rose-400/30 cursor-pointer transition-all">
                         <Upload className="w-5 h-5 text-white/60" />
                         <span className="text-white/80">Загрузить фото</span>
                         <input
@@ -577,12 +621,12 @@ export default function AdminRecipesPage() {
                         onChange={(e) => setIngredientInput(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addIngredient())}
                         placeholder="Добавить ингредиент..."
-                        className="flex-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-rose-400/50"
+                        className="flex-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-rose-400/50 focus:ring-2 focus:ring-rose-400/20 transition-all"
                       />
                       <button
                         type="button"
                         onClick={addIngredient}
-                        className="px-4 py-2 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-400 hover:bg-rose-500/30 transition-colors"
+                        className="px-4 py-2 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-400 hover:bg-rose-500/30 hover:border-rose-500/60 transition-all font-medium"
                       >
                         Добавить
                       </button>
@@ -618,12 +662,12 @@ export default function AdminRecipesPage() {
                         onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), addInstruction())}
                         placeholder="Добавить шаг приготовления..."
                         rows={2}
-                        className="flex-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-rose-400/50 resize-none"
+                        className="flex-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-rose-400/50 focus:ring-2 focus:ring-rose-400/20 transition-all resize-none"
                       />
                       <button
                         type="button"
                         onClick={addInstruction}
-                        className="px-4 py-2 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-400 hover:bg-rose-500/30 transition-colors"
+                        className="px-4 py-2 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-400 hover:bg-rose-500/30 hover:border-rose-500/60 transition-all font-medium"
                       >
                         Добавить
                       </button>
@@ -660,12 +704,12 @@ export default function AdminRecipesPage() {
                         onChange={(e) => setProductInput(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addProduct())}
                         placeholder="Добавить продукт..."
-                        className="flex-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:border-rose-400/50"
+                        className="flex-1 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-rose-400/50 focus:ring-2 focus:ring-rose-400/20 transition-all"
                       />
                       <button
                         type="button"
                         onClick={addProduct}
-                        className="px-4 py-2 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-400 hover:bg-rose-500/30 transition-colors"
+                        className="px-4 py-2 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-400 hover:bg-rose-500/30 hover:border-rose-500/60 transition-all font-medium"
                       >
                         Добавить
                       </button>
@@ -690,11 +734,11 @@ export default function AdminRecipesPage() {
                   </div>
 
                   {/* Submit Button */}
-                  <div className="flex items-center gap-4 pt-4 border-t border-white/10">
+                  <div className="flex items-center gap-4 pt-6 border-t border-white/10">
                     <button
                       type="submit"
                       disabled={isSaving}
-                      className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-rose-500 to-red-500 text-white font-medium hover:shadow-[0_0_30px_rgba(244,63,94,0.4)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-rose-500 to-red-500 text-white font-bold hover:shadow-[0_0_30px_rgba(244,63,94,0.4)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isSaving ? (
                         <>
@@ -714,12 +758,14 @@ export default function AdminRecipesPage() {
                         setIsModalOpen(false)
                         resetForm()
                       }}
-                      className="px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors"
+                      className="px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white transition-all font-medium"
                     >
                       Отмена
                     </button>
                   </div>
                 </form>
+                  </div>
+                </div>
               </motion.div>
             </div>
           )}

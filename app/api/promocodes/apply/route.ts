@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
     if (promocode.promo_type === 'referral_access') {
       // Получаем комиссию из metadata
       const metadata = promocode.metadata || {}
-      const commission = metadata.referral_commission || 15
+      const commission = metadata.referral_commission || 10
 
       // Обновляем пользователя - даём статус реферального партнёра
       const { error: updateError } = await adminSupabase
@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        message: `🎉 Реферальная система активирована! Ваша комиссия: ${commission}%`,
+        message: `🎉 Реферальная система активирована! Ваша партнёрская комиссия: ${commission}% (плюс 30% с ваших рефералов)`,
         promoType: 'referral_access',
         promocode: {
           id: promocode.id,
@@ -146,7 +146,21 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Возвращаем данные промокода (без фиксации использования - это будет при оплате)
+    // Для обычных промокодов: увеличиваем счётчик активаций сразу при применении
+    // (но не записываем в user_promocodes - это будет при оплате, чтобы избежать дублирования)
+    const { error: activationError } = await adminSupabase
+      .from('promocodes')
+      .update({ current_activations: promocode.current_activations + 1 })
+      .eq('id', promocode.id)
+
+    if (activationError) {
+      console.error('Error updating promocode activations:', activationError)
+      // Не прерываем выполнение, просто логируем ошибку
+    } else {
+      console.log(`✅ Счётчик активаций промокода ${promocode.code} увеличен: ${promocode.current_activations + 1}`)
+    }
+
+    // Возвращаем данные промокода
     return NextResponse.json({
       success: true,
       message: 'Промокод применён!',

@@ -57,9 +57,20 @@ export function PromocodeSection({ onPromocodeApplied, onReferralActivated }: Pr
       setSuccess(data.message)
       setAppliedPromocode(data.promocode)
       
+      // Сохраняем промокод в localStorage для использования при оплате
+      if (data.promocode && data.promoType !== 'referral_access') {
+        try {
+          localStorage.setItem('applied_promocode', JSON.stringify(data.promocode))
+        } catch (e) {
+          console.error('Error saving promocode to localStorage:', e)
+        }
+      }
+      
       // Проверяем, был ли это промокод для реферальной системы
       if (data.promoType === 'referral_access') {
         setIsReferralPromo(true)
+        // Удаляем промокод из localStorage, так как это не скидочный промокод
+        localStorage.removeItem('applied_promocode')
         // Вызываем callback для обновления страницы
         if (onReferralActivated) {
           setTimeout(() => {
@@ -84,6 +95,8 @@ export function PromocodeSection({ onPromocodeApplied, onReferralActivated }: Pr
     setCode('')
     setSuccess(null)
     setError(null)
+    // Удаляем промокод из localStorage
+    localStorage.removeItem('applied_promocode')
   }
 
   const formatDiscount = (promocode: AppliedPromocode) => {

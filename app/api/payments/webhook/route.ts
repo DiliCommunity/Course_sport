@@ -473,21 +473,8 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
           console.error('❌ Ошибка фиксации промокода:', insertError)
         } else {
           console.log('✅ Использование промокода зафиксировано')
-
-          // Увеличиваем счётчик активаций
-          const { data: currentPromo } = await supabase
-            .from('promocodes')
-            .select('current_activations')
-            .eq('id', promocodeId)
-            .single()
-
-          if (currentPromo) {
-            await supabase
-              .from('promocodes')
-              .update({ current_activations: (currentPromo.current_activations || 0) + 1 })
-              .eq('id', promocodeId)
-            console.log('✅ Счётчик активаций промокода обновлен')
-          }
+          // Счётчик активаций уже увеличен при применении промокода в профиле,
+          // поэтому здесь только фиксируем использование в user_promocodes
         }
       } else {
         console.log('ℹ️ Промокод уже был использован ранее')

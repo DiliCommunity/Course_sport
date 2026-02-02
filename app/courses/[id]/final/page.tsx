@@ -16,12 +16,13 @@ import { formatPrice, formatDuration } from '@/lib/utils'
 import { RestaurantChecklist } from '@/components/lessons/RestaurantChecklist'
 import { TravelKetoKit } from '@/components/lessons/TravelKetoKit'
 import { AcneRecipeGenerator } from '@/components/lessons/AcneRecipeGenerator'
-import { IFProtocolPlanner } from '@/components/lessons/IFProtocolPlanner'
 import { HungerTracker } from '@/components/lessons/HungerTracker'
 import { IFProgressTracker } from '@/components/lessons/IFProgressTracker'
 import { FastingWorkoutGenerator } from '@/components/lessons/FastingWorkoutGenerator'
+import { IFCalculator } from '@/components/lessons/IFCalculator'
 import { KetoRecipeGenerator } from '@/components/lessons/KetoRecipeGenerator'
 import { TKDCKDPlanner } from '@/components/lessons/TKDCKDPlanner'
+import { ProgressNotesTracker } from '@/components/lessons/ProgressNotesTracker'
 
 interface FinalModulesData {
   module4: {
@@ -503,47 +504,96 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
                                   </div>
                                 )}
 
-                                {(lesson.title.toLowerCase().includes('протокол') ||
-                                  lesson.title.toLowerCase().includes('автофагия') ||
-                                  lesson.content?.toLowerCase().includes('протокол') ||
-                                  lesson.content?.toLowerCase().includes('автофагия') ||
-                                  lesson.content?.toLowerCase().includes('клеточное обновление')) && (
+                                {/* Модуль 4: Автофагия - Генератор тренировок на голоде */}
+                                {(lesson.id === '13' ||
+                                  (lesson.title.toLowerCase().includes('автофагия') &&
+                                   lesson.content?.toLowerCase().includes('клеточное обновление'))) && (
                                   <div className="mt-6">
-                                    <IFProtocolPlanner />
+                                    <FastingWorkoutGenerator />
                                   </div>
                                 )}
 
-                                {(lesson.title.toLowerCase().includes('голод') ||
-                                  lesson.title.toLowerCase().includes('борьба с голодом') ||
-                                  lesson.content?.toLowerCase().includes('физический голод') ||
-                                  lesson.content?.toLowerCase().includes('психологический голод') ||
-                                  lesson.content?.toLowerCase().includes('виды голода')) && (
+                                {/* Модуль 5 - Урок 14: IF для Мозга - Калькулятор IF */}
+                                {(lesson.id === '14' ||
+                                  (lesson.title.toLowerCase().includes('мозг') &&
+                                   (lesson.title.toLowerCase().includes('if') ||
+                                    lesson.content?.toLowerCase().includes('bdnf') ||
+                                    lesson.content?.toLowerCase().includes('когнитив')))) && (
+                                  <div className="mt-6">
+                                    <IFCalculator />
+                                  </div>
+                                )}
+
+                                {/* Модуль 5 - Урок 15: IF + Спорт - Генератор тренировок на голоде */}
+                                {(lesson.id === '15' ||
+                                  (lesson.title.toLowerCase().includes('спорт') &&
+                                   lesson.title.toLowerCase().includes('if'))) && (
+                                  <div className="mt-6">
+                                    <FastingWorkoutGenerator />
+                                  </div>
+                                )}
+
+                                {/* Модуль 5 - Урок 15b: Циркадный Тип - Калькулятор IF */}
+                                {(lesson.id === '15b' ||
+                                  (lesson.title.toLowerCase().includes('циркадный') ||
+                                   lesson.title.toLowerCase().includes('жаворонок') ||
+                                   lesson.title.toLowerCase().includes('сова'))) && (
+                                  <div className="mt-6">
+                                    <IFCalculator />
+                                  </div>
+                                )}
+
+                                {/* Модуль 5 - Урок 15c: Биохакинг IF - Заметки о прогрессе */}
+                                {(lesson.id === '15c' ||
+                                  (lesson.title.toLowerCase().includes('биохакинг') &&
+                                   lesson.title.toLowerCase().includes('if'))) && (
+                                  <div className="mt-6">
+                                    <ProgressNotesTracker />
+                                  </div>
+                                )}
+
+                                {/* Модуль 6 - Урок 16: История Трансформации - Трекер голода */}
+                                {(lesson.id === '16' ||
+                                  (lesson.title.toLowerCase().includes('история') &&
+                                   lesson.title.toLowerCase().includes('трансформация'))) && (
                                   <div className="mt-6">
                                     <HungerTracker />
                                   </div>
                                 )}
 
-                                {(lesson.title.toLowerCase().includes('прогресс') ||
-                                  lesson.title.toLowerCase().includes('трекер') ||
-                                  lesson.title.toLowerCase().includes('отслеживание') ||
-                                  lesson.content?.toLowerCase().includes('отслеживайте прогресс') ||
-                                  lesson.content?.toLowerCase().includes('трекер прогресса') ||
-                                  lesson.content?.toLowerCase().includes('90-дневный план')) && (
+                                {/* Модуль 6 - Урок 17: 90-Дневный План - Трекер прогресса IF (только для этого урока) */}
+                                {(lesson.id === '17' ||
+                                  (lesson.title.toLowerCase().includes('90-дневный') &&
+                                   lesson.content?.toLowerCase().includes('90-дневный план'))) && (
                                   <div className="mt-6">
                                     <IFProgressTracker />
                                   </div>
                                 )}
 
-                                {(lesson.title.toLowerCase().includes('тренировка') ||
-                                  lesson.title.toLowerCase().includes('тренировки') ||
-                                  lesson.title.toLowerCase().includes('натощак') ||
-                                  lesson.content?.toLowerCase().includes('тренировки натощак') ||
-                                  lesson.content?.toLowerCase().includes('тренировка натощак') ||
-                                  lesson.content?.toLowerCase().includes('физическая активность') ||
-                                  lesson.content?.toLowerCase().includes('спорт при if') ||
-                                  lesson.content?.toLowerCase().includes('упражнения при голодании')) && (
+                                {/* Модуль 6 - Урок 18: Манифест - Заметки о прогрессе */}
+                                {(lesson.id === '18' ||
+                                  (lesson.title.toLowerCase().includes('манифест') &&
+                                   !lesson.title.toLowerCase().includes('if в современном'))) && (
                                   <div className="mt-6">
-                                    <FastingWorkoutGenerator />
+                                    <ProgressNotesTracker />
+                                  </div>
+                                )}
+
+                                {/* Модуль 6 - Урок 18b: IF в Современном Мире - Калькулятор IF */}
+                                {(lesson.id === '18b' ||
+                                  (lesson.title.toLowerCase().includes('if в современном') ||
+                                   lesson.title.toLowerCase().includes('приложения'))) && (
+                                  <div className="mt-6">
+                                    <IFCalculator />
+                                  </div>
+                                )}
+
+                                {/* Модуль 6 - Урок 18c: Финальный Чек-лист - Трекер голода */}
+                                {(lesson.id === '18c' ||
+                                  (lesson.title.toLowerCase().includes('финальный') &&
+                                   lesson.title.toLowerCase().includes('чек-лист'))) && (
+                                  <div className="mt-6">
+                                    <HungerTracker />
                                   </div>
                                 )}
 
@@ -770,47 +820,96 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
                                   </div>
                                 )}
 
-                                {(lesson.title.toLowerCase().includes('протокол') ||
-                                  lesson.title.toLowerCase().includes('автофагия') ||
-                                  lesson.content?.toLowerCase().includes('протокол') ||
-                                  lesson.content?.toLowerCase().includes('автофагия') ||
-                                  lesson.content?.toLowerCase().includes('клеточное обновление')) && (
+                                {/* Модуль 5 - Урок 13: Автофагия - Генератор тренировок на голоде */}
+                                {(lesson.id === '13' ||
+                                  (lesson.title.toLowerCase().includes('автофагия') &&
+                                   lesson.content?.toLowerCase().includes('клеточное обновление'))) && (
                                   <div className="mt-6">
-                                    <IFProtocolPlanner />
+                                    <FastingWorkoutGenerator />
                                   </div>
                                 )}
 
-                                {(lesson.title.toLowerCase().includes('голод') ||
-                                  lesson.title.toLowerCase().includes('борьба с голодом') ||
-                                  lesson.content?.toLowerCase().includes('физический голод') ||
-                                  lesson.content?.toLowerCase().includes('психологический голод') ||
-                                  lesson.content?.toLowerCase().includes('виды голода')) && (
+                                {/* Модуль 5 - Урок 14: IF для Мозга - Калькулятор IF */}
+                                {(lesson.id === '14' ||
+                                  (lesson.title.toLowerCase().includes('мозг') &&
+                                   (lesson.title.toLowerCase().includes('if') ||
+                                    lesson.content?.toLowerCase().includes('bdnf') ||
+                                    lesson.content?.toLowerCase().includes('когнитив')))) && (
+                                  <div className="mt-6">
+                                    <IFCalculator />
+                                  </div>
+                                )}
+
+                                {/* Модуль 5 - Урок 15: IF + Спорт - Генератор тренировок на голоде */}
+                                {(lesson.id === '15' ||
+                                  (lesson.title.toLowerCase().includes('спорт') &&
+                                   lesson.title.toLowerCase().includes('if'))) && (
+                                  <div className="mt-6">
+                                    <FastingWorkoutGenerator />
+                                  </div>
+                                )}
+
+                                {/* Модуль 5 - Урок 15b: Циркадный Тип - Калькулятор IF */}
+                                {(lesson.id === '15b' ||
+                                  (lesson.title.toLowerCase().includes('циркадный') ||
+                                   lesson.title.toLowerCase().includes('жаворонок') ||
+                                   lesson.title.toLowerCase().includes('сова'))) && (
+                                  <div className="mt-6">
+                                    <IFCalculator />
+                                  </div>
+                                )}
+
+                                {/* Модуль 5 - Урок 15c: Биохакинг IF - Заметки о прогрессе */}
+                                {(lesson.id === '15c' ||
+                                  (lesson.title.toLowerCase().includes('биохакинг') &&
+                                   lesson.title.toLowerCase().includes('if'))) && (
+                                  <div className="mt-6">
+                                    <ProgressNotesTracker />
+                                  </div>
+                                )}
+
+                                {/* Модуль 6 - Урок 16: История Трансформации - Трекер голода */}
+                                {(lesson.id === '16' ||
+                                  (lesson.title.toLowerCase().includes('история') &&
+                                   lesson.title.toLowerCase().includes('трансформация'))) && (
                                   <div className="mt-6">
                                     <HungerTracker />
                                   </div>
                                 )}
 
-                                {(lesson.title.toLowerCase().includes('прогресс') ||
-                                  lesson.title.toLowerCase().includes('трекер') ||
-                                  lesson.title.toLowerCase().includes('отслеживание') ||
-                                  lesson.content?.toLowerCase().includes('отслеживайте прогресс') ||
-                                  lesson.content?.toLowerCase().includes('трекер прогресса') ||
-                                  lesson.content?.toLowerCase().includes('90-дневный план')) && (
+                                {/* Модуль 6 - Урок 17: 90-Дневный План - Трекер прогресса IF (только для этого урока) */}
+                                {(lesson.id === '17' ||
+                                  (lesson.title.toLowerCase().includes('90-дневный') &&
+                                   lesson.content?.toLowerCase().includes('90-дневный план'))) && (
                                   <div className="mt-6">
                                     <IFProgressTracker />
                                   </div>
                                 )}
 
-                                {(lesson.title.toLowerCase().includes('тренировка') ||
-                                  lesson.title.toLowerCase().includes('тренировки') ||
-                                  lesson.title.toLowerCase().includes('натощак') ||
-                                  lesson.content?.toLowerCase().includes('тренировки натощак') ||
-                                  lesson.content?.toLowerCase().includes('тренировка натощак') ||
-                                  lesson.content?.toLowerCase().includes('физическая активность') ||
-                                  lesson.content?.toLowerCase().includes('спорт при if') ||
-                                  lesson.content?.toLowerCase().includes('упражнения при голодании')) && (
+                                {/* Модуль 6 - Урок 18: Манифест - Заметки о прогрессе */}
+                                {(lesson.id === '18' ||
+                                  (lesson.title.toLowerCase().includes('манифест') &&
+                                   !lesson.title.toLowerCase().includes('if в современном'))) && (
                                   <div className="mt-6">
-                                    <FastingWorkoutGenerator />
+                                    <ProgressNotesTracker />
+                                  </div>
+                                )}
+
+                                {/* Модуль 6 - Урок 18b: IF в Современном Мире - Калькулятор IF */}
+                                {(lesson.id === '18b' ||
+                                  (lesson.title.toLowerCase().includes('if в современном') ||
+                                   lesson.title.toLowerCase().includes('приложения'))) && (
+                                  <div className="mt-6">
+                                    <IFCalculator />
+                                  </div>
+                                )}
+
+                                {/* Модуль 6 - Урок 18c: Финальный Чек-лист - Трекер голода */}
+                                {(lesson.id === '18c' ||
+                                  (lesson.title.toLowerCase().includes('финальный') &&
+                                   lesson.title.toLowerCase().includes('чек-лист'))) && (
+                                  <div className="mt-6">
+                                    <HungerTracker />
                                   </div>
                                 )}
 

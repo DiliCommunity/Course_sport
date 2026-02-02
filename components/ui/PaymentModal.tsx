@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Lock, CheckCircle2, Shield, LogIn, Mail, Phone } from 'lucide-react'
+import { X, Lock, CheckCircle2, Shield, LogIn, Mail, Phone, Tag, Check, Loader2 } from 'lucide-react'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { useTelegram } from '@/components/providers/TelegramProvider'
 import { Button } from './Button'
@@ -107,6 +107,13 @@ export function PaymentModal({
   const { user } = useAuth()
   const { user: telegramUser, isTelegramApp, webApp } = useTelegram()
   
+  // Промокоды
+  const [promocodeInput, setPromocodeInput] = useState('')
+  const [appliedPromocode, setAppliedPromocode] = useState<any>(null)
+  const [isValidatingPromocode, setIsValidatingPromocode] = useState(false)
+  const [promocodeError, setPromocodeError] = useState<string | null>(null)
+  const [finalAmount, setFinalAmount] = useState(coursePrice)
+  
   // Проверка авторизации - ТОЛЬКО по наличию сессии (user), не по данным Telegram
   const isAuthenticated = !!user
 
@@ -121,6 +128,38 @@ export function PaymentModal({
       }
     }
   }, [isOpen, user])
+
+  // Загружаем примененный промокод из localStorage при открытии модалки
+  useEffect(() => {
+    if (isOpen && user) {
+      try {
+        const savedPromocode = localStorage.getItem('applied_promocode')
+        if (savedPromocode) {
+          const promocode = JSON.parse(savedPromocode)
+          // Проверяем, что промокод еще действителен
+          if (promocode && promocode.code) {
+            setPromocodeInput(promocode.code)
+            setAppliedPromocode(promocode)
+          }
+        }
+      } catch (e) {
+        console.error('Error loading promocode from localStorage:', e)
+      }
+    }
+  }, [isOpen, user])
+
+  // Сохраняем примененный промокод в localStorage
+  useEffect(() => {
+    if (appliedPromocode) {
+      try {
+        localStorage.setItem('applied_promocode', JSON.stringify(appliedPromocode))
+      } catch (e) {
+        console.error('Error saving promocode to localStorage:', e)
+      }
+    } else {
+      localStorage.removeItem('applied_promocode')
+    }
+  }, [appliedPromocode])
 
   // Редирект на страницу входа если не авторизован
   useEffect(() => {
@@ -141,6 +180,86 @@ export function PaymentModal({
       document.body.classList.remove('modal-open')
     }
   }, [isOpen])
+
+  // Обновляем финальную сумму при изменении промокода или исходной цены
+  useEffect(() => {
+    if (appliedPromocode) {
+      let discount = 0
+      if (appliedPromocode.discountPercent) {
+        discount = Math.round(coursePrice * appliedPromocode.discountPercent / 100)
+      } else if (appliedPromocode.discountAmount) {
+        discount = appliedPromocode.discountAmount * 100 // конвертируем в копейки
+      }
+      setFinalAmount(Math.max(0, coursePrice - discount))
+    } else {
+      setFinalAmount(coursePrice)
+    }
+  }, [appliedPromocode, coursePrice])
+
+  // Валидация промокода при вводе (debounce)
+  useEffect(() => {
+    if (!promocodeInput.trim() || !isOpen) {
+      setAppliedPromocode(null)
+      setPromocodeError(null)
+      return
+    }
+
+    const timeoutId = setTimeout(() => {
+      validatePromocode(promocodeInput.trim())
+    }, 500) // Задержка 500ms
+
+    return () => clearTimeout(timeoutId)
+  }, [promocodeInput, isOpen, courseId])
+
+  const validatePromocode = async (code: string) => {
+    if (!code || !user) return
+
+    setIsValidatingPromocode(true)
+    setPromocodeError(null)
+
+    try {
+      const response = await fetch('/api/promocodes/validate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          code,
+          courseId: courseId || null
+        })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setPromocodeError(data.error || 'Промокод недействителен')
+        setAppliedPromocode(null)
+        return
+      }
+
+      if (data.success && data.promocode) {
+        setAppliedPromocode(data.promocode)
+        setPromocodeError(null)
+      } else {
+        setPromocodeError('Промокод не найден')
+        setAppliedPromocode(null)
+      }
+    } catch (error: any) {
+      console.error('Error validating promocode:', error)
+      setPromocodeError('Ошибка проверки промокода')
+      setAppliedPromocode(null)
+    } finally {
+      setIsValidatingPromocode(false)
+    }
+  }
+
+  const handleClearPromocode = () => {
+    setPromocodeInput('')
+    setAppliedPromocode(null)
+    setPromocodeError(null)
+    localStorage.removeItem('applied_promocode')
+  }
 
   const handlePayment = async () => {
     // Двойная проверка авторизации
@@ -182,7 +301,13 @@ export function PaymentModal({
         body: JSON.stringify({
           courseId: courseId || (type === 'promotion' && promotionId === 'two_courses' ? null : 'unknown'),
           paymentMethod: selectedMethod,
-          amount: coursePrice, // coursePrice уже в копейках (109900, 219900)
+          amount: finalAmount, // Используем финальную сумму с учетом промокода
+          promocode: appliedPromocode ? {
+            id: appliedPromocode.id,
+            code: appliedPromocode.code,
+            discountPercent: appliedPromocode.discountPercent,
+            discountAmount: appliedPromocode.discountAmount
+          } : null,
           userId: userId,
           returnUrl: `${window.location.origin}/payment/success${courseId ? `?course=${courseId}` : ''}`,
           type: type,
@@ -212,6 +337,10 @@ export function PaymentModal({
       }
 
       if (data.confirmationUrl) {
+        // Очищаем промокод из localStorage перед переходом на оплату
+        if (appliedPromocode) {
+          localStorage.removeItem('applied_promocode')
+        }
         // Для Telegram Web App используем openLink, для браузера - window.location
         if (isTelegramApp && webApp) {
           webApp.openLink(data.confirmationUrl)
@@ -220,6 +349,9 @@ export function PaymentModal({
         }
       } else {
         // Для демо - просто показываем успех
+        if (appliedPromocode) {
+          localStorage.removeItem('applied_promocode')
+        }
         if (onPaymentSuccess) {
           onPaymentSuccess()
         }
@@ -282,12 +414,82 @@ export function PaymentModal({
 
               {/* Price */}
               <div className="p-4 rounded-xl bg-gradient-to-r from-accent-gold/10 to-accent-electric/10 border border-accent-gold/20">
-                <div className="flex items-baseline justify-between">
-                  <span className="text-white/70">К оплате:</span>
-                  <span className="font-display font-bold text-3xl bg-gradient-to-r from-accent-gold to-accent-electric bg-clip-text text-transparent">
-                    {formatPrice(coursePrice / 100)}
-                  </span>
+                <div className="space-y-2">
+                  {appliedPromocode && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-white/60">Исходная цена:</span>
+                      <span className="text-white/60 line-through">
+                        {formatPrice(coursePrice / 100)}
+                      </span>
+                    </div>
+                  )}
+                  {appliedPromocode && (
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-emerald-400">Скидка:</span>
+                      <span className="text-emerald-400 font-semibold">
+                        {appliedPromocode.discountPercent 
+                          ? `-${appliedPromocode.discountPercent}%`
+                          : appliedPromocode.discountAmount 
+                          ? `-${formatPrice(appliedPromocode.discountAmount)}`
+                          : ''}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex items-baseline justify-between pt-2 border-t border-white/10">
+                    <span className="text-white/70">К оплате:</span>
+                    <span className="font-display font-bold text-3xl bg-gradient-to-r from-accent-gold to-accent-electric bg-clip-text text-transparent">
+                      {formatPrice(finalAmount / 100)}
+                    </span>
+                  </div>
                 </div>
+              </div>
+
+              {/* Promocode Input */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-white/80">
+                  Промокод
+                </label>
+                <div className="relative">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2">
+                    <Tag className="w-5 h-5 text-white/40" />
+                  </div>
+                  <input
+                    type="text"
+                    value={promocodeInput}
+                    onChange={(e) => setPromocodeInput(e.target.value.toUpperCase())}
+                    placeholder="Введите промокод"
+                    className="w-full pl-10 pr-10 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/40 focus:outline-none focus:border-accent-gold/50 focus:ring-2 focus:ring-accent-gold/20 transition-all"
+                  />
+                  {isValidatingPromocode && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <Loader2 className="w-5 h-5 text-accent-gold animate-spin" />
+                    </div>
+                  )}
+                  {appliedPromocode && !isValidatingPromocode && (
+                    <button
+                      onClick={handleClearPromocode}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-400 hover:text-emerald-300 transition-colors"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  )}
+                  {appliedPromocode && !isValidatingPromocode && (
+                    <div className="absolute right-10 top-1/2 -translate-y-1/2">
+                      <Check className="w-5 h-5 text-emerald-400" />
+                    </div>
+                  )}
+                </div>
+                {promocodeError && (
+                  <p className="text-sm text-red-400">{promocodeError}</p>
+                )}
+                {appliedPromocode && (
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
+                    <Check className="w-4 h-4 text-emerald-400" />
+                    <span className="text-sm text-emerald-400">
+                      Промокод "{appliedPromocode.code}" применён!
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Error */}

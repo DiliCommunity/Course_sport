@@ -20,7 +20,6 @@ import { ShoppingListGenerator } from '@/components/lessons/ShoppingListGenerato
 import { MealGenerator } from '@/components/lessons/MealGenerator'
 import { IFCalculator } from '@/components/lessons/IFCalculator'
 import { AcneRecipeGenerator } from '@/components/lessons/AcneRecipeGenerator'
-import { IFProtocolPlanner } from '@/components/lessons/IFProtocolPlanner'
 import { HungerTracker } from '@/components/lessons/HungerTracker'
 import { IFProgressTracker } from '@/components/lessons/IFProgressTracker'
 import { FastingWorkoutGenerator } from '@/components/lessons/FastingWorkoutGenerator'
@@ -718,12 +717,20 @@ function LessonModal({
             <IFCalculator />
           ) : null}
 
-          {(lesson.title.toLowerCase().includes('протокол') ||
-            lesson.title.toLowerCase().includes('автофагия') ||
-            lesson.content?.toLowerCase().includes('протокол') ||
-            lesson.content?.toLowerCase().includes('автофагия') ||
-            lesson.content?.toLowerCase().includes('клеточное обновление')) ? (
-            <IFProtocolPlanner />
+          {/* Модуль 4: Автофагия - Генератор тренировок на голоде */}
+          {(lesson.title.toLowerCase().includes('автофагия') ||
+            (lesson.content?.toLowerCase().includes('автофагия') &&
+             lesson.content?.toLowerCase().includes('клеточное обновление'))) ? (
+            <FastingWorkoutGenerator />
+          ) : null}
+
+          {/* Модуль 5: Протоколы IF - Калькулятор IF */}
+          {(lesson.title.toLowerCase().includes('протокол') &&
+            !lesson.title.toLowerCase().includes('автофагия') &&
+            !lesson.content?.toLowerCase().includes('автофагия') &&
+            !lesson.content?.toLowerCase().includes('90-дневный') &&
+            !lesson.content?.toLowerCase().includes('трансформация')) ? (
+            <IFCalculator />
           ) : null}
 
           {(lesson.title.toLowerCase().includes('голод') ||

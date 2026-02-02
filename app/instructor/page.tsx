@@ -41,10 +41,10 @@ const INSTRUCTORS: Instructor[] = [
   },
   {
     id: 'general',
-    name: 'Общий инструктор',
+    name: 'Алексей Помощник',
     avatar: 'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?w=200',
-    specialization: 'Общие вопросы по здоровью и питанию',
-    description: 'Поможет с общими вопросами по здоровью, питанию и образу жизни'
+    specialization: 'Помощник по сайту и общие вопросы',
+    description: 'Поможет с навигацией по сайту, приложениями, ссылками и общими вопросами по здоровью'
   }
 ]
 
@@ -211,6 +211,45 @@ export default function InstructorPage() {
       e.preventDefault()
       sendMessage()
     }
+  }
+
+  // Функция для парсинга сообщений с Markdown ссылками
+  const parseMessageWithLinks = (text: string) => {
+    // Паттерн для Markdown ссылок: [текст](/ссылка)
+    const linkPattern = /\[([^\]]+)\]\(([^)]+)\)/g
+    const parts: (string | JSX.Element)[] = []
+    let lastIndex = 0
+    let match
+    let key = 0
+
+    while ((match = linkPattern.exec(text)) !== null) {
+      // Добавляем текст до ссылки
+      if (match.index > lastIndex) {
+        parts.push(text.slice(lastIndex, match.index))
+      }
+      
+      // Добавляем ссылку
+      const linkText = match[1]
+      const linkUrl = match[2]
+      parts.push(
+        <Link
+          key={key++}
+          href={linkUrl}
+          className="text-accent-teal hover:text-accent-teal/80 underline font-medium"
+        >
+          {linkText}
+        </Link>
+      )
+      
+      lastIndex = match.index + match[0].length
+    }
+
+    // Добавляем оставшийся текст
+    if (lastIndex < text.length) {
+      parts.push(text.slice(lastIndex))
+    }
+
+    return parts.length > 0 ? parts : text
   }
 
   if (authLoading || checkingAccess) {
@@ -408,7 +447,9 @@ export default function InstructorPage() {
                           : 'bg-white/5 text-white border border-white/10'
                       }`}
                     >
-                      <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                      <p className="whitespace-pre-wrap break-words">
+                        {parseMessageWithLinks(message.content)}
+                      </p>
                       <span className="text-xs opacity-60 mt-2 block">
                         {message.timestamp.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
                       </span>
