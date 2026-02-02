@@ -32,12 +32,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Собираем все рецепты из разных источников
-    const allRecipes: Meal[] = []
+    const allRecipes: Array<Meal & { category?: string }> = []
 
     // 1. Импортируем из ketoRecipesData
-    Object.values(ketoRecipesData).forEach((categoryRecipes: Meal[]) => {
+    Object.entries(ketoRecipesData).forEach(([category, categoryRecipes]: [string, Meal[]]) => {
       categoryRecipes.forEach(recipe => {
-        allRecipes.push(recipe)
+        allRecipes.push({ ...recipe, category })
       })
     })
 
@@ -59,15 +59,37 @@ export async function POST(request: NextRequest) {
       // Определяем dishType на основе категории или из рецепта
       let dishType = recipe.dishType || 'second'
       
-      // Если dishType не указан, пытаемся определить по названию или другим признакам
-      if (!recipe.dishType) {
+      // Если dishType не указан, определяем по категории из ketoRecipesData
+      if (!recipe.dishType && (recipe as any).category) {
+        const category = (recipe as any).category
+        if (category === 'breakfast' || category === 'lunch' || category === 'dinner') {
+          dishType = 'second' // Основные блюда
+        } else if (category === 'snack') {
+          dishType = 'snack'
+        } else if (category === 'dessert') {
+          dishType = 'dessert'
+        }
+      }
+      
+      // Если dishType все еще не определен, пытаемся определить по названию
+      if (!recipe.dishType && !(recipe as any).category) {
         const name = recipe.name?.toLowerCase() || ''
         if (name.includes('салат') || name.includes('тартар') || name.includes('закуск')) {
           dishType = 'snack'
         } else if (name.includes('суп') || name.includes('бульон')) {
           dishType = 'first'
-        } else if (name.includes('десерт') || name.includes('чизкейк') || name.includes('торт') || name.includes('кекс')) {
+        } else if (name.includes('десерт') || name.includes('чизкейк') || name.includes('торт') || name.includes('кекс') || name.includes('печенье')) {
           dishType = 'dessert'
+        }
+      }
+
+      // Определяем cookingMethod
+      let cookingMethod = recipe.cookingMethod || 'hot'
+      if (!recipe.cookingMethod) {
+        const name = (recipe.name || '').toLowerCase()
+        const description = (recipe.description || '').toLowerCase()
+        if (name.includes('салат') || name.includes('тартар') || description.includes('холодн')) {
+          cookingMethod = 'cold'
         }
       }
 
@@ -83,38 +105,49 @@ export async function POST(request: NextRequest) {
           processingMethod = 'sous_vide'
         } else if (combined.includes('гриль') || combined.includes('grill')) {
           processingMethod = 'grilling'
-        } else if (combined.includes('жарить') || combined.includes('fry')) {
+        } else if (combined.includes('жарить') || combined.includes('fry') || combined.includes('жарка')) {
           processingMethod = 'frying'
-        } else if (combined.includes('варить') || combined.includes('boil')) {
+        } else if (combined.includes('варить') || combined.includes('boil') || combined.includes('варка')) {
           processingMethod = 'boiling'
-        } else if (combined.includes('пару') || combined.includes('steam')) {
+        } else if (combined.includes('пару') || combined.includes('steam') || combined.includes('на пару')) {
           processingMethod = 'steaming'
         } else if (combined.includes('аэрогриль') || combined.includes('air fry')) {
           processingMethod = 'air_frying'
+        } else if (combined.includes('запека') || combined.includes('bake') || combined.includes('духовк')) {
+          processingMethod = 'baking'
         }
       }
 
+      // Валидация обязательных полей
+      if (!recipe.name || !recipe.calories || recipe.calories <= 0) {
+        console.warn(`[Import Recipes] Skipping recipe with invalid data: ${recipe.name || 'unnamed'}`)
+        return null
+      }
+
       return {
-        name: recipe.name || 'Без названия',
-        description: recipe.description || null,
-        calories: recipe.calories || 0,
-        proteins: recipe.proteins || 0,
-        fats: recipe.fats || 0,
-        carbs: recipe.carbs || 0,
-        prep_time: recipe.prepTime || 0,
-        estimated_cost: recipe.estimatedCost || 0,
-        cooking_method: recipe.cookingMethod || 'hot',
+        name: recipe.name.trim(),
+        description: recipe.description?.trim() || null,
+        calories: Math.max(0, recipe.calories || 0),
+        proteins: Math.max(0, recipe.proteins || 0),
+        fats: Math.max(0, recipe.fats || 0),
+        carbs: Math.max(0, recipe.carbs || 0),
+        prep_time: Math.max(0, recipe.prepTime || 0),
+        estimated_cost: Math.max(0, recipe.estimatedCost || 0),
+        cooking_method: cookingMethod,
         dish_type: dishType,
         processing_method: processingMethod,
-        ingredients: recipe.ingredients || [],
-        instructions: recipe.instructions || [],
-        available_products: recipe.availableProducts || [],
-        image_url: recipe.image || null,
+        ingredients: Array.isArray(recipe.ingredients) ? recipe.ingredients : [],
+        instructions: Array.isArray(recipe.instructions) ? recipe.instructions : [],
+        available_products: Array.isArray(recipe.availableProducts) ? recipe.availableProducts : [],
+        image_url: recipe.image?.trim() || null,
         created_by: user.id
       }
     })
 
-    console.log(`[Import Recipes] Prepared ${recipesToInsert.length} recipes for insertion`)
+    // Фильтруем null значения (невалидные рецепты)
+    const validRecipes = recipesToInsert.filter(r => r !== null) as typeof recipesToInsert
+    
+    console.log(`[Import Recipes] Prepared ${validRecipes.length} valid recipes for insertion (${recipesToInsert.length - validRecipes.length} invalid skipped)`)
 
     // Проверяем, какие рецепты уже есть в базе (по названию)
     const { data: existingRecipes, error: fetchError } = await adminSupabase
@@ -129,7 +162,7 @@ export async function POST(request: NextRequest) {
     const existingNames = new Set((existingRecipes || []).map(r => r.name.toLowerCase().trim()))
     
     // Фильтруем рецепты, которые еще не импортированы
-    const newRecipes = recipesToInsert.filter(recipe => {
+    const newRecipes = validRecipes.filter(recipe => {
       const normalizedName = recipe.name.toLowerCase().trim()
       return !existingNames.has(normalizedName)
     })
