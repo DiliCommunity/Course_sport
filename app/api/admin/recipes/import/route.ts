@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
         instructions: Array.isArray(recipe.instructions) ? recipe.instructions : [],
         available_products: Array.isArray(recipe.availableProducts) ? recipe.availableProducts : [],
         image_url: recipe.image?.trim() || null,
-        created_by: user.id
+        created_by: null // Импортированные рецепты не привязаны к конкретному пользователю
       }
     })
 
