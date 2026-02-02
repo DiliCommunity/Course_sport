@@ -37,7 +37,20 @@ export async function POST(request: NextRequest) {
     }
 
     if (isPartner) {
-      updateData.referral_commission_percent = commissionPercent
+      // Если комиссия не указана, используем значение по умолчанию 10%
+      // Если указана - используем указанную
+      updateData.referral_commission_percent = commissionPercent || 10
+      
+      // Если у пользователя уже была комиссия 15% (старое значение), обновляем на 10%
+      const { data: currentUser } = await adminSupabase
+        .from('users')
+        .select('referral_commission_percent')
+        .eq('id', userId)
+        .single()
+      
+      if (currentUser?.referral_commission_percent === 15) {
+        updateData.referral_commission_percent = 10
+      }
     }
 
     const { error } = await adminSupabase

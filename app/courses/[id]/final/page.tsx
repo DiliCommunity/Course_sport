@@ -23,6 +23,7 @@ import { IFCalculator } from '@/components/lessons/IFCalculator'
 import { KetoRecipeGenerator } from '@/components/lessons/KetoRecipeGenerator'
 import { TKDCKDPlanner } from '@/components/lessons/TKDCKDPlanner'
 import { ProgressNotesTracker } from '@/components/lessons/ProgressNotesTracker'
+import { IFProtocolPlanner } from '@/components/lessons/IFProtocolPlanner'
 
 interface FinalModulesData {
   module4: {
@@ -524,22 +525,22 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
                                   </div>
                                 )}
 
-                                {/* Модуль 5 - Урок 15: IF + Спорт - Генератор тренировок на голоде */}
+                                {/* Модуль 5 - Урок 15: IF + Спорт - Планировщик протоколов IF */}
                                 {(lesson.id === '15' ||
                                   (lesson.title.toLowerCase().includes('спорт') &&
                                    lesson.title.toLowerCase().includes('if'))) && (
                                   <div className="mt-6">
-                                    <FastingWorkoutGenerator />
+                                    <IFProtocolPlanner />
                                   </div>
                                 )}
 
-                                {/* Модуль 5 - Урок 15b: Циркадный Тип - Калькулятор IF */}
+                                {/* Модуль 5 - Урок 15b: Циркадный Тип - Трекер голода */}
                                 {(lesson.id === '15b' ||
                                   (lesson.title.toLowerCase().includes('циркадный') ||
                                    lesson.title.toLowerCase().includes('жаворонок') ||
                                    lesson.title.toLowerCase().includes('сова'))) && (
                                   <div className="mt-6">
-                                    <IFCalculator />
+                                    <HungerTracker />
                                   </div>
                                 )}
 
@@ -552,12 +553,12 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
                                   </div>
                                 )}
 
-                                {/* Модуль 6 - Урок 16: История Трансформации - Трекер голода */}
+                                {/* Модуль 6 - Урок 16: История Трансформации - Заметки о прогрессе */}
                                 {(lesson.id === '16' ||
                                   (lesson.title.toLowerCase().includes('история') &&
                                    lesson.title.toLowerCase().includes('трансформация'))) && (
                                   <div className="mt-6">
-                                    <HungerTracker />
+                                    <ProgressNotesTracker />
                                   </div>
                                 )}
 
@@ -570,12 +571,12 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
                                   </div>
                                 )}
 
-                                {/* Модуль 6 - Урок 18: Манифест - Заметки о прогрессе */}
+                                {/* Модуль 6 - Урок 18: Манифест - Трекер голода */}
                                 {(lesson.id === '18' ||
                                   (lesson.title.toLowerCase().includes('манифест') &&
                                    !lesson.title.toLowerCase().includes('if в современном'))) && (
                                   <div className="mt-6">
-                                    <ProgressNotesTracker />
+                                    <HungerTracker />
                                   </div>
                                 )}
 
@@ -588,12 +589,12 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
                                   </div>
                                 )}
 
-                                {/* Модуль 6 - Урок 18c: Финальный Чек-лист - Трекер голода */}
+                                {/* Модуль 6 - Урок 18c: Финальный Чек-лист - Генератор тренировок на голоде */}
                                 {(lesson.id === '18c' ||
                                   (lesson.title.toLowerCase().includes('финальный') &&
                                    lesson.title.toLowerCase().includes('чек-лист'))) && (
                                   <div className="mt-6">
-                                    <HungerTracker />
+                                    <FastingWorkoutGenerator />
                                   </div>
                                 )}
 
@@ -840,22 +841,22 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
                                   </div>
                                 )}
 
-                                {/* Модуль 5 - Урок 15: IF + Спорт - Генератор тренировок на голоде */}
+                                {/* Модуль 5 - Урок 15: IF + Спорт - Планировщик протоколов IF */}
                                 {(lesson.id === '15' ||
                                   (lesson.title.toLowerCase().includes('спорт') &&
                                    lesson.title.toLowerCase().includes('if'))) && (
                                   <div className="mt-6">
-                                    <FastingWorkoutGenerator />
+                                    <IFProtocolPlanner />
                                   </div>
                                 )}
 
-                                {/* Модуль 5 - Урок 15b: Циркадный Тип - Калькулятор IF */}
+                                {/* Модуль 5 - Урок 15b: Циркадный Тип - Трекер голода */}
                                 {(lesson.id === '15b' ||
                                   (lesson.title.toLowerCase().includes('циркадный') ||
                                    lesson.title.toLowerCase().includes('жаворонок') ||
                                    lesson.title.toLowerCase().includes('сова'))) && (
                                   <div className="mt-6">
-                                    <IFCalculator />
+                                    <HungerTracker />
                                   </div>
                                 )}
 
@@ -868,12 +869,12 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
                                   </div>
                                 )}
 
-                                {/* Модуль 6 - Урок 16: История Трансформации - Трекер голода */}
+                                {/* Модуль 6 - Урок 16: История Трансформации - Заметки о прогрессе */}
                                 {(lesson.id === '16' ||
                                   (lesson.title.toLowerCase().includes('история') &&
                                    lesson.title.toLowerCase().includes('трансформация'))) && (
                                   <div className="mt-6">
-                                    <HungerTracker />
+                                    <ProgressNotesTracker />
                                   </div>
                                 )}
 
@@ -886,12 +887,12 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
                                   </div>
                                 )}
 
-                                {/* Модуль 6 - Урок 18: Манифест - Заметки о прогрессе */}
+                                {/* Модуль 6 - Урок 18: Манифест - Трекер голода */}
                                 {(lesson.id === '18' ||
                                   (lesson.title.toLowerCase().includes('манифест') &&
                                    !lesson.title.toLowerCase().includes('if в современном'))) && (
                                   <div className="mt-6">
-                                    <ProgressNotesTracker />
+                                    <HungerTracker />
                                   </div>
                                 )}
 
@@ -904,12 +905,12 @@ export default function FinalModulesPage({ params }: { params: { id: string } })
                                   </div>
                                 )}
 
-                                {/* Модуль 6 - Урок 18c: Финальный Чек-лист - Трекер голода */}
+                                {/* Модуль 6 - Урок 18c: Финальный Чек-лист - Генератор тренировок на голоде */}
                                 {(lesson.id === '18c' ||
                                   (lesson.title.toLowerCase().includes('финальный') &&
                                    lesson.title.toLowerCase().includes('чек-лист'))) && (
                                   <div className="mt-6">
-                                    <HungerTracker />
+                                    <FastingWorkoutGenerator />
                                   </div>
                                 )}
 

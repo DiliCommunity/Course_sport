@@ -129,7 +129,7 @@ export default function AdminUsersPage() {
     }
   }
 
-  const togglePartner = async (userId: string, currentStatus: boolean) => {
+  const togglePartner = async (userId: string, currentStatus: boolean, currentCommission?: number | null) => {
     if (!confirm(currentStatus 
       ? 'Отключить реферальную программу?' 
       : 'Включить реферальную программу?'
@@ -137,11 +137,18 @@ export default function AdminUsersPage() {
 
     setActionLoading(userId)
     try {
+      // Если включаем партнёрку и комиссия 15% (старое значение), обновляем на 10%
+      const commissionPercent = (!currentStatus && currentCommission === 15) ? 10 : undefined
+      
       const response = await fetch('/api/admin/users/toggle-partner', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ userId, isPartner: !currentStatus })
+        body: JSON.stringify({ 
+          userId, 
+          isPartner: !currentStatus,
+          ...(commissionPercent !== undefined && { commissionPercent })
+        })
       })
 
       if (!response.ok) throw new Error('Ошибка')
@@ -447,7 +454,7 @@ export default function AdminUsersPage() {
                             )}
                           </button>
                           <button
-                            onClick={() => togglePartner(u.id, u.is_referral_partner)}
+                            onClick={() => togglePartner(u.id, u.is_referral_partner, u.referral_commission_percent)}
                             disabled={actionLoading === u.id}
                             className={`p-2 rounded-lg transition-colors disabled:opacity-30 ${
                               u.is_referral_partner 
@@ -493,8 +500,38 @@ export default function AdminUsersPage() {
           </div>
         )}
 
-        {/* Refresh */}
-        <div className="mt-4 flex justify-end">
+        {/* Actions */}
+        <div className="mt-4 flex justify-between items-center">
+          <button
+            onClick={async () => {
+              if (!confirm('Обновить комиссию всех партнёров с 15% на 10%?')) return
+              
+              setLoading(true)
+              try {
+                const response = await fetch('/api/admin/users/update-partner-commissions', {
+                  method: 'POST',
+                  credentials: 'include'
+                })
+                const data = await response.json()
+                if (response.ok) {
+                  alert(`✅ ${data.message}`)
+                  fetchUsers()
+                } else {
+                  alert(`❌ ${data.error || 'Ошибка'}`)
+                }
+              } catch (err) {
+                alert('❌ Ошибка при обновлении')
+              } finally {
+                setLoading(false)
+              }
+            }}
+            disabled={loading}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-pink-500/20 hover:bg-pink-500/30 transition-colors text-pink-300 border border-pink-500/30"
+          >
+            <Handshake className="w-4 h-4" />
+            Обновить комиссии (15% → 10%)
+          </button>
+          
           <button
             onClick={fetchUsers}
             disabled={loading}

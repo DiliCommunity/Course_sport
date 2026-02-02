@@ -47,6 +47,19 @@ const MEALS_DATABASE: Record<string, Meal[]> = ketoRecipesData
 // Для удобства оставляем небольшой список популярных продуктов
 const COMMON_PRODUCTS = AVAILABLE_PRODUCTS_LIST.slice(0, 30) // Первые 30 продуктов для быстрого выбора
 
+// Константы для способов обработки
+const COOKING_METHODS: ProcessingMethod[] = ['sous_vide', 'grilling', 'frying', 'baking', 'boiling', 'steaming', 'air_frying']
+
+const COOKING_METHOD_LABELS: Record<ProcessingMethod, string> = {
+  sous_vide: 'Су-вид',
+  grilling: 'Гриль',
+  frying: 'Жарка',
+  baking: 'Запекание',
+  boiling: 'Варка',
+  steaming: 'На пару',
+  air_frying: 'Аэрогриль'
+}
+
 export function MenuGenerator() {
   const [generationMode, setGenerationMode] = useState<'full_menu' | 'single_dish'>('full_menu')
   const [period, setPeriod] = useState<'day' | 'week' | 'month'>('day')
@@ -65,7 +78,7 @@ export function MenuGenerator() {
   // Фильтры для полного меню
   const [cookingMethod, setCookingMethod] = useState<CookingMethod | 'all'>('all') // Холодные/горячие
   const [dishType, setDishType] = useState<DishType | 'all'>('all') // Первые/вторые/кондитерские
-  const [processingMethod, setProcessingMethod] = useState<ProcessingMethod | 'all'>('all') // Способ обработки
+  const [processingMethods, setProcessingMethods] = useState<ProcessingMethod[]>([]) // Способ обработки (множественный выбор)
 
   // Получаем ВСЕ основные ингредиенты блюда (для строгой проверки разнообразия)
   const getMealIngredientSignatures = (meal: Meal): string[] => {
@@ -171,9 +184,12 @@ export function MenuGenerator() {
       filtered = filtered.filter(meal => meal.dishType === dishType)
     }
 
-    // Фильтр по способу обработки
-    if (processingMethod !== 'all' && generationMode === 'full_menu') {
-      filtered = filtered.filter(meal => meal.processingMethod === processingMethod)
+    // Фильтр по способу обработки (множественный выбор)
+    if (processingMethods.length > 0 && generationMode === 'full_menu') {
+      filtered = filtered.filter(meal => {
+        if (!meal.processingMethod) return false
+        return processingMethods.includes(meal.processingMethod)
+      })
     }
 
     // Фильтр по исключенным продуктам
@@ -344,18 +360,56 @@ export function MenuGenerator() {
       const usedNames = new Set<string>()
       const usedSignatures = new Set<string>()
 
+      // Функция для фильтрации без учета dishType для основных приемов пищи
+      const filterMealsForMainMeals = (meals: Meal[]): Meal[] => {
+        let filtered = meals
+
+        // Фильтр по способу приготовления (холодные/горячие)
+        if (cookingMethod !== 'all') {
+          filtered = filtered.filter(meal => meal.cookingMethod === cookingMethod)
+        }
+
+        // НЕ применяем фильтр по dishType для основных приемов пищи
+        // Исключаем только десерты и закуски из основных приемов пищи
+        filtered = filtered.filter(meal => {
+          if (meal.dishType === 'dessert' || meal.dishType === 'snack') return false
+          return true
+        })
+
+        // Фильтр по способу обработки (множественный выбор)
+        if (processingMethods.length > 0) {
+          filtered = filtered.filter(meal => {
+            if (!meal.processingMethod) return false
+            return processingMethods.includes(meal.processingMethod)
+          })
+        }
+
+        // Фильтр по исключенным продуктам
+        if (productFilter === 'exclude' && excludedProducts.length > 0) {
+          filtered = filtered.filter((meal) => {
+            const mealIngredients = meal.ingredients?.join(' ') || ''
+            return !excludedProducts.some((excluded) =>
+              mealIngredients.toLowerCase().includes(excluded.toLowerCase())
+            )
+          })
+        }
+
+        return filtered
+      }
+
       // Пулы по типам (предпочитаем явные категории из базы)
+      // Для основных приемов пищи используем специальную фильтрацию без учета dishType
       const breakfastPool = MEALS_DATABASE.breakfast
-        ? filterMeals(MEALS_DATABASE.breakfast)
-        : allAvailableMeals.filter((meal) => !meal.dishType || meal.dishType === 'second' || meal.cookingMethod === 'cold')
+        ? filterMealsForMainMeals(MEALS_DATABASE.breakfast)
+        : filterMealsForMainMeals(allAvailableMeals).filter((meal) => !meal.dishType || meal.dishType === 'second' || meal.cookingMethod === 'cold')
 
       const lunchPool = MEALS_DATABASE.lunch
-        ? filterMeals(MEALS_DATABASE.lunch)
-        : allAvailableMeals.filter((meal) => meal.dishType === 'first' || meal.dishType === 'second' || !meal.dishType)
+        ? filterMealsForMainMeals(MEALS_DATABASE.lunch)
+        : filterMealsForMainMeals(allAvailableMeals).filter((meal) => meal.dishType === 'first' || meal.dishType === 'second' || !meal.dishType)
 
       const dinnerPool = MEALS_DATABASE.dinner
-        ? filterMeals(MEALS_DATABASE.dinner)
-        : allAvailableMeals.filter((meal) => meal.dishType === 'second' || !meal.dishType)
+        ? filterMealsForMainMeals(MEALS_DATABASE.dinner)
+        : filterMealsForMainMeals(allAvailableMeals).filter((meal) => meal.dishType === 'second' || !meal.dishType)
 
       // Десерты — кето-сладости, муссы, пудинги, чизкейки и т.д.
       // Берём из всех источников блюда с dishType === 'dessert'
@@ -1337,93 +1391,43 @@ export function MenuGenerator() {
               </div>
             </div>
 
-            {/* Способ обработки */}
+            {/* Способ обработки (множественный выбор) */}
             <div>
               <label className="block text-white/80 text-sm font-medium mb-3 flex items-center gap-2">
                 <UtensilsCrossed className="w-4 h-4" />
-                Способ обработки
+                Способ обработки {processingMethods.length > 0 && <span className="text-xs text-white/60">({processingMethods.length} выбрано)</span>}
               </label>
               <div className="grid grid-cols-4 gap-2">
                 <button
-                  onClick={() => setProcessingMethod('all')}
+                  onClick={() => setProcessingMethods([])}
                   className={`py-2 px-3 rounded-lg font-medium transition-all text-xs ${
-                    processingMethod === 'all'
+                    processingMethods.length === 0
                       ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
                       : 'bg-white/5 text-white hover:bg-white/10'
                   }`}
                 >
                   Все
                 </button>
-                <button
-                  onClick={() => setProcessingMethod('sous_vide')}
-                  className={`py-2 px-3 rounded-lg font-medium transition-all text-xs ${
-                    processingMethod === 'sous_vide'
-                      ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
-                      : 'bg-white/5 text-white hover:bg-white/10'
-                  }`}
-                >
-                  Су-вид
-                </button>
-                <button
-                  onClick={() => setProcessingMethod('frying')}
-                  className={`py-2 px-3 rounded-lg font-medium transition-all text-xs ${
-                    processingMethod === 'frying'
-                      ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
-                      : 'bg-white/5 text-white hover:bg-white/10'
-                  }`}
-                >
-                  Жарка
-                </button>
-                <button
-                  onClick={() => setProcessingMethod('baking')}
-                  className={`py-2 px-3 rounded-lg font-medium transition-all text-xs ${
-                    processingMethod === 'baking'
-                      ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
-                      : 'bg-white/5 text-white hover:bg-white/10'
-                  }`}
-                >
-                  Запекание
-                </button>
-                <button
-                  onClick={() => setProcessingMethod('boiling')}
-                  className={`py-2 px-3 rounded-lg font-medium transition-all text-xs ${
-                    processingMethod === 'boiling'
-                      ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
-                      : 'bg-white/5 text-white hover:bg-white/10'
-                  }`}
-                >
-                  Варка
-                </button>
-                <button
-                  onClick={() => setProcessingMethod('steaming')}
-                  className={`py-2 px-3 rounded-lg font-medium transition-all text-xs ${
-                    processingMethod === 'steaming'
-                      ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
-                      : 'bg-white/5 text-white hover:bg-white/10'
-                  }`}
-                >
-                  Паровая
-                </button>
-                <button
-                  onClick={() => setProcessingMethod('grilling')}
-                  className={`py-2 px-3 rounded-lg font-medium transition-all text-xs ${
-                    processingMethod === 'grilling'
-                      ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
-                      : 'bg-white/5 text-white hover:bg-white/10'
-                  }`}
-                >
-                  Гриль
-                </button>
-                <button
-                  onClick={() => setProcessingMethod('air_frying')}
-                  className={`py-2 px-3 rounded-lg font-medium transition-all text-xs ${
-                    processingMethod === 'air_frying'
-                      ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
-                      : 'bg-white/5 text-white hover:bg-white/10'
-                  }`}
-                >
-                  Аэрогриль
-                </button>
+                {COOKING_METHODS.map((method) => (
+                  <button
+                    key={method}
+                    onClick={() => {
+                      if (processingMethods.includes(method)) {
+                        setProcessingMethods(processingMethods.filter(m => m !== method))
+                      } else {
+                        setProcessingMethods([...processingMethods, method])
+                      }
+                    }}
+                    className={`py-2 px-3 rounded-lg font-medium transition-all text-xs flex items-center gap-2 ${
+                      processingMethods.includes(method)
+                        ? 'bg-gradient-to-r from-accent-gold to-accent-electric text-dark-900'
+                        : 'bg-white/5 text-white hover:bg-white/10'
+                    }`}
+                  >
+                    {processingMethods.includes(method) && <Check className="w-3 h-3" />}
+                    {COOKING_METHOD_LABELS[method]}
+                  </button>
+                ))}
               </div>
             </div>
 
