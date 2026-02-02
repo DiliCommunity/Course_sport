@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
-import { getUserFromSession } from '@/lib/auth'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { getUserFromSession } from '@/lib/session-utils'
 
 export const dynamic = 'force-dynamic'
 
