@@ -448,11 +448,12 @@ export default function AdminRecipesPage() {
         })
       })
 
-      const data = await response.json()
-
       if (!response.ok) {
-        throw new Error(data.error || 'Ошибка при обращении к AI')
+        const errorData = await response.json().catch(() => ({ error: 'Ошибка при обращении к AI' }))
+        throw new Error(errorData.error || `Ошибка ${response.status}: ${response.statusText}`)
       }
+
+      const data = await response.json()
 
       if (aiMode === 'recipe' && data.recipe) {
         setGeneratedRecipe(data.recipe)
@@ -724,6 +725,20 @@ export default function AdminRecipesPage() {
               <option value="prepTime_asc">По времени (↑)</option>
               <option value="prepTime_desc">По времени (↓)</option>
             </select>
+
+            <button
+              onClick={() => {
+                setSearchQuery('')
+                setFilterDishType('all')
+                setFilterCookingMethod('all')
+                setFilterProcessingMethod('all')
+                setSortBy('name')
+                setSortOrder('asc')
+              }}
+              className="px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-sm font-medium hover:shadow-[0_0_20px_rgba(59,130,246,0.4)] transition-all"
+            >
+              Показать все по алфавиту
+            </button>
 
             <div className="flex items-center gap-2 ml-auto">
               <button

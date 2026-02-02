@@ -75,7 +75,15 @@ export async function POST(request: NextRequest) {
     const apiKey = deepseekApiKey || openaiApiKey
     const useDeepSeek = !!deepseekApiKey
 
+    console.log('[AI Chef] API Key check:', {
+      hasDeepSeekKey: !!deepseekApiKey,
+      hasOpenAIKey: !!openaiApiKey,
+      useDeepSeek,
+      keyLength: apiKey ? apiKey.length : 0
+    })
+
     if (!apiKey) {
+      console.error('[AI Chef] No API key found. DEEPSEEK_API_KEY:', !!deepseekApiKey, 'OPENAI_API_KEY:', !!openaiApiKey)
       return NextResponse.json(
         { error: 'AI API key not configured. Please set DEEPSEEK_API_KEY or OPENAI_API_KEY in environment variables.' },
         { status: 500 }
@@ -83,7 +91,18 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      const OpenAI = require('openai')
+      // Динамический импорт для избежания проблем с SSR
+      let OpenAI
+      try {
+        OpenAI = require('openai')
+      } catch (requireError) {
+        console.error('[AI Chef] Error requiring openai package:', requireError)
+        return NextResponse.json(
+          { error: 'OpenAI package not installed. Please run: npm install openai' },
+          { status: 500 }
+        )
+      }
+
       const client = new OpenAI({
         apiKey: apiKey,
         baseURL: useDeepSeek 
@@ -108,6 +127,8 @@ export async function POST(request: NextRequest) {
         { role: 'user', content: message }
       ]
 
+      console.log('[AI Chef] Sending request to', useDeepSeek ? 'DeepSeek' : 'OpenAI', 'with mode:', mode)
+      
       const completion = await client.chat.completions.create({
         model: useDeepSeek 
           ? 'deepseek-chat'
@@ -117,6 +138,8 @@ export async function POST(request: NextRequest) {
         max_tokens: mode === 'recipe' ? 1500 : 500,
       })
 
+      console.log('[AI Chef] Received response from', useDeepSeek ? 'DeepSeek' : 'OpenAI')
+      
       const response = completion.choices[0]?.message?.content || 'Извините, не удалось получить ответ.'
 
       // Пытаемся распарсить JSON, если режим - генерация рецепта
@@ -146,8 +169,34 @@ export async function POST(request: NextRequest) {
       })
     } catch (llmError: any) {
       console.error('[AI Chef] LLM error:', llmError)
+      console.error('[AI Chef] Error details:', {
+        message: llmError.message,
+        status: llmError.status,
+        code: llmError.code,
+        type: llmError.type,
+        response: llmError.response,
+        stack: llmError.stack
+      })
+      
+      // Более детальное сообщение об ошибке
+      let errorMessage = 'Ошибка при обращении к AI'
+      if (llmError.status === 401 || llmError.statusCode === 401) {
+        errorMessage = 'Неверный API ключ. Проверьте DEEPSEEK_API_KEY в настройках Vercel. Убедитесь, что ключ скопирован полностью без пробелов.'
+      } else if (llmError.status === 429 || llmError.statusCode === 429) {
+        errorMessage = 'Превышен лимит запросов. Попробуйте позже.'
+      } else if (llmError.message) {
+        if (llmError.message.includes('API key')) {
+          errorMessage = 'Проблема с API ключом. Проверьте DEEPSEEK_API_KEY в настройках Vercel.'
+        } else {
+          errorMessage = `AI error: ${llmError.message}`
+        }
+      }
+      
       return NextResponse.json(
-        { error: `AI error: ${llmError.message || 'Unknown error'}` },
+        { 
+          error: errorMessage,
+          details: process.env.NODE_ENV === 'development' ? llmError.message : undefined
+        },
         { status: 500 }
       )
     }

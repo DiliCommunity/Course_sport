@@ -60,11 +60,20 @@ export async function POST(request: NextRequest) {
         }
       } else {
         // Для обычной покупки курса нужен курс и сумма
-        if (!courseId || !amount) {
-          return NextResponse.json(
-            { error: 'Не указан курс или сумма' },
-            { status: 400 }
-          )
+        // Проверяем, что amount не меньше минимальной суммы (100 копеек = 1 рубль)
+        if (!courseId || !amount || amount < 100) {
+          if (!courseId || !amount) {
+            return NextResponse.json(
+              { error: 'Не указан курс или сумма' },
+              { status: 400 }
+            )
+          }
+          if (amount < 100) {
+            return NextResponse.json(
+              { error: 'Минимальная сумма оплаты: 1₽. Скидка не может превышать стоимость курса.' },
+              { status: 400 }
+            )
+          }
         }
       }
     }

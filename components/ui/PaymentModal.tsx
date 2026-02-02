@@ -140,13 +140,34 @@ export function PaymentModal({
           if (promocode && promocode.code) {
             setPromocodeInput(promocode.code)
             setAppliedPromocode(promocode)
+            // Сразу пересчитываем финальную сумму
+            let discount = 0
+            if (promocode.discountPercent) {
+              discount = Math.round(coursePrice * promocode.discountPercent / 100)
+            } else if (promocode.discountAmount) {
+              if (promocode.discountAmount < 100) {
+                discount = Math.round(promocode.discountAmount * 100)
+              } else {
+                discount = Math.round(promocode.discountAmount)
+              }
+            }
+            discount = Math.min(discount, coursePrice)
+            setFinalAmount(Math.max(0, coursePrice - discount))
+          } else {
+            setFinalAmount(coursePrice)
           }
+        } else {
+          setFinalAmount(coursePrice)
         }
       } catch (e) {
         console.error('Error loading promocode from localStorage:', e)
+        setFinalAmount(coursePrice)
       }
+    } else if (!isOpen) {
+      // Сбрасываем при закрытии модалки
+      setFinalAmount(coursePrice)
     }
-  }, [isOpen, user])
+  }, [isOpen, user, coursePrice])
 
   // Сохраняем примененный промокод в localStorage
   useEffect(() => {
@@ -186,11 +207,25 @@ export function PaymentModal({
     if (appliedPromocode) {
       let discount = 0
       if (appliedPromocode.discountPercent) {
+        // Процентная скидка
         discount = Math.round(coursePrice * appliedPromocode.discountPercent / 100)
       } else if (appliedPromocode.discountAmount) {
-        discount = appliedPromocode.discountAmount * 100 // конвертируем в копейки
+        // Фиксированная скидка
+        // discountAmount может быть в рублях (если < 100) или уже в копейках (если >= 100)
+        // Проверяем: если значение меньше 100, считаем что это рубли, иначе - копейки
+        if (appliedPromocode.discountAmount < 100) {
+          discount = Math.round(appliedPromocode.discountAmount * 100) // конвертируем рубли в копейки
+        } else {
+          discount = Math.round(appliedPromocode.discountAmount) // уже в копейках
+        }
       }
-      setFinalAmount(Math.max(0, coursePrice - discount))
+      
+      // Ограничиваем скидку максимальной суммой - не больше исходной цены
+      discount = Math.min(discount, coursePrice)
+      
+      // Финальная сумма не может быть меньше 0, но минимум 100 копеек (1 рубль)
+      const calculatedAmount = Math.max(0, coursePrice - discount)
+      setFinalAmount(calculatedAmount < 100 ? coursePrice : calculatedAmount)
     } else {
       setFinalAmount(coursePrice)
     }
@@ -290,6 +325,13 @@ export function PaymentModal({
       return
     }
 
+    // Проверка минимальной суммы оплаты (минимум 1 рубль = 100 копеек)
+    if (finalAmount < 100) {
+      setError('Минимальная сумма оплаты: 1₽. Скидка не может превышать стоимость курса.')
+      setIsLoading(false)
+      return
+    }
+
     try {
       
       const response = await fetch('/api/payments/create', {
@@ -299,9 +341,9 @@ export function PaymentModal({
         },
         credentials: 'include',
         body: JSON.stringify({
-          courseId: courseId || (type === 'promotion' && promotionId === 'two_courses' ? null : 'unknown'),
+          courseId: courseId || (type === 'promotion' && promotionId === 'two_courses' ? null : undefined),
           paymentMethod: selectedMethod,
-          amount: finalAmount, // Используем финальную сумму с учетом промокода
+          amount: finalAmount, // Используем финальную сумму с учетом промокода (в копейках)
           promocode: appliedPromocode ? {
             id: appliedPromocode.id,
             code: appliedPromocode.code,
@@ -423,18 +465,30 @@ export function PaymentModal({
                       </span>
                     </div>
                   )}
-                  {appliedPromocode && (
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-emerald-400">Скидка:</span>
-                      <span className="text-emerald-400 font-semibold">
-                        {appliedPromocode.discountPercent 
-                          ? `-${appliedPromocode.discountPercent}%`
-                          : appliedPromocode.discountAmount 
-                          ? `-${formatPrice(appliedPromocode.discountAmount)}`
-                          : ''}
-                      </span>
-                    </div>
-                  )}
+                  {appliedPromocode && (() => {
+                    let discountDisplay = ''
+                    let discountValue = 0
+                    if (appliedPromocode.discountPercent) {
+                      discountValue = Math.round(coursePrice * appliedPromocode.discountPercent / 100)
+                      discountDisplay = `-${appliedPromocode.discountPercent}%`
+                    } else if (appliedPromocode.discountAmount) {
+                      // discountAmount в рублях, конвертируем в копейки
+                      discountValue = appliedPromocode.discountAmount < 100 
+                        ? Math.round(appliedPromocode.discountAmount * 100)
+                        : Math.round(appliedPromocode.discountAmount)
+                      // Ограничиваем скидку максимальной суммой
+                      discountValue = Math.min(discountValue, coursePrice)
+                      discountDisplay = `-${formatPrice(discountValue / 100)}`
+                    }
+                    return discountValue > 0 ? (
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-emerald-400">Скидка:</span>
+                        <span className="text-emerald-400 font-semibold">
+                          {discountDisplay}
+                        </span>
+                      </div>
+                    ) : null
+                  })()}
                   <div className="flex items-baseline justify-between pt-2 border-t border-white/10">
                     <span className="text-white/70">К оплате:</span>
                     <span className="font-display font-bold text-3xl bg-gradient-to-r from-accent-gold to-accent-electric bg-clip-text text-transparent">
@@ -627,9 +681,13 @@ export function PaymentModal({
                   size="lg"
                   onClick={handlePayment}
                   isLoading={isLoading}
-                  disabled={isLoading}
+                  disabled={isLoading || finalAmount < 100}
                 >
-                  {isLoading ? 'Создание платежа...' : `Оплатить ${formatPrice(coursePrice / 100)}`}
+                  {isLoading 
+                    ? 'Создание платежа...' 
+                    : finalAmount < 100
+                    ? 'Минимальная сумма: 1₽'
+                    : `Оплатить ${formatPrice(finalAmount / 100)}`}
                 </Button>
                 <Button
                   variant="secondary"
