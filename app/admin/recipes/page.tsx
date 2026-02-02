@@ -425,6 +425,38 @@ export default function AdminRecipesPage() {
     setEditingRecipe(null)
   }
 
+  const handleImportRecipes = async () => {
+    if (!confirm('Импортировать все рецепты из личного шефа в базу данных? Это может занять некоторое время.')) {
+      return
+    }
+
+    try {
+      setIsSaving(true)
+      setError(null)
+      setSuccess(null)
+
+      const response = await fetch('/api/admin/recipes/import', {
+        method: 'POST',
+        credentials: 'include'
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Ошибка при импорте рецептов')
+      }
+
+      setSuccess(`Импортировано ${data.imported} рецептов. Пропущено: ${data.skipped}. Ошибок: ${data.errors || 0}`)
+      fetchRecipes()
+      
+      setTimeout(() => setSuccess(null), 5000)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка импорта')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   // AI Chef functions
   const sendAiMessage = async () => {
     if (!aiInput.trim() || aiLoading) return
@@ -562,6 +594,13 @@ export default function AdminRecipesPage() {
             >
               <Sparkles className="w-5 h-5" />
               AI Шеф
+            </button>
+            <button
+              onClick={handleImportRecipes}
+              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-bold hover:shadow-[0_0_30px_rgba(6,182,212,0.4)] transition-all"
+            >
+              <Package className="w-5 h-5" />
+              Импортировать рецепты
             </button>
           </div>
         </div>
