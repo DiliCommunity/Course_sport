@@ -53,6 +53,7 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
   const [withdrawMethod, setWithdrawMethod] = useState<'card' | 'sbp' | 'yoomoney' | 'phone'>('card')
   const [cardNumber, setCardNumber] = useState('')
   const [phoneNumber, setPhoneNumber] = useState('')
+  const [walletAddress, setWalletAddress] = useState('') // Для ЮMoney
   const [isWithdrawing, setIsWithdrawing] = useState(false)
   const [instantWithdrawal, setInstantWithdrawal] = useState(false)
   const [tonWalletAddress, setTonWalletAddress] = useState<string | null>(null)
@@ -312,6 +313,11 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
       return
     }
 
+    if (withdrawMethod === 'yoomoney' && !walletAddress) {
+      alert('Укажите номер кошелька ЮMoney')
+      return
+    }
+
     setIsWithdrawing(true)
     try {
       const response = await fetch('/api/withdraw/create', {
@@ -325,14 +331,21 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
           withdrawal_method: withdrawMethod,
           card_number: withdrawMethod === 'card' ? cardNumber : null,
           phone: withdrawMethod === 'phone' ? phoneNumber : null,
-          instant_withdrawal: instantWithdrawal,
+          wallet_address: withdrawMethod === 'yoomoney' ? walletAddress : null,
+          is_instant: instantWithdrawal,
         }),
       })
 
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Ошибка создания заявки на вывод')
+        // Если средства были возвращены, показываем специальное сообщение
+        if (data.refunded) {
+          alert(`⚠️ ${data.error || 'Ошибка моментального вывода'}\n\n${data.message || 'Средства возвращены на ваш баланс.'}\n\nВозможные причины:\n• Недостаточно средств на счете YooKassa\n• Временная блокировка счета\n• Ошибка в данных запроса\n\nПопробуйте обычный вывод или обратитесь к администратору.`)
+        } else {
+          alert(data.error || 'Ошибка создания заявки на вывод')
+        }
+        return
       }
 
       if (data.instant && data.payout_id) {
@@ -692,6 +705,23 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
                       </div>
                     )}
 
+                    {/* Wallet Address Input for ЮMoney */}
+                    {withdrawMethod === 'yoomoney' && (
+                      <div className="mb-4">
+                        <label className="block text-sm text-white/70 mb-2">Номер кошелька ЮMoney</label>
+                        <input
+                          type="text"
+                          value={walletAddress}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\s+/g, '')
+                            setWalletAddress(value)
+                          }}
+                          placeholder="41001234567890"
+                          className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-lg font-semibold focus:outline-none focus:border-yellow-400 transition-colors"
+                        />
+                      </div>
+                    )}
+
                     {/* Instant Withdrawal Option */}
                     <div className="mb-4 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
                       <label className="flex items-center gap-3 cursor-pointer">
@@ -709,6 +739,11 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
                           <p className="text-xs text-white/60 mt-1">
                             Средства поступят в течение нескольких минут через YooKassa. 
                             {instantWithdrawal && ' Доступно для карт, СБП и ЮMoney.'}
+                            {instantWithdrawal && (
+                              <span className="block mt-1 text-yellow-400/80">
+                                ⚠️ Если средств в YooKassa недостаточно, деньги автоматически вернутся на ваш баланс.
+                              </span>
+                            )}
                           </p>
                         </div>
                       </label>
@@ -723,7 +758,8 @@ export function WalletModal({ isOpen, onClose, balance = 0, totalEarned = 0, tot
                         parseFloat(withdrawAmount) > balance / 100 ||
                         isWithdrawing ||
                         (withdrawMethod === 'card' && !cardNumber) ||
-                        (withdrawMethod === 'phone' && !phoneNumber)
+                        (withdrawMethod === 'phone' && !phoneNumber) ||
+                        (withdrawMethod === 'yoomoney' && !walletAddress)
                       }
                       className="w-full py-4 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-400 text-dark-900 font-bold text-lg shadow-[0_0_20px_rgba(250,204,21,0.4)] hover:shadow-[0_0_30px_rgba(250,204,21,0.6)] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >

@@ -180,6 +180,8 @@ export default function ReviewsPage() {
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [canReview, setCanReview] = useState<boolean | null>(null)
   const [isCheckingPermission, setIsCheckingPermission] = useState(true)
+  const [purchasedCourses, setPurchasedCourses] = useState<Array<{ id: string; title: string; slug: string }>>([])
+  const [isLoadingCourses, setIsLoadingCourses] = useState(false)
 
   useEffect(() => {
     const checkReviewPermission = async () => {
@@ -212,6 +214,54 @@ export default function ReviewsPage() {
     checkReviewPermission()
   }, [user, isVKMiniApp, sessionToken])
 
+  // Загружаем купленные курсы при открытии формы отзыва
+  useEffect(() => {
+    const fetchPurchasedCourses = async () => {
+      if (!showReviewForm || !user) return
+
+      setIsLoadingCourses(true)
+      try {
+        const headers: HeadersInit = {}
+        if (isVKMiniApp && sessionToken) {
+          headers['X-Session-Token'] = sessionToken
+        }
+
+        const response = await fetch('/api/reviews/purchased-courses', {
+          headers,
+          credentials: 'include'
+        })
+
+        if (!response.ok) {
+          throw new Error('Ошибка загрузки курсов')
+        }
+
+        const data = await response.json()
+        const courses = data.courses || []
+
+        if (courses.length > 0) {
+          setPurchasedCourses(courses)
+          // Устанавливаем первый курс по умолчанию
+          setReviewFormData({
+            courseId: courses[0].id as typeof COURSE_IDS.KETO | typeof COURSE_IDS.INTERVAL,
+            courseName: courses[0].title,
+            rating: 5,
+            text: '',
+            isAnonymous: false
+          })
+        } else {
+          setPurchasedCourses([])
+        }
+      } catch (error) {
+        console.error('Error fetching purchased courses:', error)
+        setPurchasedCourses([])
+      } finally {
+        setIsLoadingCourses(false)
+      }
+    }
+
+    fetchPurchasedCourses()
+  }, [showReviewForm, user, isVKMiniApp, sessionToken])
+
   const filteredReviews = reviews.filter((review) => {
     const courseMatch = selectedCourse === 'Все курсы' || review.course === selectedCourse
     const ratingMatch =
@@ -237,11 +287,14 @@ export default function ReviewsPage() {
         headers['X-Session-Token'] = sessionToken
       }
       
+      // Отправляем только необходимые поля (без courseName, так как его нет в БД)
+      const { courseName, ...reviewData } = reviewFormData
+      
       const response = await fetch('/api/reviews/create', {
         method: 'POST',
         headers,
         credentials: 'include',
-        body: JSON.stringify(reviewFormData)
+        body: JSON.stringify(reviewData)
       })
 
       const data = await response.json()
@@ -251,13 +304,24 @@ export default function ReviewsPage() {
       }
 
       setSubmitSuccess(true)
-      setReviewFormData({
-        courseId: COURSE_IDS.KETO,
-        courseName: 'Кето диета: от Мифов к Результатам',
-        rating: 5,
-        text: '',
-        isAnonymous: false
-      })
+      // Сбрасываем форму, используя первый купленный курс
+      if (purchasedCourses.length > 0) {
+        setReviewFormData({
+          courseId: purchasedCourses[0].id as typeof COURSE_IDS.KETO | typeof COURSE_IDS.INTERVAL,
+          courseName: purchasedCourses[0].title,
+          rating: 5,
+          text: '',
+          isAnonymous: false
+        })
+      } else {
+        setReviewFormData({
+          courseId: COURSE_IDS.KETO,
+          courseName: 'Кето диета: от Мифов к Результатам',
+          rating: 5,
+          text: '',
+          isAnonymous: false
+        })
+      }
       
       setTimeout(() => {
         setShowReviewForm(false)
@@ -405,23 +469,39 @@ export default function ReviewsPage() {
                   <label className="block text-white/80 text-sm font-medium mb-2">
                     Выберите курс
                   </label>
-                  <select
-                    value={reviewFormData.courseId}
-                    onChange={(e) => {
-                      const courseId = e.target.value as typeof COURSE_IDS.KETO | typeof COURSE_IDS.INTERVAL
-                      setReviewFormData({
-                        ...reviewFormData,
-                        courseId,
-                        courseName: courseId === COURSE_IDS.KETO 
-                          ? 'Кето диета: от Мифов к Результатам'
-                          : 'Интервальное голодание'
-                      })
-                    }}
-                    className="w-full px-4 py-3.5 rounded-xl bg-dark-800/80 border-2 border-emerald-400/30 text-white focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/30 transition-all hover:border-emerald-400/50 shadow-[0_0_15px_rgba(16,185,129,0.1)]"
-                  >
-                    <option value={COURSE_IDS.KETO}>🥑 Кето диета: от Мифов к Результатам</option>
-                    <option value={COURSE_IDS.INTERVAL}>⏰ Интервальное голодание</option>
-                  </select>
+                  {isLoadingCourses ? (
+                    <div className="w-full px-4 py-3.5 rounded-xl bg-dark-800/80 border-2 border-emerald-400/30 flex items-center gap-2">
+                      <div className="w-5 h-5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
+                      <span className="text-white/60">Загрузка курсов...</span>
+                    </div>
+                  ) : purchasedCourses.length === 0 ? (
+                    <div className="w-full px-4 py-3.5 rounded-xl bg-dark-800/80 border-2 border-red-400/30 text-red-400">
+                      У вас нет купленных курсов
+                    </div>
+                  ) : (
+                    <select
+                      value={reviewFormData.courseId}
+                      onChange={(e) => {
+                        const courseId = e.target.value
+                        const selectedCourse = purchasedCourses.find(c => c.id === courseId)
+                        if (selectedCourse) {
+                          setReviewFormData({
+                            ...reviewFormData,
+                            courseId: courseId as typeof COURSE_IDS.KETO | typeof COURSE_IDS.INTERVAL,
+                            courseName: selectedCourse.title
+                          })
+                        }
+                      }}
+                      className="w-full px-4 py-3.5 rounded-xl bg-dark-800/80 border-2 border-emerald-400/30 text-white focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/30 transition-all hover:border-emerald-400/50 shadow-[0_0_15px_rgba(16,185,129,0.1)]"
+                    >
+                      {purchasedCourses.map((course) => (
+                        <option key={course.id} value={course.id}>
+                          {course.title === 'Кето диета: от Мифов к Результатам' ? '🥑 ' : course.title === 'Интервальное голодание' ? '⏰ ' : ''}
+                          {course.title}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </div>
 
                 <div>

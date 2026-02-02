@@ -32,10 +32,10 @@ export async function POST(request: NextRequest) {
     const userId = user.id
 
     const body = await request.json()
-    const { courseId, courseName, rating, text, isAnonymous } = body
+    const { courseId, rating, text, isAnonymous } = body
 
     // Валидация
-    if (!courseId || !courseName || !rating || !text) {
+    if (!courseId || !rating || !text) {
       return NextResponse.json(
         { error: 'Все поля обязательны для заполнения' },
         { status: 400 }
@@ -124,7 +124,6 @@ export async function POST(request: NextRequest) {
       const { data: updatedReview, error: updateError } = await adminSupabase
         .from('reviews')
         .update({
-          course_name: courseName,
           rating,
           text: text.trim(),
           user_name: displayName,
@@ -157,7 +156,6 @@ export async function POST(request: NextRequest) {
         .insert({
           user_id: userId,
           course_id: courseId,
-          course_name: courseName,
           rating,
           text: text.trim(),
           user_name: displayName,

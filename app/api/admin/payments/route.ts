@@ -31,13 +31,12 @@ export async function GET(request: NextRequest) {
 
     const offset = (page - 1) * limit
 
-    // Build query
+    // Build query - сначала получаем платежи без JOIN
     let query = adminSupabase
       .from('payments')
       .select(`
         id, user_id, course_id, amount, status, payment_method, 
-        yookassa_payment_id, is_full_access, created_at, updated_at,
-        user:users(name, email, phone, username, telegram_username)
+        yookassa_payment_id, created_at, updated_at, metadata
       `, { count: 'exact' })
 
     // Apply status filter
@@ -50,7 +49,25 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
 
-    if (error) throw error
+    if (error) {
+      console.error('[Admin Payments] Query error:', error)
+      throw error
+    }
+
+    // Получаем данные пользователей отдельным запросом
+    const userIds = Array.from(new Set((payments || []).map((p: any) => p.user_id).filter(Boolean)))
+    let usersMap: Record<string, any> = {}
+    
+    if (userIds.length > 0) {
+      const { data: usersData } = await adminSupabase
+        .from('users')
+        .select('id, name, email, phone, username, telegram_username')
+        .in('id', userIds)
+      
+      if (usersData) {
+        usersMap = Object.fromEntries(usersData.map(u => [u.id, u]))
+      }
+    }
 
     // Get stats
     const { count: totalCount } = await adminSupabase
@@ -76,8 +93,25 @@ export async function GET(request: NextRequest) {
 
     const totalPages = Math.ceil((count || 0) / limit)
 
+    // Обрабатываем payments и добавляем данные пользователя
+    const processedPayments = (payments || []).map((payment: any) => {
+      const metadata = payment.metadata || {}
+      const user = usersMap[payment.user_id] || null
+      return {
+        ...payment,
+        is_full_access: metadata.is_full_access || false,
+        user: user ? {
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          username: user.username,
+          telegram_username: user.telegram_username
+        } : null
+      }
+    })
+
     return NextResponse.json({
-      payments: payments || [],
+      payments: processedPayments,
       total: count || 0,
       page,
       totalPages,
