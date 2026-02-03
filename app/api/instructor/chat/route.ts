@@ -49,6 +49,8 @@ const INSTRUCTOR_PROMPTS: Record<string, string> = {
 
 2. **Ссылки и навигация**:
    - ВСЕГДА указывай ссылки в формате Markdown: [название](/ссылка)
+   - **ИСПОЛЬЗУЙ ТОЛЬКО ССЫЛКИ ИЗ СПИСКА ДОСТУПНЫХ СТРАНИЦ ВЫШЕ!**
+   - **НИКОГДА не создавай ссылки на несуществующие страницы** (например, /blog/keto, /blog/if, /articles и т.д.)
    - Когда упоминаешь приложение или страницу, сразу давай ссылку
    - Например: "Используй [калькулятор макросов](/apps/macro-calculator) для расчета БЖУ"
    - Предлагай конкретные действия: "Перейди на [страницу рецептов](/recipes)"
@@ -191,6 +193,9 @@ const INSTRUCTOR_PROMPTS: Record<string, string> = {
 2. **Навигация и ссылки** (КРИТИЧЕСКИ ВАЖНО!):
    - ВСЕГДА указывай ссылки в формате Markdown: [название](/ссылка)
    - Когда упоминаешь страницу или приложение, СРАЗУ давай ссылку
+   - **ИСПОЛЬЗУЙ ТОЛЬКО ССЫЛКИ ИЗ СПИСКА ДОСТУПНЫХ СТРАНИЦ ВЫШЕ!**
+   - **НИКОГДА не создавай ссылки на несуществующие страницы** (например, /blog/keto, /blog/if, /articles и т.д.)
+   - Если нужно дать информацию о теме (кето, IF и т.д.), давай её в ответе, но НЕ создавай ссылки на несуществующие страницы
    - Примеры правильных ссылок:
      * "Используй [калькулятор макросов](/apps/macro-calculator) для расчета БЖУ"
      * "Посмотри [рецепты](/recipes) - там более 100 блюд"
@@ -390,19 +395,40 @@ export async function POST(request: NextRequest) {
         }
         
         if (llmError.code === 'model_decommissioned' || llmError.message?.includes('decommissioned')) {
-          console.error('[Instructor Chat] Model decommissioned - using fallback')
-          // Продолжаем с временным ответом
+          console.error('[Instructor Chat] Model decommissioned - returning error')
+          return NextResponse.json(
+            { 
+              error: 'Модель Groq устарела. Обновите код для использования актуальной модели.',
+              details: process.env.NODE_ENV === 'development' ? llmError.message : undefined
+            },
+            { status: 500 }
+          )
         }
         
-        // Если ошибка LLM - используем временный ответ
-        console.log('[Instructor Chat] Falling back to temporary response due to LLM error')
+        // Если другая ошибка LLM - возвращаем ошибку, а не временный ответ
+        console.error('[Instructor Chat] LLM error - returning error instead of fallback')
+        return NextResponse.json(
+          { 
+            error: `Ошибка Groq API: ${llmError.message || 'Неизвестная ошибка'}. Проверьте логи Vercel для деталей.`,
+            details: process.env.NODE_ENV === 'development' ? {
+              message: llmError.message,
+              status: llmError.status,
+              code: llmError.code
+            } : undefined
+          },
+          { status: 500 }
+        )
       }
     }
 
-    // Временный ответ (заменить на реальный AI)
-    const response = generateTemporaryResponse(message, instructorId || 'general', conversationHistory || [], extractedUserName)
-
-    return NextResponse.json({ response })
+    // Если Groq API ключ не установлен - возвращаем ошибку
+    console.error('[Instructor Chat] No Groq API key configured')
+    return NextResponse.json(
+      { 
+        error: 'Groq API ключ не настроен. Установите GROQ_API_KEY в настройках Vercel. Получите бесплатный ключ на https://console.groq.com/'
+      },
+      { status: 500 }
+    )
   } catch (error: any) {
     console.error('Instructor chat API error:', error)
     return NextResponse.json(

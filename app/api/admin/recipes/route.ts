@@ -120,10 +120,24 @@ export async function GET(request: NextRequest) {
       })
     })
 
-    // Преобразуем рецепты из кода в формат для админ-панели
-    const codeRecipesFormatted = codeRecipes.map(meal => mealToRecipe(meal))
+    // Создаём Set с нормализованными названиями рецептов из БД для быстрой проверки дубликатов
+    const dbRecipeNames = new Set(
+      (dbRecipes || []).map(r => 
+        (r.name || '').toLowerCase().trim()
+      ).filter(Boolean)
+    )
 
-    // Объединяем рецепты: сначала из БД, потом из кода
+    // Преобразуем рецепты из кода в формат для админ-панели
+    // Исключаем те, которые уже есть в БД (по названию)
+    const codeRecipesFormatted = codeRecipes
+      .map(meal => mealToRecipe(meal))
+      .filter(recipe => {
+        const normalizedName = (recipe.name || '').toLowerCase().trim()
+        // Пропускаем рецепт из кода, если он уже есть в БД
+        return !dbRecipeNames.has(normalizedName)
+      })
+
+    // Объединяем рецепты: сначала из БД, потом из кода (без дубликатов)
     const allRecipes = [
       ...(dbRecipes || []).map(r => ({ ...r, source: 'database' })),
       ...codeRecipesFormatted
