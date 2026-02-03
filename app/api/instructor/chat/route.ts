@@ -301,33 +301,24 @@ export async function POST(request: NextRequest) {
     // 3. Добавьте DEEPSEEK_API_KEY или OPENAI_API_KEY в .env.local
     // 4. Код автоматически использует доступный ключ
 
-    // Приоритет: Groq (бесплатный) > DeepSeek > OpenAI (платный)
+    // Интеграция с Groq API (бесплатный)
     const groqApiKey = process.env.GROQ_API_KEY?.trim()
-    const deepseekApiKey = process.env.DEEPSEEK_API_KEY?.trim()
-    const openaiApiKey = process.env.OPENAI_API_KEY?.trim()
-    const apiKey = groqApiKey || deepseekApiKey || openaiApiKey
-    const useGroq = !!groqApiKey
-    const useDeepSeek = !!deepseekApiKey && !useGroq
 
     console.log('[Instructor Chat] API Key check:', {
       hasGroqKey: !!groqApiKey,
-      hasDeepSeekKey: !!deepseekApiKey,
-      hasOpenAIKey: !!openaiApiKey,
-      useGroq,
-      useDeepSeek,
-      keyLength: apiKey ? apiKey.length : 0
+      keyLength: groqApiKey ? groqApiKey.length : 0
     })
 
-    if (apiKey) {
+    if (!groqApiKey) {
+      console.warn('[Instructor Chat] No Groq API key found, using temporary responses')
+    }
+
+    if (groqApiKey) {
       try {
         const OpenAI = require('openai')
         const client = new OpenAI({
-          apiKey: apiKey,
-          baseURL: useGroq
-            ? 'https://api.groq.com/openai/v1'
-            : useDeepSeek 
-            ? 'https://api.deepseek.com/v1' 
-            : undefined, // OpenAI использует дефолтный URL
+          apiKey: groqApiKey,
+          baseURL: 'https://api.groq.com/openai/v1',
         })
 
         // Добавляем имя в системный промпт, если оно известно
@@ -357,15 +348,11 @@ export async function POST(request: NextRequest) {
           { role: 'user', content: message }
         ]
 
-        const provider = useGroq ? 'Groq' : useDeepSeek ? 'DeepSeek' : 'OpenAI'
-        const model = useGroq 
-          ? 'llama-3.1-70b-versatile'  // Бесплатная быстрая модель Groq
-          : useDeepSeek 
-          ? 'deepseek-chat'
-          : 'gpt-4o-mini'
+        // Используем актуальную модель Groq
+        const model = 'llama-3.1-8b-instant'  // Актуальная быстрая модель Groq
         
-        console.log(`[Instructor Chat] Sending request to ${provider}, model: ${model}`)
-        console.log(`[Instructor Chat] API Key length: ${apiKey?.length || 0}, Base URL: ${useGroq ? 'https://api.groq.com/openai/v1' : useDeepSeek ? 'https://api.deepseek.com/v1' : 'default'}`)
+        console.log(`[Instructor Chat] Sending request to Groq, model: ${model}`)
+        console.log(`[Instructor Chat] API Key length: ${groqApiKey?.length || 0}, Base URL: https://api.groq.com/openai/v1`)
         
         const completion = await client.chat.completions.create({
           model: model,
@@ -376,7 +363,7 @@ export async function POST(request: NextRequest) {
         })
 
         const response = completion.choices[0]?.message?.content || 'Извините, не удалось получить ответ.'
-        console.log(`[Instructor Chat] LLM response from ${provider}, length: ${response.length}`)
+        console.log(`[Instructor Chat] LLM response from Groq, length: ${response.length}`)
         return NextResponse.json({ response })
       } catch (llmError: any) {
         console.error('[Instructor Chat] LLM error:', llmError)
@@ -393,14 +380,18 @@ export async function POST(request: NextRequest) {
         // Если ошибка связана с API ключом или балансом - возвращаем ошибку, а не временный ответ
         if (llmError.status === 401 || llmError.statusCode === 401 || llmError.message?.includes('API key') || llmError.message?.includes('Unauthorized')) {
           console.error('[Instructor Chat] API key error - returning error instead of fallback')
-          const keyName = useGroq ? 'GROQ_API_KEY' : useDeepSeek ? 'DEEPSEEK_API_KEY' : 'OPENAI_API_KEY'
           return NextResponse.json(
             { 
-              error: `Неверный API ключ. Проверьте ${keyName} в настройках Vercel.${useDeepSeek ? ' Также проверьте баланс аккаунта DeepSeek.' : ''}`,
+              error: 'Неверный Groq API ключ. Проверьте GROQ_API_KEY в настройках Vercel. Получите бесплатный ключ на https://console.groq.com/',
               details: process.env.NODE_ENV === 'development' ? llmError.message : undefined
             },
             { status: 500 }
           )
+        }
+        
+        if (llmError.code === 'model_decommissioned' || llmError.message?.includes('decommissioned')) {
+          console.error('[Instructor Chat] Model decommissioned - using fallback')
+          // Продолжаем с временным ответом
         }
         
         // Если ошибка LLM - используем временный ответ

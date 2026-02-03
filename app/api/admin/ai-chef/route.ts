@@ -69,27 +69,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Интеграция с LLM API (приоритет: Groq (бесплатный) > DeepSeek > OpenAI)
+    // Интеграция с Groq API (бесплатный)
     const groqApiKey = process.env.GROQ_API_KEY?.trim()
-    const deepseekApiKey = process.env.DEEPSEEK_API_KEY?.trim()
-    const openaiApiKey = process.env.OPENAI_API_KEY?.trim()
-    const apiKey = groqApiKey || deepseekApiKey || openaiApiKey
-    const useGroq = !!groqApiKey
-    const useDeepSeek = !!deepseekApiKey && !useGroq
 
     console.log('[AI Chef] API Key check:', {
       hasGroqKey: !!groqApiKey,
-      hasDeepSeekKey: !!deepseekApiKey,
-      hasOpenAIKey: !!openaiApiKey,
-      useGroq,
-      useDeepSeek,
-      keyLength: apiKey ? apiKey.length : 0
+      keyLength: groqApiKey ? groqApiKey.length : 0
     })
 
-      if (!apiKey) {
-      console.error('[AI Chef] No API key found. GROQ_API_KEY:', !!groqApiKey, 'DEEPSEEK_API_KEY:', !!deepseekApiKey, 'OPENAI_API_KEY:', !!openaiApiKey)
+    if (!groqApiKey) {
+      console.error('[AI Chef] No Groq API key found')
       return NextResponse.json(
-        { error: 'AI API key not configured. Please set GROQ_API_KEY (бесплатный), DEEPSEEK_API_KEY or OPENAI_API_KEY in environment variables.' },
+        { error: 'Groq API key not configured. Please set GROQ_API_KEY in environment variables. Получите бесплатный ключ на https://console.groq.com/' },
         { status: 500 }
       )
     }
@@ -109,12 +100,8 @@ export async function POST(request: NextRequest) {
       }
 
       const client = new OpenAI({
-        apiKey: apiKey,
-        baseURL: useGroq
-          ? 'https://api.groq.com/openai/v1'
-          : useDeepSeek 
-          ? 'https://api.deepseek.com/v1' 
-          : undefined,
+        apiKey: groqApiKey,
+        baseURL: 'https://api.groq.com/openai/v1',
       })
 
       // Добавляем режим работы в промпт
@@ -134,15 +121,11 @@ export async function POST(request: NextRequest) {
         { role: 'user', content: message }
       ]
 
-      const provider = useGroq ? 'Groq' : useDeepSeek ? 'DeepSeek' : 'OpenAI'
-      const model = useGroq 
-        ? 'llama-3.1-70b-versatile'  // Бесплатная быстрая модель Groq
-        : useDeepSeek 
-        ? 'deepseek-chat'
-        : 'gpt-4o-mini'
+      // Используем актуальную модель Groq
+      const model = 'llama-3.1-8b-instant'  // Актуальная быстрая модель Groq
       
-      console.log('[AI Chef] Sending request to', provider, 'with mode:', mode, 'model:', model)
-      console.log('[AI Chef] API Key length:', apiKey?.length || 0, 'Base URL:', useGroq ? 'https://api.groq.com/openai/v1' : useDeepSeek ? 'https://api.deepseek.com/v1' : 'default')
+      console.log('[AI Chef] Sending request to Groq with mode:', mode, 'model:', model)
+      console.log('[AI Chef] API Key length:', groqApiKey?.length || 0, 'Base URL: https://api.groq.com/openai/v1')
       
       const completion = await client.chat.completions.create({
         model: model,
@@ -152,7 +135,7 @@ export async function POST(request: NextRequest) {
         stream: false
       })
 
-      console.log('[AI Chef] Received response from', provider)
+      console.log('[AI Chef] Received response from Groq')
       
       const response = completion.choices[0]?.message?.content || 'Извините, не удалось получить ответ.'
 
@@ -193,18 +176,18 @@ export async function POST(request: NextRequest) {
       })
       
       // Более детальное сообщение об ошибке
-      let errorMessage = 'Ошибка при обращении к AI'
+      let errorMessage = 'Ошибка при обращении к Groq API'
       if (llmError.status === 401 || llmError.statusCode === 401) {
-        const keyName = useGroq ? 'GROQ_API_KEY' : useDeepSeek ? 'DEEPSEEK_API_KEY' : 'OPENAI_API_KEY'
-        errorMessage = `Неверный API ключ. Проверьте ${keyName} в настройках Vercel. Убедитесь, что ключ скопирован полностью без пробелов.`
+        errorMessage = 'Неверный Groq API ключ. Проверьте GROQ_API_KEY в настройках Vercel. Убедитесь, что ключ скопирован полностью без пробелов.'
       } else if (llmError.status === 429 || llmError.statusCode === 429) {
-        errorMessage = 'Превышен лимит запросов. Попробуйте позже.'
+        errorMessage = 'Превышен лимит запросов Groq. Попробуйте позже.'
+      } else if (llmError.code === 'model_decommissioned' || llmError.message?.includes('decommissioned')) {
+        errorMessage = 'Модель устарела. Обновите код для использования актуальной модели Groq.'
       } else if (llmError.message) {
         if (llmError.message.includes('API key')) {
-          const keyName = useGroq ? 'GROQ_API_KEY' : useDeepSeek ? 'DEEPSEEK_API_KEY' : 'OPENAI_API_KEY'
-          errorMessage = `Проблема с API ключом. Проверьте ${keyName} в настройках Vercel.`
+          errorMessage = 'Проблема с Groq API ключом. Проверьте GROQ_API_KEY в настройках Vercel.'
         } else {
-          errorMessage = `AI error: ${llmError.message}`
+          errorMessage = `Groq API error: ${llmError.message}`
         }
       }
       
