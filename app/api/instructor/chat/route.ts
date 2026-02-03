@@ -301,31 +301,31 @@ export async function POST(request: NextRequest) {
     // 3. Добавьте DEEPSEEK_API_KEY или OPENAI_API_KEY в .env.local
     // 4. Код автоматически использует доступный ключ
 
-    // Приоритет: DeepSeek (бесплатный) > OpenAI (платный)
+    // Приоритет: Groq (бесплатный) > DeepSeek > OpenAI (платный)
+    const groqApiKey = process.env.GROQ_API_KEY?.trim()
     const deepseekApiKey = process.env.DEEPSEEK_API_KEY?.trim()
     const openaiApiKey = process.env.OPENAI_API_KEY?.trim()
-    const apiKey = deepseekApiKey || openaiApiKey
-    const useDeepSeek = !!deepseekApiKey
+    const apiKey = groqApiKey || deepseekApiKey || openaiApiKey
+    const useGroq = !!groqApiKey
+    const useDeepSeek = !!deepseekApiKey && !useGroq
 
     console.log('[Instructor Chat] API Key check:', {
+      hasGroqKey: !!groqApiKey,
       hasDeepSeekKey: !!deepseekApiKey,
       hasOpenAIKey: !!openaiApiKey,
+      useGroq,
       useDeepSeek,
-      keyLength: apiKey ? apiKey.length : 0,
-      keyStartsWithSk: apiKey?.startsWith('sk-') || false
+      keyLength: apiKey ? apiKey.length : 0
     })
-
-    // Проверяем формат ключа DeepSeek (должен начинаться с sk-)
-    if (useDeepSeek && apiKey && !apiKey.startsWith('sk-')) {
-      console.warn('[Instructor Chat] DeepSeek API key format warning - should start with "sk-"')
-    }
 
     if (apiKey) {
       try {
         const OpenAI = require('openai')
         const client = new OpenAI({
           apiKey: apiKey,
-          baseURL: useDeepSeek 
+          baseURL: useGroq
+            ? 'https://api.groq.com/openai/v1'
+            : useDeepSeek 
             ? 'https://api.deepseek.com/v1' 
             : undefined, // OpenAI использует дефолтный URL
         })
@@ -357,13 +357,18 @@ export async function POST(request: NextRequest) {
           { role: 'user', content: message }
         ]
 
-        console.log(`[Instructor Chat] Sending request to ${useDeepSeek ? 'DeepSeek' : 'OpenAI'}`)
-        console.log(`[Instructor Chat] API Key length: ${apiKey?.length || 0}, Base URL: ${useDeepSeek ? 'https://api.deepseek.com/v1' : 'default'}`)
+        const provider = useGroq ? 'Groq' : useDeepSeek ? 'DeepSeek' : 'OpenAI'
+        const model = useGroq 
+          ? 'llama-3.1-70b-versatile'  // Бесплатная быстрая модель Groq
+          : useDeepSeek 
+          ? 'deepseek-chat'
+          : 'gpt-4o-mini'
+        
+        console.log(`[Instructor Chat] Sending request to ${provider}, model: ${model}`)
+        console.log(`[Instructor Chat] API Key length: ${apiKey?.length || 0}, Base URL: ${useGroq ? 'https://api.groq.com/openai/v1' : useDeepSeek ? 'https://api.deepseek.com/v1' : 'default'}`)
         
         const completion = await client.chat.completions.create({
-          model: useDeepSeek 
-            ? 'deepseek-chat' // Модель DeepSeek
-            : 'gpt-4o-mini', // OpenAI модель (~$0.30 за 1000 ответов)
+          model: model,
           messages: messages,
           temperature: 0.7,
           max_tokens: 1000,
@@ -371,7 +376,7 @@ export async function POST(request: NextRequest) {
         })
 
         const response = completion.choices[0]?.message?.content || 'Извините, не удалось получить ответ.'
-        console.log(`[Instructor Chat] LLM response from ${useDeepSeek ? 'DeepSeek' : 'OpenAI'}, length: ${response.length}`)
+        console.log(`[Instructor Chat] LLM response from ${provider}, length: ${response.length}`)
         return NextResponse.json({ response })
       } catch (llmError: any) {
         console.error('[Instructor Chat] LLM error:', llmError)
@@ -388,9 +393,10 @@ export async function POST(request: NextRequest) {
         // Если ошибка связана с API ключом или балансом - возвращаем ошибку, а не временный ответ
         if (llmError.status === 401 || llmError.statusCode === 401 || llmError.message?.includes('API key') || llmError.message?.includes('Unauthorized')) {
           console.error('[Instructor Chat] API key error - returning error instead of fallback')
+          const keyName = useGroq ? 'GROQ_API_KEY' : useDeepSeek ? 'DEEPSEEK_API_KEY' : 'OPENAI_API_KEY'
           return NextResponse.json(
             { 
-              error: 'Неверный API ключ или недостаточно средств на балансе. Проверьте DEEPSEEK_API_KEY в настройках Vercel и баланс аккаунта DeepSeek.',
+              error: `Неверный API ключ. Проверьте ${keyName} в настройках Vercel.${useDeepSeek ? ' Также проверьте баланс аккаунта DeepSeek.' : ''}`,
               details: process.env.NODE_ENV === 'development' ? llmError.message : undefined
             },
             { status: 500 }
