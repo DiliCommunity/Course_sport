@@ -109,14 +109,14 @@ export default function HomePage() {
           <div className="container mx-auto px-4 relative z-10">
             <Link
               href="/register"
-              className="group relative flex flex-col items-center justify-center gap-4 mx-auto w-full max-w-5xl px-8 md:px-16 py-10 md:py-14 rounded-[2.5rem] overflow-hidden bg-dark-800/90 backdrop-blur-sm shadow-[0_0_60px_rgba(139,92,246,0.7),0_0_100px_rgba(0,217,255,0.5),0_0_140px_rgba(255,215,0,0.3)] hover:shadow-[0_0_100px_rgba(139,92,246,1),0_0_150px_rgba(0,217,255,0.8),0_0_200px_rgba(255,215,0,0.5)] hover:scale-[1.03] transition-all duration-500 border-4 border-white/20 hover:border-white/40"
+              className="group relative flex flex-col items-center justify-center gap-4 mx-auto w-full max-w-5xl px-8 md:px-16 py-10 md:py-14 rounded-[2.5rem] overflow-hidden bg-gradient-to-br from-dark-800/60 via-dark-700/50 to-dark-800/60 backdrop-blur-md shadow-[0_0_60px_rgba(139,92,246,0.7),0_0_100px_rgba(0,217,255,0.5),0_0_140px_rgba(255,215,0,0.3)] hover:shadow-[0_0_100px_rgba(139,92,246,1),0_0_150px_rgba(0,217,255,0.8),0_0_200px_rgba(255,215,0,0.5)] hover:scale-[1.03] transition-all duration-500 border-4 border-white/20 hover:border-white/40"
             >
               {/* Коллаж из размытых фотографий блюд в стиле личного шефа */}
               <div className="absolute inset-0 rounded-[2.5rem] overflow-hidden">
                 {/* Случайные блюда из личного шефа - коллаж */}
                 {/* Блюдо 1 - левый верхний угол */}
                 <div 
-                  className="absolute top-0 left-0 w-1/3 h-1/3 opacity-40 blur-2xl scale-150"
+                  className="absolute top-0 left-0 w-1/3 h-1/3 opacity-50 blur-xl scale-150"
                   style={{
                     backgroundImage: 'url(/img/recipes/caesar-salad-chicken-parmesan.jpg)',
                     backgroundSize: 'cover',
@@ -126,7 +126,7 @@ export default function HomePage() {
                 />
                 {/* Блюдо 2 - правый верхний угол */}
                 <div 
-                  className="absolute top-0 right-0 w-1/3 h-1/3 opacity-40 blur-2xl scale-150"
+                  className="absolute top-0 right-0 w-1/3 h-1/3 opacity-50 blur-xl scale-150"
                   style={{
                     backgroundImage: 'url(/img/recipes/grilled-ribeye-steak.jpg)',
                     backgroundSize: 'cover',
@@ -136,7 +136,7 @@ export default function HomePage() {
                 />
                 {/* Блюдо 3 - центр */}
                 <div 
-                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-1/2 h-1/2 opacity-35 blur-3xl scale-125"
+                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-1/2 h-1/2 opacity-45 blur-2xl scale-125"
                   style={{
                     backgroundImage: 'url(/img/recipes/sous-vide-salmon-vegetables.jpg)',
                     backgroundSize: 'cover',
@@ -146,7 +146,7 @@ export default function HomePage() {
                 />
                 {/* Блюдо 4 - левый нижний угол */}
                 <div 
-                  className="absolute bottom-0 left-0 w-1/3 h-1/3 opacity-40 blur-2xl scale-150"
+                  className="absolute bottom-0 left-0 w-1/3 h-1/3 opacity-50 blur-xl scale-150"
                   style={{
                     backgroundImage: 'url(/img/recipes/keto-cheesecake.jpg)',
                     backgroundSize: 'cover',
@@ -156,7 +156,7 @@ export default function HomePage() {
                 />
                 {/* Блюдо 5 - правый нижний угол */}
                 <div 
-                  className="absolute bottom-0 right-0 w-1/3 h-1/3 opacity-40 blur-2xl scale-150"
+                  className="absolute bottom-0 right-0 w-1/3 h-1/3 opacity-50 blur-xl scale-150"
                   style={{
                     backgroundImage: 'url(/img/recipes/chocolate-avocado-mousse.jpg)',
                     backgroundSize: 'cover',
@@ -166,7 +166,7 @@ export default function HomePage() {
                 />
                 {/* Блюдо 6 - левый центр */}
                 <div 
-                  className="absolute top-1/2 left-0 transform -translate-y-1/2 w-1/4 h-1/3 opacity-35 blur-2xl scale-125"
+                  className="absolute top-1/2 left-0 transform -translate-y-1/2 w-1/4 h-1/3 opacity-45 blur-xl scale-125"
                   style={{
                     backgroundImage: 'url(/img/recipes/grilled-chicken-breast-vegetables.jpg)',
                     backgroundSize: 'cover',
@@ -176,7 +176,7 @@ export default function HomePage() {
                 />
                 {/* Блюдо 7 - правый центр */}
                 <div 
-                  className="absolute top-1/2 right-0 transform -translate-y-1/2 w-1/4 h-1/3 opacity-35 blur-2xl scale-125"
+                  className="absolute top-1/2 right-0 transform -translate-y-1/2 w-1/4 h-1/3 opacity-45 blur-xl scale-125"
                   style={{
                     backgroundImage: 'url(/img/recipes/creamy-mushroom-soup.jpg)',
                     backgroundSize: 'cover',
@@ -186,7 +186,7 @@ export default function HomePage() {
                 />
                 {/* Блюдо 8 - верхний центр */}
                 <div 
-                  className="absolute top-0 left-1/2 transform -translate-x-1/2 w-1/3 h-1/4 opacity-35 blur-2xl scale-125"
+                  className="absolute top-0 left-1/2 transform -translate-x-1/2 w-1/3 h-1/4 opacity-45 blur-xl scale-125"
                   style={{
                     backgroundImage: 'url(/img/recipes/tartar-syomga-avokado.jpg)',
                     backgroundSize: 'cover',
@@ -196,7 +196,7 @@ export default function HomePage() {
                 />
                 {/* Блюдо 9 - нижний центр */}
                 <div 
-                  className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1/3 h-1/4 opacity-35 blur-2xl scale-125"
+                  className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1/3 h-1/4 opacity-45 blur-xl scale-125"
                   style={{
                     backgroundImage: 'url(/img/recipes/keto-chocolate-brownies.jpg)',
                     backgroundSize: 'cover',
@@ -205,8 +205,8 @@ export default function HomePage() {
                   }}
                 />
                 
-                {/* Темный градиент поверх для читаемости текста */}
-                <div className="absolute inset-0 bg-gradient-to-b from-dark-900/85 via-dark-800/75 to-dark-900/85" />
+                {/* Легкий градиент поверх для читаемости текста - более светлый и приятный */}
+                <div className="absolute inset-0 bg-gradient-to-b from-dark-900/40 via-dark-800/30 to-dark-900/40" />
               </div>
               
               {/* Мерцание по контуру - тонкое золотое свечение */}
@@ -272,11 +272,54 @@ export default function HomePage() {
                 <span className="group-hover:translate-x-2 transition-transform duration-300 text-accent-flame drop-shadow-[0_0_15px_rgba(255,107,53,1)] text-2xl">→</span>
               </div>
               
-              {/* Декоративные элементы */}
-              <div className="absolute top-4 left-4 w-16 h-16 border-4 border-accent-gold/50 rounded-full animate-ping opacity-75" />
-              <div className="absolute bottom-4 right-4 w-12 h-12 border-4 border-accent-electric/50 rounded-full animate-pulse" />
-              <div className="absolute top-1/2 left-8 w-8 h-8 border-2 border-accent-neon/50 rounded-full animate-bounce" style={{ animationDelay: '0.5s' }} />
-              <div className="absolute top-1/2 right-8 w-8 h-8 border-2 border-accent-flame/50 rounded-full animate-bounce" style={{ animationDelay: '1s' }} />
+              {/* Профессиональные декоративные элементы - плавающие иконки блюд */}
+              {/* Плавающая иконка салата */}
+              <div className="absolute top-8 left-8 w-14 h-14 opacity-70 animate-float" style={{ animationDelay: '0s', animationDuration: '3s' }}>
+                <div className="w-full h-full rounded-full bg-gradient-to-br from-green-400/30 to-emerald-500/30 backdrop-blur-sm border-2 border-green-400/50 flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.4)]">
+                  <span className="text-2xl">🥗</span>
+                </div>
+              </div>
+              
+              {/* Плавающая иконка стейка */}
+              <div className="absolute top-12 right-12 w-16 h-16 opacity-70 animate-float" style={{ animationDelay: '1s', animationDuration: '4s' }}>
+                <div className="w-full h-full rounded-full bg-gradient-to-br from-red-400/30 to-rose-500/30 backdrop-blur-sm border-2 border-red-400/50 flex items-center justify-center shadow-[0_0_25px_rgba(239,68,68,0.4)]">
+                  <span className="text-3xl">🥩</span>
+                </div>
+              </div>
+              
+              {/* Плавающая иконка десерта */}
+              <div className="absolute bottom-8 left-12 w-14 h-14 opacity-70 animate-float" style={{ animationDelay: '2s', animationDuration: '3.5s' }}>
+                <div className="w-full h-full rounded-full bg-gradient-to-br from-yellow-400/30 to-amber-500/30 backdrop-blur-sm border-2 border-yellow-400/50 flex items-center justify-center shadow-[0_0_20px_rgba(250,204,21,0.4)]">
+                  <span className="text-2xl">🍰</span>
+                </div>
+              </div>
+              
+              {/* Плавающая иконка рыбы */}
+              <div className="absolute bottom-12 right-8 w-16 h-16 opacity-70 animate-float" style={{ animationDelay: '0.5s', animationDuration: '4.5s' }}>
+                <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-400/30 to-cyan-500/30 backdrop-blur-sm border-2 border-blue-400/50 flex items-center justify-center shadow-[0_0_25px_rgba(59,130,246,0.4)]">
+                  <span className="text-3xl">🐟</span>
+                </div>
+              </div>
+              
+              {/* Плавающая иконка яйца (центр слева) */}
+              <div className="absolute top-1/2 left-6 transform -translate-y-1/2 w-12 h-12 opacity-60 animate-float" style={{ animationDelay: '1.5s', animationDuration: '3s' }}>
+                <div className="w-full h-full rounded-full bg-gradient-to-br from-orange-400/30 to-amber-500/30 backdrop-blur-sm border-2 border-orange-400/50 flex items-center justify-center shadow-[0_0_18px_rgba(251,146,60,0.4)]">
+                  <span className="text-xl">🍳</span>
+                </div>
+              </div>
+              
+              {/* Плавающая иконка креветок (центр справа) */}
+              <div className="absolute top-1/2 right-6 transform -translate-y-1/2 w-12 h-12 opacity-60 animate-float" style={{ animationDelay: '2.5s', animationDuration: '3.5s' }}>
+                <div className="w-full h-full rounded-full bg-gradient-to-br from-pink-400/30 to-rose-500/30 backdrop-blur-sm border-2 border-pink-400/50 flex items-center justify-center shadow-[0_0_18px_rgba(244,114,182,0.4)]">
+                  <span className="text-xl">🦐</span>
+                </div>
+              </div>
+              
+              {/* Светящиеся частицы для атмосферы */}
+              <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-accent-gold rounded-full opacity-60 animate-twinkle" style={{ animationDelay: '0s', boxShadow: '0_0_10px_rgba(255,215,0,0.8)' }} />
+              <div className="absolute top-3/4 right-1/4 w-2 h-2 bg-accent-electric rounded-full opacity-60 animate-twinkle" style={{ animationDelay: '1s', boxShadow: '0_0_10px_rgba(0,217,255,0.8)' }} />
+              <div className="absolute bottom-1/4 left-1/3 w-2 h-2 bg-accent-flame rounded-full opacity-60 animate-twinkle" style={{ animationDelay: '2s', boxShadow: '0_0_10px_rgba(255,107,53,0.8)' }} />
+              <div className="absolute top-1/3 right-1/3 w-2 h-2 bg-accent-neon rounded-full opacity-60 animate-twinkle" style={{ animationDelay: '0.5s', boxShadow: '0_0_10px_rgba(0,255,255,0.8)' }} />
             </Link>
           </div>
         </section>

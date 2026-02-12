@@ -774,5 +774,41 @@
     animation: button-gradient-shift 4s ease infinite;
     background-size: 400% 400%;
   }
+
+  /* Анимация плавания для декоративных элементов */
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px) rotate(0deg);
+    }
+    25% {
+      transform: translateY(-15px) rotate(5deg);
+    }
+    50% {
+      transform: translateY(-10px) rotate(-5deg);
+    }
+    75% {
+      transform: translateY(-20px) rotate(3deg);
+    }
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  /* Анимация мерцания для частиц */
+  @keyframes twinkle {
+    0%, 100% {
+      opacity: 0.3;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.5);
+    }
+  }
+
+  .animate-twinkle {
+    animation: twinkle 2s ease-in-out infinite;
+  }
 }
 
