@@ -109,7 +109,7 @@ export default function HomePage() {
           <div className="container mx-auto px-4 relative z-10">
             <Link
               href="/register"
-              className="group relative flex flex-col items-center justify-center gap-4 mx-auto w-full max-w-5xl px-8 md:px-16 py-10 md:py-14 rounded-[2.5rem] overflow-hidden bg-dark-900/95 backdrop-blur-md shadow-[0_0_60px_rgba(139,92,246,0.7),0_0_100px_rgba(0,217,255,0.5),0_0_140px_rgba(255,215,0,0.3)] hover:shadow-[0_0_100px_rgba(139,92,246,1),0_0_150px_rgba(0,217,255,0.8),0_0_200px_rgba(255,215,0,0.5)] hover:scale-[1.03] transition-all duration-500 border-4 border-white/20 hover:border-white/40"
+              className="group relative flex flex-col items-center justify-center gap-4 mx-auto w-full max-w-5xl px-8 md:px-16 py-10 md:py-14 rounded-[2.5rem] overflow-hidden bg-gradient-to-r from-accent-violet via-accent-electric to-accent-neon bg-[length:200%_100%] animate-gradient shadow-[0_0_60px_rgba(139,92,246,0.7),0_0_100px_rgba(0,217,255,0.5),0_0_140px_rgba(255,215,0,0.3)] hover:shadow-[0_0_100px_rgba(139,92,246,1),0_0_150px_rgba(0,217,255,0.8),0_0_200px_rgba(255,215,0,0.5)] hover:scale-[1.03] transition-all duration-500 border-4 border-white/20 hover:border-white/40"
             >
               {/* Коллаж из размытых фотографий блюд в стиле личного шефа */}
               <div className="absolute inset-0 rounded-[2.5rem] overflow-hidden">
@@ -205,8 +205,8 @@ export default function HomePage() {
                   }}
                 />
                 
-                {/* Темный градиент поверх для читаемости текста в стиле сайта */}
-                <div className="absolute inset-0 bg-gradient-to-b from-dark-900/70 via-dark-900/60 to-dark-900/70" />
+                {/* Легкий градиент поверх для читаемости текста - минимальный, чтобы блюда были видны */}
+                <div className="absolute inset-0 bg-gradient-to-b from-dark-900/20 via-dark-900/15 to-dark-900/20" />
               </div>
               
               {/* Мерцание по контуру - тонкое золотое свечение */}
