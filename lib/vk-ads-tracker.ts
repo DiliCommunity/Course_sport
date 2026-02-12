@@ -33,25 +33,40 @@ export function trackVKEvent(eventType: string, eventParams?: Record<string, any
 
 /**
  * Отслеживание регистрации пользователя
+ * Событие автоматически появится в VK Ads после первого вызова
  */
 export function trackRegistration(userId?: string) {
-  trackVKEvent('reachGoal', {
-    goal: 'registration',
-    user_id: userId
+  if (typeof window === 'undefined' || !window._tmr) return
+  
+  // Отправляем событие - VK Ads автоматически зарегистрирует его при первом вызове
+  window._tmr.push({
+    id: '3742277',
+    type: 'reachGoal',
+    goal: 'registration' // Название события - появится в VK Ads автоматически
   })
+  
+  console.log('VK Ads: Registration event tracked')
 }
 
 /**
  * Отслеживание покупки курса
+ * Событие автоматически появится в VK Ads после первого вызова
  */
 export function trackPurchase(courseId: string, courseTitle: string, price: number, currency: string = 'RUB') {
-  trackVKEvent('reachGoal', {
-    goal: 'purchase',
-    course_id: courseId,
-    course_title: courseTitle,
+  if (typeof window === 'undefined' || !window._tmr) return
+  
+  // Отправляем событие покупки с параметрами
+  window._tmr.push({
+    id: '3742277',
+    type: 'reachGoal',
+    goal: 'purchase', // Название события - появится в VK Ads автоматически
+    // Параметры для e-commerce (могут использоваться для аналитики)
     price: price,
-    currency: currency
+    currency: currency,
+    order_id: courseId
   })
+  
+  console.log('VK Ads: Purchase event tracked', { courseId, price, currency })
 }
 
 /**
