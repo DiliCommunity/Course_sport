@@ -99,30 +99,67 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Большая кнопка регистрации для неавторизованных пользователей */}
+      {/* Большая кнопка регистрации для неавторизованных пользователей - РЕКЛАМА ЛУЧШЕГО САЙТА В МИРЕ */}
       {!user && !loading && (
-        <section className="py-6 md:py-8">
-          <div className="container mx-auto px-4">
+        <section className="py-8 md:py-12 relative overflow-hidden">
+          {/* Фоновые эффекты для максимальной заметности */}
+          <div className="absolute inset-0 bg-gradient-to-r from-accent-violet/20 via-accent-electric/20 to-accent-neon/20 blur-3xl animate-pulse" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,215,0,0.15),transparent_70%)] animate-pulse" />
+          
+          <div className="container mx-auto px-4 relative z-10">
             <Link
               href="/register"
-              className="group relative flex flex-col items-center justify-center gap-3 mx-auto w-full max-w-4xl px-6 md:px-12 py-6 md:py-8 rounded-3xl bg-gradient-to-r from-accent-violet via-accent-electric to-accent-neon bg-[length:200%_100%] animate-gradient shadow-[0_0_40px_rgba(139,92,246,0.5)] hover:shadow-[0_0_80px_rgba(139,92,246,0.8),0_0_60px_rgba(0,217,255,0.6)] hover:scale-[1.02] transition-all duration-300 border-2 border-accent-violet/60 hover:border-accent-electric"
+              className="group relative flex flex-col items-center justify-center gap-4 mx-auto w-full max-w-5xl px-8 md:px-16 py-10 md:py-14 rounded-[2.5rem] bg-gradient-to-r from-accent-violet via-accent-electric to-accent-neon bg-[length:200%_100%] animate-gradient shadow-[0_0_60px_rgba(139,92,246,0.7),0_0_100px_rgba(0,217,255,0.5),0_0_140px_rgba(255,215,0,0.3)] hover:shadow-[0_0_100px_rgba(139,92,246,1),0_0_150px_rgba(0,217,255,0.8),0_0_200px_rgba(255,215,0,0.5)] hover:scale-[1.03] transition-all duration-500 border-4 border-accent-violet/80 hover:border-accent-electric/100"
             >
-              <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-accent-violet via-accent-electric to-accent-neon opacity-0 group-hover:opacity-100 blur-2xl transition-opacity duration-300" />
-              <div className="relative z-10 text-center">
-                <div className="flex items-center justify-center gap-3 mb-2">
-                  <span className="text-3xl md:text-4xl animate-bounce drop-shadow-[0_0_15px_rgba(255,215,0,0.6)]">👨‍🍳</span>
-                  <span className="relative font-black text-xl md:text-2xl lg:text-3xl drop-shadow-[0_2px_10px_rgba(255,107,53,0.6),0_0_25px_rgba(255,215,0,0.5)] bg-gradient-to-r from-accent-gold via-[#ff8c42] to-accent-flame bg-clip-text text-transparent bg-[length:200%_100%] animate-gradient">
-                    Попробуй личный шеф!
-                  </span>
+              {/* Множественные слои свечения */}
+              <div className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-r from-accent-violet via-accent-electric to-accent-neon opacity-0 group-hover:opacity-100 blur-3xl transition-opacity duration-500" />
+              <div className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-r from-accent-gold/30 via-accent-flame/30 to-accent-gold/30 opacity-50 blur-2xl animate-pulse" />
+              
+              {/* Декоративные блики */}
+              <div className="absolute top-0 left-0 w-full h-full rounded-[2.5rem] overflow-hidden">
+                <div className="absolute top-0 left-[-100%] w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:left-[100%] transition-all duration-1000" />
+              </div>
+              
+              <div className="relative z-10 text-center w-full">
+                {/* Главный заголовок с эмодзи */}
+                <div className="flex items-center justify-center gap-4 mb-3">
+                  <span className="text-5xl md:text-6xl lg:text-7xl animate-bounce drop-shadow-[0_0_20px_rgba(255,215,0,0.8),0_0_40px_rgba(255,107,53,0.6)]">👨‍🍳</span>
+                  <div className="flex flex-col items-start">
+                    <span className="relative font-black text-2xl md:text-3xl lg:text-4xl xl:text-5xl drop-shadow-[0_4px_15px_rgba(255,107,53,0.8),0_0_30px_rgba(255,215,0,0.7),0_0_50px_rgba(255,107,53,0.5)] bg-gradient-to-r from-accent-gold via-[#ff8c42] to-accent-flame bg-clip-text text-transparent bg-[length:200%_100%] animate-gradient leading-tight">
+                      Попробуй личный шеф
+                    </span>
+                    <span className="relative font-black text-xl md:text-2xl lg:text-3xl xl:text-4xl drop-shadow-[0_4px_15px_rgba(0,217,255,0.8),0_0_30px_rgba(139,92,246,0.7)] bg-gradient-to-r from-accent-electric via-accent-neon to-accent-electric bg-clip-text text-transparent animate-pulse">
+                      7 дней бесплатно!
+                    </span>
+                  </div>
                 </div>
-                <div className="text-base md:text-lg lg:text-xl font-bold drop-shadow-[0_2px_8px_rgba(255,107,53,0.5),0_0_20px_rgba(255,215,0,0.4)] bg-gradient-to-r from-accent-gold via-[#ffa366] to-accent-flame bg-clip-text text-transparent">
-                  И начни зарабатывать на нём уже сегодня!
+                
+                {/* Подзаголовок */}
+                <div className="text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold drop-shadow-[0_3px_10px_rgba(255,107,53,0.6),0_0_25px_rgba(255,215,0,0.5)] bg-gradient-to-r from-accent-gold via-[#ffa366] to-accent-flame bg-clip-text text-transparent mb-4">
+                  Или зарабатывать уже сегодня!
+                </div>
+                
+                {/* Бейдж "БЕСПЛАТНО" */}
+                <div className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-gradient-to-r from-accent-gold via-accent-flame to-accent-gold text-dark-900 font-black text-sm md:text-base lg:text-lg shadow-[0_4px_20px_rgba(255,215,0,0.6)] animate-pulse mb-2">
+                  <span className="text-xl">🎁</span>
+                  <span>БЕСПЛАТНО 7 ДНЕЙ</span>
+                  <span className="text-xl">🎁</span>
                 </div>
               </div>
-              <div className="relative z-10 flex items-center gap-2 text-sm md:text-base font-bold drop-shadow-[0_2px_6px_rgba(255,107,53,0.5)] opacity-90 group-hover:opacity-100 transition-opacity">
-                <span className="bg-gradient-to-r from-accent-gold to-accent-flame bg-clip-text text-transparent">Зарегистрироваться</span>
-                <span className="group-hover:translate-x-1 transition-transform text-accent-flame drop-shadow-[0_0_12px_rgba(255,107,53,0.9)]">→</span>
+              
+              {/* Кнопка действия */}
+              <div className="relative z-10 flex items-center gap-3 text-base md:text-lg lg:text-xl font-black drop-shadow-[0_3px_8px_rgba(255,107,53,0.7),0_0_20px_rgba(255,215,0,0.5)] opacity-95 group-hover:opacity-100 transition-opacity mt-2">
+                <span className="bg-gradient-to-r from-accent-gold via-accent-flame to-accent-gold bg-clip-text text-transparent animate-gradient bg-[length:200%_100%]">
+                  Зарегистрироваться
+                </span>
+                <span className="group-hover:translate-x-2 transition-transform duration-300 text-accent-flame drop-shadow-[0_0_15px_rgba(255,107,53,1)] text-2xl">→</span>
               </div>
+              
+              {/* Декоративные элементы */}
+              <div className="absolute top-4 left-4 w-16 h-16 border-4 border-accent-gold/50 rounded-full animate-ping opacity-75" />
+              <div className="absolute bottom-4 right-4 w-12 h-12 border-4 border-accent-electric/50 rounded-full animate-pulse" />
+              <div className="absolute top-1/2 left-8 w-8 h-8 border-2 border-accent-neon/50 rounded-full animate-bounce" style={{ animationDelay: '0.5s' }} />
+              <div className="absolute top-1/2 right-8 w-8 h-8 border-2 border-accent-flame/50 rounded-full animate-bounce" style={{ animationDelay: '1s' }} />
             </Link>
           </div>
         </section>

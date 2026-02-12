@@ -326,24 +326,60 @@ export function MenuGenerator() {
     
     // Добавляем блюда из расширенной базы (применяем фильтры)
     Object.values(enhancedMealsDatabase).forEach(category => {
-      allAvailableMeals.push(...filterMeals(category))
+      const filtered = filterMeals(category)
+      allAvailableMeals.push(...filtered)
     })
     
     // Добавляем блюда из старой базы (для завтраков, обедов, ужинов)
     if (MEALS_DATABASE.breakfast) {
-      allAvailableMeals.push(...filterMeals(MEALS_DATABASE.breakfast))
+      const filtered = filterMeals(MEALS_DATABASE.breakfast)
+      allAvailableMeals.push(...filtered)
     }
     if (MEALS_DATABASE.lunch) {
-      allAvailableMeals.push(...filterMeals(MEALS_DATABASE.lunch))
+      const filtered = filterMeals(MEALS_DATABASE.lunch)
+      allAvailableMeals.push(...filtered)
     }
     if (MEALS_DATABASE.dinner) {
-      allAvailableMeals.push(...filterMeals(MEALS_DATABASE.dinner))
+      const filtered = filterMeals(MEALS_DATABASE.dinner)
+      allAvailableMeals.push(...filtered)
     }
     if (MEALS_DATABASE.snacks) {
-      allAvailableMeals.push(...filterMeals(MEALS_DATABASE.snacks))
+      const filtered = filterMeals(MEALS_DATABASE.snacks)
+      allAvailableMeals.push(...filtered)
     }
     if (MEALS_DATABASE.desserts) {
-      allAvailableMeals.push(...filterMeals(MEALS_DATABASE.desserts))
+      const filtered = filterMeals(MEALS_DATABASE.desserts)
+      allAvailableMeals.push(...filtered)
+    }
+
+    console.log('[MenuGenerator] Total available meals after filtering:', allAvailableMeals.length)
+    console.log('[MenuGenerator] Filters:', { cookingMethod, dishType, processingMethods, productFilter, excludedProducts: excludedProducts.length })
+
+    // Если после фильтрации нет блюд, используем все блюда без фильтров (кроме исключенных продуктов)
+    if (allAvailableMeals.length === 0) {
+      console.warn('[MenuGenerator] No meals after filtering, using all meals without strict filters')
+      Object.values(enhancedMealsDatabase).forEach(category => {
+        allAvailableMeals.push(...category)
+      })
+      Object.values(MEALS_DATABASE).forEach(category => {
+        if (Array.isArray(category)) {
+          allAvailableMeals.push(...category)
+        }
+      })
+      
+      // Применяем только фильтр по исключенным продуктам, если он есть
+      if (productFilter === 'exclude' && excludedProducts.length > 0) {
+        const filtered = allAvailableMeals.filter((meal) => {
+          const mealIngredients = meal.ingredients?.join(' ') || ''
+          return !excludedProducts.some((excluded) =>
+            mealIngredients.toLowerCase().includes(excluded.toLowerCase())
+          )
+        })
+        allAvailableMeals.length = 0
+        allAvailableMeals.push(...filtered)
+      }
+      
+      console.log('[MenuGenerator] Using unfiltered meals:', allAvailableMeals.length)
     }
 
     for (let i = 0; i < daysCount; i++) {
@@ -399,17 +435,60 @@ export function MenuGenerator() {
 
       // Пулы по типам (предпочитаем явные категории из базы)
       // Для основных приемов пищи используем специальную фильтрацию без учета dishType
-      const breakfastPool = MEALS_DATABASE.breakfast
+      let breakfastPool = MEALS_DATABASE.breakfast
         ? filterMealsForMainMeals(MEALS_DATABASE.breakfast)
         : filterMealsForMainMeals(allAvailableMeals).filter((meal) => !meal.dishType || meal.dishType === 'second' || meal.cookingMethod === 'cold')
 
-      const lunchPool = MEALS_DATABASE.lunch
+      let lunchPool = MEALS_DATABASE.lunch
         ? filterMealsForMainMeals(MEALS_DATABASE.lunch)
         : filterMealsForMainMeals(allAvailableMeals).filter((meal) => meal.dishType === 'first' || meal.dishType === 'second' || !meal.dishType)
 
-      const dinnerPool = MEALS_DATABASE.dinner
+      let dinnerPool = MEALS_DATABASE.dinner
         ? filterMealsForMainMeals(MEALS_DATABASE.dinner)
         : filterMealsForMainMeals(allAvailableMeals).filter((meal) => meal.dishType === 'second' || !meal.dishType)
+
+      // Fallback: если пулы пустые, используем все доступные блюда без строгих фильтров
+      if (breakfastPool.length === 0) {
+        console.warn('[MenuGenerator] breakfastPool is empty, using fallback')
+        breakfastPool = allAvailableMeals.filter((meal) => {
+          if (meal.dishType === 'dessert' || meal.dishType === 'snack') return false
+          return true
+        })
+      }
+
+      if (lunchPool.length === 0) {
+        console.warn('[MenuGenerator] lunchPool is empty, using fallback')
+        lunchPool = allAvailableMeals.filter((meal) => {
+          if (meal.dishType === 'dessert' || meal.dishType === 'snack') return false
+          return true
+        })
+      }
+
+      if (dinnerPool.length === 0) {
+        console.warn('[MenuGenerator] dinnerPool is empty, using fallback')
+        dinnerPool = allAvailableMeals.filter((meal) => {
+          if (meal.dishType === 'dessert' || meal.dishType === 'snack') return false
+          return true
+        })
+      }
+
+      // Если все еще пусто, используем все блюда из базы без фильтров
+      if (breakfastPool.length === 0 && lunchPool.length === 0 && dinnerPool.length === 0) {
+        console.error('[MenuGenerator] All pools are empty, using all meals without filters')
+        const allMealsUnfiltered: Meal[] = []
+        Object.values(enhancedMealsDatabase).forEach(category => {
+          allMealsUnfiltered.push(...category)
+        })
+        Object.values(MEALS_DATABASE).forEach(category => {
+          if (Array.isArray(category)) {
+            allMealsUnfiltered.push(...category)
+          }
+        })
+        
+        breakfastPool = allMealsUnfiltered.filter((meal) => meal.dishType !== 'dessert' && meal.dishType !== 'snack')
+        lunchPool = allMealsUnfiltered.filter((meal) => meal.dishType !== 'dessert' && meal.dishType !== 'snack')
+        dinnerPool = allMealsUnfiltered.filter((meal) => meal.dishType !== 'dessert' && meal.dishType !== 'snack')
+      }
 
       // Десерты — кето-сладости, муссы, пудинги, чизкейки и т.д.
       // Берём из всех источников блюда с dishType === 'dessert'
@@ -460,6 +539,39 @@ export function MenuGenerator() {
         if (!dessert && lightSnackPool.length > 0) {
           snack = pickUniqueMeal(lightSnackPool, usedNames, usedSignatures)
           console.log('[MenuGenerator] Selected snack:', snack?.name)
+        }
+      }
+
+      // Проверяем, что есть хотя бы одно блюдо для дня
+      const hasAnyMeal = breakfast || lunch || dinner || snack || dessert
+      
+      if (!hasAnyMeal) {
+        console.error(`[MenuGenerator] No meals generated for day ${i + 1}, skipping`)
+        // Пробуем использовать любые доступные блюда без фильтров
+        const emergencyPool = allAvailableMeals.length > 0 
+          ? allAvailableMeals 
+          : (() => {
+              const all: Meal[] = []
+              Object.values(enhancedMealsDatabase).forEach(cat => all.push(...cat))
+              Object.values(MEALS_DATABASE).forEach(cat => {
+                if (Array.isArray(cat)) all.push(...cat)
+              })
+              return all
+            })()
+        
+        if (emergencyPool.length > 0) {
+          // Используем первые доступные блюда
+          breakfast = emergencyPool.find(m => m.dishType !== 'dessert' && m.dishType !== 'snack') || emergencyPool[0]
+          if (mealType === 'full' || mealType === 'lunch') {
+            lunch = emergencyPool.find(m => m !== breakfast && m.dishType !== 'dessert' && m.dishType !== 'snack') || emergencyPool[1] || breakfast
+          }
+          if (mealType === 'full' || mealType === 'dinner') {
+            dinner = emergencyPool.find(m => m !== breakfast && m !== lunch && m.dishType !== 'dessert' && m.dishType !== 'snack') || emergencyPool[2] || breakfast
+          }
+        } else {
+          console.error('[MenuGenerator] No meals available at all, cannot generate menu')
+          alert('Не удалось сгенерировать меню. Пожалуйста, проверьте настройки фильтров или обратитесь в поддержку.')
+          return
         }
       }
 
