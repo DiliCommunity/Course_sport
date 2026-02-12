@@ -173,6 +173,7 @@ export async function POST(request: NextRequest) {
       let freeTrialEnabled = false
       let freeTrialApps: string[] = []
 
+      const adminSupabase = createAdminClient()
       if (adminSupabase) {
         const { data: settings } = await adminSupabase
           .from('admin_settings')
