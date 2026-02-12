@@ -86,18 +86,18 @@ export default function HomePage() {
               <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-accent-violet via-accent-electric to-accent-neon opacity-0 group-hover:opacity-100 blur-2xl transition-opacity duration-300" />
               <div className="relative z-10 text-center">
                 <div className="flex items-center justify-center gap-3 mb-2">
-                  <span className="text-3xl md:text-4xl animate-bounce drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">👨‍🍳</span>
-                  <span className="relative text-white font-black text-xl md:text-2xl lg:text-3xl drop-shadow-[0_2px_8px_rgba(0,0,0,0.5),0_0_20px_rgba(255,255,255,0.3)] bg-gradient-to-r from-white via-accent-electric to-white bg-clip-text text-transparent bg-[length:200%_100%] animate-gradient">
+                  <span className="text-3xl md:text-4xl animate-bounce drop-shadow-[0_0_15px_rgba(255,215,0,0.6)]">👨‍🍳</span>
+                  <span className="relative font-black text-xl md:text-2xl lg:text-3xl drop-shadow-[0_2px_10px_rgba(255,107,53,0.6),0_0_25px_rgba(255,215,0,0.5)] bg-gradient-to-r from-accent-gold via-[#ff8c42] to-accent-flame bg-clip-text text-transparent bg-[length:200%_100%] animate-gradient">
                     Попробуй личный шеф!
                   </span>
                 </div>
-                <div className="text-base md:text-lg lg:text-xl font-bold text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.5),0_0_15px_rgba(255,255,255,0.2)]">
+                <div className="text-base md:text-lg lg:text-xl font-bold drop-shadow-[0_2px_8px_rgba(255,107,53,0.5),0_0_20px_rgba(255,215,0,0.4)] bg-gradient-to-r from-accent-gold via-[#ffa366] to-accent-flame bg-clip-text text-transparent">
                   И начни зарабатывать на нём уже сегодня!
                 </div>
               </div>
-              <div className="relative z-10 flex items-center gap-2 text-sm md:text-base font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)] opacity-90 group-hover:opacity-100 transition-opacity">
-                <span className="bg-gradient-to-r from-white to-accent-electric bg-clip-text text-transparent">Зарегистрироваться</span>
-                <span className="group-hover:translate-x-1 transition-transform text-accent-electric drop-shadow-[0_0_10px_rgba(0,217,255,0.8)]">→</span>
+              <div className="relative z-10 flex items-center gap-2 text-sm md:text-base font-bold drop-shadow-[0_2px_6px_rgba(255,107,53,0.5)] opacity-90 group-hover:opacity-100 transition-opacity">
+                <span className="bg-gradient-to-r from-accent-gold to-accent-flame bg-clip-text text-transparent">Зарегистрироваться</span>
+                <span className="group-hover:translate-x-1 transition-transform text-accent-flame drop-shadow-[0_0_12px_rgba(255,107,53,0.9)]">→</span>
               </div>
             </Link>
           </div>
