@@ -246,7 +246,7 @@ export async function POST(request: NextRequest) {
         : type === 'promotion' && metadata?.promotion_id === 'two_courses'
         ? `Оплата 2 курсов по акции (2499₽)`
         : type === 'promotion' && metadata?.promotion_id === 'first_100'
-        ? `Оплата курса по акции "Первым 100 студентам" (1099₽)`
+        ? `Оплата курса по акции "Первым 1000 студентам" (1099₽)`
         : type === 'final_modules'
         ? `Оплата финальных модулей курса #${courseId}`
         : `Оплата курса #${courseId}`,
@@ -273,7 +273,7 @@ export async function POST(request: NextRequest) {
                 : type === 'promotion' && metadata?.promotion_id === 'two_courses'
                 ? 'Оплата 2 курсов по акции'
                 : type === 'promotion' && metadata?.promotion_id === 'first_100'
-                ? 'Оплата курса по акции "Первым 100 студентам"'
+                ? 'Оплата курса по акции "Первым 1000 студентам"'
                 : type === 'final_modules'
                 ? 'Оплата финальных модулей курса'
                 : 'Оплата курса',

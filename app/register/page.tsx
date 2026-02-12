@@ -8,6 +8,7 @@ import { Mail, Lock, Eye, EyeOff, User, AlertCircle, CheckCircle2, Send } from '
 import { Button } from '@/components/ui/Button'
 import { useTelegram } from '@/components/providers/TelegramProvider'
 import { useAuth } from '@/components/providers/AuthProvider'
+import { trackRegistration } from '@/lib/vk-ads-tracker'
 
 export default function RegisterPage() {
   const [username, setUsername] = useState('')
@@ -73,6 +74,11 @@ export default function RegisterPage() {
 
       setSuccess(true)
       await refreshUser()
+      
+      // Отслеживание регистрации в VK Ads
+      if (data.user?.id) {
+        trackRegistration(data.user.id)
+      }
       
       setTimeout(() => {
         router.push('/courses')
@@ -145,6 +151,11 @@ export default function RegisterPage() {
 
       setSuccess(true)
       await refreshUser()
+      
+      // Отслеживание регистрации в VK Ads
+      if (data.user?.id) {
+        trackRegistration(data.user.id)
+      }
       
       setTimeout(() => {
         router.push('/courses')

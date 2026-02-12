@@ -128,8 +128,8 @@ async function sendReceiptToSeller(
       ? 'Оплата 2 курсов по акции'
       : paymentType === 'promotion' && metadata?.promotion_id === 'first_100'
       ? courseTitle 
-        ? `Оплата курса "${courseTitle}" по акции "Первым 100 студентам"`
-        : 'Оплата курса по акции "Первым 100 студентам"'
+        ? `Оплата курса "${courseTitle}" по акции "Первым 1000 студентам"`
+        : 'Оплата курса по акции "Первым 1000 студентам"'
       : paymentType === 'final_modules'
       ? courseTitle 
         ? `Оплата финальных модулей курса "${courseTitle}"`
@@ -512,8 +512,8 @@ async function handlePaymentSuccess(supabase: any, payment: YooKassaEvent['objec
       transactionDescription = `Оплата 2 курсов по акции - ${(amountInKopecks / 100).toLocaleString('ru-RU')} ₽`
     } else if (paymentType === 'promotion' && metadata?.promotion_id === 'first_100') {
       transactionDescription = courseTitle
-        ? `Оплата курса "${courseTitle}" по акции "Первым 100 студентам" - ${(amountInKopecks / 100).toLocaleString('ru-RU')} ₽`
-        : `Оплата курса по акции "Первым 100 студентам" - ${(amountInKopecks / 100).toLocaleString('ru-RU')} ₽`
+        ? `Оплата курса "${courseTitle}" по акции "Первым 1000 студентам" - ${(amountInKopecks / 100).toLocaleString('ru-RU')} ₽`
+        : `Оплата курса по акции "Первым 1000 студентам" - ${(amountInKopecks / 100).toLocaleString('ru-RU')} ₽`
     } else {
       transactionDescription = courseTitle
         ? `Оплата курса "${courseTitle}" - ${(amountInKopecks / 100).toLocaleString('ru-RU')} ₽`

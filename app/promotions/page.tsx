@@ -110,7 +110,7 @@ export default function PromotionsPage() {
       {/* Promotions Grid */}
       <section className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-          {/* Акция 1: Первым 100 студентам */}
+          {/* Акция 1: Первым 1000 студентам */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -124,10 +124,10 @@ export default function PromotionsPage() {
                 <span className="text-accent-gold font-medium text-sm">Специальное предложение</span>
               </div>
               <h3 className="font-display font-bold text-2xl text-white mb-3">
-                Первым 100 студентам
+                Первым 1000 студентам
               </h3>
               <p className="text-white/60 mb-4 text-sm">
-                Специальная цена для первых 100 студентов! Успей получить курс по выгодной цене.
+                Специальная цена для первых 1000 студентов! Успей получить курс по выгодной цене.
               </p>
               <div className="flex items-baseline gap-3 mb-4">
                 <span className="text-white/40 line-through text-lg">1999₽</span>
@@ -295,7 +295,7 @@ export default function PromotionsPage() {
             </li>
             <li className="flex items-start gap-2">
               <span className="text-accent-electric mt-1">•</span>
-              <span>Акция "Первым 100 студентам" действует до окончания мест.</span>
+              <span>Акция "Первым 1000 студентам" действует до окончания мест.</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-accent-electric mt-1">•</span>

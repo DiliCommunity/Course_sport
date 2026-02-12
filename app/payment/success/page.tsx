@@ -6,6 +6,7 @@ import { motion } from 'framer-motion'
 import { CheckCircle2, ArrowRight, Loader2, BookOpen, Wallet } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
+import { trackPurchase } from '@/lib/vk-ads-tracker'
 
 function PaymentSuccessContent() {
   const searchParams = useSearchParams()
@@ -18,6 +19,7 @@ function PaymentSuccessContent() {
   const paymentId = paymentIdFromUrl
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [retryCount, setRetryCount] = useState(0)
+  const [paymentData, setPaymentData] = useState<any>(null)
   const MAX_RETRIES = 10 // Максимум 10 попыток (30 секунд)
 
   useEffect(() => {
@@ -78,6 +80,7 @@ function PaymentSuccessContent() {
         if (data.verified && data.status === 'completed') {
           // Платеж успешно обработан
           console.log('✅ Payment verified successfully')
+          setPaymentData(data) // Сохраняем данные для отслеживания
           setStatus('success')
         } else if (data.status === 'pending') {
           // Платеж еще обрабатывается - ждем немного и проверяем снова
@@ -109,6 +112,20 @@ function PaymentSuccessContent() {
 
     verifyPayment()
   }, [paymentId, courseId, retryCount, MAX_RETRIES])
+
+  // Отслеживание покупки в VK Ads после успешной оплаты
+  useEffect(() => {
+    if (status === 'success' && paymentData && type !== 'balance_topup' && courseId) {
+      // Отслеживаем только покупки курсов, не пополнение баланса
+      const price = paymentData.amount ? paymentData.amount / 100 : 0 // Конвертируем копейки в рубли
+      
+      if (price > 0) {
+        // Используем courseId как название, если нет другого
+        const courseTitle = paymentData.courseTitle || `Курс ${courseId}`
+        trackPurchase(courseId, courseTitle, price, 'RUB')
+      }
+    }
+  }, [status, paymentData, courseId, type])
 
   if (status === 'loading') {
     return (
