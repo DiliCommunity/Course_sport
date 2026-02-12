@@ -72,7 +72,7 @@ export default function AppPage() {
       }
 
       try {
-        // Проверяем доступ через /api/courses/access - там есть проверка админа
+        // Проверяем доступ через /api/courses/access - там есть проверка админа и бесплатного доступа
         const response = await fetch('/api/courses/access?check_purchased=true', {
           credentials: 'include'
         })
@@ -80,7 +80,38 @@ export default function AppPage() {
         if (response.ok) {
           const data = await response.json()
           console.log('[AppPage] Access check response:', data)
-          setHasAccess(data.hasPurchased === true || data.isAdmin === true)
+          
+          // Если есть покупка или админ - полный доступ
+          if (data.hasPurchased === true || data.isAdmin === true) {
+            setHasAccess(true)
+            setIsCheckingAccess(false)
+            return
+          }
+          
+          // Если есть активный бесплатный доступ - проверяем, доступно ли это приложение
+          if (data.hasFreeTrial === true && data.isFreeTrialActive === true) {
+            // Проверяем, доступно ли это приложение в бесплатном периоде
+            const freeTrialResponse = await fetch('/api/access/free-trial', {
+              credentials: 'include'
+            })
+            
+            if (freeTrialResponse.ok) {
+              const trialData = await freeTrialResponse.json()
+              const trialApps = trialData.apps || []
+              
+              // Проверяем, есть ли это приложение в списке доступных
+              // menu-generator - это личный шеф (recipes)
+              const appIdForCheck = appId === 'menu-generator' ? 'menu-generator' : appId
+              const hasAppAccess = trialApps.includes(appIdForCheck)
+              
+              console.log('[AppPage] Free trial check:', { appId, trialApps, hasAppAccess })
+              setHasAccess(hasAppAccess)
+            } else {
+              setHasAccess(false)
+            }
+          } else {
+            setHasAccess(false)
+          }
         } else {
           setHasAccess(false)
         }

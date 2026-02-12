@@ -158,7 +158,7 @@ export default function AppsPage() {
       }
 
       try {
-        // Проверяем доступ через /api/courses/access - там есть проверка админа
+        // Проверяем доступ через /api/courses/access - там есть проверка админа и бесплатного доступа
         const response = await fetch('/api/courses/access?check_purchased=true', {
           credentials: 'include'
         })
@@ -166,8 +166,12 @@ export default function AppsPage() {
         if (response.ok) {
           const data = await response.json()
           console.log('[AppsPage] Access check response:', data)
-          // Админ или купил курс
-          setHasAccess(data.hasPurchased === true || data.isAdmin === true)
+          // Админ, купил курс или есть активный бесплатный доступ
+          setHasAccess(
+            data.hasPurchased === true || 
+            data.isAdmin === true || 
+            (data.hasFreeTrial === true && data.isFreeTrialActive === true)
+          )
         } else {
           console.error('[AppsPage] Access check failed:', response.status)
           setHasAccess(false)

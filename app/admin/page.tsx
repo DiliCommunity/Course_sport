@@ -10,7 +10,7 @@ import {
   BookOpen, ChefHat, TrendingUp, TrendingDown, Eye,
   Loader2, RefreshCw, ArrowRight, Calendar, DollarSign,
   UserPlus, ShoppingCart, Activity, BarChart3, PieChart,
-  Settings, MessageSquare, Bell, Shield, Clock
+  Settings, MessageSquare, Bell, Shield, Clock, Gift
 } from 'lucide-react'
 
 interface DashboardStats {
@@ -174,6 +174,14 @@ export default function AdminDashboardPage() {
       href: '/admin/recipes',
       color: 'from-rose-500 to-red-500',
       stats: '100+ рецептов'
+    },
+    {
+      title: 'Бесплатный доступ',
+      description: 'Управление доступом новых пользователей',
+      icon: Gift,
+      href: '/admin/free-trial',
+      color: 'from-violet-500 to-purple-500',
+      stats: '7 дней для новых'
     }
   ]
 

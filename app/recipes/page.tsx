@@ -475,9 +475,42 @@ export default function RecipesPage() {
         const response = await fetch('/api/courses/access?check_purchased=true', {
           credentials: 'include'
         })
-        const data = await response.json()
-        // Админ или купил курс
-        setHasAccess(data.hasPurchased === true || data.isAdmin === true)
+        
+        if (response.ok) {
+          const data = await response.json()
+          
+          // Если есть покупка или админ - полный доступ
+          if (data.hasPurchased === true || data.isAdmin === true) {
+            setHasAccess(true)
+            setIsChecking(false)
+            return
+          }
+          
+          // Если есть активный бесплатный доступ - проверяем, доступен ли личный шеф
+          if (data.hasFreeTrial === true && data.isFreeTrialActive === true) {
+            const freeTrialResponse = await fetch('/api/access/free-trial', {
+              credentials: 'include'
+            })
+            
+            if (freeTrialResponse.ok) {
+              const trialData = await freeTrialResponse.json()
+              const trialApps = trialData.apps || []
+              
+              // Личный шеф имеет ID 'menu-generator' в списке приложений
+              const hasChefAccess = trialApps.includes('menu-generator')
+              
+              console.log('[RecipesPage] Free trial check:', { trialApps, hasChefAccess })
+              setHasAccess(hasChefAccess)
+            } else {
+              setHasAccess(false)
+            }
+          } else {
+            setHasAccess(false)
+          }
+        } else {
+          console.error('Error checking access:', response.status)
+          setHasAccess(false)
+        }
       } catch (error) {
         console.error('Error checking access:', error)
         setHasAccess(false)

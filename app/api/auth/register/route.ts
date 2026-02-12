@@ -73,6 +73,24 @@ export async function POST(request: NextRequest) {
     // Хешируем пароль безопасным способом
     const passwordHash = hashPassword(password)
 
+    // Проверяем настройки бесплатного доступа для новых пользователей
+    const adminSupabase = createAdminClient()
+    let freeTrialEnabled = false
+    let freeTrialApps: string[] = []
+
+    if (adminSupabase) {
+      const { data: settings } = await adminSupabase
+        .from('admin_settings')
+        .select('setting_value')
+        .eq('setting_key', 'free_trial_for_new_users')
+        .single()
+
+      if (settings?.setting_value?.enabled === true) {
+        freeTrialEnabled = true
+        freeTrialApps = settings.setting_value.apps || []
+      }
+    }
+
     // Создаем пользователя
     const userId = crypto.randomUUID()
     
@@ -88,7 +106,11 @@ export async function POST(request: NextRequest) {
         telegram_id: telegram_id || null,
         telegram_username: telegram_username || null,
         telegram_verified: telegram_id ? true : false,
-        registration_method: telegram_id ? 'telegram' : 'username'
+        registration_method: telegram_id ? 'telegram' : 'username',
+        // Включаем бесплатный доступ для новых пользователей, если настроено
+        free_trial_enabled: freeTrialEnabled,
+        free_trial_started_at: freeTrialEnabled ? new Date().toISOString() : null,
+        free_trial_apps: freeTrialEnabled ? freeTrialApps : []
       })
       .select()
       .single()

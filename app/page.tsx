@@ -39,7 +39,31 @@ export default function HomePage() {
           credentials: 'include'
         })
         const data = await response.json()
-        setHasChefAccess(data.hasPurchased || data.isAdmin)
+        
+        // Если есть покупка или админ - полный доступ
+        if (data.hasPurchased || data.isAdmin) {
+          setHasChefAccess(true)
+          setCheckingAccess(false)
+          return
+        }
+        
+        // Если есть активный бесплатный доступ - проверяем, доступен ли личный шеф
+        if (data.hasFreeTrial === true && data.isFreeTrialActive === true) {
+          const freeTrialResponse = await fetch('/api/access/free-trial', {
+            credentials: 'include'
+          })
+          
+          if (freeTrialResponse.ok) {
+            const trialData = await freeTrialResponse.json()
+            const trialApps = trialData.apps || []
+            // Личный шеф имеет ID 'menu-generator'
+            setHasChefAccess(trialApps.includes('menu-generator'))
+          } else {
+            setHasChefAccess(false)
+          }
+        } else {
+          setHasChefAccess(false)
+        }
       } catch (error) {
         console.error('Error checking chef access:', error)
         setHasChefAccess(false)

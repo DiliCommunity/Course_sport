@@ -24,12 +24,12 @@ export async function GET(request: NextRequest) {
     const lessonId = searchParams.get('lesson_id')
     const checkPurchased = searchParams.get('check_purchased') === 'true'
 
-    // Если проверяем только покупку любого курса (для рецептов)
+    // Если проверяем только покупку любого курса (для рецептов и приложений)
     if (checkPurchased) {
       const user = await getUserFromSession(supabase)
       if (!user) {
         console.log('[Access Check] No user found in session - access denied')
-        return NextResponse.json({ hasPurchased: false, isAdmin: false }, { status: 200 })
+        return NextResponse.json({ hasPurchased: false, isAdmin: false, hasFreeTrial: false }, { status: 200 })
       }
 
       console.log('[Access Check] Checking purchases for user:', user.id, 'is_admin:', user.is_admin)
@@ -37,7 +37,46 @@ export async function GET(request: NextRequest) {
       // Если админ - полный доступ ко всему
       if (user.is_admin) {
         console.log('[Access Check] User is admin - full access granted')
-        return NextResponse.json({ hasPurchased: true, isAdmin: true })
+        return NextResponse.json({ hasPurchased: true, isAdmin: true, hasFreeTrial: false })
+      }
+
+      // Проверяем бесплатный доступ
+      const { data: userData } = await adminSupabase
+        .from('users')
+        .select('free_trial_enabled, free_trial_started_at, free_trial_apps, created_at')
+        .eq('id', user.id)
+        .single()
+
+      let hasFreeTrial = false
+      let isFreeTrialActive = false
+
+      if (userData?.free_trial_enabled && userData?.free_trial_started_at) {
+        // Получаем настройки админа
+        const { data: settings } = await adminSupabase
+          .from('admin_settings')
+          .select('setting_value')
+          .eq('setting_key', 'free_trial_for_new_users')
+          .single()
+
+        const durationDays = settings?.setting_value?.duration_days || 7
+        const startDate = new Date(userData.free_trial_started_at)
+        const endDate = new Date(startDate)
+        endDate.setDate(endDate.getDate() + durationDays)
+        const now = new Date()
+
+        hasFreeTrial = true
+        isFreeTrialActive = now < endDate
+      }
+
+      // Если есть активный бесплатный доступ - даем доступ
+      if (isFreeTrialActive) {
+        console.log('[Access Check] User has active free trial - access granted')
+        return NextResponse.json({
+          hasPurchased: false,
+          isAdmin: false,
+          hasFreeTrial: true,
+          isFreeTrialActive: true
+        })
       }
 
       // Проверяем, есть ли хотя бы один завершенный платеж
@@ -61,11 +100,13 @@ export async function GET(request: NextRequest) {
 
       const hasPurchased = (payments && payments.length > 0) || (enrollments && enrollments.length > 0)
 
-      console.log('[Access Check] Final result - hasPurchased:', hasPurchased)
+      console.log('[Access Check] Final result - hasPurchased:', hasPurchased, 'hasFreeTrial:', hasFreeTrial)
 
       return NextResponse.json({
         hasPurchased: hasPurchased || false,
-        isAdmin: false
+        isAdmin: false,
+        hasFreeTrial: hasFreeTrial,
+        isFreeTrialActive: isFreeTrialActive
       })
     }
 

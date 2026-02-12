@@ -169,6 +169,23 @@ export async function POST(request: NextRequest) {
       // Генерируем уникальный username для пользователя
       const userUsername = `tg_${telegramUsername}_${telegramId.slice(-4)}`
       
+      // Проверяем настройки бесплатного доступа для новых пользователей
+      let freeTrialEnabled = false
+      let freeTrialApps: string[] = []
+
+      if (adminSupabase) {
+        const { data: settings } = await adminSupabase
+          .from('admin_settings')
+          .select('setting_value')
+          .eq('setting_key', 'free_trial_for_new_users')
+          .single()
+
+        if (settings?.setting_value?.enabled === true) {
+          freeTrialEnabled = true
+          freeTrialApps = settings.setting_value.apps || []
+        }
+      }
+      
       // Создаём запись с пустым паролем (вход только через Telegram)
       const { error: insertError } = await supabase
         .from('users')
@@ -182,6 +199,10 @@ export async function POST(request: NextRequest) {
           avatar_url: photo_url || null,
           telegram_verified: true,
           registration_method: 'telegram',
+          // Включаем бесплатный доступ для новых пользователей, если настроено
+          free_trial_enabled: freeTrialEnabled,
+          free_trial_started_at: freeTrialEnabled ? new Date().toISOString() : null,
+          free_trial_apps: freeTrialEnabled ? freeTrialApps : []
         })
 
       if (insertError) {
