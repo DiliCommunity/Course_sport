@@ -74,11 +74,15 @@ export async function POST(request: NextRequest) {
     const passwordHash = hashPassword(password)
 
     // Проверяем настройки бесплатного доступа для новых пользователей
+    // Включаем для всех пользователей, зарегистрированных после 10.02.2026
     const adminSupabase = createAdminClient()
     let freeTrialEnabled = false
     let freeTrialApps: string[] = []
+    const cutoffDate = new Date('2026-02-10T00:00:00Z')
+    const now = new Date()
+    const isEligible = now >= cutoffDate
 
-    if (adminSupabase) {
+    if (adminSupabase && isEligible) {
       const { data: settings } = await adminSupabase
         .from('admin_settings')
         .select('setting_value')

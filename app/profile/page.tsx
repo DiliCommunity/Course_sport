@@ -14,6 +14,7 @@ import { MyCoursesModal } from '@/components/profile/MyCoursesModal'
 import { WalletModal } from '@/components/profile/WalletModal'
 import { ReferralModal } from '@/components/profile/ReferralModal'
 import { PromocodeSection } from '@/components/profile/PromocodeSection'
+import { FreeTrialTimer } from '@/components/profile/FreeTrialTimer'
 import { Loader2, Settings, ArrowLeft, Mail, Phone, Save, BookOpen, Wallet, Gift, Bot, Smartphone, Ticket, Shield, Users, CreditCard, Star } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
@@ -56,6 +57,15 @@ interface ProfileData {
     active_referrals: number
     completed_referrals: number
   }
+  freeTrial: {
+    enabled: boolean
+    isActive: boolean
+    daysRemaining: number
+    hoursRemaining: number
+    startedAt: string
+    expiresAt: string
+    apps: string[]
+  } | null
   transactions: Array<{
     id: string
     created_at: string
@@ -552,6 +562,18 @@ export default function ProfilePage() {
             </p>
           </motion.div>
         </div>
+
+        {/* Free Trial Timer */}
+        {profileData.freeTrial && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="mb-6"
+          >
+            <FreeTrialTimer freeTrial={profileData.freeTrial} />
+          </motion.div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           {/* Balance Card */}

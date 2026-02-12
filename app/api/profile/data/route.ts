@@ -258,6 +258,46 @@ export async function GET(request: NextRequest) {
       }
     }))
 
+    // Получаем информацию о бесплатном доступе
+    const { data: userData } = await adminSupabase
+      .from('users')
+      .select('free_trial_enabled, free_trial_started_at, free_trial_apps, created_at')
+      .eq('id', user.id)
+      .single()
+
+    let freeTrialInfo = null
+    if (userData?.free_trial_enabled && userData?.free_trial_started_at) {
+      // Получаем настройки админа
+      const { data: settings } = await adminSupabase
+        .from('admin_settings')
+        .select('setting_value')
+        .eq('setting_key', 'free_trial_for_new_users')
+        .single()
+
+      const durationDays = settings?.setting_value?.duration_days || 7
+      const startDate = new Date(userData.free_trial_started_at)
+      const endDate = new Date(startDate)
+      endDate.setDate(endDate.getDate() + durationDays)
+      const now = new Date()
+
+      const isActive = now < endDate
+      const daysRemaining = isActive 
+        ? Math.max(0, Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
+        : 0
+
+      freeTrialInfo = {
+        enabled: true,
+        isActive,
+        daysRemaining,
+        hoursRemaining: isActive 
+          ? Math.max(0, Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60)))
+          : 0,
+        startedAt: userData.free_trial_started_at,
+        expiresAt: endDate.toISOString(),
+        apps: userData.free_trial_apps || []
+      }
+    }
+
     // Проверяем есть ли ЛЮБАЯ транзакция ИЛИ купленные курсы ИЛИ применен промокод PARTNER2026 (для реферальной ссылки)
     // Реферальная ссылка доступна после первой оплаты, если есть купленные курсы, или если применен промокод PARTNER2026
     // isReferralPartner уже объявлен выше
@@ -308,6 +348,7 @@ export async function GET(request: NextRequest) {
         completed_referrals: referrals?.filter(r => r.status === 'completed').length || 0,
       },
       enrollments: formattedEnrollments,
+      freeTrial: freeTrialInfo,
       transactions: (transactions || []).map(t => {
         // Формируем читаемое описание с названием курса
         const courseName = t.reference_id ? transactionCoursesMap[t.reference_id] : null

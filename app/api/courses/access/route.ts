@@ -41,22 +41,36 @@ export async function GET(request: NextRequest) {
       }
 
       // Проверяем бесплатный доступ
-      const { data: userData } = await adminSupabase
+      const { data: userData, error: userDataError } = await adminSupabase
         .from('users')
         .select('free_trial_enabled, free_trial_started_at, free_trial_apps, created_at')
         .eq('id', user.id)
         .single()
+
+      console.log('[Access Check] User data:', { 
+        userId: user.id, 
+        userData, 
+        error: userDataError?.message,
+        hasFreeTrialEnabled: userData?.free_trial_enabled,
+        freeTrialStartedAt: userData?.free_trial_started_at
+      })
 
       let hasFreeTrial = false
       let isFreeTrialActive = false
 
       if (userData?.free_trial_enabled && userData?.free_trial_started_at) {
         // Получаем настройки админа
-        const { data: settings } = await adminSupabase
+        const { data: settings, error: settingsError } = await adminSupabase
           .from('admin_settings')
           .select('setting_value')
           .eq('setting_key', 'free_trial_for_new_users')
           .single()
+
+        console.log('[Access Check] Admin settings:', { 
+          settings, 
+          error: settingsError?.message,
+          enabled: settings?.setting_value?.enabled
+        })
 
         const durationDays = settings?.setting_value?.duration_days || 7
         const startDate = new Date(userData.free_trial_started_at)
@@ -66,6 +80,57 @@ export async function GET(request: NextRequest) {
 
         hasFreeTrial = true
         isFreeTrialActive = now < endDate
+
+        console.log('[Access Check] Free trial calculation:', {
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString(),
+          now: now.toISOString(),
+          durationDays,
+          isFreeTrialActive
+        })
+      } else {
+        // Если у пользователя нет бесплатного доступа, но он новый (создан недавно) - проверяем настройки
+        const userCreatedAt = userData?.created_at ? new Date(userData.created_at) : null
+        const now = new Date()
+        const daysSinceCreation = userCreatedAt ? Math.floor((now.getTime() - userCreatedAt.getTime()) / (1000 * 60 * 60 * 24)) : null
+
+        console.log('[Access Check] User is new?', {
+          created_at: userCreatedAt?.toISOString(),
+          daysSinceCreation,
+          isNewUser: daysSinceCreation !== null && daysSinceCreation <= 1
+        })
+
+        // Если пользователь создан после 10.02.2026 и настройки включены - даем доступ
+        const cutoffDate = new Date('2026-02-10T00:00:00Z')
+        const isEligibleForFreeTrial = userCreatedAt && userCreatedAt >= cutoffDate
+
+        if (isEligibleForFreeTrial) {
+          const { data: settings } = await adminSupabase
+            .from('admin_settings')
+            .select('setting_value')
+            .eq('setting_key', 'free_trial_for_new_users')
+            .single()
+
+          if (settings?.setting_value?.enabled === true) {
+            // Автоматически включаем бесплатный доступ для нового пользователя
+            const durationDays = settings.setting_value.duration_days || 7
+            const freeTrialApps = settings.setting_value.apps || []
+            
+            await adminSupabase
+              .from('users')
+              .update({
+                free_trial_enabled: true,
+                free_trial_started_at: userCreatedAt?.toISOString() || new Date().toISOString(),
+                free_trial_apps: freeTrialApps
+              })
+              .eq('id', user.id)
+
+            console.log('[Access Check] Auto-enabled free trial for user registered after 10.02.2026')
+
+            hasFreeTrial = true
+            isFreeTrialActive = true
+          }
+        }
       }
 
       // Если есть активный бесплатный доступ - даем доступ
