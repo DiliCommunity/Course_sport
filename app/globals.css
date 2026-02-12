@@ -745,5 +745,34 @@
       background-position: 100% 50%;
     }
   }
+
+  /* Анимация мерцания контура */
+  @keyframes border-shimmer {
+    0% {
+      background-position: -300% 0;
+    }
+    100% {
+      background-position: 300% 0;
+    }
+  }
+
+  .animate-border-shimmer {
+    animation: border-shimmer 3s linear infinite;
+  }
+
+  /* Анимация перелива для всей кнопки */
+  @keyframes button-gradient-shift {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+
+  .animate-button-gradient {
+    animation: button-gradient-shift 4s ease infinite;
+    background-size: 400% 400%;
+  }
 }
 

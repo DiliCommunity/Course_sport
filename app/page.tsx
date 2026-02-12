@@ -109,15 +109,49 @@ export default function HomePage() {
           <div className="container mx-auto px-4 relative z-10">
             <Link
               href="/register"
-              className="group relative flex flex-col items-center justify-center gap-4 mx-auto w-full max-w-5xl px-8 md:px-16 py-10 md:py-14 rounded-[2.5rem] bg-gradient-to-r from-accent-violet via-accent-electric to-accent-neon bg-[length:200%_100%] animate-gradient shadow-[0_0_60px_rgba(139,92,246,0.7),0_0_100px_rgba(0,217,255,0.5),0_0_140px_rgba(255,215,0,0.3)] hover:shadow-[0_0_100px_rgba(139,92,246,1),0_0_150px_rgba(0,217,255,0.8),0_0_200px_rgba(255,215,0,0.5)] hover:scale-[1.03] transition-all duration-500 border-4 border-accent-violet/80 hover:border-accent-electric/100"
+              className="group relative flex flex-col items-center justify-center gap-4 mx-auto w-full max-w-5xl px-8 md:px-16 py-10 md:py-14 rounded-[2.5rem] overflow-hidden bg-gradient-to-r from-accent-violet via-accent-electric to-accent-neon bg-[length:200%_100%] animate-gradient shadow-[0_0_60px_rgba(139,92,246,0.7),0_0_100px_rgba(0,217,255,0.5),0_0_140px_rgba(255,215,0,0.3)] hover:shadow-[0_0_100px_rgba(139,92,246,1),0_0_150px_rgba(0,217,255,0.8),0_0_200px_rgba(255,215,0,0.5)] hover:scale-[1.03] transition-all duration-500 border-4"
             >
+              {/* Размытый фон с блюдами */}
+              <div className="absolute inset-0 rounded-[2.5rem] overflow-hidden">
+                <div 
+                  className="absolute inset-0 opacity-20 blur-2xl scale-110"
+                  style={{
+                    backgroundImage: 'url(/img/recipes/caesar-salad-chicken-parmesan.jpg), url(/img/recipes/grilled-ribeye-steak.jpg), url(/img/recipes/keto-cheesecake.jpg)',
+                    backgroundSize: 'cover, cover, cover',
+                    backgroundPosition: 'center, 20% 50%, 80% 50%',
+                    backgroundBlendMode: 'overlay',
+                  }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-accent-violet/60 via-accent-electric/60 to-accent-neon/60" />
+              </div>
+              
+              {/* Мерцание по контуру - псевдоэлемент для border */}
+              <div 
+                className="absolute -inset-[4px] rounded-[2.5rem] opacity-80 animate-border-shimmer pointer-events-none"
+                style={{
+                  background: 'linear-gradient(90deg, rgba(139,92,246,1), rgba(0,217,255,1), rgba(255,215,0,1), rgba(139,92,246,1))',
+                  backgroundSize: '300% 100%',
+                  zIndex: -1,
+                }}
+              />
+              
+              {/* Перелив всей кнопки */}
+              <div className="absolute inset-0 rounded-[2.5rem] opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                <div 
+                  className="absolute inset-0 rounded-[2.5rem] animate-button-gradient"
+                  style={{
+                    background: 'linear-gradient(45deg, rgba(139,92,246,0.3), rgba(0,217,255,0.3), rgba(255,215,0,0.3), rgba(139,92,246,0.3))',
+                  }}
+                />
+              </div>
+              
               {/* Множественные слои свечения */}
               <div className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-r from-accent-violet via-accent-electric to-accent-neon opacity-0 group-hover:opacity-100 blur-3xl transition-opacity duration-500" />
               <div className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-r from-accent-gold/30 via-accent-flame/30 to-accent-gold/30 opacity-50 blur-2xl animate-pulse" />
               
               {/* Декоративные блики */}
               <div className="absolute top-0 left-0 w-full h-full rounded-[2.5rem] overflow-hidden">
-                <div className="absolute top-0 left-[-100%] w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:left-[100%] transition-all duration-1000" />
+                <div className="absolute top-0 left-[-100%] w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent group-hover:left-[100%] transition-all duration-1000" />
               </div>
               
               <div className="relative z-10 text-center w-full">
@@ -128,7 +162,7 @@ export default function HomePage() {
                     <span className="relative font-black text-2xl md:text-3xl lg:text-4xl xl:text-5xl drop-shadow-[0_4px_15px_rgba(255,107,53,0.8),0_0_30px_rgba(255,215,0,0.7),0_0_50px_rgba(255,107,53,0.5)] bg-gradient-to-r from-accent-gold via-[#ff8c42] to-accent-flame bg-clip-text text-transparent bg-[length:200%_100%] animate-gradient leading-tight">
                       Попробуй личный шеф
                     </span>
-                    <span className="relative font-black text-xl md:text-2xl lg:text-3xl xl:text-4xl drop-shadow-[0_4px_15px_rgba(0,217,255,0.8),0_0_30px_rgba(139,92,246,0.7)] bg-gradient-to-r from-accent-electric via-accent-neon to-accent-electric bg-clip-text text-transparent animate-pulse">
+                    <span className="relative font-black text-xl md:text-2xl lg:text-3xl xl:text-4xl text-white drop-shadow-[0_0_10px_rgba(0,0,0,0.9),0_0_20px_rgba(0,217,255,0.8),0_0_30px_rgba(139,92,246,0.7),0_4px_15px_rgba(255,255,255,0.9)] bg-gradient-to-r from-white via-accent-electric to-white bg-clip-text text-transparent animate-pulse">
                       7 дней бесплатно!
                     </span>
                   </div>
@@ -136,7 +170,7 @@ export default function HomePage() {
                 
                 {/* Подзаголовок */}
                 <div className="text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold drop-shadow-[0_3px_10px_rgba(255,107,53,0.6),0_0_25px_rgba(255,215,0,0.5)] bg-gradient-to-r from-accent-gold via-[#ffa366] to-accent-flame bg-clip-text text-transparent mb-4">
-                  Или зарабатывать уже сегодня!
+                  Или зарабатывай уже сегодня!
                 </div>
                 
                 {/* Бейдж "БЕСПЛАТНО" */}
