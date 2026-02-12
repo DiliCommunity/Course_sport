@@ -109,7 +109,7 @@ export default function HomePage() {
           <div className="container mx-auto px-4 relative z-10">
             <Link
               href="/register"
-              className="group relative flex flex-col items-center justify-center gap-4 mx-auto w-full max-w-5xl px-8 md:px-16 py-10 md:py-14 rounded-[2.5rem] overflow-hidden bg-gradient-to-br from-dark-800/60 via-dark-700/50 to-dark-800/60 backdrop-blur-md shadow-[0_0_60px_rgba(139,92,246,0.7),0_0_100px_rgba(0,217,255,0.5),0_0_140px_rgba(255,215,0,0.3)] hover:shadow-[0_0_100px_rgba(139,92,246,1),0_0_150px_rgba(0,217,255,0.8),0_0_200px_rgba(255,215,0,0.5)] hover:scale-[1.03] transition-all duration-500 border-4 border-white/20 hover:border-white/40"
+              className="group relative flex flex-col items-center justify-center gap-4 mx-auto w-full max-w-5xl px-8 md:px-16 py-10 md:py-14 rounded-[2.5rem] overflow-hidden bg-dark-900/95 backdrop-blur-md shadow-[0_0_60px_rgba(139,92,246,0.7),0_0_100px_rgba(0,217,255,0.5),0_0_140px_rgba(255,215,0,0.3)] hover:shadow-[0_0_100px_rgba(139,92,246,1),0_0_150px_rgba(0,217,255,0.8),0_0_200px_rgba(255,215,0,0.5)] hover:scale-[1.03] transition-all duration-500 border-4 border-white/20 hover:border-white/40"
             >
               {/* Коллаж из размытых фотографий блюд в стиле личного шефа */}
               <div className="absolute inset-0 rounded-[2.5rem] overflow-hidden">
@@ -205,8 +205,8 @@ export default function HomePage() {
                   }}
                 />
                 
-                {/* Легкий градиент поверх для читаемости текста - более светлый и приятный */}
-                <div className="absolute inset-0 bg-gradient-to-b from-dark-900/40 via-dark-800/30 to-dark-900/40" />
+                {/* Темный градиент поверх для читаемости текста в стиле сайта */}
+                <div className="absolute inset-0 bg-gradient-to-b from-dark-900/70 via-dark-900/60 to-dark-900/70" />
               </div>
               
               {/* Мерцание по контуру - тонкое золотое свечение */}
@@ -315,11 +315,6 @@ export default function HomePage() {
                 </div>
               </div>
               
-              {/* Светящиеся частицы для атмосферы */}
-              <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-accent-gold rounded-full opacity-60 animate-twinkle" style={{ animationDelay: '0s', boxShadow: '0_0_10px_rgba(255,215,0,0.8)' }} />
-              <div className="absolute top-3/4 right-1/4 w-2 h-2 bg-accent-electric rounded-full opacity-60 animate-twinkle" style={{ animationDelay: '1s', boxShadow: '0_0_10px_rgba(0,217,255,0.8)' }} />
-              <div className="absolute bottom-1/4 left-1/3 w-2 h-2 bg-accent-flame rounded-full opacity-60 animate-twinkle" style={{ animationDelay: '2s', boxShadow: '0_0_10px_rgba(255,107,53,0.8)' }} />
-              <div className="absolute top-1/3 right-1/3 w-2 h-2 bg-accent-neon rounded-full opacity-60 animate-twinkle" style={{ animationDelay: '0.5s', boxShadow: '0_0_10px_rgba(0,255,255,0.8)' }} />
             </Link>
           </div>
         </section>
