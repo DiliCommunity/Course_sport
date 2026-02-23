@@ -99,222 +99,101 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Большая кнопка регистрации для неавторизованных пользователей - РЕКЛАМА ЛУЧШЕГО САЙТА В МИРЕ */}
+      {/* Профессиональный баннер для неавторизованных пользователей */}
       {!user && !loading && (
-        <section className="py-8 md:py-12 relative overflow-hidden">
-          {/* Фоновые эффекты для максимальной заметности */}
-          <div className="absolute inset-0 bg-gradient-to-r from-accent-violet/20 via-accent-electric/20 to-accent-neon/20 blur-3xl animate-pulse" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,215,0,0.15),transparent_70%)] animate-pulse" />
-          
+        <section className="py-6 md:py-10 relative overflow-hidden">
           <div className="container mx-auto px-4 relative z-10">
             <Link
               href="/register"
-              className="group relative flex flex-col items-center justify-center gap-4 mx-auto w-full max-w-5xl px-8 md:px-16 py-10 md:py-14 rounded-[2.5rem] overflow-hidden bg-gradient-to-r from-accent-violet via-accent-electric to-accent-neon bg-[length:200%_100%] animate-gradient shadow-[0_0_60px_rgba(139,92,246,0.7),0_0_100px_rgba(0,217,255,0.5),0_0_140px_rgba(255,215,0,0.3)] hover:shadow-[0_0_100px_rgba(139,92,246,1),0_0_150px_rgba(0,217,255,0.8),0_0_200px_rgba(255,215,0,0.5)] hover:scale-[1.03] transition-all duration-500 border-4 border-white/20 hover:border-white/40"
+              className="hero-banner-link group relative flex flex-col items-center justify-center mx-auto w-full max-w-5xl rounded-[2rem] overflow-hidden"
+              style={{ minHeight: '340px' }}
             >
-              {/* Коллаж из размытых фотографий блюд в стиле личного шефа */}
-              <div className="absolute inset-0 rounded-[2.5rem] overflow-hidden">
-                {/* Случайные блюда из личного шефа - коллаж */}
-                {/* Блюдо 1 - левый верхний угол */}
-                <div 
-                  className="absolute top-0 left-0 w-1/3 h-1/3 opacity-50 blur-xl scale-150"
-                  style={{
-                    backgroundImage: 'url(/img/recipes/caesar-salad-chicken-parmesan.jpg)',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    borderRadius: '1rem',
-                  }}
+              {/* Фон — картинка keto_course.png */}
+              <div className="absolute inset-0 z-0">
+                <Image
+                  src="/img/keto_course.png"
+                  alt="Кето курс"
+                  fill
+                  priority
+                  className="object-cover object-center scale-105 group-hover:scale-110 transition-transform duration-700"
                 />
-                {/* Блюдо 2 - правый верхний угол */}
-                <div 
-                  className="absolute top-0 right-0 w-1/3 h-1/3 opacity-50 blur-xl scale-150"
-                  style={{
-                    backgroundImage: 'url(/img/recipes/grilled-ribeye-steak.jpg)',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    borderRadius: '1rem',
-                  }}
-                />
-                {/* Блюдо 3 - центр */}
-                <div 
-                  className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-1/2 h-1/2 opacity-45 blur-2xl scale-125"
-                  style={{
-                    backgroundImage: 'url(/img/recipes/sous-vide-salmon-vegetables.jpg)',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    borderRadius: '1rem',
-                  }}
-                />
-                {/* Блюдо 4 - левый нижний угол */}
-                <div 
-                  className="absolute bottom-0 left-0 w-1/3 h-1/3 opacity-50 blur-xl scale-150"
-                  style={{
-                    backgroundImage: 'url(/img/recipes/keto-cheesecake.jpg)',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    borderRadius: '1rem',
-                  }}
-                />
-                {/* Блюдо 5 - правый нижний угол */}
-                <div 
-                  className="absolute bottom-0 right-0 w-1/3 h-1/3 opacity-50 blur-xl scale-150"
-                  style={{
-                    backgroundImage: 'url(/img/recipes/chocolate-avocado-mousse.jpg)',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    borderRadius: '1rem',
-                  }}
-                />
-                {/* Блюдо 6 - левый центр */}
-                <div 
-                  className="absolute top-1/2 left-0 transform -translate-y-1/2 w-1/4 h-1/3 opacity-45 blur-xl scale-125"
-                  style={{
-                    backgroundImage: 'url(/img/recipes/grilled-chicken-breast-vegetables.jpg)',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    borderRadius: '1rem',
-                  }}
-                />
-                {/* Блюдо 7 - правый центр */}
-                <div 
-                  className="absolute top-1/2 right-0 transform -translate-y-1/2 w-1/4 h-1/3 opacity-45 blur-xl scale-125"
-                  style={{
-                    backgroundImage: 'url(/img/recipes/creamy-mushroom-soup.jpg)',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    borderRadius: '1rem',
-                  }}
-                />
-                {/* Блюдо 8 - верхний центр */}
-                <div 
-                  className="absolute top-0 left-1/2 transform -translate-x-1/2 w-1/3 h-1/4 opacity-45 blur-xl scale-125"
-                  style={{
-                    backgroundImage: 'url(/img/recipes/tartar-syomga-avokado.jpg)',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    borderRadius: '1rem',
-                  }}
-                />
-                {/* Блюдо 9 - нижний центр */}
-                <div 
-                  className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1/3 h-1/4 opacity-45 blur-xl scale-125"
-                  style={{
-                    backgroundImage: 'url(/img/recipes/keto-chocolate-brownies.jpg)',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    borderRadius: '1rem',
-                  }}
-                />
-                
-                {/* Легкий градиент поверх для читаемости текста - минимальный, чтобы блюда были видны */}
-                <div className="absolute inset-0 bg-gradient-to-b from-dark-900/20 via-dark-900/15 to-dark-900/20" />
+                {/* Тёмный оверлей для читаемости */}
+                <div className="absolute inset-0 bg-gradient-to-br from-black/75 via-black/55 to-black/40" />
+                {/* Диагональный цветной оверлей */}
+                <div className="absolute inset-0 bg-gradient-to-br from-[#ff6b35]/30 via-transparent to-[#ffd700]/20" />
               </div>
-              
-              {/* Мерцание по контуру - тонкое золотое свечение */}
-              <div 
-                className="absolute -inset-[4px] rounded-[2.5rem] opacity-60 animate-border-shimmer pointer-events-none"
-                style={{
-                  background: 'linear-gradient(90deg, rgba(255,215,0,0.8), rgba(255,107,53,0.8), rgba(255,215,0,0.8), rgba(255,107,53,0.8))',
-                  backgroundSize: '300% 100%',
-                  zIndex: -1,
-                }}
-              />
-              
-              {/* Перелив всей кнопки при наведении - золотистый */}
-              <div className="absolute inset-0 rounded-[2.5rem] opacity-0 group-hover:opacity-30 transition-opacity duration-500">
-                <div 
-                  className="absolute inset-0 rounded-[2.5rem] animate-button-gradient"
-                  style={{
-                    background: 'linear-gradient(45deg, rgba(255,215,0,0.2), rgba(255,107,53,0.2), rgba(255,215,0,0.2), rgba(255,107,53,0.2))',
-                  }}
-                />
+
+              {/* Анимация появления — диагональная маска от левого верхнего к правому нижнему */}
+              <div className="hero-banner-reveal absolute inset-0 z-10 pointer-events-none" />
+
+              {/* Блик при наведении */}
+              <div className="absolute inset-0 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none">
+                <div className="absolute top-0 left-[-100%] w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:left-[100%] transition-all duration-1000" />
               </div>
-              
-              {/* Тонкое свечение при наведении */}
-              <div className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-r from-accent-gold/20 via-accent-flame/20 to-accent-gold/20 opacity-0 group-hover:opacity-100 blur-2xl transition-opacity duration-500" />
-              
-              {/* Декоративные блики */}
-              <div className="absolute top-0 left-0 w-full h-full rounded-[2.5rem] overflow-hidden">
-                <div className="absolute top-0 left-[-100%] w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent group-hover:left-[100%] transition-all duration-1000" />
-              </div>
-              
-              <div className="relative z-10 text-center w-full">
-                {/* Главный заголовок с эмодзи */}
-                <div className="flex items-center justify-center gap-4 mb-3">
-                  <span className="text-5xl md:text-6xl lg:text-7xl animate-bounce drop-shadow-[0_0_20px_rgba(255,215,0,0.8),0_0_40px_rgba(255,107,53,0.6)]">👨‍🍳</span>
-                  <div className="flex flex-col items-start">
-                    <span className="relative font-black text-2xl md:text-3xl lg:text-4xl xl:text-5xl drop-shadow-[0_4px_15px_rgba(255,107,53,0.8),0_0_30px_rgba(255,215,0,0.7),0_0_50px_rgba(255,107,53,0.5)] bg-gradient-to-r from-accent-gold via-[#ff8c42] to-accent-flame bg-clip-text text-transparent bg-[length:200%_100%] animate-gradient leading-tight">
-                      Попробуй личный шеф
-                    </span>
-                    <span className="relative font-black text-xl md:text-2xl lg:text-3xl xl:text-4xl drop-shadow-[0_0_10px_rgba(239,68,68,0.8),0_0_20px_rgba(255,215,0,0.6),0_4px_15px_rgba(239,68,68,0.9)] bg-gradient-to-r from-red-400 via-red-500 via-accent-gold to-accent-gold bg-clip-text text-transparent bg-[length:200%_100%] animate-gradient">
-                      7 дней бесплатно!
-                    </span>
-                  </div>
+
+              {/* Рамка с золотым свечением */}
+              <div className="absolute inset-0 rounded-[2rem] border-2 border-[#ffd700]/40 group-hover:border-[#ffd700]/80 transition-all duration-500 z-20 pointer-events-none shadow-[inset_0_0_60px_rgba(255,215,0,0.05)] group-hover:shadow-[inset_0_0_80px_rgba(255,215,0,0.12)]" />
+
+              {/* Контент */}
+              <div className="relative z-30 text-center px-6 md:px-12 py-10 md:py-14 w-full">
+                {/* Бейдж сверху */}
+                <div className="hero-badge inline-flex items-center gap-2 px-5 py-1.5 rounded-full bg-[#ffd700]/15 border border-[#ffd700]/50 backdrop-blur-sm mb-5">
+                  <span className="w-2 h-2 rounded-full bg-[#ffd700] animate-pulse" />
+                  <span className="text-[#ffd700] font-semibold text-sm tracking-widest uppercase">Бесплатный доступ</span>
+                  <span className="w-2 h-2 rounded-full bg-[#ffd700] animate-pulse" />
                 </div>
-                
+
+                {/* Главный заголовок */}
+                <h2 className="hero-title font-black leading-none mb-3 tracking-tight">
+                  <span className="block text-white text-4xl md:text-5xl lg:text-6xl xl:text-7xl drop-shadow-[0_2px_20px_rgba(0,0,0,0.8)]">
+                    Попробуй личный шеф
+                  </span>
+                  <span
+                    className="block text-4xl md:text-5xl lg:text-6xl xl:text-7xl mt-1"
+                    style={{
+                      background: 'linear-gradient(90deg, #ffd700 0%, #ff8c42 50%, #ffd700 100%)',
+                      backgroundSize: '200% auto',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      backgroundClip: 'text',
+                      animation: 'hero-gradient-shift 3s linear infinite',
+                      filter: 'drop-shadow(0 0 20px rgba(255,215,0,0.5))',
+                    }}
+                  >
+                    7 дней бесплатно
+                  </span>
+                </h2>
+
                 {/* Подзаголовок */}
-                <div className="text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold drop-shadow-[0_3px_10px_rgba(255,107,53,0.6),0_0_25px_rgba(255,215,0,0.5)] bg-gradient-to-r from-accent-gold via-[#ffa366] to-accent-flame bg-clip-text text-transparent mb-4">
-                  Или зарабатывай уже сегодня!
+                <p className="hero-subtitle text-white/80 text-lg md:text-xl lg:text-2xl font-medium mb-8 drop-shadow-[0_1px_8px_rgba(0,0,0,0.8)]">
+                  100+ кето-рецептов · Персональное меню · Старт прямо сейчас
+                </p>
+
+                {/* CTA кнопка */}
+                <div className="hero-cta inline-flex items-center gap-3 px-8 md:px-10 py-3.5 md:py-4 rounded-2xl font-black text-base md:text-lg text-dark-900 shadow-[0_8px_32px_rgba(255,215,0,0.5)] group-hover:shadow-[0_12px_48px_rgba(255,215,0,0.8)] transition-all duration-300 group-hover:scale-105"
+                  style={{
+                    background: 'linear-gradient(135deg, #ffd700 0%, #ff8c42 50%, #ffd700 100%)',
+                    backgroundSize: '200% auto',
+                    animation: 'hero-gradient-shift 2s linear infinite',
+                  }}
+                >
+                  <span className="tracking-wide">Начать бесплатно — 7 дней</span>
+                  <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                  </svg>
                 </div>
-                
-                {/* Бейдж "БЕСПЛАТНО" */}
-                <div className="inline-flex items-center justify-center gap-2 px-6 py-2 rounded-full bg-gradient-to-r from-accent-gold via-accent-flame to-accent-gold text-dark-900 font-black text-sm md:text-base lg:text-lg shadow-[0_4px_20px_rgba(255,215,0,0.6)] mb-2 relative z-20">
-                  <span className="text-xl">🎁</span>
-                  <span>БЕСПЛАТНО 7 ДНЕЙ</span>
-                  <span className="text-xl">🎁</span>
-                </div>
+
+                {/* Мелкий текст снизу */}
+                <p className="hero-fine-print mt-4 text-white/50 text-xs md:text-sm font-medium tracking-wide">
+                  Без привязки карты · Отмена в любой момент
+                </p>
               </div>
-              
-              {/* Кнопка действия */}
-              <div className="relative z-10 flex items-center gap-3 text-base md:text-lg lg:text-xl font-black drop-shadow-[0_3px_8px_rgba(255,107,53,0.7),0_0_20px_rgba(255,215,0,0.5)] opacity-95 group-hover:opacity-100 transition-opacity mt-2">
-                <span className="bg-gradient-to-r from-accent-gold via-accent-flame to-accent-gold bg-clip-text text-transparent animate-gradient bg-[length:200%_100%]">
-                  Зарегистрироваться
-                </span>
-                <span className="group-hover:translate-x-2 transition-transform duration-300 text-accent-flame drop-shadow-[0_0_15px_rgba(255,107,53,1)] text-2xl">→</span>
-              </div>
-              
-              {/* Профессиональные декоративные элементы - плавающие иконки блюд */}
-              {/* Плавающая иконка салата */}
-              <div className="absolute top-8 left-8 w-14 h-14 opacity-70 animate-float" style={{ animationDelay: '0s', animationDuration: '3s' }}>
-                <div className="w-full h-full rounded-full bg-gradient-to-br from-green-400/30 to-emerald-500/30 backdrop-blur-sm border-2 border-green-400/50 flex items-center justify-center shadow-[0_0_20px_rgba(34,197,94,0.4)]">
-                  <span className="text-2xl">🥗</span>
-                </div>
-              </div>
-              
-              {/* Плавающая иконка стейка */}
-              <div className="absolute top-12 right-12 w-16 h-16 opacity-70 animate-float" style={{ animationDelay: '1s', animationDuration: '4s' }}>
-                <div className="w-full h-full rounded-full bg-gradient-to-br from-red-400/30 to-rose-500/30 backdrop-blur-sm border-2 border-red-400/50 flex items-center justify-center shadow-[0_0_25px_rgba(239,68,68,0.4)]">
-                  <span className="text-3xl">🥩</span>
-                </div>
-              </div>
-              
-              {/* Плавающая иконка десерта */}
-              <div className="absolute bottom-8 left-12 w-14 h-14 opacity-70 animate-float" style={{ animationDelay: '2s', animationDuration: '3.5s' }}>
-                <div className="w-full h-full rounded-full bg-gradient-to-br from-yellow-400/30 to-amber-500/30 backdrop-blur-sm border-2 border-yellow-400/50 flex items-center justify-center shadow-[0_0_20px_rgba(250,204,21,0.4)]">
-                  <span className="text-2xl">🍰</span>
-                </div>
-              </div>
-              
-              {/* Плавающая иконка рыбы */}
-              <div className="absolute bottom-12 right-8 w-16 h-16 opacity-70 animate-float" style={{ animationDelay: '0.5s', animationDuration: '4.5s' }}>
-                <div className="w-full h-full rounded-full bg-gradient-to-br from-blue-400/30 to-cyan-500/30 backdrop-blur-sm border-2 border-blue-400/50 flex items-center justify-center shadow-[0_0_25px_rgba(59,130,246,0.4)]">
-                  <span className="text-3xl">🐟</span>
-                </div>
-              </div>
-              
-              {/* Плавающая иконка яйца (центр слева) */}
-              <div className="absolute top-1/2 left-6 transform -translate-y-1/2 w-12 h-12 opacity-60 animate-float" style={{ animationDelay: '1.5s', animationDuration: '3s' }}>
-                <div className="w-full h-full rounded-full bg-gradient-to-br from-orange-400/30 to-amber-500/30 backdrop-blur-sm border-2 border-orange-400/50 flex items-center justify-center shadow-[0_0_18px_rgba(251,146,60,0.4)]">
-                  <span className="text-xl">🍳</span>
-                </div>
-              </div>
-              
-              {/* Плавающая иконка креветок (центр справа) */}
-              <div className="absolute top-1/2 right-6 transform -translate-y-1/2 w-12 h-12 opacity-60 animate-float" style={{ animationDelay: '2.5s', animationDuration: '3.5s' }}>
-                <div className="w-full h-full rounded-full bg-gradient-to-br from-pink-400/30 to-rose-500/30 backdrop-blur-sm border-2 border-pink-400/50 flex items-center justify-center shadow-[0_0_18px_rgba(244,114,182,0.4)]">
-                  <span className="text-xl">🦐</span>
-                </div>
-              </div>
-              
+
+              {/* Угловые акценты */}
+              <div className="absolute top-4 left-4 w-8 h-8 border-t-2 border-l-2 border-[#ffd700]/60 rounded-tl-xl z-20 pointer-events-none" />
+              <div className="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-[#ffd700]/60 rounded-tr-xl z-20 pointer-events-none" />
+              <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-[#ffd700]/60 rounded-bl-xl z-20 pointer-events-none" />
+              <div className="absolute bottom-4 right-4 w-8 h-8 border-b-2 border-r-2 border-[#ffd700]/60 rounded-br-xl z-20 pointer-events-none" />
             </Link>
           </div>
         </section>
