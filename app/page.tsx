@@ -184,8 +184,18 @@ export default function HomePage() {
                 </div>
 
                 {/* Мелкий текст снизу */}
-                <p className="hero-fine-print mt-4 text-white/50 text-xs md:text-sm font-medium tracking-wide">
-                  Без привязки карты · Отмена в любой момент
+                <p className="hero-fine-print mt-4 text-xs md:text-sm font-semibold tracking-wide"
+                  style={{
+                    background: 'linear-gradient(90deg, #ffd700, #ffb347, #ffd700)',
+                    backgroundSize: '200% auto',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    animation: 'hero-gradient-shift 4s linear infinite',
+                    opacity: 0.85,
+                  }}
+                >
+                  ✓ Без привязки карты &nbsp;·&nbsp; ✓ Отмена в любой момент
                 </p>
               </div>
 
