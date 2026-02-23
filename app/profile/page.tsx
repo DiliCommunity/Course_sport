@@ -89,6 +89,7 @@ export default function ProfilePage() {
   const [isMyCoursesModalOpen, setIsMyCoursesModalOpen] = useState(false)
   const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
   const [isReferralModalOpen, setIsReferralModalOpen] = useState(false)
+  const [freeTrialFallback, setFreeTrialFallback] = useState<ProfileData['freeTrial'] | null>(null)
 
   // Проверяем авторизацию ТОЛЬКО по наличию сессии (authUser), не по данным Telegram
   const isAuthenticated = !!authUser
@@ -136,6 +137,28 @@ export default function ProfilePage() {
       setProfileData(data)
       setEditedEmail(data.user.email || '')
       setEditedPhone(data.user.phone || '')
+
+      // Если freeTrial не вернулся из профиля — запрашиваем отдельно
+      // (бывает когда auto-enable сработал позже через /apps)
+      if (!data.freeTrial) {
+        try {
+          const trialResp = await fetch('/api/access/free-trial', { credentials: 'include' })
+          if (trialResp.ok) {
+            const trialData = await trialResp.json()
+            if (trialData.hasFreeTrial && trialData.isActive) {
+              setFreeTrialFallback({
+                enabled: true,
+                isActive: true,
+                daysRemaining: trialData.daysRemaining,
+                hoursRemaining: trialData.hoursRemaining || 0,
+                startedAt: trialData.startedAt,
+                expiresAt: trialData.expiresAt,
+                apps: trialData.apps || [],
+              })
+            }
+          }
+        } catch {}
+      }
     } catch (err) {
       console.error('Profile fetch error:', err)
       setError(err instanceof Error ? err.message : 'Не удалось загрузить данные профиля')
@@ -564,14 +587,14 @@ export default function ProfilePage() {
         </div>
 
         {/* Free Trial Timer */}
-        {profileData.freeTrial && (
+        {(profileData.freeTrial || freeTrialFallback) && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
             className="mb-6"
           >
-            <FreeTrialTimer freeTrial={profileData.freeTrial} />
+            <FreeTrialTimer freeTrial={(profileData.freeTrial || freeTrialFallback)!} />
           </motion.div>
         )}
 
